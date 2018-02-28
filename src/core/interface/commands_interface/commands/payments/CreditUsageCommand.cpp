@@ -29,32 +29,37 @@ CreditUsageCommand::CreditUsageCommand(
                     "Error occurred while parsing 'Contractor UUID' token.");
     }
 
-    for (size_t i = NodeUUID::kHexSize+1; i < commandBuffer.length(); ++i) {
-        if (commandBuffer.at(i) == kTokensSeparator ||
-            commandBuffer.at(i) == kCommandsSeparator ||
-            i == commandBuffer.length()-1) {
+    size_t amountStartPos = NodeUUID::kHexSize+1;
+    size_t tokenSeparatorPos = commandBuffer.find(
+        kTokensSeparator,
+        amountStartPos);
+    try {
+        mAmount = TrustLineAmount(
+            commandBuffer.substr(
+                amountStartPos,
+                tokenSeparatorPos - amountStartPos));
 
-            try {
-                mAmount = TrustLineAmount(
-                    commandBuffer.substr(
-                        NodeUUID::kHexSize+1,
-                        i - NodeUUID::kHexSize-1));
+    } catch (...) {
+        throw ValueError(
+                "CreditUsageCommand: can't parse command. "
+                    "Error occurred while parsing 'Amount' token.");
+    }
+    if (mAmount == TrustLineAmount(0)) {
+        throw ValueError(
+                "CreditUsageCommand: can't parse command. "
+                    "Received 'Amount' can't be 0.");
+    }
 
-            } catch (...) {
-                throw ValueError(
-                        "CreditUsageCommand: can't parse command. "
-                            "Error occurred while parsing 'Amount' token.");
-            }
-
-            if (mAmount == TrustLineAmount(0)) {
-                throw ValueError(
-                        "CreditUsageCommand: can't parse command. "
-                            "Received 'Amount' can't be 0.");
-            }
-
-            // Command amount parsed well
-            break;
-        }
+    size_t equivalentStartPoint = tokenSeparatorPos + 1;
+    string equivalentStr = commandBuffer.substr(
+        equivalentStartPoint,
+        commandBuffer.size() - equivalentStartPoint - 1);
+    try {
+        mEquivalent = (uint32_t)std::stoul(equivalentStr);
+    } catch (...) {
+        throw ValueError(
+                "CreditUsageCommand: can't parse command. "
+                    "Error occurred while parsing  'equivalent' token.");
     }
 }
 
@@ -72,6 +77,11 @@ const NodeUUID& CreditUsageCommand::contractorUUID() const
 const TrustLineAmount& CreditUsageCommand::amount() const
 {
     return mAmount;
+}
+
+const SerializedEquivalent CreditUsageCommand::equivalent() const
+{
+    return mEquivalent;
 }
 
 CommandResult::SharedConst CreditUsageCommand::responseNoConsensus () const

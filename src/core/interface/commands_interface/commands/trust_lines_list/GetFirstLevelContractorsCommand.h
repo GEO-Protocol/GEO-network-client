@@ -18,8 +18,13 @@ public:
 
     static const string &identifier();
 
+    const SerializedEquivalent equivalent() const;
+
     CommandResult::SharedConst resultOk(
         string &neighbors) const;
+
+private:
+    SerializedEquivalent mEquivalent;
 
 };
 #endif //GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORSCOMMAND_H

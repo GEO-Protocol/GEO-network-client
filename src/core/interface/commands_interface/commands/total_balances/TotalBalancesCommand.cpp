@@ -8,47 +8,54 @@ TotalBalancesCommand::TotalBalancesCommand(
         uuid,
         identifier())
 {
-    const auto minCommandLength = 2;
+    const auto minCommandLength = 3;
     if (commandBuffer.size() < minCommandLength) {
-        throw ValueError("TotalBalancesCommand: "
-                             "Can't parse command. Received command is to short.");
+        throw ValueError(
+                "TotalBalancesCommand: can't parse command. "
+                    "Received command is to short.");
     }
     size_t tokenSeparatorPos = commandBuffer.find(kTokensSeparator);
     string gatewaysCountStr = commandBuffer.substr(
         0,
         tokenSeparatorPos);
-    if (gatewaysCountStr.at(0) == '-') {
-        throw ValueError("TotalBalancesCommand: "
-                             "Can't parse command. 'count gateways' token can't be negative.");
-    }
     try {
         mGatewaysCount = std::stoul(gatewaysCountStr);
     } catch (...) {
-        throw ValueError("TotalBalancesCommand: "
-                             "Can't parse command. Error occurred while parsing  'count gateways' token.");
+        throw ValueError(
+                "TotalBalancesCommand: can't parse command. "
+                    "Error occurred while parsing  'count gateways' token.");
     }
-    if (mGatewaysCount == 0) {
-        return;
-    }
-    mGateways.reserve(mGatewaysCount);
+
     size_t gatewayStartPoint = tokenSeparatorPos + 1;
-    for (size_t idx = 0; idx < mGatewaysCount; idx++) {
-        try {
-            string hexUUID = commandBuffer.substr(
-                gatewayStartPoint,
-                NodeUUID::kHexSize);
-            mGateways.push_back(
-                boost::lexical_cast<uuids::uuid>(
-                    hexUUID));
-            gatewayStartPoint += NodeUUID::kHexSize + 1;
-        } catch (...) {
-            throw ValueError("TotalBalancesCommand: "
-                                 "Can't parse command. Error occurred while parsing 'Gateway UUID' token.");
+    if (mGatewaysCount != 0) {
+        mGateways.reserve(mGatewaysCount);
+        for (size_t idx = 0; idx < mGatewaysCount; idx++) {
+            try {
+                string hexUUID = commandBuffer.substr(
+                    gatewayStartPoint,
+                    NodeUUID::kHexSize);
+                mGateways.push_back(
+                    boost::lexical_cast<uuids::uuid>(
+                        hexUUID));
+                gatewayStartPoint += NodeUUID::kHexSize + 1;
+            } catch (...) {
+                throw ValueError(
+                        "TotalBalancesCommand: can't parse command. "
+                            "Error occurred while parsing 'Gateway UUID' token.");
+            }
         }
     }
-    if (gatewayStartPoint + 1 < commandBuffer.length()) {
-        throw ValueError("TotalBalancesCommand: "
-                             "Can't parse command. Disparity between command count gateways and real count gateways.");
+
+    size_t equivalentStartPoint = gatewayStartPoint;
+    string equivalentStr = commandBuffer.substr(
+        equivalentStartPoint,
+        commandBuffer.size() - equivalentStartPoint - 1);
+    try {
+        mEquivalent = (uint32_t)std::stoul(equivalentStr);
+    } catch (...) {
+        throw ValueError(
+                "TotalBalancesCommand: can't parse command. "
+                    "Error occurred while parsing  'equivalent' token.");
     }
 }
 
@@ -61,6 +68,11 @@ const string &TotalBalancesCommand::identifier()
 const vector<NodeUUID>& TotalBalancesCommand::gateways() const
 {
     return mGateways;
+}
+
+const SerializedEquivalent TotalBalancesCommand::equivalent() const
+{
+    return mEquivalent;
 }
 
 CommandResult::SharedConst TotalBalancesCommand::resultOk(

@@ -10,25 +10,25 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
 {
     const auto minCommandLength = NodeUUID::kHexSize + 2;
     if (command.size() < minCommandLength) {
-        throw ValueError("InitiateMaxFlowCalculationFullyCommand::parse: "
-                             "Can't parse command. Received command is to short.");
+        throw ValueError(
+                "InitiateMaxFlowCalculationFullyCommand: can't parse command. "
+                    "Received command is to short.");
     }
+
     size_t tokenSeparatorPos = command.find(kTokensSeparator);
     string contractorsCountStr = command.substr(
         0,
         tokenSeparatorPos);
-    if (contractorsCountStr.at(0) == '-') {
-        throw ValueError("InitiateMaxFlowCalculationFullyCommand::parse: "
-                             "Can't parse command. 'count contractors' token can't be negative.");
-    }
     try {
         mContractorsCount = std::stoul(contractorsCountStr);
     } catch (...) {
-        throw ValueError("InitiateMaxFlowCalculationFullyCommand::parse: "
-                             "Can't parse command. Error occurred while parsing  'count contractors' token.");
+        throw ValueError(
+                "InitiateMaxFlowCalculationFullyCommand: can't parse command. "
+                    "Error occurred while parsing  'count contractors' token.");
     }
     mContractors.reserve(mContractorsCount);
     size_t contractorStartPoint = tokenSeparatorPos + 1;
+
     for (size_t idx = 0; idx < mContractorsCount; idx++) {
         try {
             string hexUUID = command.substr(
@@ -39,21 +39,23 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
                     hexUUID));
             contractorStartPoint += NodeUUID::kHexSize + 1;
         } catch (...) {
-            throw ValueError("InitiateMaxFlowCalculationFullyCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
+            throw ValueError(
+                    "InitiateMaxFlowCalculationFullyCommand: can't parse command. "
+                        "Error occurred while parsing 'Contractor UUID' token.");
         }
     }
-    if (contractorStartPoint + 1 < command.length()) {
-        throw ValueError("InitiateMaxFlowCalculationFullyCommand::parse: "
-                             "Can't parse command. Disparity between command count contractors and real count contractors.");
-    }
-}
 
-InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
-    BytesShared buffer) :
-    BaseUserCommand(identifier())
-{
-    deserializeFromBytes(buffer);
+    size_t equivalentStartPoint = contractorStartPoint;
+    string equivalentStr = command.substr(
+        equivalentStartPoint,
+        command.size() - equivalentStartPoint - 1);
+    try {
+        mEquivalent = (uint32_t)std::stoul(equivalentStr);
+    } catch (...) {
+        throw ValueError(
+                "InitiateMaxFlowCalculationFullyCommand: can't parse command. "
+                    "Error occurred while parsing  'equivalent' token.");
+    }
 }
 
 const string &InitiateMaxFlowCalculationFullyCommand::identifier()
@@ -67,8 +69,13 @@ const vector<NodeUUID>& InitiateMaxFlowCalculationFullyCommand::contractors() co
     return mContractors;
 }
 
+const SerializedEquivalent InitiateMaxFlowCalculationFullyCommand::equivalent() const
+{
+    return mEquivalent;
+}
+
 CommandResult::SharedConst InitiateMaxFlowCalculationFullyCommand::responseOk(
-        string &maxFlowAmount) const
+    string &maxFlowAmount) const
 {
     return CommandResult::SharedConst(
         new CommandResult(

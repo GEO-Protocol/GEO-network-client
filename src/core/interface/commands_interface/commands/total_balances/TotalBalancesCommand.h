@@ -18,12 +18,15 @@ public:
 
     const vector<NodeUUID> &gateways() const;
 
+    const SerializedEquivalent equivalent() const;
+
     CommandResult::SharedConst resultOk(
         string &totalBalancesStr) const;
 
 private:
     size_t mGatewaysCount;
     vector<NodeUUID> mGateways;
+    SerializedEquivalent mEquivalent;
 };
 
 

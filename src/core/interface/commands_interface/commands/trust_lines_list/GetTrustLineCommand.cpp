@@ -9,11 +9,12 @@ GetTrustLineCommand::GetTrustLineCommand(
         identifier())
 {
     // This command does not requires any parameters. Command UUID and Identifier are parsed separately
-    const auto minCommandLength = NodeUUID::kHexSize + 1;
+    const auto minCommandLength = NodeUUID::kHexSize + 2;
 
     if (commandBuffer.size() < minCommandLength) {
-        throw ValueError("GetTrustLineCommand::parse: "
-                             "Can't parse command. Received command is to short.");
+        throw ValueError(
+                "GetTrustLineCommand: can't parse command. "
+                    "Received command is to short.");
     }
 
     try {
@@ -23,8 +24,21 @@ GetTrustLineCommand::GetTrustLineCommand(
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {
-        throw ValueError("GetTrustLineCommand::parse: "
-                             "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
+        throw ValueError(
+                "GetTrustLineCommand: can't parse command. "
+                    "Error occurred while parsing 'Contractor UUID' token.");
+    }
+
+    size_t equivalentOffset = NodeUUID::kHexSize + 1;
+    string equivalentStr = commandBuffer.substr(
+        equivalentOffset,
+        commandBuffer.size() - equivalentOffset - 1);
+    try {
+        mEquivalent = (uint32_t)std::stoul(equivalentStr);
+    } catch (...) {
+        throw ValueError(
+                "GetTrustLineCommand: can't parse command. "
+                    "Error occurred while parsing  'equivalent' token.");
     }
 }
 
@@ -47,4 +61,9 @@ CommandResult::SharedConst GetTrustLineCommand::resultOk(
 NodeUUID GetTrustLineCommand::contractorUUID()
 {
     return mContractorUUID;
+}
+
+const SerializedEquivalent GetTrustLineCommand::equivalent() const
+{
+    return mEquivalent;
 }

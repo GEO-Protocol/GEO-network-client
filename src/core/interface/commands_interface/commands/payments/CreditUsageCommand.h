@@ -26,6 +26,8 @@ public:
 
     const NodeUUID& contractorUUID() const;
 
+    const SerializedEquivalent equivalent() const;
+
 public:
     // Results handlers
     CommandResult::SharedConst responseNoConsensus() const;
@@ -35,6 +37,7 @@ public:
 private:
     NodeUUID mContractorUUID;
     TrustLineAmount mAmount;
+    SerializedEquivalent mEquivalent;
 };
 
 #endif //GEO_NETWORK_CLIENT_CREDITUSAGECOMMAND_H

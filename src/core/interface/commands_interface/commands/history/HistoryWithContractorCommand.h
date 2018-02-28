@@ -25,10 +25,13 @@ public:
 
     const NodeUUID& contractorUUID() const;
 
+    const SerializedEquivalent equivalent() const;
+
 private:
     size_t mHistoryFrom;
     size_t mHistoryCount;
     NodeUUID mContractorUUID;
+    SerializedEquivalent mEquivalent;
 };
 
 

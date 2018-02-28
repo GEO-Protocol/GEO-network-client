@@ -108,7 +108,7 @@ CommandResult::SharedConst BaseUserCommand::responseProtocolError() const
     return makeResult(401);
 }
 
-CommandResult::SharedConst BaseUserCommand::responseTrustlineIsAbsent() const
+CommandResult::SharedConst BaseUserCommand::responseTrustLineIsAbsent() const
     noexcept
 {
     return makeResult(405);
@@ -120,13 +120,13 @@ CommandResult::SharedConst BaseUserCommand::responseCurrentIncomingDebtIsGreater
     return makeResult(406);
 }
 
-CommandResult::SharedConst BaseUserCommand::responseTrustlineIsAlreadyPresent() const
+CommandResult::SharedConst BaseUserCommand::responseTrustLineIsAlreadyPresent() const
     noexcept
 {
     return makeResult(409);
 }
 
-CommandResult::SharedConst BaseUserCommand::responseTrustlineRejected() const
+CommandResult::SharedConst BaseUserCommand::responseTrustLineRejected() const
 {
     return makeResult(402);
 }

@@ -40,6 +40,8 @@ public:
 
     const bool isHighBoundaryAmountPresent() const;
 
+    const SerializedEquivalent equivalent() const;
+
 private:
     string kNullParameter = "null";
 
@@ -52,8 +54,9 @@ private:
     bool mIsTimeToPresent;
     TrustLineAmount mLowBoundaryAmount;
     TrustLineAmount mHighBoundaryAmount;
-    bool mIsLowBoundartAmountPresent;
+    bool mIsLowBoundaryAmountPresent;
     bool mIsHighBoundaryAmountPresent;
+    SerializedEquivalent mEquivalent;
 };
 
 #endif //GEO_NETWORK_CLIENT_HISTORYADDTIONALPAYMENTSCOMMAND_H

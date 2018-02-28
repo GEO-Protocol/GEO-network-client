@@ -10,22 +10,20 @@ InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
 {
     const auto minCommandLength = NodeUUID::kHexSize + 2;
     if (command.size() < minCommandLength) {
-        throw ValueError("InitiateMaxFlowCalculationCommand::parse: "
-                             "Can't parse command. Received command is to short.");
+        throw ValueError(
+                "InitiateMaxFlowCalculationCommand: can't parse command. "
+                    "Received command is to short.");
     }
     size_t tokenSeparatorPos = command.find(kTokensSeparator);
     string contractorsCountStr = command.substr(
         0,
         tokenSeparatorPos);
-    if (contractorsCountStr.at(0) == '-') {
-        throw ValueError("InitiateMaxFlowCalculationCommand::parse: "
-                             "Can't parse command. 'count contractors' token can't be negative.");
-    }
     try {
         mContractorsCount = std::stoul(contractorsCountStr);
     } catch (...) {
-        throw ValueError("InitiateMaxFlowCalculationCommand::parse: "
-                             "Can't parse command. Error occurred while parsing  'count contractors' token.");
+        throw ValueError(
+                "InitiateMaxFlowCalculationCommand: can't parse command. "
+                    "Error occurred while parsing  'count contractors' token.");
     }
     mContractors.reserve(mContractorsCount);
     size_t contractorStartPoint = tokenSeparatorPos + 1;
@@ -39,13 +37,22 @@ InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
                     hexUUID));
             contractorStartPoint += NodeUUID::kHexSize + 1;
         } catch (...) {
-            throw ValueError("InitiateMaxFlowCalculationCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
+            throw ValueError(
+                    "InitiateMaxFlowCalculationCommand: can't parse command. "
+                        "Error occurred while parsing 'Contractor UUID' token.");
         }
     }
-    if (contractorStartPoint + 1 < command.length()) {
-        throw ValueError("InitiateMaxFlowCalculationCommand::parse: "
-                             "Can't parse command. Disparity between command count contractors and real count contractors.");
+
+    size_t equivalentStartPoint = contractorStartPoint;
+    string equivalentStr = command.substr(
+        equivalentStartPoint,
+        command.size() - equivalentStartPoint - 1);
+    try {
+        mEquivalent = (uint32_t)std::stoul(equivalentStr);
+    } catch (...) {
+        throw ValueError(
+                "InitiateMaxFlowCalculationFullyCommand: can't parse command. "
+                    "Error occurred while parsing  'equivalent' token.");
     }
 }
 
@@ -58,6 +65,11 @@ const string &InitiateMaxFlowCalculationCommand::identifier()
 const vector<NodeUUID>& InitiateMaxFlowCalculationCommand::contractors() const
 {
     return mContractors;
+}
+
+const SerializedEquivalent InitiateMaxFlowCalculationCommand::equivalent() const
+{
+    return mEquivalent;
 }
 
 CommandResult::SharedConst InitiateMaxFlowCalculationCommand::responseOk(

@@ -10,23 +10,21 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
 {
     const auto minCommandLength = NodeUUID::kHexSize + 5;
     if (commandBuffer.size() < minCommandLength) {
-        throw ValueError("HistoryWithContractorCommand::parse: "
-                             "Can't parse command. Received command is to short.");
+        throw ValueError(
+                "HistoryWithContractorCommand: can't parse command. "
+                    "Received command is to short.");
     }
     size_t tokenSeparatorPos = commandBuffer.find(
         kTokensSeparator);
     string historyFromStr = commandBuffer.substr(
         0,
         tokenSeparatorPos);
-    if (historyFromStr.at(0) == '-') {
-        throw ValueError("HistoryWithContractorCommand::parse: "
-                             "Can't parse command. 'from' token can't be negative.");
-    }
     try {
         mHistoryFrom = std::stoul(historyFromStr);
     } catch (...) {
-        throw ValueError("HistoryWithContractorCommand::parse: "
-                             "Can't parse command. Error occurred while parsing  'from' token.");
+        throw ValueError(
+                "HistoryWithContractorCommand: can't parse command. "
+                    "Error occurred while parsing  'from' token.");
     }
 
     size_t nextTokenSeparatorPos = commandBuffer.find(
@@ -35,15 +33,12 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
     string historyCountStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    if (historyCountStr.at(0) == '-') {
-        throw ValueError("HistoryWithContractorCommand::parse: "
-                             "Can't parse command. 'count' token can't be negative.");
-    }
     try {
         mHistoryCount = std::stoul(historyCountStr);
     } catch (...) {
-        throw ValueError("HistoryWithContractorCommand::parse: "
-                             "Can't parse command. Error occurred while parsing 'count' token.");
+        throw ValueError(
+                "HistoryWithContractorCommand: can't parse command. "
+                    "Error occurred while parsing 'count' token.");
     }
 
     tokenSeparatorPos = nextTokenSeparatorPos;
@@ -53,13 +48,22 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
             NodeUUID::kHexSize);
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
     } catch (...) {
-        throw ValueError("HistoryWithContractorCommand::parse: "
-                             "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
+        throw ValueError(
+                "HistoryWithContractorCommand: can't parse command. "
+                    "Error occurred while parsing 'Contractor UUID' token.");
     }
-    nextTokenSeparatorPos = tokenSeparatorPos + NodeUUID::kHexSize + 1;
-    if (nextTokenSeparatorPos + 1 < commandBuffer.length()) {
-        throw ValueError("HistoryWithContractorCommand::parse: "
-                             "Can't parse command. Command contains extra characters");
+
+    tokenSeparatorPos = tokenSeparatorPos + NodeUUID::kHexSize;
+    nextTokenSeparatorPos = commandBuffer.size() - 1;
+    string equivalentStr = commandBuffer.substr(
+        tokenSeparatorPos + 1,
+        nextTokenSeparatorPos - tokenSeparatorPos - 1);
+    try {
+        mEquivalent = (uint32_t)std::stoul(equivalentStr);
+    } catch (...) {
+        throw ValueError(
+                "HistoryWithContractorCommand: can't parse command. "
+                    "Error occurred while parsing 'equivalent' token.");
     }
 }
 
@@ -82,6 +86,11 @@ const size_t HistoryWithContractorCommand::historyCount() const
 const NodeUUID& HistoryWithContractorCommand::contractorUUID() const
 {
     return mContractorUUID;
+}
+
+const SerializedEquivalent HistoryWithContractorCommand::equivalent() const
+{
+    return mEquivalent;
 }
 
 CommandResult::SharedConst HistoryWithContractorCommand::resultOk(

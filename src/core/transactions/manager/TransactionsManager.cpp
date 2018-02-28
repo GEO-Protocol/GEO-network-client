@@ -435,7 +435,7 @@ void TransactionsManager::processMessage(
 void TransactionsManager::launchSetOutgoingTrustLineTransaction(
     SetOutgoingTrustLineCommand::Shared command)
 {
-    SerializedEquivalent equivalent = 0;
+    SerializedEquivalent equivalent = command->equivalent();
     auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
     auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
@@ -458,7 +458,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
 void TransactionsManager::launchCloseIncomingTrustLineTransaction(
     CloseIncomingTrustLineCommand::Shared command)
 {
-    SerializedEquivalent equivalent = 0;
+    SerializedEquivalent equivalent = command->equivalent();
     auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
     auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
@@ -569,7 +569,7 @@ void TransactionsManager::launchRejectOutgoingTrustLineTransaction(
 void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
     InitiateMaxFlowCalculationCommand::Shared command)
 {
-    SerializedEquivalent equivalent = 0;
+    SerializedEquivalent equivalent = command->equivalent();
     auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     auto topologyTrustLinesManager = mEquivalentsSubsystemsRouter->topologyTrustLineManager(equivalent);
     auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
@@ -600,7 +600,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
 void TransactionsManager::launchMaxFlowCalculationFullyTransaction(
     InitiateMaxFlowCalculationFullyCommand::Shared command)
 {
-    SerializedEquivalent equivalent = 0;
+    SerializedEquivalent equivalent = command->equivalent();
     auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     auto topologyTrustLinesManager = mEquivalentsSubsystemsRouter->topologyTrustLineManager(equivalent);
     auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
@@ -808,7 +808,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
 void TransactionsManager::launchCoordinatorPaymentTransaction(
     CreditUsageCommand::Shared command)
 {
-    SerializedEquivalent equivalent = 0;
+    SerializedEquivalent equivalent = command->equivalent();
     auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
     auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
@@ -1129,7 +1129,7 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(
 void TransactionsManager::launchTotalBalancesTransaction(
     TotalBalancesCommand::Shared command)
 {
-    SerializedEquivalent equivalent = 0;
+    SerializedEquivalent equivalent = command->equivalent();
     auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
@@ -1153,6 +1153,7 @@ void TransactionsManager::launchTotalBalancesTransaction(
 void TransactionsManager::launchHistoryPaymentsTransaction(
     HistoryPaymentsCommand::Shared command)
 {
+    SerializedEquivalent equivalent = command->equivalent();
     try {
         prepareAndSchedule(
             make_shared<HistoryPaymentsTransaction>(
@@ -1171,6 +1172,7 @@ void TransactionsManager::launchHistoryPaymentsTransaction(
 void TransactionsManager::launchAdditionalHistoryPaymentsTransaction(
     HistoryAdditionalPaymentsCommand::Shared command)
 {
+    SerializedEquivalent equivalent = command->equivalent();
     try {
         prepareAndSchedule(
             make_shared<HistoryAdditionalPaymentsTransaction>(
@@ -1194,6 +1196,7 @@ void TransactionsManager::launchAdditionalHistoryPaymentsTransaction(
 void TransactionsManager::launchHistoryTrustLinesTransaction(
     HistoryTrustLinesCommand::Shared command)
 {
+    SerializedEquivalent equivalent = command->equivalent();
     try {
         prepareAndSchedule(
             make_shared<HistoryTrustLinesTransaction>(
@@ -1216,6 +1219,7 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(
 void TransactionsManager::launchHistoryWithContractorTransaction(
     HistoryWithContractorCommand::Shared command)
 {
+    SerializedEquivalent equivalent = command->equivalent();
     try {
         prepareAndSchedule(
             make_shared<HistoryWithContractorTransaction>(
@@ -1234,7 +1238,7 @@ void TransactionsManager::launchHistoryWithContractorTransaction(
 void TransactionsManager::launchGetFirstLevelContractorsTransaction(
     GetFirstLevelContractorsCommand::Shared command)
 {
-    SerializedEquivalent equivalent = 0;
+    SerializedEquivalent equivalent = command->equivalent();
     auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
@@ -1255,7 +1259,7 @@ void TransactionsManager::launchGetFirstLevelContractorsTransaction(
 void TransactionsManager::launchGetTrustLinesTransaction(
     GetTrustLinesCommand::Shared command)
 {
-    SerializedEquivalent equivalent = 0;
+    SerializedEquivalent equivalent = command->equivalent();
     auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
@@ -1276,7 +1280,7 @@ void TransactionsManager::launchGetTrustLinesTransaction(
 void TransactionsManager::launchGetTrustLineTransaction(
     GetTrustLineCommand::Shared command)
 {
-    SerializedEquivalent equivalent = 0;
+    SerializedEquivalent equivalent = command->equivalent();
     auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(

@@ -10,23 +10,21 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
 {
     const auto minCommandLength = 17;
     if (commandBuffer.size() < minCommandLength) {
-        throw ValueError("HistoryPaymentsCommand::parse: "
-                             "Can't parse command. Received command is to short.");
+        throw ValueError(
+                "HistoryPaymentsCommand: can't parse command. "
+                    "Received command is to short.");
     }
     size_t tokenSeparatorPos = commandBuffer.find(
         kTokensSeparator);
     string historyFromStr = commandBuffer.substr(
         0,
         tokenSeparatorPos);
-    if (historyFromStr.at(0) == '-') {
-        throw ValueError("HistoryPaymentsCommand::parse: "
-                             "Can't parse command. 'from' token can't be negative.");
-    }
     try {
         mHistoryFrom = std::stoul(historyFromStr);
     } catch (...) {
-        throw ValueError("HistoryPaymentsCommand::parse: "
-                             "Can't parse command. Error occurred while parsing  'from' token.");
+        throw ValueError(
+                "HistoryPaymentsCommand: can't parse command. "
+                    "Error occurred while parsing  'from' token.");
     }
 
     size_t nextTokenSeparatorPos = commandBuffer.find(
@@ -35,15 +33,12 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
     string historyCountStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    if (historyCountStr.at(0) == '-') {
-        throw ValueError("HistoryPaymentsCommand::parse: "
-                             "Can't parse command. 'count' token can't be negative.");
-    }
     try {
         mHistoryCount = std::stoul(historyCountStr);
     } catch (...) {
-        throw ValueError("HistoryPaymentsCommand::parse: "
-                             "Can't parse command. Error occurred while parsing 'count' token.");
+        throw ValueError(
+                "HistoryPaymentsCommand: can't parse command. "
+                    "Error occurred while parsing 'count' token.");
     }
 
     tokenSeparatorPos = nextTokenSeparatorPos;
@@ -62,8 +57,9 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
             mTimeFrom = pt::time_from_string("1970-01-01 00:00:00.000");
             mTimeFrom += pt::microseconds(timeFrom);
         } catch (...) {
-            throw ValueError("HistoryPaymentsCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'timeFrom' token.");
+            throw ValueError(
+                    "HistoryPaymentsCommand: can't parse command. "
+                        "Error occurred while parsing 'timeFrom' token.");
         }
     }
 
@@ -83,8 +79,9 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
             mTimeTo = pt::time_from_string("1970-01-01 00:00:00.000");
             mTimeTo += pt::microseconds(timeTo);
         } catch (...) {
-            throw ValueError("HistoryPaymentsCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'timeTo' token.");
+            throw ValueError(
+                    "HistoryPaymentsCommand: can't parse command. "
+                        "Error occurred while parsing 'timeTo' token.");
         }
     }
 
@@ -103,8 +100,9 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
             mLowBoundaryAmount = TrustLineAmount(
                     lowBoundaryAmountStr);
         } catch (...) {
-            throw ValueError("HistoryPaymentsCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'lowBoundaryAmount' token.");
+            throw ValueError(
+                    "HistoryPaymentsCommand: can't parse command. "
+                        "Error occurred while parsing 'lowBoundaryAmount' token.");
         }
     }
 
@@ -121,15 +119,18 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         mIsHighBoundaryAmountPresent = true;
         try {
             mHighBoundaryAmount = TrustLineAmount(
-                    highBoundaryAmountStr);
+                highBoundaryAmountStr);
         } catch (...) {
-            throw ValueError("HistoryPaymentsCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'mHighBoundaryAmount' token.");
+            throw ValueError(
+                    "HistoryPaymentsCommand: can't parse command. "
+                        "Error occurred while parsing 'mHighBoundaryAmount' token.");
         }
     }
 
     tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = commandBuffer.size() - 1;
+    nextTokenSeparatorPos = commandBuffer.find(
+        kTokensSeparator,
+        tokenSeparatorPos + 1);
     string paymentRecordCommandUUIDStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
@@ -140,10 +141,24 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         try {
             mPaymentRecordCommandUUID = boost::lexical_cast<uuids::uuid>(paymentRecordCommandUUIDStr);
         } catch (...) {
-            throw ValueError("HistoryPaymentsCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'mPaymentRecordCommandUUID' token.");
+            throw ValueError(
+                    "HistoryPaymentsCommand: can't parse command. "
+                        "Error occurred while parsing 'mPaymentRecordCommandUUID' token.");
         }
     }
+
+    tokenSeparatorPos = nextTokenSeparatorPos;
+    nextTokenSeparatorPos = commandBuffer.size() - 1;
+    string equivalentStr = commandBuffer.substr(
+        tokenSeparatorPos + 1,
+        nextTokenSeparatorPos - tokenSeparatorPos - 1);
+    try {
+        mEquivalent = (uint32_t)std::stoul(equivalentStr);
+    } catch (...) {
+        throw ValueError(
+                "HistoryPaymentsCommand: can't parse command. "
+                    "Error occurred while parsing 'equivalent' token.");
+        }
 }
 
 const string &HistoryPaymentsCommand::identifier()
@@ -210,6 +225,11 @@ const CommandUUID& HistoryPaymentsCommand::paymentRecordCommandUUID() const
 const bool HistoryPaymentsCommand::isPaymentRecordCommandUUIDPresent() const
 {
     return mIsPaymentRecordCommandUUIDPresent;
+}
+
+const SerializedEquivalent HistoryPaymentsCommand::equivalent() const
+{
+    return mEquivalent;
 }
 
 CommandResult::SharedConst HistoryPaymentsCommand::resultOk(string &historyPaymentsStr) const

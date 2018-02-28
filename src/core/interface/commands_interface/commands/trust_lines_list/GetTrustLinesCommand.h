@@ -19,11 +19,13 @@ public:
 
     static const string &identifier();
 
+    const SerializedEquivalent equivalent() const;
+
     CommandResult::SharedConst resultOk(
         string &neighbors) const;
 
-protected:
-    void parse(const string &command);
+private:
+    SerializedEquivalent mEquivalent;
 };
 
 #endif //GEO_NETWORK_CLIENT_FIRSTLEVELCONTRACTORSBALANCESCOMMAND_H

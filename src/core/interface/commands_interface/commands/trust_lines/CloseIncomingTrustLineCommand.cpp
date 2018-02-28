@@ -25,6 +25,18 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
             "CloseIncomingTrustLineCommand: can't parse command. "
                     "Error occurred while parsing 'Contractor UUID' token.");
     }
+
+    size_t equivalentOffset = NodeUUID::kHexSize + 1;
+    string equivalentStr = command.substr(
+        equivalentOffset,
+        command.size() - equivalentOffset - 1);
+    try {
+        mEquivalent = (uint32_t)std::stoul(equivalentStr);
+    } catch (...) {
+        throw ValueError(
+                "CloseIncomingTrustLineCommand: can't parse command. "
+                    "Error occurred while parsing  'equivalent' token.");
+    }
 }
 
 const string &CloseIncomingTrustLineCommand::identifier()
@@ -38,4 +50,10 @@ const NodeUUID &CloseIncomingTrustLineCommand::contractorUUID() const
     noexcept
 {
     return mContractorUUID;
+}
+
+const SerializedEquivalent CloseIncomingTrustLineCommand::equivalent() const
+    noexcept
+{
+    return mEquivalent;
 }

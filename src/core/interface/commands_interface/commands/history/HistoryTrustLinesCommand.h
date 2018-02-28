@@ -32,6 +32,8 @@ public:
 
     const bool isTimeToPresent() const;
 
+    const SerializedEquivalent equivalent() const;
+
 private:
     string kNullParameter = "null";
 
@@ -42,6 +44,7 @@ private:
     DateTime mTimeTo;
     bool mIsTimeFromPresent;
     bool mIsTimeToPresent;
+    SerializedEquivalent mEquivalent;
 };
 
 

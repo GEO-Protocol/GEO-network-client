@@ -13,12 +13,11 @@ public:
         const CommandUUID &uuid,
         const string &commandBuffer);
 
-    InitiateMaxFlowCalculationFullyCommand(
-        BytesShared buffer);
-
     static const string &identifier();
 
     const vector<NodeUUID> &contractors() const;
+
+    const SerializedEquivalent equivalent() const;
 
     CommandResult::SharedConst responseOk(
         string &maxFlowAmount) const;
@@ -26,6 +25,7 @@ public:
 private:
     size_t mContractorsCount;
     vector<NodeUUID> mContractors;
+    SerializedEquivalent mEquivalent;
 };
 
 

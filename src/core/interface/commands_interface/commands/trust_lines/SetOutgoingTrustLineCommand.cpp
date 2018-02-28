@@ -28,20 +28,31 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
             "Error occurred while parsing 'Contractor UUID' token.");
     }
 
+    size_t tokenSeparatorPos = command.find(
+            kTokensSeparator,
+            amountTokenOffset);
     try {
-        for (size_t commandSeparatorPosition = amountTokenOffset; commandSeparatorPosition < command.length(); ++commandSeparatorPosition) {
-            if (command.at(commandSeparatorPosition) == kCommandsSeparator) {
-                mAmount = TrustLineAmount(
-                    command.substr(
-                        amountTokenOffset,
-                        commandSeparatorPosition - amountTokenOffset));
-            }
-        }
+        mAmount = TrustLineAmount(
+            command.substr(
+                amountTokenOffset,
+                tokenSeparatorPos - amountTokenOffset));
 
     } catch (...) {
         throw ValueError(
-            "SetTrustLineCommand: can't parse command. "
-            "Error occurred while parsing 'New amount' token.");
+                "SetTrustLineCommand: can't parse command. "
+                    "Error occurred while parsing 'New amount' token.");
+    }
+
+    size_t equivalentOffset = tokenSeparatorPos + 1;
+    string equivalentStr = command.substr(
+        equivalentOffset,
+        command.size() - equivalentOffset - 1);
+    try {
+        mEquivalent = (uint32_t)std::stoul(equivalentStr);
+    } catch (...) {
+        throw ValueError(
+                "SetTrustLineCommand: can't parse command. "
+                    "Error occurred while parsing  'equivalent' token.");
     }
 }
 
@@ -62,4 +73,10 @@ const TrustLineAmount &SetOutgoingTrustLineCommand::amount() const
     noexcept
 {
     return mAmount;
+}
+
+const SerializedEquivalent SetOutgoingTrustLineCommand::equivalent() const
+    noexcept
+{
+    return mEquivalent;
 }

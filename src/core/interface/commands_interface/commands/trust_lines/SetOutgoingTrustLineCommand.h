@@ -36,9 +36,13 @@ public:
     const TrustLineAmount &amount() const
         noexcept;
 
+    const SerializedEquivalent equivalent() const
+        noexcept;
+
 private:
     NodeUUID mContractorUUID;
     TrustLineAmount mAmount;
+    SerializedEquivalent mEquivalent;
 };
 
 

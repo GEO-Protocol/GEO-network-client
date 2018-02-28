@@ -21,11 +21,14 @@ public:
 
     NodeUUID contractorUUID();
 
+    const SerializedEquivalent equivalent() const;
+
     CommandResult::SharedConst resultOk(
         string &neighbor) const;
 
 protected:
     NodeUUID mContractorUUID;
+    SerializedEquivalent mEquivalent;
 };
 
 #endif //GEO_NETWORK_CLIENT_GETTRUSTLINECOMMAND_H

@@ -10,23 +10,21 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
 {
     const auto minCommandLength = 13;
     if (commandBuffer.size() < minCommandLength) {
-        throw ValueError("HistoryTrustLinesCommand::parse: "
-                             "Can't parse command. Received command is to short.");
+        throw ValueError(
+                "HistoryTrustLinesCommand: can't parse command. "
+                    "Received command is to short.");
     }
     size_t tokenSeparatorPos = commandBuffer.find(
         kTokensSeparator);
     string historyFromStr = commandBuffer.substr(
         0,
         tokenSeparatorPos);
-    if (historyFromStr.at(0) == '-') {
-        throw ValueError("HistoryTrustLinesCommand::parse: "
-                             "Can't parse command. 'from' token can't be negative.");
-    }
     try {
         mHistoryFrom = std::stoul(historyFromStr);
     } catch (...) {
-        throw ValueError("HistoryTrustLinesCommand::parse: "
-                             "Can't parse command. Error occurred while parsing  'from' token.");
+        throw ValueError(
+                "HistoryTrustLinesCommand: can't parse command. "
+                    "Error occurred while parsing  'from' token.");
     }
 
     size_t nextTokenSeparatorPos = commandBuffer.find(
@@ -35,15 +33,12 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
     string historyCountStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    if (historyCountStr.at(0) == '-') {
-        throw ValueError("HistoryTrustLinesCommand::parse: "
-                             "Can't parse command. 'count' token can't be negative.");
-    }
     try {
         mHistoryCount = std::stoul(historyCountStr);
     } catch (...) {
-        throw ValueError("HistoryTrustLinesCommand::parse: "
-                             "Can't parse command. Error occurred while parsing 'count' token.");
+        throw ValueError(
+                "HistoryTrustLinesCommand: can't parse command. "
+                    "Error occurred while parsing 'count' token.");
     }
     tokenSeparatorPos = nextTokenSeparatorPos;
     nextTokenSeparatorPos = commandBuffer.find(
@@ -61,13 +56,16 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
             mTimeFrom = pt::time_from_string("1970-01-01 00:00:00.000");
             mTimeFrom += pt::microseconds(timeFrom);
         } catch (...) {
-            throw ValueError("HistoryTrustLinesCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'timeFrom' token.");
+            throw ValueError(
+                    "HistoryTrustLinesCommand: can't parse command. "
+                        "Error occurred while parsing 'timeFrom' token.");
         }
     }
 
     tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = commandBuffer.size() - 1;
+    nextTokenSeparatorPos = commandBuffer.find(
+        kTokensSeparator,
+        tokenSeparatorPos + 1);
     string timeToStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
@@ -80,9 +78,23 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
             mTimeTo = pt::time_from_string("1970-01-01 00:00:00.000");
             mTimeTo += pt::microseconds(timeTo);
         } catch (...) {
-            throw ValueError("HistoryTrustLinesCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'timeTo' token.");
+            throw ValueError(
+                    "HistoryTrustLinesCommand: can't parse command. "
+                        "Error occurred while parsing 'timeTo' token.");
         }
+    }
+
+    tokenSeparatorPos = nextTokenSeparatorPos;
+    nextTokenSeparatorPos = commandBuffer.size() - 1;
+    string equivalentStr = commandBuffer.substr(
+        tokenSeparatorPos + 1,
+        nextTokenSeparatorPos - tokenSeparatorPos - 1);
+    try {
+        mEquivalent = (uint32_t)std::stoul(equivalentStr);
+    } catch (...) {
+        throw ValueError(
+                "HistoryTrustLinesCommand: can't parse command. "
+                    "Error occurred while parsing 'equivalent' token.");
     }
 }
 
@@ -120,6 +132,11 @@ const bool HistoryTrustLinesCommand::isTimeFromPresent() const
 const bool HistoryTrustLinesCommand::isTimeToPresent() const
 {
     return mIsTimeToPresent;
+}
+
+const SerializedEquivalent HistoryTrustLinesCommand::equivalent() const
+{
+    return mEquivalent;
 }
 
 CommandResult::SharedConst HistoryTrustLinesCommand::resultOk(string &historyTrustLinesStr) const

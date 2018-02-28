@@ -11,23 +11,21 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
     const auto minCommandLength = 14;
 
     if (commandBuffer.size() < minCommandLength) {
-        throw ValueError("HistoryAdditionalPaymentsCommand::parse: "
-                             "Can't parse command. Received command is too short.");
+        throw ValueError(
+                "HistoryAdditionalPaymentsCommand: can't parse command. "
+                    "Received command is too short.");
     }
     size_t tokenSeparatorPos = commandBuffer.find(
         kTokensSeparator);
     string historyFromStr = commandBuffer.substr(
         0,
         tokenSeparatorPos);
-    if (historyFromStr.at(0) == '-') {
-        throw ValueError("HistoryAdditionalPaymentsCommand::parse: "
-                             "Can't parse command. 'from' token can't be negative.");
-    }
     try {
         mHistoryFrom = std::stoul(historyFromStr);
     } catch (...) {
-        throw ValueError("HistoryAdditionalPaymentsCommand::parse: "
-                             "Can't parse command. Error occurred while parsing  'from' token.");
+        throw ValueError(
+                "HistoryAdditionalPaymentsCommand: can't parse command. "
+                    "Error occurred while parsing  'from' token.");
     }
 
     size_t nextTokenSeparatorPos = commandBuffer.find(
@@ -36,15 +34,12 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
     string historyCountStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    if (historyCountStr.at(0) == '-') {
-        throw ValueError("HistoryAdditionalPaymentsCommand::parse: "
-                             "Can't parse command. 'count' token can't be negative.");
-    }
     try {
         mHistoryCount = std::stoul(historyCountStr);
     } catch (...) {
-        throw ValueError("HistoryAdditionalPaymentsCommand::parse: "
-                             "Can't parse command. Error occurred while parsing 'count' token.");
+        throw ValueError(
+                "HistoryAdditionalPaymentsCommand: can't parse command. "
+                    "Error occurred while parsing 'count' token.");
     }
 
     tokenSeparatorPos = nextTokenSeparatorPos;
@@ -63,8 +58,9 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
             mTimeFrom = pt::time_from_string("1970-01-01 00:00:00.000");
             mTimeFrom += pt::microseconds(timeFrom);
         } catch (...) {
-            throw ValueError("HistoryAdditionalPaymentsCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'timeFrom' token.");
+            throw ValueError(
+                    "HistoryAdditionalPaymentsCommand: can't parse command. "
+                        "Error occurred while parsing 'timeFrom' token.");
         }
     }
 
@@ -84,8 +80,9 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
             mTimeTo = pt::time_from_string("1970-01-01 00:00:00.000");
             mTimeTo += pt::microseconds(timeTo);
         } catch (...) {
-            throw ValueError("HistoryAdditionalPaymentsCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'timeTo' token.");
+            throw ValueError(
+                    "HistoryAdditionalPaymentsCommand: can't parse command. "
+                        "Error occurred while parsing 'timeTo' token.");
         }
     }
 
@@ -97,20 +94,23 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
     if (lowBoundaryAmountStr == kNullParameter) {
-        mIsLowBoundartAmountPresent = false;
+        mIsLowBoundaryAmountPresent = false;
     } else {
-        mIsLowBoundartAmountPresent = true;
+        mIsLowBoundaryAmountPresent = true;
         try {
             mLowBoundaryAmount = TrustLineAmount(
-                    lowBoundaryAmountStr);
+                lowBoundaryAmountStr);
         } catch (...) {
-            throw ValueError("HistoryAdditionalPaymentsCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'lowBoundaryAmount' token.");
+            throw ValueError(
+                    "HistoryAdditionalPaymentsCommand: can't parse command. "
+                        "Error occurred while parsing 'lowBoundaryAmount' token.");
         }
     }
 
     tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = commandBuffer.size() - 1;
+    nextTokenSeparatorPos = commandBuffer.find(
+        kTokensSeparator,
+        tokenSeparatorPos + 1);
     string highBoundaryAmountStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
@@ -121,11 +121,25 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
         mIsHighBoundaryAmountPresent = true;
         try {
             mHighBoundaryAmount = TrustLineAmount(
-                    highBoundaryAmountStr);
+                highBoundaryAmountStr);
         } catch (...) {
-            throw ValueError("HistoryAdditionalPaymentsCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'mHighBoundaryAmount' token.");
+            throw ValueError(
+                    "HistoryAdditionalPaymentsCommand: can't parse command. "
+                        "Error occurred while parsing 'mHighBoundaryAmount' token.");
         }
+    }
+
+    tokenSeparatorPos = nextTokenSeparatorPos;
+    nextTokenSeparatorPos = commandBuffer.size() - 1;
+    string equivalentStr = commandBuffer.substr(
+        tokenSeparatorPos + 1,
+        nextTokenSeparatorPos - tokenSeparatorPos - 1);
+    try {
+        mEquivalent = (uint32_t)std::stoul(equivalentStr);
+    } catch (...) {
+        throw ValueError(
+                "HistoryAdditionalPaymentsCommand: can't parse command. "
+                    "Error occurred while parsing 'equivalent' token.");
     }
 }
 
@@ -177,12 +191,17 @@ const TrustLineAmount& HistoryAdditionalPaymentsCommand::highBoundaryAmount() co
 
 const bool HistoryAdditionalPaymentsCommand::isLowBoundaryAmountPresent() const
 {
-    return mIsLowBoundartAmountPresent;
+    return mIsLowBoundaryAmountPresent;
 }
 
 const bool HistoryAdditionalPaymentsCommand::isHighBoundaryAmountPresent() const
 {
     return mIsHighBoundaryAmountPresent;
+}
+
+const SerializedEquivalent HistoryAdditionalPaymentsCommand::equivalent() const
+{
+    return mEquivalent;
 }
 
 CommandResult::SharedConst HistoryAdditionalPaymentsCommand::resultOk(string &historyPaymentsStr) const

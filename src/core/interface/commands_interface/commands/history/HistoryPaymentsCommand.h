@@ -44,6 +44,8 @@ public:
 
     const bool isPaymentRecordCommandUUIDPresent() const;
 
+    const SerializedEquivalent equivalent() const;
+
 private:
     string kNullParameter = "null";
 
@@ -60,6 +62,7 @@ private:
     bool mIsHighBoundaryAmountPresent;
     CommandUUID mPaymentRecordCommandUUID;
     bool mIsPaymentRecordCommandUUIDPresent;
+    SerializedEquivalent mEquivalent;
 };
 
 

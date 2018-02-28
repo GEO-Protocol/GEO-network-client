@@ -28,7 +28,7 @@ TransactionResult::SharedConst RemoveNodeFromBlackListTransaction::run() {
             ioTransaction->blackListHandler()->removeNodeFromBlackList(contractorNode);
             return transactionResultFromCommand(mCommand->responseOK());
         } else {
-            return transactionResultFromCommand(mCommand->responseTrustlineIsAbsent());
+            return transactionResultFromCommand(mCommand->responseTrustLineIsAbsent());
         }
     } catch (IOError &e){
         error() << e.what();

@@ -26,7 +26,7 @@ TransactionResult::SharedConst CheckIfNodeInBlackListTransaction::run() {
     if (kContractorNodesBanned){
         return transactionResultFromCommand(mCommand->responseOK());
     } else {
-        return transactionResultFromCommand(mCommand->responseTrustlineIsAbsent());
+        return transactionResultFromCommand(mCommand->responseTrustLineIsAbsent());
     }
 }
 

@@ -40,14 +40,14 @@ public:
         noexcept;
     CommandResult::SharedConst responseProtocolError() const
         noexcept;
-    CommandResult::SharedConst responseTrustlineIsAbsent() const
+    CommandResult::SharedConst responseTrustLineIsAbsent() const
         noexcept;
     CommandResult::SharedConst responseCurrentIncomingDebtIsGreaterThanNewAmount() const
         noexcept;
-    CommandResult::SharedConst responseTrustlineIsAlreadyPresent() const
+    CommandResult::SharedConst responseTrustLineIsAlreadyPresent() const
         noexcept;
 
-    CommandResult::SharedConst responseTrustlineRejected() const;
+    CommandResult::SharedConst responseTrustLineRejected() const;
 
     CommandResult::SharedConst responseInsufficientFunds() const
         noexcept;

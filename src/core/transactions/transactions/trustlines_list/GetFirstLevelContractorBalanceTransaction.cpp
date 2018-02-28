@@ -39,7 +39,7 @@ TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::run() 
 TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::resultTrustLineIsAbsent()
 {
     return transactionResultFromCommand(
-        mCommand->responseTrustlineIsAbsent());
+        mCommand->responseTrustLineIsAbsent());
 }
 
 const string GetFirstLevelContractorBalanceTransaction::logHeader() const

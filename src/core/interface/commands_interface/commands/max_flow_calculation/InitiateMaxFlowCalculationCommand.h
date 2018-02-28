@@ -19,12 +19,15 @@ public:
 
     const vector<NodeUUID> &contractors() const;
 
+    const SerializedEquivalent equivalent() const;
+
     CommandResult::SharedConst responseOk(
         string &maxFlowAmount) const;
 
 private:
     size_t mContractorsCount;
     vector<NodeUUID> mContractors;
+    SerializedEquivalent mEquivalent;
 };
 
 
