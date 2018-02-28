@@ -4,7 +4,7 @@ MaxFlowCalculationFullyTransaction::MaxFlowCalculationFullyTransaction(
     const NodeUUID &nodeUUID,
     const InitiateMaxFlowCalculationFullyCommand::Shared command,
     TrustLinesManager *trustLinesManager,
-    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     Logger &logger) :

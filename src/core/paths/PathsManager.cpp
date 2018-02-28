@@ -1,11 +1,13 @@
 #include "PathsManager.h"
 
 PathsManager::PathsManager(
+    const SerializedEquivalent equivalent,
     const NodeUUID &nodeUUID,
     TrustLinesManager *trustLinesManager,
-    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyTrustLinesManager *topologyTrustLineManager,
     Logger &logger):
 
+    mEquivalent(equivalent),
     mNodeUUID(nodeUUID),
     mTrustLinesManager(trustLinesManager),
     mTopologyTrustLineManager(topologyTrustLineManager),

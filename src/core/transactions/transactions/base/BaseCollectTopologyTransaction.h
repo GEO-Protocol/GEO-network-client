@@ -4,7 +4,7 @@
 #include "BaseTransaction.h"
 
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../topology/manager/TopologyTrustLineManager.h"
+#include "../../../topology/manager/TopologyTrustLinesManager.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
 
@@ -21,7 +21,7 @@ public:
         const TransactionType type,
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLinesManager,
-        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         Logger &logger);
@@ -31,7 +31,7 @@ public:
         const TransactionUUID &transactionUUID,
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLinesManager,
-        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         Logger &logger);
@@ -56,7 +56,7 @@ protected:
 
 protected:
     TrustLinesManager *mTrustLinesManager;
-    TopologyTrustLineManager *mTopologyTrustLineManager;
+    TopologyTrustLinesManager *mTopologyTrustLineManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
 };

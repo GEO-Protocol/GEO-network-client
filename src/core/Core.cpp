@@ -81,10 +81,6 @@ int Core::initSubsystems()
     if (initCode != 0)
         return initCode;
 
-    initCode = initRoutingTable();
-    if (initCode != 0)
-        return initCode;
-
     initCode = initCommunicator(conf);
     if (initCode != 0)
         return initCode;
@@ -97,29 +93,6 @@ int Core::initSubsystems()
     if (initCode != 0)
         return initCode;
 
-    initCode = initTrustLinesManager();
-    if (initCode != 0)
-        return initCode;
-
-    initCode = initTopologyTrustLineManager();
-    if (initCode != 0)
-        return initCode;
-
-    initCode = initTopologyCacheManager();
-    if (initCode != 0) {
-        return initCode;
-    }
-
-    initCode = initMaxFlowCacheManager();
-    if (initCode != 0) {
-        return initCode;
-    }
-
-    initCode = initPathsManager();
-    if (initCode != 0) {
-        return initCode;
-    }
-
     initCode = initResourcesManager();
     if (initCode != 0) {
         return initCode;
@@ -130,15 +103,16 @@ int Core::initSubsystems()
         return initCode;
     }
 
+    initCode = initEquivalentsSubsystemsRouter();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initTransactionsManager();
     if (initCode != 0)
         return initCode;
 
     initCode = initCommandsInterface();
-    if (initCode != 0)
-        return initCode;
-
-    initCode = initDelayedTasks();
     if (initCode != 0)
         return initCode;
 
@@ -209,78 +183,22 @@ int Core::initResultsInterface()
     }
 }
 
-int Core::initRoutingTable()
+int Core::initEquivalentsSubsystemsRouter()
 {
     try {
-        mRoutingTable = make_unique<RoutingTableManager>(
-            mIOService,
-            *mLog);
-        info() << "RoutingTable is successfully initialised";
-        return 0;
-    } catch (const std::exception &e) {
-        mLog->logException("Core", e);
-        return -1;
-    }
-}
-
-int Core::initTrustLinesManager()
-{
-    try {
-        mTrustLinesManager = make_unique<TrustLinesManager>(
-            0,
-            mStorageHandler.get(),
-            *mLog);
-        info() << "Trust lines manager is successfully initialised";
-        return 0;
-
-    }catch(const std::exception &e) {
-        mLog->logException("Core", e);
-        return -1;
-    }
-}
-
-int Core::initTopologyTrustLineManager()
-{
-    try{
-        mTopologyTrustLimeManager = make_unique<TopologyTrustLineManager>(
-            mIAmGateway,
+        mEquivalentsSubsystemsRouter = make_unique<EquivalentsSubsystemsRouter>(
             mNodeUUID,
+            mStorageHandler.get(),
+            mIOService,
+            mIAmGateway,
             *mLog);
-        info() << "Topology Trust lines manager is successfully initialised";
+        info() << "EquivalentsSubsystemsRouter is successfully initialised";
         return 0;
-
-    }catch(const std::exception &e) {
-        mLog->logException("Core", e);
-        return -1;
-    }
-}
-
-int Core::initTopologyCacheManager()
-{
-    try {
-        mTopologyCacheManager = make_unique<TopologyCacheManager>(
-            *mLog);
-        info() << "Topology Cache manager is successfully initialised";
-        return 0;
-
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
         return -1;
     }
-}
 
-int Core::initMaxFlowCacheManager()
-{
-    try {
-        mMaxFlowCacheManager = make_unique<MaxFlowCacheManager>(
-            *mLog);
-        info() << "Max flow Cache manager is successfully initialised";
-        return 0;
-
-    } catch (const std::exception &e) {
-        mLog->logException("Core", e);
-        return -1;
-    }
 }
 
 int Core::initResourcesManager()
@@ -301,44 +219,16 @@ int Core::initTransactionsManager()
         mTransactionsManager = make_unique<TransactionsManager>(
             mNodeUUID,
             mIOService,
-            mTrustLinesManager.get(),
+            mEquivalentsSubsystemsRouter.get(),
             mResourcesManager.get(),
-            mTopologyTrustLimeManager.get(),
-            mTopologyCacheManager.get(),
-            mMaxFlowCacheManager.get(),
             mResultsInterface.get(),
             mStorageHandler.get(),
-            mPathsManager.get(),
-            mRoutingTable.get(),
             *mLog,
             mSubsystemsController.get(),
             mIAmGateway);
         info() << "Transactions handler is successfully initialised";
         return 0;
 
-    } catch (const std::exception &e) {
-        mLog->logException("Core", e);
-        return -1;
-    }
-}
-
-int Core::initDelayedTasks()
-{
-    try{
-        mTopologyCacheUpdateDelayedTask = make_unique<TopologyCacheUpdateDelayedTask>(
-            mIOService,
-            mTopologyCacheManager.get(),
-            mTopologyTrustLimeManager.get(),
-            mMaxFlowCacheManager.get(),
-            *mLog);
-
-        mNotifyThatIAmIsGatewayDelayedTask = make_unique<NotifyThatIAmIsGatewayDelayedTask>(
-            mIOService,
-            *mLog);
-
-        info() << "DelayedTasks is successfully initialised";
-
-        return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
         return -1;
@@ -368,22 +258,6 @@ int Core::initStorageHandler()
             "storageDB",
             *mLog);
         info() << "Storage handler is successfully initialised";
-        return 0;
-    } catch (const std::exception &e) {
-        mLog->logException("Core", e);
-        return -1;
-    }
-}
-
-int Core::initPathsManager()
-{
-    try {
-        mPathsManager = make_unique<PathsManager>(
-            mNodeUUID,
-            mTrustLinesManager.get(),
-            mTopologyTrustLimeManager.get(),
-            *mLog);
-        info() << "Paths Manager is successfully initialised";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
@@ -441,19 +315,13 @@ void Core::connectCommunicatorSignals()
 
 void Core::connectDelayedTasksSignals()
 {
-    mNotifyThatIAmIsGatewayDelayedTask->gatewayNotificationSignal.connect(
+    mEquivalentsSubsystemsRouter->gatewayNotificationSignal.connect(
         boost::bind(
             &Core::onGatewayNotificationSlot,
-            this));
+            this,
+            _1));
 }
 
-void Core::connectRoutingTableSignals()
-{
-    mRoutingTable->updateRoutingTableSignal.connect(
-        boost::bind(
-            &Core::onUpdateRoutingTableSlot,
-            this));
-}
 void Core::connectResourcesManagerSignals()
 {
     mResourcesManager->requestPathsResourcesSignal.connect(
@@ -475,16 +343,6 @@ void Core::connectSignalsToSlots()
     connectCommunicatorSignals();
     connectDelayedTasksSignals();
     connectResourcesManagerSignals();
-    connectRoutingTableSignals();
-}
-
-void Core::onUpdateRoutingTableSlot()
-{
-    try {
-        mTransactionsManager->launchRoutingTableRequestTransaction();
-    } catch (exception &e) {
-        mLog->logException("Core", e);
-    }
 }
 
 void Core::onCommandReceivedSlot (
@@ -598,7 +456,8 @@ void Core::onProcessConfirmationMessageSlot(
         confirmationMessage);
 }
 
-void Core::onGatewayNotificationSlot()
+void Core::onGatewayNotificationSlot(
+    const SerializedEquivalent equivalent)
 {
     mTransactionsManager->launchGatewayNotificationSenderTransaction();
 }
@@ -620,34 +479,6 @@ void Core::updateProcessName()
     const string kProcessName(string("GEO:") + mNodeUUID.stringUUID());
     prctl(PR_SET_NAME, kProcessName.c_str());
     strcpy(mCommandDescriptionPtr, kProcessName.c_str());
-}
-
-void Core::notifyContractorsAboutCurrentTrustLinesAmounts()
-{
-    const auto kTransactionUUID = TransactionUUID();
-
-    for (const auto &kContractorUUIDAndTrustLine : mTrustLinesManager->trustLines()) {
-        const auto kTrustLine =  kContractorUUIDAndTrustLine.second;
-        const auto kContractor = kTrustLine->contractorNodeUUID();
-        const auto kOutgoingTrustAmount = kTrustLine->outgoingTrustAmount();
-
-        const auto kNotificationMessage =
-            make_shared<SetIncomingTrustLineMessage>(
-                mNodeUUID,
-                kTransactionUUID,
-                kContractor,
-                kOutgoingTrustAmount);
-
-        mCommunicator->sendMessage(
-            kNotificationMessage,
-            kContractor);
-
-#ifdef DEBUG
-        info() << "Remote node " << kContractor
-               << " was notified about current outgoing trust line state to it ("
-               << kOutgoingTrustAmount << ").";
-#endif
-    }
 }
 
 string Core::logHeader()

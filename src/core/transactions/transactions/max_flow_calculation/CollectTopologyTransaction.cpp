@@ -4,7 +4,7 @@ CollectTopologyTransaction::CollectTopologyTransaction(
     const NodeUUID &nodeUUID,
     const vector<NodeUUID> &contractors,
     TrustLinesManager *manager,
-    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     Logger &logger) :

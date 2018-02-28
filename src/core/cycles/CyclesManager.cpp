@@ -1,12 +1,14 @@
 #include "CyclesManager.h"
 
 CyclesManager::CyclesManager(
+    const SerializedEquivalent equivalent,
     const NodeUUID &nodeUUID,
     TransactionsScheduler *transactionsScheduler,
     as::io_service &ioService,
     Logger &logger,
     SubsystemsController *subsystemsController) :
 
+    mEquivalent(equivalent),
     mNodeUUID(nodeUUID),
     mTransactionScheduler(transactionsScheduler),
     mIOService(ioService),
@@ -115,7 +117,9 @@ void CyclesManager::closeOneCycle(
             auto cycle = *cycles->begin();
             cycles->erase(cycles->begin());
             debug() << "closeCycleSignal " << cycle->toString();
-            closeCycleSignal(cycle);
+            closeCycleSignal(
+                mEquivalent,
+                cycle);
             mIsCycleInProcess = true;
             return;
         }
@@ -172,7 +176,7 @@ void CyclesManager::runSignalFiveNodes(
             &CyclesManager::runSignalFiveNodes,
             this,
             as::placeholders::error));
-    buildFiveNodesCyclesSignal();
+    buildFiveNodesCyclesSignal(mEquivalent);
 }
 
 void CyclesManager::runSignalSixNodes(
@@ -190,7 +194,7 @@ void CyclesManager::runSignalSixNodes(
             &CyclesManager::runSignalSixNodes,
             this,
             as::placeholders::error));
-    buildSixNodesCyclesSignal();
+    buildSixNodesCyclesSignal(mEquivalent);
 }
 
 bool CyclesManager::isChallengerTransactionWinReservation(

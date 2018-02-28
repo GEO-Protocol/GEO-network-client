@@ -1,12 +1,14 @@
 #include "TopologyCacheUpdateDelayedTask.h"
 
 TopologyCacheUpdateDelayedTask::TopologyCacheUpdateDelayedTask(
+    const SerializedEquivalent equivalent,
     as::io_service &ioService,
     TopologyCacheManager *topologyCacheManager,
-    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyTrustLinesManager *topologyTrustLineManager,
     MaxFlowCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &logger):
 
+    mEquivalent(equivalent),
     mIOService(ioService),
     mTopologyCacheManager(topologyCacheManager),
     mTopologyTrustLineManager(topologyTrustLineManager),

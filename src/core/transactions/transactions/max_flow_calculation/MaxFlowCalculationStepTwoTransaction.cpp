@@ -5,7 +5,7 @@ MaxFlowCalculationStepTwoTransaction::MaxFlowCalculationStepTwoTransaction(
     const TransactionUUID &transactionUUID,
     const InitiateMaxFlowCalculationCommand::Shared command,
     TrustLinesManager *trustLinesManager,
-    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     uint8_t maxFlowCalculationStep,

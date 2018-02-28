@@ -3,7 +3,7 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../topology/manager/TopologyTrustLineManager.h"
+#include "../../../topology/manager/TopologyTrustLinesManager.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
 
@@ -20,7 +20,7 @@ public:
         const NodeUUID &nodeUUID,
         const vector<NodeUUID> &contractors,
         TrustLinesManager *manager,
-        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         Logger &logger);
@@ -37,7 +37,7 @@ private:
 
 private:
     TrustLinesManager *mTrustLinesManager;
-    TopologyTrustLineManager *mTopologyTrustLineManager;
+    TopologyTrustLinesManager *mTopologyTrustLineManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
 

@@ -1,0 +1,166 @@
+#include "EquivalentsSubsystemsRouter.h"
+
+EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
+    NodeUUID &nodeUUID,
+    StorageHandler *storageHandler,
+    as::io_service &ioService,
+    bool iAmGateway,
+    Logger &logger):
+
+    mNodeUUID(nodeUUID),
+    mIAmGateway(iAmGateway),
+    mStorageHandler(storageHandler),
+    mIOService(ioService),
+    mLogger(logger)
+{
+    {
+//        auto ioTransaction = storageHandler->beginTransaction();
+//        mEquivalents = ioTransaction->trustLinesHandler()->equivalents();
+        mEquivalents.push_back(0);
+    }
+    for (const auto &equivalent : mEquivalents) {
+        info() << "Equivalent " << equivalent;
+        mTrustLinesManagers.insert(
+            make_pair(
+                equivalent,
+                make_unique<TrustLinesManager>(
+                    equivalent,
+                    mStorageHandler,
+                    mLogger)));
+        info() << "Trust Lines Manager is successfully initialized";
+
+        mTopologyTrustLinesManagers.insert(
+            make_pair(
+                equivalent,
+                make_unique<TopologyTrustLinesManager>(
+                    equivalent,
+                    mIAmGateway,
+                    mNodeUUID,
+                    mLogger)));
+        info() << "Topology Trust Lines Manager is successfully initialized";
+
+        mTopologyCacheManagers.insert(
+            make_pair(
+                equivalent,
+                make_unique<TopologyCacheManager>(
+                    equivalent,
+                    mLogger)));
+        info() << "Topology Cache Manager is successfully initialized";
+
+        mMaxFlowCacheManagers.insert(
+            make_pair(
+                equivalent,
+                make_unique<MaxFlowCacheManager>(
+                    equivalent,
+                    mLogger)));
+        info() << "Max Flow Cache Manager is successfully initialized";
+
+        mTopologyCacheUpdateDelayedTasks.insert(
+            make_pair(
+                equivalent,
+                make_unique<TopologyCacheUpdateDelayedTask>(
+                    equivalent,
+                    mIOService,
+                    mTopologyCacheManagers[equivalent].get(),
+                    mTopologyTrustLinesManagers[equivalent].get(),
+                    mMaxFlowCacheManagers[equivalent].get(),
+                    mLogger)));
+        info() << "Topology Cache Update Delayed Task is successfully initialized";
+
+        mPathsManagers.insert(
+            make_pair(
+                equivalent,
+                make_unique<PathsManager>(
+                    equivalent,
+                    mNodeUUID,
+                    mTrustLinesManagers[equivalent].get(),
+                    mTopologyTrustLinesManagers[equivalent].get(),
+                    mLogger)));
+        info() << "Paths Manager is successfully initialized";
+
+        mNotifyThatIAmIsGatewayDelayedTasks.insert(
+            make_pair(equivalent,
+                make_unique<NotifyThatIAmIsGatewayDelayedTask>(
+                    equivalent,
+                    mIOService,
+                    mLogger)));
+        info() << "Gateway Notification Delayed Task is successfully initialized";
+    }
+}
+
+vector<SerializedEquivalent> EquivalentsSubsystemsRouter::equivalents() const
+{
+    return mEquivalents;
+}
+
+TrustLinesManager* EquivalentsSubsystemsRouter::trustLinesManager(
+    const SerializedEquivalent equivalent) const
+{
+    return mTrustLinesManagers.at(equivalent).get();
+}
+
+TopologyTrustLinesManager* EquivalentsSubsystemsRouter::topologyTrustLineManager(
+    const SerializedEquivalent equivalent) const
+{
+    return mTopologyTrustLinesManagers.at(equivalent).get();
+}
+
+TopologyCacheManager* EquivalentsSubsystemsRouter::topologyCacheManager(
+    const SerializedEquivalent equivalent) const
+{
+    return mTopologyCacheManagers.at(equivalent).get();
+}
+
+MaxFlowCacheManager* EquivalentsSubsystemsRouter::maxFlowCacheManager(
+    const SerializedEquivalent equivalent) const
+{
+    return mMaxFlowCacheManagers.at(equivalent).get();
+}
+
+PathsManager* EquivalentsSubsystemsRouter::pathsManager(
+    const SerializedEquivalent equivalent) const
+{
+    return mPathsManagers.at(equivalent).get();
+}
+
+void EquivalentsSubsystemsRouter::connectSignalsToSlots()
+{
+    for (const auto &notifyThatIAmIsGatewayDelayedTask : mNotifyThatIAmIsGatewayDelayedTasks) {
+        notifyThatIAmIsGatewayDelayedTask.second->gatewayNotificationSignal.connect(
+            boost::bind(
+                &EquivalentsSubsystemsRouter::onGatewayNotificationSlot,
+                this,
+                _1));
+    }
+}
+
+void EquivalentsSubsystemsRouter::onGatewayNotificationSlot(
+    const SerializedEquivalent equivalent)
+{
+    gatewayNotificationSignal(equivalent);
+}
+
+string EquivalentsSubsystemsRouter::logHeader() const
+{
+    return "[EquivalentsSubsystemsRouter]";
+}
+
+LoggerStream EquivalentsSubsystemsRouter::error() const
+{
+    return mLogger.error(logHeader());
+}
+
+LoggerStream EquivalentsSubsystemsRouter::warning() const
+{
+    return mLogger.warning(logHeader());
+}
+
+LoggerStream EquivalentsSubsystemsRouter::info() const
+{
+    return mLogger.info(logHeader());
+}
+
+LoggerStream EquivalentsSubsystemsRouter::debug() const
+{
+    return mLogger.debug(logHeader());
+}

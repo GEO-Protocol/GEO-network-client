@@ -4,7 +4,7 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
     NodeUUID &nodeUUID,
     InitiateMaxFlowCalculationCommand::Shared command,
     TrustLinesManager *trustLinesManager,
-    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     bool iAmGateway,

@@ -9,24 +9,16 @@
 #include "network/communicator/Communicator.h"
 #include "interface/commands_interface/interface/CommandsInterface.h"
 #include "interface/results_interface/interface/ResultsInterface.h"
-#include "trust_lines/manager/TrustLinesManager.h"
 #include "resources/manager/ResourcesManager.h"
 #include "transactions/manager/TransactionsManager.h"
-#include "topology/manager/TopologyTrustLineManager.h"
-#include "topology/cashe/TopologyCacheManager.h"
-#include "topology/cashe/MaxFlowCacheManager.h"
-#include "delayed_tasks/TopologyCacheUpdateDelayedTask.h"
-#include "delayed_tasks/NotifyThatIAmIsGatewayDelayedTask.h"
 #include "io/storage/StorageHandler.h"
-#include "paths/PathsManager.h"
+#include "equivalents/EquivalentsSubsystemsRouter.h"
 
 #include "logger/Logger.h"
 
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/signals2.hpp>
-
-
 
 
 #include "network/messages/debug/DebugMessage.h"
@@ -66,27 +58,15 @@ private:
 
     int initResultsInterface();
 
-    int initTrustLinesManager();
-
-    int initTopologyTrustLineManager();
-
-    int initTopologyCacheManager();
-
-    int initMaxFlowCacheManager();
+    int initEquivalentsSubsystemsRouter();
 
     int initResourcesManager();
 
     int initTransactionsManager();
 
-    int initDelayedTasks();
-
     int initStorageHandler();
 
-    int initPathsManager();
-
     int initSubsystemsController();
-
-    int initRoutingTable();
 
     void connectCommunicatorSignals();
 
@@ -98,8 +78,6 @@ private:
 
     void connectSignalsToSlots();
 
-    void connectRoutingTableSignals();
-
     void onCommandReceivedSlot(
         BaseUserCommand::Shared command);
 
@@ -109,8 +87,6 @@ private:
     void onMessageSendSlot(
         Message::Shared message,
         const NodeUUID &contractorUUID);
-
-    void onUpdateRoutingTableSlot();
 
     void onProcessConfirmationMessageSlot(
         const NodeUUID &contractorUUID,
@@ -123,22 +99,12 @@ private:
     void onResourceCollectedSlot(
         BaseResource::Shared resource);
 
-    void onGatewayNotificationSlot();
+    void onGatewayNotificationSlot(
+        const SerializedEquivalent equivalent);
 
     void writePIDFile();
 
     void updateProcessName();
-
-    /**
-     * Sends notification about current outgoing trust line amount to each contractor.
-     * This is needed to prevent trust lines borders desyncronization, that might occure in 2 cases:
-     *
-     * 1. Outgoing trust line amount was changed outside of the engine.
-     * 2. Outgoing trust line amount was changed on this node, but the remote node does't received the message.
-     *    (this case is valid for the nodes, that was present in the network before the moment,
-     *     when forced messages delivering mechanism was added into the engine).
-     */
-    void notifyContractorsAboutCurrentTrustLinesAmounts();
 
 protected:
     static string logHeader()
@@ -170,18 +136,11 @@ protected:
     unique_ptr<Communicator> mCommunicator;
     unique_ptr<CommandsInterface> mCommandsInterface;
     unique_ptr<ResultsInterface> mResultsInterface;
-    unique_ptr<TrustLinesManager> mTrustLinesManager;
     unique_ptr<ResourcesManager> mResourcesManager;
     unique_ptr<TransactionsManager> mTransactionsManager;
-    unique_ptr<TopologyTrustLineManager> mTopologyTrustLimeManager;
-    unique_ptr<TopologyCacheManager> mTopologyCacheManager;
-    unique_ptr<MaxFlowCacheManager> mMaxFlowCacheManager;
-    unique_ptr<TopologyCacheUpdateDelayedTask> mTopologyCacheUpdateDelayedTask;
-    unique_ptr<NotifyThatIAmIsGatewayDelayedTask> mNotifyThatIAmIsGatewayDelayedTask;
     unique_ptr<StorageHandler> mStorageHandler;
-    unique_ptr<PathsManager> mPathsManager;
     unique_ptr<SubsystemsController> mSubsystemsController;
-    unique_ptr<RoutingTableManager> mRoutingTable;
+    unique_ptr<EquivalentsSubsystemsRouter> mEquivalentsSubsystemsRouter;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

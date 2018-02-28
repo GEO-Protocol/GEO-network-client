@@ -44,4 +44,5 @@ target_link_libraries(transactions
         transactions__gateway_notification
 
         common
-        exceptions)
+        exceptions
+        equivalents)

@@ -43,7 +43,7 @@ TrustLineHandler::TrustLineHandler(
                           "Run query; sqlite error: " + to_string(rc));
     }
 
-    query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
+    query = "CREATE INDEX IF NOT EXISTS " + mTableName
             + "_equivalent_idx on " + mTableName + "(equivalent);";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {

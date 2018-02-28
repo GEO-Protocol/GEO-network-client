@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_TOPOLOGYCACHEUPDATEDELAYEDTASK_H
 
 #include "../topology/cashe/TopologyCacheManager.h"
-#include "../topology/manager/TopologyTrustLineManager.h"
+#include "../topology/manager/TopologyTrustLinesManager.h"
 #include "../topology/cashe/MaxFlowCacheManager.h"
 #include "../common/time/TimeUtils.h"
 #include "../logger/Logger.h"
@@ -22,9 +22,10 @@ class TopologyCacheUpdateDelayedTask {
 
 public:
     TopologyCacheUpdateDelayedTask(
+        const SerializedEquivalent equivalent,
         as::io_service &mIOService,
         TopologyCacheManager *topologyCacheManager,
-        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyTrustLinesManager *topologyTrustLineManager,
         MaxFlowCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &logger);
 
@@ -62,8 +63,9 @@ private:
     as::io_service &mIOService;
     unique_ptr<as::steady_timer> mTopologyCacheUpdateTimer;
     TopologyCacheManager *mTopologyCacheManager;
-    TopologyTrustLineManager *mTopologyTrustLineManager;
+    TopologyTrustLinesManager *mTopologyTrustLineManager;
     MaxFlowCacheManager *mMaxFlowCalculationNodeCacheManager;
+    SerializedEquivalent mEquivalent;
     Logger &mLog;
 };
 

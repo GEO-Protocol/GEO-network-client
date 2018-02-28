@@ -18,7 +18,8 @@ TrustLinesManager::TrustLinesManager(
 void TrustLinesManager::loadTrustLinesFromDisk()
 {
     auto ioTransaction = mStorageHandler->beginTransaction();
-    const auto kTrustLines = ioTransaction->trustLinesHandler()->allTrustLinesByEquivalent(mEquivalent);
+    //const auto kTrustLines = ioTransaction->trustLinesHandler()->allTrustLinesByEquivalent(mEquivalent);
+    const auto kTrustLines = ioTransaction->trustLinesHandler()->allTrustLines();
 
     mTrustLines.reserve(kTrustLines.size());
 
@@ -31,8 +32,7 @@ void TrustLinesManager::loadTrustLinesFromDisk()
             // This might occure in case if trust line wasn't deleted properly when it was closed by both sides.
             // Now it must be removed.
             ioTransaction->trustLinesHandler()->deleteTrustLine(
-                kTrustLine->contractorNodeUUID(),
-                mEquivalent);
+                kTrustLine->contractorNodeUUID());
             info() << "Trust line to the node " << kTrustLine->contractorNodeUUID()
                    << " is empty (outgoing trust amount = 0, incoming trust amount = 0, balane = 0). Removed.";
             continue;
@@ -501,8 +501,7 @@ void TrustLinesManager::removeTrustLine(
     }
 
     IOTransaction->trustLinesHandler()->deleteTrustLine(
-        contractorUUID,
-        mEquivalent);
+        contractorUUID);
     mTrustLines.erase(contractorUUID);
 }
 

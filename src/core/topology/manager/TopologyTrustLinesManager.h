@@ -1,5 +1,5 @@
-#ifndef GEO_NETWORK_CLIENT_TOPOLOGYTRUSTLINEMANAGER_H
-#define GEO_NETWORK_CLIENT_TOPOLOGYTRUSTLINEMANAGER_H
+#ifndef GEO_NETWORK_CLIENT_TOPOLOGYTRUSTLINESMANAGER_H
+#define GEO_NETWORK_CLIENT_TOPOLOGYTRUSTLINESMANAGER_H
 
 #include "../../common/NodeUUID.h"
 #include "TopologyTrustLineWithPtr.h"
@@ -11,13 +11,14 @@
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
 
-class TopologyTrustLineManager {
+class TopologyTrustLinesManager {
 
 public:
     typedef unordered_set<TopologyTrustLineWithPtr*> TrustLineWithPtrHashSet;
 
 public:
-    TopologyTrustLineManager(
+    TopologyTrustLinesManager(
+        const SerializedEquivalent equivalent,
         bool iAmGateway,
         NodeUUID &nodeUUID,
         Logger &logger);
@@ -85,9 +86,10 @@ private:
 private:
     unordered_map<NodeUUID, TrustLineWithPtrHashSet*, boost::hash<boost::uuids::uuid>> msTrustLines;
     map<DateTime, TopologyTrustLineWithPtr*> mtTrustLines;
+    SerializedEquivalent mEquivalent;
     Logger &mLog;
     bool mPreventDeleting;
     set<NodeUUID> mGateways;
 };
 
-#endif //GEO_NETWORK_CLIENT_TOPOLOGYTRUSTLINEMANAGER_H
+#endif //GEO_NETWORK_CLIENT_TOPOLOGYTRUSTLINESMANAGER_H

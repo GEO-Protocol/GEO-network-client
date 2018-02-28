@@ -1,6 +1,10 @@
 #include "TopologyCacheManager.h"
 
-TopologyCacheManager::TopologyCacheManager(Logger &logger):
+TopologyCacheManager::TopologyCacheManager(
+    const SerializedEquivalent equivalent,
+    Logger &logger):
+
+    mEquivalent(equivalent),
     mLog(logger)
 {
     mInitiatorCache.first = false;

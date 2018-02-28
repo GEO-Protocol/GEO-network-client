@@ -1,8 +1,11 @@
 #include "RoutingTableManager.h"
 
 RoutingTableManager::RoutingTableManager(
+    const SerializedEquivalent equivalent,
     as::io_service &ioService,
     Logger &logger):
+
+    mEquivalent(equivalent),
     mIOService(ioService),
     mLog(logger)
 {
@@ -26,7 +29,7 @@ void RoutingTableManager::updateMapAddOneNeighbor(
     const NodeUUID &firstLevelContractor,
     const NodeUUID &secondLevelContractor)
 {
-    mRoughtingTable[firstLevelContractor].insert(secondLevelContractor);
+    mRoutingTable[firstLevelContractor].insert(secondLevelContractor);
 }
 
 void RoutingTableManager::updateMapAddSeveralNeighbors(
@@ -35,17 +38,17 @@ void RoutingTableManager::updateMapAddSeveralNeighbors(
 {
     debug() << "updateMapAddSeveralNeighbors. Neighbor: " << firstLevelContractor
                << " 2nd level nodes cnt: " << secondLevelContractors.size();
-    mRoughtingTable[firstLevelContractor] = secondLevelContractors;
+    mRoutingTable[firstLevelContractor] = secondLevelContractors;
 }
 
 set<NodeUUID> RoutingTableManager::secondLevelContractorsForNode(
     const NodeUUID &contractorUUID)
 {
-    return mRoughtingTable[contractorUUID];
+    return mRoutingTable[contractorUUID];
 }
 
 void RoutingTableManager::clearMap() {
-    mRoughtingTable.clear();
+    mRoutingTable.clear();
 }
 
 void RoutingTableManager::runSignalUpdateTimer(
@@ -64,7 +67,7 @@ void RoutingTableManager::runSignalUpdateTimer(
             &RoutingTableManager::runSignalUpdateTimer,
             this,
             as::placeholders::error));
-    updateRoutingTableSignal();
+    updateRoutingTableSignal(mEquivalent);
 }
 
 string RoutingTableManager::logHeader()

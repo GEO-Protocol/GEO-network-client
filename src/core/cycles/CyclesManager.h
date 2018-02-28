@@ -28,12 +28,15 @@ public:
     };
 
 public:
-    typedef signals::signal<void()> BuildSixNodesCyclesSignal;
-    typedef signals::signal<void()> BuildFiveNodesCyclesSignal;
-    typedef signals::signal<void(Path::ConstShared cycle)> CloseCycleSignal;
+    typedef signals::signal<void(const SerializedEquivalent equivalent)> BuildSixNodesCyclesSignal;
+    typedef signals::signal<void(const SerializedEquivalent equivalent)> BuildFiveNodesCyclesSignal;
+    typedef signals::signal<void(
+            const SerializedEquivalent equivalent,
+            Path::ConstShared cycle)> CloseCycleSignal;
 
 public:
     CyclesManager(
+        const SerializedEquivalent equivalent,
         const NodeUUID &nodeUUID,
         TransactionsScheduler *transactionsScheduler,
         as::io_service &ioService,
@@ -128,6 +131,7 @@ private:
 private:
     TransactionsScheduler *mTransactionScheduler;
     NodeUUID mNodeUUID;
+    SerializedEquivalent mEquivalent;
     as::io_service &mIOService;
     vector<Path::ConstShared> mThreeNodesCycles;
     vector<Path::ConstShared> mFourNodesCycles;

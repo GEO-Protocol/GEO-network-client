@@ -1,7 +1,10 @@
 #include "MaxFlowCacheManager.h"
 
 MaxFlowCacheManager::MaxFlowCacheManager(
+    const SerializedEquivalent equivalent,
     Logger &logger):
+
+    mEquivalent(equivalent),
     mLog(logger)
 {}
 

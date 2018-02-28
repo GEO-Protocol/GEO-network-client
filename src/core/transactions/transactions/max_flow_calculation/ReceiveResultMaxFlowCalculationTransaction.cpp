@@ -4,7 +4,7 @@ ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTrans
     NodeUUID &nodeUUID,
     ResultMaxFlowCalculationMessage::Shared message,
     TrustLinesManager *trustLinesManager,
-    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyTrustLinesManager *topologyTrustLineManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -21,7 +21,7 @@ ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTrans
     NodeUUID &nodeUUID,
     ResultMaxFlowCalculationGatewayMessage::Shared message,
     TrustLinesManager *trustLinesManager,
-    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyTrustLinesManager *topologyTrustLineManager,
     Logger &logger) :
 
     BaseTransaction(

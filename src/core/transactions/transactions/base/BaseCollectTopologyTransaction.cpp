@@ -4,7 +4,7 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     const TransactionType type,
     const NodeUUID &nodeUUID,
     TrustLinesManager *trustLinesManager,
-    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     Logger &logger) :
@@ -24,7 +24,7 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     const TransactionUUID &transactionUUID,
     const NodeUUID &nodeUUID,
     TrustLinesManager *trustLinesManager,
-    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     Logger &logger) :

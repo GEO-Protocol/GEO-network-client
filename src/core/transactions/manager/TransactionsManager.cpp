@@ -4,12 +4,12 @@
  *
  * Throws RuntimeError in case if some internal components can't be initialised.
  */
-TransactionsManager::TransactionsManager(
+/*TransactionsManager::TransactionsManager(
     NodeUUID &nodeUUID,
     as::io_service &IOService,
     TrustLinesManager *trustLinesManager,
     ResourcesManager *resourcesManager,
-    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     ResultsInterface *resultsInterface,
@@ -41,6 +41,7 @@ TransactionsManager::TransactionsManager(
             mLog)),
     mCyclesManager(
         new CyclesManager(
+            0,
             mNodeUUID,
             mScheduler.get(),
             mIOService,
@@ -68,6 +69,66 @@ TransactionsManager::TransactionsManager(
     }
 
     // todo: send current trust line amount to te contractors
+}*/
+
+TransactionsManager::TransactionsManager(
+    NodeUUID &nodeUUID,
+    as::io_service &IOService,
+    EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
+    ResourcesManager *resourcesManager,
+    ResultsInterface *resultsInterface,
+    StorageHandler *storageHandler,
+    Logger &logger,
+    SubsystemsController *subsystemsController,
+    bool iAmGateway) :
+
+        mNodeUUID(nodeUUID),
+        mIOService(IOService),
+        mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
+        mResourcesManager(resourcesManager),
+        mResultsInterface(resultsInterface),
+        mStorageHandler(storageHandler),
+        mLog(logger),
+        mSubsystemsController(subsystemsController),
+        mIAmGateway(iAmGateway),
+
+        mScheduler(
+            new TransactionsScheduler(
+                mIOService,
+                mLog)),
+
+        mEquivalentsCyclesSubsystemsRouter(
+            new EquivalentsCyclesSubsystemsRouter(
+                mNodeUUID,
+                mScheduler.get(),
+                mSubsystemsController,
+                mIOService,
+                mEquivalentsSubsystemsRouter->equivalents(),
+                mLog))
+{
+    subscribeForCommandResult(
+        mScheduler->commandResultIsReadySignal);
+    subscribeForSerializeTransaction(
+        mScheduler->serializeTransactionSignal);
+    subscribeForCloseCycleTransaction(
+        mEquivalentsCyclesSubsystemsRouter->closeCycleSignal);
+    subscribeForBuildCyclesFiveNodesTransaction(
+        mEquivalentsCyclesSubsystemsRouter->buildFiveNodesCyclesSignal);
+    subscribeForBuildCyclesSixNodesTransaction(
+        mEquivalentsCyclesSubsystemsRouter->buildSixNodesCyclesSignal);
+    subscribeForTryCloseNextCycleSignal(
+        mScheduler->cycleCloserTransactionWasFinishedSignal);
+    subscribeForUpdatingRoutingTable(
+        mEquivalentsCyclesSubsystemsRouter->updateRoutingTableSignal);
+
+    try {
+        loadTransactionsFromStorage();
+
+    } catch (exception &e) {
+        throw RuntimeError(e.what());
+    }
+
+    // todo: send current trust line amount to te contractors
 }
 
 void TransactionsManager::loadTransactionsFromStorage()
@@ -75,21 +136,27 @@ void TransactionsManager::loadTransactionsFromStorage()
     const auto ioTransaction = mStorageHandler->beginTransaction();
     const auto serializedTAs = ioTransaction->transactionHandler()->allTransactions();
 
-    for(const auto kTABufferAndSize: serializedTAs) {
+    for(const auto &kTABufferAndSize: serializedTAs) {
         BaseTransaction::SerializedTransactionType *transactionType =
                 new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
-        auto TransactionTypeId = *transactionType;
-        switch (TransactionTypeId) {
+        auto transactionTypeId = *transactionType;
+        SerializedEquivalent equivalent = 0;
+        auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+        auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+        auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
+        auto pathsManager = mEquivalentsSubsystemsRouter->pathsManager(equivalent);
+        auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
+        switch (transactionTypeId) {
             case BaseTransaction::TransactionType::CoordinatorPaymentTransaction: {
                 auto transaction = make_shared<CoordinatorPaymentTransaction>(
                     kTABufferAndSize.first,
                     mNodeUUID,
-                    mTrustLines,
+                    trustLinesManager,
                     mStorageHandler,
-                    mTopologyCacheManager,
-                    mMaxFlowCacheManager,
+                    topologyCacheManager,
+                    maxFlowCacheManager,
                     mResourcesManager,
-                    mPathsManager,
+                    pathsManager,
                     mLog,
                     mSubsystemsController);
                 subscribeForBuildCyclesThreeNodesTransaction(
@@ -105,10 +172,10 @@ void TransactionsManager::loadTransactionsFromStorage()
                 auto transaction = make_shared<IntermediateNodePaymentTransaction>(
                     kTABufferAndSize.first,
                     mNodeUUID,
-                    mTrustLines,
+                    trustLinesManager,
                     mStorageHandler,
-                    mTopologyCacheManager,
-                    mMaxFlowCacheManager,
+                    topologyCacheManager,
+                    maxFlowCacheManager,
                     mLog,
                     mSubsystemsController);
                 subscribeForBuildCyclesThreeNodesTransaction(
@@ -126,10 +193,10 @@ void TransactionsManager::loadTransactionsFromStorage()
                 auto transaction = make_shared<ReceiverPaymentTransaction>(
                     kTABufferAndSize.first,
                     mNodeUUID,
-                    mTrustLines,
+                    trustLinesManager,
                     mStorageHandler,
-                    mTopologyCacheManager,
-                    mMaxFlowCacheManager,
+                    topologyCacheManager,
+                    maxFlowCacheManager,
                     mLog,
                     mSubsystemsController);
                 subscribeForBuildCyclesThreeNodesTransaction(
@@ -145,11 +212,11 @@ void TransactionsManager::loadTransactionsFromStorage()
                 auto transaction = make_shared<CycleCloserInitiatorTransaction>(
                     kTABufferAndSize.first,
                     mNodeUUID,
-                    mTrustLines,
-                    mCyclesManager.get(),
+                    trustLinesManager,
+                    cyclesManager,
                     mStorageHandler,
-                    mTopologyCacheManager,
-                    mMaxFlowCacheManager,
+                    topologyCacheManager,
+                    maxFlowCacheManager,
                     mLog,
                     mSubsystemsController);
                 prepareAndSchedule(
@@ -163,11 +230,11 @@ void TransactionsManager::loadTransactionsFromStorage()
                 auto transaction = make_shared<CycleCloserIntermediateNodeTransaction>(
                     kTABufferAndSize.first,
                     mNodeUUID,
-                    mTrustLines,
-                    mCyclesManager.get(),
+                    trustLinesManager,
+                    cyclesManager,
                     mStorageHandler,
-                    mTopologyCacheManager,
-                    mMaxFlowCacheManager,
+                    topologyCacheManager,
+                    maxFlowCacheManager,
                     mLog,
                     mSubsystemsController);
                 prepareAndSchedule(
@@ -190,8 +257,8 @@ void TransactionsManager::loadTransactionsFromStorage()
 void TransactionsManager::processCommand(
     BaseUserCommand::Shared command)
 {
-    // ToDo: sort calls in the call probabilty order.
-    // For example, max flows calculations would be called much ofetn, then credit usage transactions.
+    // ToDo: sort calls in the call probability order.
+    // For example, max flows calculations would be called much often, then credit usage transactions.
     // So, why we are checking trust lines commands first, and max flow is only in the middle of the check sequence?
 
     if (command->identifier() == SetOutgoingTrustLineCommand::identifier()) {
@@ -246,16 +313,16 @@ void TransactionsManager::processCommand(
 
     } else if (command->identifier() == GetFirstLevelContractorsCommand::identifier()){
         launchGetFirstLevelContractorsTransaction(
-                static_pointer_cast<GetFirstLevelContractorsCommand>(
-                        command));
+            static_pointer_cast<GetFirstLevelContractorsCommand>(
+                command));
 
     } else if (command->identifier() == GetTrustLinesCommand::identifier()){
-        launchGetTrustlinesTransaction(
+        launchGetTrustLinesTransaction(
             static_pointer_cast<GetTrustLinesCommand>(
                 command));
 
     } else if (command->identifier() == GetTrustLineCommand::identifier()){
-        launchGetTrustlineTransaction(
+        launchGetTrustLineTransaction(
             static_pointer_cast<GetTrustLineCommand>(
                 command));
 
@@ -433,14 +500,18 @@ void TransactionsManager::processMessage(
 void TransactionsManager::launchSetOutgoingTrustLineTransaction(
     SetOutgoingTrustLineCommand::Shared command)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
     prepareAndSchedule(
         make_shared<SetOutgoingTrustLineTransaction>(
             mNodeUUID,
             command,
-            mTrustLines,
+            trustLinesManager,
             mStorageHandler,
-            mTopologyCacheManager,
-            mMaxFlowCacheManager,
+            topologyCacheManager,
+            maxFlowCacheManager,
             mSubsystemsController,
             mIAmGateway,
             mLog),
@@ -452,14 +523,18 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
 void TransactionsManager::launchCloseIncomingTrustLineTransaction(
     CloseIncomingTrustLineCommand::Shared command)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
     prepareAndSchedule(
         make_shared<CloseIncomingTrustLineTransaction>(
             mNodeUUID,
             command,
-            mTrustLines,
+            trustLinesManager,
             mStorageHandler,
-            mTopologyCacheManager,
-            mMaxFlowCacheManager,
+            topologyCacheManager,
+            maxFlowCacheManager,
             mSubsystemsController,
             mLog),
         true,
@@ -470,14 +545,18 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
 void TransactionsManager::launchSetIncomingTrustLineTransaction(
     SetIncomingTrustLineMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
     prepareAndSchedule(
         make_shared<SetIncomingTrustLineTransaction>(
             mNodeUUID,
             message,
-            mTrustLines,
+            trustLinesManager,
             mStorageHandler,
-            mTopologyCacheManager,
-            mMaxFlowCacheManager,
+            topologyCacheManager,
+            maxFlowCacheManager,
             mIAmGateway,
             mLog),
         true,
@@ -488,14 +567,18 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
 void TransactionsManager::launchSetIncomingTrustLineTransaction(
     SetIncomingTrustLineFromGatewayMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
     prepareAndSchedule(
         make_shared<SetIncomingTrustLineTransaction>(
             mNodeUUID,
             message,
-            mTrustLines,
+            trustLinesManager,
             mStorageHandler,
-            mTopologyCacheManager,
-            mMaxFlowCacheManager,
+            topologyCacheManager,
+            maxFlowCacheManager,
             mIAmGateway,
             mLog),
         true,
@@ -506,14 +589,18 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
 void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
     CloseOutgoingTrustLineMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
     prepareAndSchedule(
         make_shared<CloseOutgoingTrustLineTransaction>(
             mNodeUUID,
             message,
-            mTrustLines,
+            trustLinesManager,
             mStorageHandler,
-            mTopologyCacheManager,
-            mMaxFlowCacheManager,
+            topologyCacheManager,
+            maxFlowCacheManager,
             mLog),
         true,
         false,
@@ -523,10 +610,12 @@ void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
 void TransactionsManager::launchRejectOutgoingTrustLineTransaction(
     ConfirmationMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     auto transaction = make_shared<RejectOutgoingTrustLineTransaction>(
         mNodeUUID,
         message,
-        mTrustLines,
+        trustLinesManager,
         mStorageHandler,
         mLog);
     prepareAndSchedule(
@@ -545,15 +634,20 @@ void TransactionsManager::launchRejectOutgoingTrustLineTransaction(
 void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
     InitiateMaxFlowCalculationCommand::Shared command)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyTrustLinesManager = mEquivalentsSubsystemsRouter->topologyTrustLineManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<InitiateMaxFlowCalculationTransaction>(
                 mNodeUUID,
                 command,
-                mTrustLines,
-                mTopologyTrustLineManager,
-                mTopologyCacheManager,
-                mMaxFlowCacheManager,
+                trustLinesManager,
+                topologyTrustLinesManager,
+                topologyCacheManager,
+                maxFlowCacheManager,
                 mIAmGateway,
                 mLog),
             true,
@@ -571,15 +665,20 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
 void TransactionsManager::launchMaxFlowCalculationFullyTransaction(
     InitiateMaxFlowCalculationFullyCommand::Shared command)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyTrustLinesManager = mEquivalentsSubsystemsRouter->topologyTrustLineManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationFullyTransaction>(
                 mNodeUUID,
                 command,
-                mTrustLines,
-                mTopologyTrustLineManager,
-                mTopologyCacheManager,
-                mMaxFlowCacheManager,
+                trustLinesManager,
+                topologyTrustLinesManager,
+                topologyCacheManager,
+                maxFlowCacheManager,
                 mLog),
             true,
             true,
@@ -596,13 +695,16 @@ void TransactionsManager::launchMaxFlowCalculationFullyTransaction(
 void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
     InitiateMaxFlowCalculationMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<ReceiveMaxFlowCalculationOnTargetTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
-                mTopologyCacheManager,
+                trustLinesManager,
+                topologyCacheManager,
                 mLog),
             false,
             false,
@@ -619,13 +721,16 @@ void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
 void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
     ResultMaxFlowCalculationMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyTrustLinesManager = mEquivalentsSubsystemsRouter->topologyTrustLineManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<ReceiveResultMaxFlowCalculationTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
-                mTopologyTrustLineManager,
+                trustLinesManager,
+                topologyTrustLinesManager,
                 mLog),
             false,
             false,
@@ -642,13 +747,16 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
 void TransactionsManager::launchReceiveResultMaxFlowCalculationTransactionFromGateway(
     ResultMaxFlowCalculationGatewayMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyTrustLinesManager = mEquivalentsSubsystemsRouter->topologyTrustLineManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<ReceiveResultMaxFlowCalculationTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
-                mTopologyTrustLineManager,
+                trustLinesManager,
+                topologyTrustLinesManager,
                 mLog),
             false,
             false,
@@ -665,12 +773,14 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransactionFromGa
 void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
     MaxFlowCalculationSourceFstLevelMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationSourceFstLevelTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
+                trustLinesManager,
                 mLog,
                 mIAmGateway),
             false,
@@ -688,12 +798,14 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
 void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
     MaxFlowCalculationTargetFstLevelMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationTargetFstLevelTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
+                trustLinesManager,
                 mLog,
                 mIAmGateway),
             false,
@@ -711,13 +823,16 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
 void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
     MaxFlowCalculationSourceSndLevelMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationSourceSndLevelTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
-                mTopologyCacheManager,
+                trustLinesManager,
+                topologyCacheManager,
                 mLog,
                 mIAmGateway),
             false,
@@ -735,13 +850,16 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
 void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
     MaxFlowCalculationTargetSndLevelMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationTargetSndLevelTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
-                mTopologyCacheManager,
+                trustLinesManager,
+                topologyCacheManager,
                 mLog,
                 mIAmGateway),
             false,
@@ -755,15 +873,20 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
 void TransactionsManager::launchCoordinatorPaymentTransaction(
     CreditUsageCommand::Shared command)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
+    auto pathsManager = mEquivalentsSubsystemsRouter->pathsManager(equivalent);
     auto transaction = make_shared<CoordinatorPaymentTransaction>(
         mNodeUUID,
         command,
-        mTrustLines,
+        trustLinesManager,
         mStorageHandler,
-        mTopologyCacheManager,
-        mMaxFlowCacheManager,
+        topologyCacheManager,
+        maxFlowCacheManager,
         mResourcesManager,
-        mPathsManager,
+        pathsManager,
         mLog,
         mSubsystemsController);
     subscribeForBuildCyclesThreeNodesTransaction(
@@ -774,13 +897,17 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
 void TransactionsManager::launchReceiverPaymentTransaction(
     ReceiverInitPaymentRequestMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
     auto transaction = make_shared<ReceiverPaymentTransaction>(
         mNodeUUID,
         message,
-        mTrustLines,
+        trustLinesManager,
         mStorageHandler,
-        mTopologyCacheManager,
-        mMaxFlowCacheManager,
+        topologyCacheManager,
+        maxFlowCacheManager,
         mLog,
         mSubsystemsController);
     subscribeForBuildCyclesThreeNodesTransaction(
@@ -791,13 +918,17 @@ void TransactionsManager::launchReceiverPaymentTransaction(
 void TransactionsManager::launchIntermediateNodePaymentTransaction(
     IntermediateNodeReservationRequestMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
     auto transaction = make_shared<IntermediateNodePaymentTransaction>(
         mNodeUUID,
         message,
-        mTrustLines,
+        trustLinesManager,
         mStorageHandler,
-        mTopologyCacheManager,
-        mMaxFlowCacheManager,
+        topologyCacheManager,
+        maxFlowCacheManager,
         mLog,
         mSubsystemsController);
     subscribeForBuildCyclesThreeNodesTransaction(
@@ -808,18 +939,23 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
 }
 
 void TransactionsManager::onCloseCycleTransaction(
+    const SerializedEquivalent equivalent,
     Path::ConstShared cycle)
 {
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
+    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<CycleCloserInitiatorTransaction>(
                 mNodeUUID,
                 cycle,
-                mTrustLines,
-                mCyclesManager.get(),
+                trustLinesManager,
+                cyclesManager,
                 mStorageHandler,
-                mTopologyCacheManager,
-                mMaxFlowCacheManager,
+                topologyCacheManager,
+                maxFlowCacheManager,
                 mLog,
                 mSubsystemsController),
             true,
@@ -833,16 +969,21 @@ void TransactionsManager::onCloseCycleTransaction(
 void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
     IntermediateNodeCycleReservationRequestMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
+    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
     try{
         prepareAndSchedule(
             make_shared<CycleCloserIntermediateNodeTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
-                mCyclesManager.get(),
+                trustLinesManager,
+                cyclesManager,
                 mStorageHandler,
-                mTopologyCacheManager,
-                mMaxFlowCacheManager,
+                topologyCacheManager,
+                maxFlowCacheManager,
                 mLog,
                 mSubsystemsController),
             false,
@@ -881,12 +1022,14 @@ void TransactionsManager::launchVotesResponsePaymentsTransaction(
 void TransactionsManager::launchTotalBalancesTransaction(
     TotalBalancesCommand::Shared command)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<TotalBalancesTransaction>(
                 mNodeUUID,
                 command,
-                mTrustLines,
+                trustLinesManager,
                 mLog),
             true,
             false,
@@ -984,12 +1127,14 @@ void TransactionsManager::launchHistoryWithContractorTransaction(
 void TransactionsManager::launchGetFirstLevelContractorsTransaction(
     GetFirstLevelContractorsCommand::Shared command)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<GetFirstLevelContractorsTransaction>(
                 mNodeUUID,
                 command,
-                mTrustLines,
+                trustLinesManager,
                 mLog),
             true,
             false,
@@ -1000,15 +1145,17 @@ void TransactionsManager::launchGetFirstLevelContractorsTransaction(
 }
 
 
-void TransactionsManager::launchGetTrustlinesTransaction(
+void TransactionsManager::launchGetTrustLinesTransaction(
     GetTrustLinesCommand::Shared command)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<GetFirstLevelContractorsBalancesTransaction>(
                 mNodeUUID,
                 command,
-                mTrustLines,
+                trustLinesManager,
                 mLog),
             true,
             false,
@@ -1019,15 +1166,17 @@ void TransactionsManager::launchGetTrustlinesTransaction(
 
 }
 
-void TransactionsManager::launchGetTrustlineTransaction(
+void TransactionsManager::launchGetTrustLineTransaction(
     GetTrustLineCommand::Shared command)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<GetFirstLevelContractorBalanceTransaction>(
                 mNodeUUID,
                 command,
-                mTrustLines,
+                trustLinesManager,
                 mLog),
             true,
             false,
@@ -1042,18 +1191,24 @@ void TransactionsManager::launchFindPathByMaxFlowTransaction(
     const TransactionUUID &requestedTransactionUUID,
     const NodeUUID &destinationNodeUUID)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyTrustLinesManager = mEquivalentsSubsystemsRouter->topologyTrustLineManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
+    auto pathsManager = mEquivalentsSubsystemsRouter->pathsManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<FindPathByMaxFlowTransaction>(
                 mNodeUUID,
                 destinationNodeUUID,
                 requestedTransactionUUID,
-                mPathsManager,
+                pathsManager,
                 mResourcesManager,
-                mTrustLines,
-                mTopologyTrustLineManager,
-                mTopologyCacheManager,
-                mMaxFlowCacheManager,
+                trustLinesManager,
+                topologyTrustLinesManager,
+                topologyCacheManager,
+                maxFlowCacheManager,
                 mLog),
             true,
             true,
@@ -1084,11 +1239,13 @@ void TransactionsManager::launchPaymentTransactionByCommandUUIDTransaction(
 
 void TransactionsManager::launchGatewayNotificationSenderTransaction()
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<GatewayNotificationSenderTransaction>(
                 mNodeUUID,
-                mTrustLines,
+                trustLinesManager,
                 mStorageHandler,
                 mIAmGateway,
                 mLog),
@@ -1103,12 +1260,14 @@ void TransactionsManager::launchGatewayNotificationSenderTransaction()
 void TransactionsManager::launchGatewayNotificationReceiverTransaction(
     GatewayNotificationMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<GatewayNotificationReceiverTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
+                trustLinesManager,
                 mStorageHandler,
                 mLog),
             false,
@@ -1174,7 +1333,7 @@ void TransactionsManager::subscribeForBuildCyclesThreeNodesTransaction(
 {
     signal.connect(
         boost::bind(
-            &TransactionsManager::onBuidCycleThreeNodesTransaction,
+            &TransactionsManager::onBuildCycleThreeNodesTransaction,
             this,
             _1));
 }
@@ -1190,31 +1349,34 @@ void TransactionsManager::subscribeForBuildCyclesFourNodesTransaction(
 }
 
 void TransactionsManager::subscribeForBuildCyclesFiveNodesTransaction(
-    CyclesManager::BuildFiveNodesCyclesSignal &signal)
+    EquivalentsCyclesSubsystemsRouter::BuildFiveNodesCyclesSignal &signal)
 {
     signal.connect(
         boost::bind(
-                &TransactionsManager::onBuildCycleFiveNodesTransaction,
-            this));
+            &TransactionsManager::onBuildCycleFiveNodesTransaction,
+            this,
+            _1));
 }
 
 void TransactionsManager::subscribeForBuildCyclesSixNodesTransaction(
-    CyclesManager::BuildSixNodesCyclesSignal &signal)
+    EquivalentsCyclesSubsystemsRouter::BuildSixNodesCyclesSignal &signal)
 {
     signal.connect(
         boost::bind(
-                &TransactionsManager::onBuildCycleSixNodesTransaction,
-            this));
+            &TransactionsManager::onBuildCycleSixNodesTransaction,
+            this,
+            _1));
 }
 
 void TransactionsManager::subscribeForCloseCycleTransaction(
-    CyclesManager::CloseCycleSignal &signal)
+    EquivalentsCyclesSubsystemsRouter::CloseCycleSignal &signal)
 {
     signal.connect(
         boost::bind(
             &TransactionsManager::onCloseCycleTransaction,
             this,
-            _1));
+            _1,
+            _2));
 }
 
 void TransactionsManager::subscribeForTryCloseNextCycleSignal(
@@ -1235,6 +1397,16 @@ void TransactionsManager::subscribeForProcessingConfirmationMessage(
             this,
             _1,
             _2));
+}
+
+void TransactionsManager::subscribeForUpdatingRoutingTable(
+    EquivalentsCyclesSubsystemsRouter::UpdateRoutingTableSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onUpdatingRoutingTableSlot,
+            this,
+            _1));
 }
 
 void TransactionsManager::onTransactionOutgoingMessageReady(
@@ -1294,7 +1466,7 @@ void TransactionsManager::onSubsidiaryTransactionReady(
         50);
 }
 
-void TransactionsManager::onBuidCycleThreeNodesTransaction(
+void TransactionsManager::onBuildCycleThreeNodesTransaction(
     set<NodeUUID> &contractorsUUID)
 {
     for (const auto &contractorUUID : contractorsUUID) {
@@ -1312,19 +1484,23 @@ void TransactionsManager::onBuildCycleFourNodesTransaction(
     }
 }
 
-void TransactionsManager::onBuildCycleFiveNodesTransaction()
+void TransactionsManager::onBuildCycleFiveNodesTransaction(
+    const SerializedEquivalent equivalent)
 {
     launchFiveNodesCyclesInitTransaction();
 }
 
-void TransactionsManager::onBuildCycleSixNodesTransaction()
+void TransactionsManager::onBuildCycleSixNodesTransaction(
+    const SerializedEquivalent equivalent)
 {
     launchSixNodesCyclesInitTransaction();
 }
 
 void TransactionsManager::onTryCloseNextCycleSlot()
 {
-    mCyclesManager->closeOneCycle(true);
+    SerializedEquivalent equivalent = 0;
+    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
+    cyclesManager->closeOneCycle(true);
 }
 
 void TransactionsManager::onProcessConfirmationMessageSlot(
@@ -1334,6 +1510,12 @@ void TransactionsManager::onProcessConfirmationMessageSlot(
     ProcessConfirmationMessageSignal(
         contractorUUID,
         confirmationMessage);
+}
+
+void TransactionsManager::onUpdatingRoutingTableSlot(
+    const SerializedEquivalent equivalent)
+{
+    launchRoutingTableRequestTransaction();
 }
 
 /**
@@ -1382,14 +1564,18 @@ void TransactionsManager::prepareAndSchedule(
 void TransactionsManager::launchThreeNodesCyclesInitTransaction(
     const NodeUUID &contractorUUID)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
+    auto routingTableManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<CyclesThreeNodesInitTransaction>(
                 mNodeUUID,
                 contractorUUID,
-                mTrustLines,
-                mRoutingTable,
-                mCyclesManager.get(),
+                trustLinesManager,
+                routingTableManager,
+                cyclesManager,
                 mStorageHandler,
                 mLog),
             true,
@@ -1404,12 +1590,14 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(
 void TransactionsManager::launchThreeNodesCyclesResponseTransaction(
     CyclesThreeNodesBalancesRequestMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<CyclesThreeNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
+                trustLinesManager,
                 mLog),
             false,
             false,
@@ -1421,12 +1609,15 @@ void TransactionsManager::launchThreeNodesCyclesResponseTransaction(
 
 void TransactionsManager::launchSixNodesCyclesInitTransaction()
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<CyclesSixNodesInitTransaction>(
                 mNodeUUID,
-                mTrustLines,
-                mCyclesManager.get(),
+                trustLinesManager,
+                cyclesManager,
                 mStorageHandler,
                 mLog),
             true,
@@ -1440,12 +1631,14 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction()
 void TransactionsManager::launchSixNodesCyclesResponseTransaction(
     CyclesSixNodesInBetweenMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<CyclesSixNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
+                trustLinesManager,
                 mLog),
             false,
             false,
@@ -1458,12 +1651,15 @@ void TransactionsManager::launchSixNodesCyclesResponseTransaction(
 
 void TransactionsManager::launchFiveNodesCyclesInitTransaction()
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<CyclesFiveNodesInitTransaction>(
                 mNodeUUID,
-                mTrustLines,
-                mCyclesManager.get(),
+                trustLinesManager,
+                cyclesManager,
                 mStorageHandler,
                 mLog),
             true,
@@ -1477,12 +1673,14 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction()
 void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
     CyclesFiveNodesInBetweenMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<CyclesFiveNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
+                trustLinesManager,
                 mLog),
             false,
             false,
@@ -1496,14 +1694,18 @@ void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
 void TransactionsManager::launchFourNodesCyclesInitTransaction(
     const NodeUUID &creditorUUID)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
+    auto routingTableManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<CyclesFourNodesInitTransaction>(
                 mNodeUUID,
                 creditorUUID,
-                mTrustLines,
-                mRoutingTable,
-                mCyclesManager.get(),
+                trustLinesManager,
+                routingTableManager,
+                cyclesManager,
                 mStorageHandler,
                 mLog),
             true,
@@ -1517,12 +1719,14 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(
 void TransactionsManager::launchFourNodesCyclesResponseTransaction(
     CyclesFourNodesBalancesRequestMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<CyclesFourNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
+                trustLinesManager,
                 mLog),
             false,
             false,
@@ -1594,12 +1798,14 @@ void TransactionsManager::onSerializeTransaction(
 void TransactionsManager::launchRoutingTableResponseTransaction(
     RoutingTableRequestMessage::Shared message)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<RoutingTableResponseTransaction>(
                 mNodeUUID,
                 message,
-                mTrustLines,
+                trustLinesManager,
                 mLog),
             false,
             false,
@@ -1611,12 +1817,15 @@ void TransactionsManager::launchRoutingTableResponseTransaction(
 
 void TransactionsManager::launchRoutingTableRequestTransaction()
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto routingTableManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<RoutingTableInitTransaction>(
                 mNodeUUID,
-                mTrustLines,
-                mRoutingTable,
+                trustLinesManager,
+                routingTableManager,
                 mLog),
             false,
             false,
@@ -1629,13 +1838,15 @@ void TransactionsManager::launchRoutingTableRequestTransaction()
 void TransactionsManager::launchAddNodeToBlackListTransaction(
     AddNodeToBlackListCommand::Shared command)
 {
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<AddNodeToBlackListTransaction>(
                 mNodeUUID,
                 command,
                 mStorageHandler,
-                mTrustLines,
+                trustLinesManager,
                 mSubsystemsController,
                 mLog),
             true,

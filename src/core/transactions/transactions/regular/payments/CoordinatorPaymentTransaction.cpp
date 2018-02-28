@@ -139,8 +139,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     if (kTotalOutgoingPossibilities < mCommand->amount())
         return resultInsufficientFundsError();
 
-    NodeUUID sender = currentNodeUUID();
-
     mResourcesManager->requestPaths(
         currentTransactionUUID(),
         mCommand->contractorUUID());

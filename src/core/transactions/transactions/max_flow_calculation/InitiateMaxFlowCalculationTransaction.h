@@ -23,7 +23,7 @@ public:
         NodeUUID &nodeUUID,
         InitiateMaxFlowCalculationCommand::Shared command,
         TrustLinesManager *trustLinesManager,
-        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         bool iAmGateway,
@@ -72,7 +72,7 @@ private:
     NodeUUID mCurrentContractor;
     size_t mCountProcessCollectingTopologyRun;
     bool mIAmGateway;
-    TopologyTrustLineManager::TrustLineWithPtrHashSet mFirstLevelTopology;
+    TopologyTrustLinesManager::TrustLineWithPtrHashSet mFirstLevelTopology;
     vector<NodeUUID> mAlreadyCalculated;
 };
 

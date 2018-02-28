@@ -12,6 +12,7 @@
 class MaxFlowCacheManager {
 public:
     MaxFlowCacheManager(
+        const SerializedEquivalent equivalent,
         Logger &logger);
 
     void addCache(
@@ -58,6 +59,7 @@ private:
 private:
     unordered_map<NodeUUID, MaxFlowCache::Shared, boost::hash<boost::uuids::uuid>> mCaches;
     map<DateTime, NodeUUID*> mTimeCaches;
+    SerializedEquivalent mEquivalent;
     Logger &mLog;
 };
 

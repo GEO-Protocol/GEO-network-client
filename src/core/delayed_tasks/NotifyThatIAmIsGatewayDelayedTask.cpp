@@ -1,9 +1,11 @@
 #include "NotifyThatIAmIsGatewayDelayedTask.h"
 
 NotifyThatIAmIsGatewayDelayedTask::NotifyThatIAmIsGatewayDelayedTask(
+    const SerializedEquivalent equivalent,
     as::io_service &ioService,
     Logger &logger):
 
+    mEquivalent(equivalent),
     mIOService(ioService),
     mLog(logger)
 {
@@ -13,10 +15,11 @@ NotifyThatIAmIsGatewayDelayedTask::NotifyThatIAmIsGatewayDelayedTask(
     mNotificationTimer->expires_from_now(
         chrono::seconds(
             kRunNotificationSec));
-    mNotificationTimer->async_wait(boost::bind(
+    mNotificationTimer->async_wait(
+        boost::bind(
             &NotifyThatIAmIsGatewayDelayedTask::runSignalNotify,
-        this,
-        as::placeholders::error));
+            this,
+            as::placeholders::error));
 }
 
 void NotifyThatIAmIsGatewayDelayedTask::runSignalNotify(
@@ -26,7 +29,7 @@ void NotifyThatIAmIsGatewayDelayedTask::runSignalNotify(
         warning() << errorCode.message().c_str();
     }
     info() << "run gateway notification signal";
-    gatewayNotificationSignal();
+    gatewayNotificationSignal(mEquivalent);
 }
 
 LoggerStream NotifyThatIAmIsGatewayDelayedTask::debug() const

@@ -6,8 +6,10 @@
 #include "../../common/NodeUUID.h"
 #include "../../common/memory/MemoryUtils.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
+#include "../../equivalents/EquivalentsSubsystemsRouter.h"
+#include "../../equivalents/EquivalentsCyclesSubsystemsRouter.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
-#include "../../topology/manager/TopologyTrustLineManager.h"
+#include "../../topology/manager/TopologyTrustLinesManager.h"
 #include "../../topology/cashe/TopologyCacheManager.h"
 #include "../../topology/cashe/MaxFlowCacheManager.h"
 #include "../../io/storage/StorageHandler.h"
@@ -128,18 +130,29 @@ public:
     signals::signal<void(const NodeUUID&, ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
 
 public:
-    TransactionsManager(
+    /*TransactionsManager(
         NodeUUID &nodeUUID,
         as::io_service &IOService,
         TrustLinesManager *trustLinesManager,
         ResourcesManager *ResourcesManager,
-        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
         RoutingTableManager *routingTable,
+        Logger &logger,
+        SubsystemsController *subsystemsController,
+        bool iAmGateway);*/
+
+    TransactionsManager(
+        NodeUUID &nodeUUID,
+        as::io_service &IOService,
+        EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
+        ResourcesManager *ResourcesManager,
+        ResultsInterface *resultsInterface,
+        StorageHandler *storageHandler,
         Logger &logger,
         SubsystemsController *subsystemsController,
         bool iAmGateway);
@@ -150,33 +163,13 @@ public:
     void processMessage(
         Message::Shared message);
 
-    //  Cycles Transactions
-    void launchFourNodesCyclesInitTransaction(
-        const NodeUUID &creditorUUID);
-
-    void launchFourNodesCyclesResponseTransaction(
-        CyclesFourNodesBalancesRequestMessage::Shared message);
-
-    void launchThreeNodesCyclesInitTransaction(
-        const NodeUUID &contractorUUID);
-
-    void launchThreeNodesCyclesResponseTransaction(
-        CyclesThreeNodesBalancesRequestMessage::Shared message);
-
-    void launchSixNodesCyclesInitTransaction();
-
-    void launchSixNodesCyclesResponseTransaction(
-        CyclesSixNodesInBetweenMessage::Shared message);
-
-    void launchFiveNodesCyclesInitTransaction();
-
-    void launchFiveNodesCyclesResponseTransaction(
-        CyclesFiveNodesInBetweenMessage::Shared message);
-
     // Resources transactions handlers
     void attachResourceToTransaction(
         BaseResource::Shared resource);
 
+    /*
+     * Find paths transactions
+     */
     void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
         const NodeUUID &destinationNodeUUID);
@@ -270,6 +263,31 @@ protected: // Transactions
         VotesStatusRequestMessage::Shared message);
 
     /*
+     * Cycles Transactions
+     */
+    void launchFourNodesCyclesInitTransaction(
+        const NodeUUID &creditorUUID);
+
+    void launchFourNodesCyclesResponseTransaction(
+        CyclesFourNodesBalancesRequestMessage::Shared message);
+
+    void launchThreeNodesCyclesInitTransaction(
+        const NodeUUID &contractorUUID);
+
+    void launchThreeNodesCyclesResponseTransaction(
+        CyclesThreeNodesBalancesRequestMessage::Shared message);
+
+    void launchSixNodesCyclesInitTransaction();
+
+    void launchSixNodesCyclesResponseTransaction(
+        CyclesSixNodesInBetweenMessage::Shared message);
+
+    void launchFiveNodesCyclesInitTransaction();
+
+    void launchFiveNodesCyclesResponseTransaction(
+        CyclesFiveNodesInBetweenMessage::Shared message);
+
+    /*
      * Total balances transaction
      */
     void launchTotalBalancesTransaction(
@@ -291,21 +309,28 @@ protected: // Transactions
         HistoryWithContractorCommand::Shared command);
 
     /*
-     * Find path transactions
+     * Get TrustLines transactions
      */
     void launchGetFirstLevelContractorsTransaction(
         GetFirstLevelContractorsCommand::Shared command);
 
-    void launchGetTrustlinesTransaction(
+    void launchGetTrustLinesTransaction(
         GetTrustLinesCommand::Shared command);
 
-    void launchGetTrustlineTransaction(
+    void launchGetTrustLineTransaction(
         GetTrustLineCommand::Shared command);
+
+    /*
+     * RoutingTable
+     */
+    void launchRoutingTableResponseTransaction(
+        RoutingTableRequestMessage::Shared message);
+
+    void launchRoutingTableRequestTransaction();
 
     /*
      * BlackList
      */
-public:
     void launchAddNodeToBlackListTransaction(
         AddNodeToBlackListCommand::Shared command);
 
@@ -323,14 +348,6 @@ public:
      */
     void launchPaymentTransactionByCommandUUIDTransaction(
         PaymentTransactionByCommandUUIDCommand::Shared command);
-
-    /*
-     * RoutingTable
-     */
-    void launchRoutingTableResponseTransaction(
-        RoutingTableRequestMessage::Shared message);
-public:
-    void launchRoutingTableRequestTransaction();
 
 protected:
     /*
@@ -360,19 +377,22 @@ protected:
         BasePaymentTransaction::BuildCycleFourNodesSignal &signal);
 
     void subscribeForBuildCyclesFiveNodesTransaction(
-        CyclesManager::BuildFiveNodesCyclesSignal &signal);
+        EquivalentsCyclesSubsystemsRouter::BuildFiveNodesCyclesSignal &signal);
 
     void subscribeForBuildCyclesSixNodesTransaction(
-        CyclesManager::BuildSixNodesCyclesSignal &signal);
+        EquivalentsCyclesSubsystemsRouter::BuildSixNodesCyclesSignal &signal);
 
     void subscribeForCloseCycleTransaction(
-        CyclesManager::CloseCycleSignal &signal);
+        EquivalentsCyclesSubsystemsRouter::CloseCycleSignal &signal);
 
     void subscribeForTryCloseNextCycleSignal(
         TransactionsScheduler::CycleCloserTransactionWasFinishedSignal &signal);
 
     void subscribeForProcessingConfirmationMessage(
         BaseTransaction::ProcessConfirmationMessageSignal &signal);
+
+    void subscribeForUpdatingRoutingTable(
+        EquivalentsCyclesSubsystemsRouter::UpdateRoutingTableSignal &signal);
 
     // Slots
     void onSubsidiaryTransactionReady(
@@ -388,17 +408,20 @@ protected:
     void onSerializeTransaction(
         BaseTransaction::Shared transaction);
 
-    void onBuidCycleThreeNodesTransaction(
+    void onBuildCycleThreeNodesTransaction(
         set<NodeUUID> &contractorsUUID);
 
     void onBuildCycleFourNodesTransaction(
         set<NodeUUID> &creditors);
 
-    void onBuildCycleFiveNodesTransaction();
+    void onBuildCycleFiveNodesTransaction(
+        const SerializedEquivalent equivalent);
 
-    void onBuildCycleSixNodesTransaction();
+    void onBuildCycleSixNodesTransaction(
+        const SerializedEquivalent equivalent);
 
     void onCloseCycleTransaction(
+        const SerializedEquivalent equivalent,
         Path::ConstShared cycle);
 
     void onTryCloseNextCycleSlot();
@@ -406,6 +429,9 @@ protected:
     void onProcessConfirmationMessageSlot(
         const NodeUUID &contractorUUID,
         ConfirmationMessage::Shared confirmationMessage);
+
+    void onUpdatingRoutingTableSlot(
+        const SerializedEquivalent equivalent);
 
 protected:
     void prepareAndSchedule(
@@ -431,21 +457,23 @@ private:
     NodeUUID &mNodeUUID;
     bool mIAmGateway;
     as::io_service &mIOService;
-    TrustLinesManager *mTrustLines;
+    //TrustLinesManager *mTrustLines;
+    EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     ResourcesManager *mResourcesManager;
-    TopologyTrustLineManager *mTopologyTrustLineManager;
-    TopologyCacheManager *mTopologyCacheManager;
-    MaxFlowCacheManager *mMaxFlowCacheManager;
+    //TopologyTrustLinesManager *mTopologyTrustLineManager;
+    //TopologyCacheManager *mTopologyCacheManager;
+    //MaxFlowCacheManager *mMaxFlowCacheManager;
     ResultsInterface *mResultsInterface;
-    PathsManager *mPathsManager;
+    //PathsManager *mPathsManager;
     StorageHandler *mStorageHandler;
-    RoutingTableManager *mRoutingTable;
+    //RoutingTableManager *mRoutingTable;
     Logger &mLog;
 
     SubsystemsController *mSubsystemsController;
 
     unique_ptr<TransactionsScheduler> mScheduler;
-    unique_ptr<CyclesManager> mCyclesManager;
+    //unique_ptr<CyclesManager> mCyclesManager;
+    unique_ptr<EquivalentsCyclesSubsystemsRouter> mEquivalentsCyclesSubsystemsRouter;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H

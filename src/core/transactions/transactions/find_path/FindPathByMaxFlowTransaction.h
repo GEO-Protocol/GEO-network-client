@@ -21,7 +21,7 @@ public:
         PathsManager *pathsManager,
         ResourcesManager *resourcesManager,
         TrustLinesManager *manager,
-        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         Logger &logger);

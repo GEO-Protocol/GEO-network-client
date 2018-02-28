@@ -18,7 +18,7 @@ public:
         const NodeUUID &nodeUUID,
         const InitiateMaxFlowCalculationFullyCommand::Shared command,
         TrustLinesManager *trustLinesManager,
-        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         Logger &logger);
@@ -64,7 +64,7 @@ private:
     TrustLineAmount mCurrentMaxFlow;
     NodeUUID mCurrentContractor;
     size_t mCountProcessCollectingTopologyRun;
-    TopologyTrustLineManager::TrustLineWithPtrHashSet mFirstLevelTopology;
+    TopologyTrustLinesManager::TrustLineWithPtrHashSet mFirstLevelTopology;
 };
 
 

@@ -13,7 +13,9 @@
 class TopologyCacheManager {
 
 public:
-    TopologyCacheManager(Logger &logger);
+    TopologyCacheManager(
+        const SerializedEquivalent equivalent,
+        Logger &logger);
 
     void addCache(
         const NodeUUID &keyUUID,
@@ -66,6 +68,7 @@ private:
     unordered_map<NodeUUID, TopologyCache::Shared, boost::hash<boost::uuids::uuid>> mCaches;
     map<DateTime, NodeUUID*> msCache;
     pair<bool, DateTime> mInitiatorCache;
+    SerializedEquivalent mEquivalent;
     Logger &mLog;
 };
 

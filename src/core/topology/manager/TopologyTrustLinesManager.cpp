@@ -1,9 +1,12 @@
-#include "TopologyTrustLineManager.h"
+#include "TopologyTrustLinesManager.h"
 
-TopologyTrustLineManager::TopologyTrustLineManager(
+TopologyTrustLinesManager::TopologyTrustLinesManager(
+    const SerializedEquivalent equivalent,
     bool iAmGateway,
     NodeUUID &nodeUUID,
     Logger &logger):
+
+    mEquivalent(equivalent),
     mLog(logger),
     mPreventDeleting(false)
 {
@@ -12,7 +15,7 @@ TopologyTrustLineManager::TopologyTrustLineManager(
     }
 }
 
-void TopologyTrustLineManager::addTrustLine(
+void TopologyTrustLinesManager::addTrustLine(
     TopologyTrustLine::Shared trustLine)
 {
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
@@ -90,7 +93,7 @@ void TopologyTrustLineManager::addTrustLine(
     }
 }
 
-unordered_set<TopologyTrustLineWithPtr*> TopologyTrustLineManager::trustLinePtrsSet(
+unordered_set<TopologyTrustLineWithPtr*> TopologyTrustLinesManager::trustLinePtrsSet(
     const NodeUUID &nodeUUID)
 {
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(nodeUUID);
@@ -101,7 +104,7 @@ unordered_set<TopologyTrustLineWithPtr*> TopologyTrustLineManager::trustLinePtrs
     return *nodeUUIDAndSetFlows->second;
 }
 
-void TopologyTrustLineManager::resetAllUsedAmounts()
+void TopologyTrustLinesManager::resetAllUsedAmounts()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "resetAllUsedAmounts";
@@ -113,7 +116,7 @@ void TopologyTrustLineManager::resetAllUsedAmounts()
     }
 }
 
-void TopologyTrustLineManager::addUsedAmount(
+void TopologyTrustLinesManager::addUsedAmount(
     const NodeUUID &sourceUUID,
     const NodeUUID &targetUUID,
     const TrustLineAmount &amount)
@@ -130,7 +133,7 @@ void TopologyTrustLineManager::addUsedAmount(
     }
 }
 
-void TopologyTrustLineManager::makeFullyUsed(
+void TopologyTrustLinesManager::makeFullyUsed(
     const NodeUUID &sourceUUID,
     const NodeUUID &targetUUID)
 {
@@ -147,7 +150,7 @@ void TopologyTrustLineManager::makeFullyUsed(
     }
 }
 
-bool TopologyTrustLineManager::deleteLegacyTrustLines()
+bool TopologyTrustLinesManager::deleteLegacyTrustLines()
 {
     bool isTrustLineWasDeleted = false;
     for (auto &timeAndTrustLineWithPtr : mtTrustLines) {
@@ -182,7 +185,7 @@ bool TopologyTrustLineManager::deleteLegacyTrustLines()
     return isTrustLineWasDeleted;
 }
 
-size_t TopologyTrustLineManager::trustLinesCounts() const
+size_t TopologyTrustLinesManager::trustLinesCounts() const
 {
     size_t countTrustLines = 0;
     for (const auto &nodeUUIDAndTrustLines : msTrustLines) {
@@ -191,7 +194,7 @@ size_t TopologyTrustLineManager::trustLinesCounts() const
     return countTrustLines;
 }
 
-void TopologyTrustLineManager::printTrustLines() const
+void TopologyTrustLinesManager::printTrustLines() const
 {
     size_t trustLinesCnt = 0;
     info() << "print\t" << "trustLineMap size: " << msTrustLines.size();
@@ -207,7 +210,7 @@ void TopologyTrustLineManager::printTrustLines() const
     info() << "print\t" << "trust lines count: " << trustLinesCnt;
 }
 
-DateTime TopologyTrustLineManager::closestTimeEvent() const
+DateTime TopologyTrustLinesManager::closestTimeEvent() const
 {
     DateTime result = utc_now() + kResetTrustLinesDuration();
     // if there are cached trust lines, then take closest trust line removing time as result closest time event
@@ -221,7 +224,7 @@ DateTime TopologyTrustLineManager::closestTimeEvent() const
     return result;
 }
 
-set<NodeUUID> TopologyTrustLineManager::neighborsOf(
+set<NodeUUID> TopologyTrustLinesManager::neighborsOf(
     const NodeUUID &sourceUUID)
 {
     set<NodeUUID> result;
@@ -236,18 +239,18 @@ set<NodeUUID> TopologyTrustLineManager::neighborsOf(
     return result;
 }
 
-void TopologyTrustLineManager::addGateway(
+void TopologyTrustLinesManager::addGateway(
     const NodeUUID &gateway)
 {
     mGateways.insert(gateway);
 }
 
-const set<NodeUUID> TopologyTrustLineManager::gateways() const
+const set<NodeUUID> TopologyTrustLinesManager::gateways() const
 {
     return mGateways;
 }
 
-void TopologyTrustLineManager::makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
+void TopologyTrustLinesManager::makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
     const NodeUUID &exceptedNode)
 {
     for (const auto &gateway : mGateways) {
@@ -268,30 +271,30 @@ void TopologyTrustLineManager::makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
     }
 }
 
-void TopologyTrustLineManager::setPreventDeleting(
+void TopologyTrustLinesManager::setPreventDeleting(
     bool preventDeleting)
 {
     mPreventDeleting = preventDeleting;
 }
 
-bool TopologyTrustLineManager::preventDeleting() const
+bool TopologyTrustLinesManager::preventDeleting() const
 {
     return mPreventDeleting;
 }
 
-LoggerStream TopologyTrustLineManager::info() const
+LoggerStream TopologyTrustLinesManager::info() const
 {
     return mLog.info(logHeader());
 }
 
-LoggerStream TopologyTrustLineManager::debug() const
+LoggerStream TopologyTrustLinesManager::debug() const
 {
     return mLog.debug(logHeader());
 }
 
-const string TopologyTrustLineManager::logHeader() const
+const string TopologyTrustLinesManager::logHeader() const
 {
     stringstream s;
-    s << "[TopologyTrustLineManager]";
+    s << "[TopologyTrustLinesManager]";
     return s.str();
 }

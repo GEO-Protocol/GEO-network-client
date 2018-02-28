@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.6)
 set(SOURCE_FILES
         TopologyTrustLine.h
         TopologyTrustLine.cpp
-        manager/TopologyTrustLineManager.h
-        manager/TopologyTrustLineManager.cpp
+        manager/TopologyTrustLinesManager.h
+        manager/TopologyTrustLinesManager.cpp
         cashe/TopologyCache.h
         cashe/TopologyCache.cpp
         cashe/TopologyCacheManager.h

@@ -4,7 +4,7 @@
 #include "lib/Path.h"
 #include "lib/PathsCollection.h"
 #include "../trust_lines/manager/TrustLinesManager.h"
-#include "../topology/manager/TopologyTrustLineManager.h"
+#include "../topology/manager/TopologyTrustLinesManager.h"
 #include "../logger/Logger.h"
 
 #include <set>
@@ -13,9 +13,10 @@ class PathsManager {
 
 public:
     PathsManager(
+        const SerializedEquivalent equivalent,
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLinesManager,
-        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyTrustLinesManager *topologyTrustLineManager,
         Logger &logger);
 
     void buildPaths(
@@ -67,7 +68,8 @@ private:
 
 private:
     TrustLinesManager *mTrustLinesManager;
-    TopologyTrustLineManager *mTopologyTrustLineManager;
+    TopologyTrustLinesManager *mTopologyTrustLineManager;
+    SerializedEquivalent mEquivalent;
     Logger &mLog;
     PathsCollection::Shared mPathCollection;
     NodeUUID mNodeUUID;
