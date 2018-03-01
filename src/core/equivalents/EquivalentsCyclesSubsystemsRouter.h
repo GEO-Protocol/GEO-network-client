@@ -36,6 +36,9 @@ public:
     RoutingTableManager* routingTableManager(
         const SerializedEquivalent equivalent) const;
 
+    void initNewEquivalent(
+        const SerializedEquivalent equivalent);
+
 public:
     mutable CloseCycleSignal closeCycleSignal;
 
@@ -58,6 +61,18 @@ protected:
 
 private:
     void connectSignalsToSlots();
+
+    void subscribeForBuildingFiveNodesCycles(
+        CyclesManager::BuildFiveNodesCyclesSignal &signal);
+
+    void subscribeForBuildingSixNodesCycles(
+        CyclesManager::BuildSixNodesCyclesSignal &signal);
+
+    void subscribeForClosingCycles(
+        CyclesManager::CloseCycleSignal &signal);
+
+    void subscribeForRoutingTablesUpdating(
+        RoutingTableManager::UpdateRoutingTableSignal &signal);
 
     void onBuildCycleFiveNodesSlot(
         const SerializedEquivalent equivalent);

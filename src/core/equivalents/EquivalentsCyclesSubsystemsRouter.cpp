@@ -53,36 +53,101 @@ RoutingTableManager* EquivalentsCyclesSubsystemsRouter::routingTableManager(
     return mRoutingTablesManagers.at(equivalent).get();
 }
 
+void EquivalentsCyclesSubsystemsRouter::initNewEquivalent(
+    const SerializedEquivalent equivalent)
+{
+    if (mCyclesManagers.count(equivalent) != 0) {
+        throw ValueError(
+                "EquivalentsCyclesSubsystemsRouter::initNewEquivalent: "
+                    "try init equivalent which is already exists");
+    }
+
+    mCyclesManagers.insert(
+        make_pair(
+            equivalent,
+            make_unique<CyclesManager>(
+                equivalent,
+                mNodeUUID,
+                mTransactionScheduler,
+                mIOService,
+                mLogger,
+                mSubsystemsController)));
+    subscribeForBuildingFiveNodesCycles(
+        mCyclesManagers[equivalent]->buildFiveNodesCyclesSignal);
+    subscribeForBuildingSixNodesCycles(
+        mCyclesManagers[equivalent]->buildSixNodesCyclesSignal);
+    subscribeForClosingCycles(
+        mCyclesManagers[equivalent]->closeCycleSignal);
+    info() << "Cycles Manager is successfully initialized";
+
+    mRoutingTablesManagers.insert(
+        make_pair(
+            equivalent,
+            make_unique<RoutingTableManager>(
+                equivalent,
+                mIOService,
+                mLogger)));
+    subscribeForRoutingTablesUpdating(
+        mRoutingTablesManagers[equivalent]->updateRoutingTableSignal);
+    info() << "Routing Table Manager is successfully initialized";
+}
+
 void EquivalentsCyclesSubsystemsRouter::connectSignalsToSlots()
 {
     for (const auto &cyclesManager : mCyclesManagers) {
-        cyclesManager.second->buildFiveNodesCyclesSignal.connect(
-            boost::bind(
-                &EquivalentsCyclesSubsystemsRouter::onBuildCycleFiveNodesSlot,
-                this,
-                _1));
-
-        cyclesManager.second->buildSixNodesCyclesSignal.connect(
-            boost::bind(
-                &EquivalentsCyclesSubsystemsRouter::onBuildCycleSixNodesSlot,
-                this,
-                _1));
-
-        cyclesManager.second->closeCycleSignal.connect(
-            boost::bind(
-                &EquivalentsCyclesSubsystemsRouter::onCloseCycleSlot,
-                this,
-                _1,
-                _2));
+        subscribeForBuildingFiveNodesCycles(
+            cyclesManager.second->buildFiveNodesCyclesSignal);
+        subscribeForBuildingSixNodesCycles(
+            cyclesManager.second->buildSixNodesCyclesSignal);
+        subscribeForClosingCycles(
+            cyclesManager.second->closeCycleSignal);
     }
 
     for (const auto &routingTablesManager : mRoutingTablesManagers) {
-        routingTablesManager.second->updateRoutingTableSignal.connect(
-            boost::bind(
-                &EquivalentsCyclesSubsystemsRouter::onUpdateRoutingTableSlot,
-                this,
-                _1));
+        subscribeForRoutingTablesUpdating(
+            routingTablesManager.second->updateRoutingTableSignal);
     }
+}
+
+void EquivalentsCyclesSubsystemsRouter::subscribeForBuildingFiveNodesCycles(
+    CyclesManager::BuildFiveNodesCyclesSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &EquivalentsCyclesSubsystemsRouter::onBuildCycleFiveNodesSlot,
+            this,
+            _1));
+}
+
+void EquivalentsCyclesSubsystemsRouter::subscribeForBuildingSixNodesCycles(
+    CyclesManager::BuildSixNodesCyclesSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &EquivalentsCyclesSubsystemsRouter::onBuildCycleSixNodesSlot,
+            this,
+            _1));
+}
+
+void EquivalentsCyclesSubsystemsRouter::subscribeForClosingCycles(
+    CyclesManager::CloseCycleSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &EquivalentsCyclesSubsystemsRouter::onCloseCycleSlot,
+            this,
+            _1,
+            _2));
+}
+
+void EquivalentsCyclesSubsystemsRouter::subscribeForRoutingTablesUpdating(
+    RoutingTableManager::UpdateRoutingTableSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &EquivalentsCyclesSubsystemsRouter::onUpdateRoutingTableSlot,
+            this,
+            _1));
 }
 
 void EquivalentsCyclesSubsystemsRouter::onBuildCycleFiveNodesSlot(

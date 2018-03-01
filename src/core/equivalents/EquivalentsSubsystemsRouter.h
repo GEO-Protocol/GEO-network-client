@@ -44,6 +44,9 @@ public:
     PathsManager* pathsManager(
         const SerializedEquivalent equivalent) const;
 
+    void initNewEquivalent(
+        const SerializedEquivalent equivalent);
+
 public:
     mutable GatewayNotificationSignal gatewayNotificationSignal;
 
@@ -60,6 +63,9 @@ protected:
 
 private:
     void connectSignalsToSlots();
+
+    void subscribeForGatewayNotification(
+        NotifyThatIAmIsGatewayDelayedTask::GatewayNotificationSignal &signal);
 
     void onGatewayNotificationSlot(
         const SerializedEquivalent equivalent);

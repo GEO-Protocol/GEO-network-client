@@ -79,7 +79,8 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
         info() << "Paths Manager is successfully initialized";
 
         mNotifyThatIAmIsGatewayDelayedTasks.insert(
-            make_pair(equivalent,
+            make_pair(
+                equivalent,
                 make_unique<NotifyThatIAmIsGatewayDelayedTask>(
                     equivalent,
                     mIOService,
@@ -125,15 +126,102 @@ PathsManager* EquivalentsSubsystemsRouter::pathsManager(
     return mPathsManagers.at(equivalent).get();
 }
 
+void EquivalentsSubsystemsRouter::initNewEquivalent(
+    const SerializedEquivalent equivalent)
+{
+
+    if (mTrustLinesManagers.count(equivalent) != 0) {
+        throw ValueError(
+                "EquivalentsCyclesSubsystemsRouter::initNewEquivalent: "
+                    "try init equivalent which is already exists");
+    }
+
+    mTrustLinesManagers.insert(
+        make_pair(
+            equivalent,
+            make_unique<TrustLinesManager>(
+                equivalent,
+                mStorageHandler,
+                mLogger)));
+    info() << "Trust Lines Manager is successfully initialized";
+
+    mTopologyTrustLinesManagers.insert(
+        make_pair(
+            equivalent,
+            make_unique<TopologyTrustLinesManager>(
+                equivalent,
+                mIAmGateway,
+                mNodeUUID,
+                mLogger)));
+    info() << "Topology Trust Lines Manager is successfully initialized";
+
+    mTopologyCacheManagers.insert(
+        make_pair(
+            equivalent,
+            make_unique<TopologyCacheManager>(
+                equivalent,
+                mLogger)));
+    info() << "Topology Cache Manager is successfully initialized";
+
+    mMaxFlowCacheManagers.insert(
+        make_pair(
+            equivalent,
+            make_unique<MaxFlowCacheManager>(
+                equivalent,
+                mLogger)));
+    info() << "Max Flow Cache Manager is successfully initialized";
+
+    mTopologyCacheUpdateDelayedTasks.insert(
+        make_pair(
+            equivalent,
+            make_unique<TopologyCacheUpdateDelayedTask>(
+                equivalent,
+                mIOService,
+                mTopologyCacheManagers[equivalent].get(),
+                mTopologyTrustLinesManagers[equivalent].get(),
+                mMaxFlowCacheManagers[equivalent].get(),
+                mLogger)));
+    info() << "Topology Cache Update Delayed Task is successfully initialized";
+
+    mPathsManagers.insert(
+        make_pair(
+             equivalent,
+             make_unique<PathsManager>(
+                 equivalent,
+                 mNodeUUID,
+                 mTrustLinesManagers[equivalent].get(),
+                 mTopologyTrustLinesManagers[equivalent].get(),
+                 mLogger)));
+    info() << "Paths Manager is successfully initialized";
+
+    mNotifyThatIAmIsGatewayDelayedTasks.insert(
+        make_pair(
+           equivalent,
+           make_unique<NotifyThatIAmIsGatewayDelayedTask>(
+               equivalent,
+               mIOService,
+               mLogger)));
+    subscribeForGatewayNotification(
+        mNotifyThatIAmIsGatewayDelayedTasks[equivalent]->gatewayNotificationSignal);
+    info() << "Gateway Notification Delayed Task is successfully initialized";
+}
+
 void EquivalentsSubsystemsRouter::connectSignalsToSlots()
 {
     for (const auto &notifyThatIAmIsGatewayDelayedTask : mNotifyThatIAmIsGatewayDelayedTasks) {
-        notifyThatIAmIsGatewayDelayedTask.second->gatewayNotificationSignal.connect(
-            boost::bind(
-                &EquivalentsSubsystemsRouter::onGatewayNotificationSlot,
-                this,
-                _1));
+        subscribeForGatewayNotification(
+            notifyThatIAmIsGatewayDelayedTask.second->gatewayNotificationSignal);
     }
+}
+
+void EquivalentsSubsystemsRouter::subscribeForGatewayNotification(
+    NotifyThatIAmIsGatewayDelayedTask::GatewayNotificationSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &EquivalentsSubsystemsRouter::onGatewayNotificationSlot,
+            this,
+            _1));
 }
 
 void EquivalentsSubsystemsRouter::onGatewayNotificationSlot(
