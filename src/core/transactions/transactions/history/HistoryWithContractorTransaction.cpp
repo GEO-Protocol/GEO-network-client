@@ -24,6 +24,7 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::run()
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto const resultRecords = ioTransaction->historyStorage()->recordsWithContractor(
         mCommand->contractorUUID(),
+        mCommand->equivalent(),
         mCommand->historyCount(),
         mCommand->historyFrom());
     return resultOk(resultRecords);

@@ -15,6 +15,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction,
         message->transactionUUID(),
         currentNodeUUID,
+        0,
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -679,7 +680,8 @@ void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::CyclerCloserIntermediateType,
-            mCommittedAmount));
+            mCommittedAmount),
+        mEquivalent);
     debug() << "Operation saved";
 }
 

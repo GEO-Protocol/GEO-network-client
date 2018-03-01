@@ -320,7 +320,8 @@ void Core::connectResourcesManagerSignals()
             &Core::onPathsResourceRequestedSlot,
             this,
             _1,
-            _2));
+            _2,
+            _3));
 
     mResourcesManager->attachResourceSignal.connect(
         boost::bind(
@@ -413,12 +414,14 @@ void Core::onMessageSendSlot(
 
 void Core::onPathsResourceRequestedSlot(
     const TransactionUUID &transactionUUID,
-    const NodeUUID &destinationNodeUUID)
+    const NodeUUID &destinationNodeUUID,
+    const SerializedEquivalent equivalent)
 {
     try {
         mTransactionsManager->launchFindPathByMaxFlowTransaction(
             transactionUUID,
-            destinationNodeUUID);
+            destinationNodeUUID,
+            equivalent);
 
     } catch (exception &e) {
         mLog->logException("Core", e);

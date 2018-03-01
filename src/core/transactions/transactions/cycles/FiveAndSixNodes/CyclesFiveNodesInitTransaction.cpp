@@ -1,5 +1,22 @@
 #include "CyclesFiveNodesInitTransaction.h"
 
+CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
+    const NodeUUID &nodeUUID,
+    const SerializedEquivalent equivalent,
+    TrustLinesManager *manager,
+    CyclesManager *cyclesManager,
+    StorageHandler *storageHandler,
+    Logger &logger) :
+    CyclesBaseFiveSixNodesInitTransaction(
+        BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction,
+        nodeUUID,
+        equivalent,
+        manager,
+        cyclesManager,
+        storageHandler,
+        logger)
+{}
+
 const BaseTransaction::TransactionType CyclesFiveNodesInitTransaction::transactionType() const
 {
     return BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction;
@@ -16,31 +33,14 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAnd
     for(const auto &value: firstLevelNodesNegativeBalance)
         sendMessage<CyclesFiveNodesInBetweenMessage>(
             value,
-            path
-        );
+            path);
     for(const auto &value: firstLevelNodesPositiveBalance)
-            sendMessage<CyclesFiveNodesInBetweenMessage>(
-                value,
-                path
-            );
+        sendMessage<CyclesFiveNodesInBetweenMessage>(
+            value,
+            path);
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);
 }
-
-CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
-    const NodeUUID &nodeUUID,
-    TrustLinesManager *manager,
-    CyclesManager *cyclesManager,
-    StorageHandler *storageHandler,
-    Logger &logger) :
-    CyclesBaseFiveSixNodesInitTransaction(
-        BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction,
-        nodeUUID,
-        manager,
-        cyclesManager,
-        storageHandler,
-        logger)
-{};
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"

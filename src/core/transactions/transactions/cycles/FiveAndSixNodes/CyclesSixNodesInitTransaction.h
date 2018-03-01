@@ -12,6 +12,7 @@ class CyclesSixNodesInitTransaction :
 public:
     CyclesSixNodesInitTransaction(
         const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
         TrustLinesManager *manager,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,

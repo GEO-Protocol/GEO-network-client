@@ -41,7 +41,7 @@ class TransactionsScheduler {
 public:
     typedef signals::signal<void(CommandResult::SharedConst)> CommandResultSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> SerializeTransactionSignal;
-    typedef signals::signal<void()> CycleCloserTransactionWasFinishedSignal;
+    typedef signals::signal<void(const SerializedEquivalent equivalent)> CycleCloserTransactionWasFinishedSignal;
 
 
 public:

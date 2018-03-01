@@ -28,12 +28,15 @@ public:
         Logger &logger);
 
     void saveTrustLineRecord(
-        TrustLineRecord::Shared record);
+        TrustLineRecord::Shared record,
+        const SerializedEquivalent equivalent);
 
     void savePaymentRecord(
-        PaymentRecord::Shared record);
+        PaymentRecord::Shared record,
+        const SerializedEquivalent equivalent);
 
     vector<TrustLineRecord::Shared> allTrustLineRecords(
+        const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord,
         DateTime timeFrom,
@@ -42,6 +45,7 @@ public:
         bool isTimeToPresent);
 
     vector<PaymentRecord::Shared> allPaymentRecords(
+        const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord,
         DateTime timeFrom,
@@ -57,6 +61,7 @@ public:
         const CommandUUID &commandUUID);
 
     vector<PaymentRecord::Shared> allPaymentAdditionalRecords(
+        const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord,
         DateTime timeFrom,
@@ -66,19 +71,11 @@ public:
         const TrustLineAmount& lowBoundaryAmount,
         bool isLowBoundaryAmountPresent,
         const TrustLineAmount& highBoundaryAmount,
-        bool isHighBoundaryAmountPresent
-    );
-
-    vector<PaymentRecord::Shared> allPaymentAdditionalRecords(
-        size_t recordsCount,
-        size_t fromRecord,
-        DateTime timeFrom,
-        bool isTimeFromPresent,
-        DateTime timeTo,
-        bool isTimeToPresent);
+        bool isHighBoundaryAmountPresent);
 
     vector<Record::Shared> recordsWithContractor(
         const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord);
 
@@ -90,15 +87,28 @@ public:
 
 private:
     void savePaymentMainOutgoingRecord(
-        PaymentRecord::Shared record);
+        PaymentRecord::Shared record,
+        const SerializedEquivalent equivalent);
 
     void savePaymentMainIncomingRecord(
-        PaymentRecord::Shared record);
+        PaymentRecord::Shared record,
+        const SerializedEquivalent equivalent);
 
     void savePaymentAdditionalRecord(
-        PaymentRecord::Shared record);
+        PaymentRecord::Shared record,
+        const SerializedEquivalent equivalent);
 
     vector<PaymentRecord::Shared> allPaymentRecords(
+        const SerializedEquivalent equivalent,
+        size_t recordsCount,
+        size_t fromRecord,
+        DateTime timeFrom,
+        bool isTimeFromPresent,
+        DateTime timeTo,
+        bool isTimeToPresent);
+
+    vector<PaymentRecord::Shared> allPaymentAdditionalRecords(
+        const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord,
         DateTime timeFrom,
@@ -107,10 +117,12 @@ private:
         bool isTimeToPresent);
 
     size_t countRecordsByType(
-        Record::RecordType recordType);
+        Record::RecordType recordType,
+        const SerializedEquivalent equivalent);
 
     vector<Record::Shared> recordsPortionWithContractor(
         const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord);
 
@@ -148,7 +160,7 @@ private:
     // main table used for storing history, needed for frontend
     // (trustlines, payments coordinator, payments receiver)
     string mMainTableName;
-    // addidtional table used for storing history, needed for statistics
+    // additional table used for storing history, needed for statistics
     // (cycles and payment intermediate nodes)
     string mAdditionalTableName;
     Logger &mLog;

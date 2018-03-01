@@ -41,7 +41,6 @@
 
 namespace signals = boost::signals2;
 
-// TODO: Add restoring of the reservations after transaction deserialization.
 class BasePaymentTransaction:
     public BaseTransaction {
 
@@ -49,13 +48,20 @@ public:
     typedef shared_ptr<BasePaymentTransaction> Shared;
 
 public:
-    typedef signals::signal<void(set<NodeUUID> &creditorUUID)> BuildCycleThreeNodesSignal;
-    typedef signals::signal<void(set<NodeUUID> &creditorUUID)> BuildCycleFourNodesSignal;
+    typedef signals::signal<void(
+                set<NodeUUID> &creditorUUID,
+                const SerializedEquivalent equivalent)>
+            BuildCycleThreeNodesSignal;
+    typedef signals::signal<void(
+                set<NodeUUID> &creditorUUID,
+                const SerializedEquivalent equivalent)>
+            BuildCycleFourNodesSignal;
 
 public:
     BasePaymentTransaction(
         const TransactionType type,
         const NodeUUID &currentNodeUUID,
+        const SerializedEquivalent equivalent,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -67,6 +73,7 @@ public:
         const TransactionType type,
         const TransactionUUID &transactionUUID,
         const NodeUUID &currentNodeUUID,
+        const SerializedEquivalent equivalent,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -99,6 +106,8 @@ public:
      * used in CyclesManager for resolving cycle closing conflicts
      */
     virtual const SerializedPathLengthSize cycleLength() const;
+
+    const SerializedEquivalent equivalent() const;
 
     /**
      * @return if payment transaction on Common_VotesChecking stage
@@ -416,6 +425,7 @@ protected:
     StorageHandler *mStorageHandler;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
+    SerializedEquivalent mEquivalent;
 
     // If true - votes check stage has been processed and transaction has been approved.
     // In this case transaction can't be simply rolled back.

@@ -150,7 +150,8 @@ public:
      */
     void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
-        const NodeUUID &destinationNodeUUID);
+        const NodeUUID &destinationNodeUUID,
+        const SerializedEquivalent equivalent);
 
 #ifdef TESTS
     void setMeAsGateway();
@@ -242,23 +243,27 @@ protected: // Transactions
      * Cycles building Transactions
      */
     void launchFourNodesCyclesInitTransaction(
-        const NodeUUID &creditorUUID);
+        const NodeUUID &creditorUUID,
+        const SerializedEquivalent equivalent);
 
     void launchFourNodesCyclesResponseTransaction(
         CyclesFourNodesBalancesRequestMessage::Shared message);
 
     void launchThreeNodesCyclesInitTransaction(
-        const NodeUUID &contractorUUID);
+        const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent);
 
     void launchThreeNodesCyclesResponseTransaction(
         CyclesThreeNodesBalancesRequestMessage::Shared message);
 
-    void launchSixNodesCyclesInitTransaction();
+    void launchSixNodesCyclesInitTransaction(
+        const SerializedEquivalent equivalent);
 
     void launchSixNodesCyclesResponseTransaction(
         CyclesSixNodesInBetweenMessage::Shared message);
 
-    void launchFiveNodesCyclesInitTransaction();
+    void launchFiveNodesCyclesInitTransaction(
+        const SerializedEquivalent equivalent);
 
     void launchFiveNodesCyclesResponseTransaction(
         CyclesFiveNodesInBetweenMessage::Shared message);
@@ -302,7 +307,8 @@ protected: // Transactions
     void launchRoutingTableResponseTransaction(
         RoutingTableRequestMessage::Shared message);
 
-    void launchRoutingTableRequestTransaction();
+    void launchRoutingTableRequestTransaction(
+        const SerializedEquivalent equivalent);
 
     /*
      * BlackList
@@ -328,7 +334,8 @@ protected: // Transactions
     /*
      * Gateway notification transactions
      */
-    void launchGatewayNotificationSenderTransaction();
+    void launchGatewayNotificationSenderTransaction(
+        const SerializedEquivalent equivalent);
 
     void launchGatewayNotificationReceiverTransaction(
         GatewayNotificationMessage::Shared message);
@@ -389,10 +396,12 @@ protected:
         BaseTransaction::Shared transaction);
 
     void onBuildCycleThreeNodesTransaction(
-        set<NodeUUID> &contractorsUUID);
+        set<NodeUUID> &contractorsUUID,
+        const SerializedEquivalent equivalent);
 
     void onBuildCycleFourNodesTransaction(
-        set<NodeUUID> &creditors);
+        set<NodeUUID> &creditors,
+        const SerializedEquivalent equivalent);
 
     void onBuildCycleFiveNodesTransaction(
         const SerializedEquivalent equivalent);
@@ -404,7 +413,8 @@ protected:
         const SerializedEquivalent equivalent,
         Path::ConstShared cycle);
 
-    void onTryCloseNextCycleSlot();
+    void onTryCloseNextCycleSlot(
+        const SerializedEquivalent equivalent);
 
     void onProcessConfirmationMessageSlot(
         const NodeUUID &contractorUUID,

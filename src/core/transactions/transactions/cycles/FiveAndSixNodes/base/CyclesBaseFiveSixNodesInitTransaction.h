@@ -16,6 +16,7 @@ public:
     CyclesBaseFiveSixNodesInitTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
         TrustLinesManager *manager,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
@@ -37,6 +38,7 @@ protected:
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
     CyclesManager *mCyclesManager;
+    SerializedEquivalent mEquivalent;
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESINITTRANSACTION_H

@@ -112,6 +112,6 @@ void CloseOutgoingTrustLineTransaction::populateHistory(
         operationType,
         mMessage->senderUUID);
 
-    ioTransaction->historyStorage()->saveTrustLineRecord(record);
+    ioTransaction->historyStorage()->saveTrustLineRecord(record, 0);
 #endif
 }

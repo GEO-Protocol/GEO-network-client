@@ -14,6 +14,7 @@ public:
 public:
     GatewayNotificationSenderTransaction(
         const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         bool iAmGateway,
@@ -28,6 +29,7 @@ private:
     const string kGatewayFeatureName = "GATEWAY";
 
 private:
+    SerializedEquivalent mEquivalent;
     TrustLinesManager *mTrustLineManager;
     StorageHandler *mStorageHandler;
     bool mIAmGateway;

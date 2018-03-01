@@ -16,7 +16,11 @@ namespace signals = boost::signals2;
 
 class ResourcesManager {
 public:
-    typedef signals::signal<void(const TransactionUUID&, const NodeUUID&)> RequestPathsResourcesSignal;
+    typedef signals::signal<void(
+                const TransactionUUID&,
+                const NodeUUID&,
+                const SerializedEquivalent)>
+            RequestPathsResourcesSignal;
     typedef signals::signal<void(BaseResource::Shared)> AttachResourceSignal;
 
 public:
@@ -25,7 +29,8 @@ public:
 
     void requestPaths(
         const TransactionUUID &transactionUUID,
-        const NodeUUID &contractorUUID) const;
+        const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent) const;
 
 
 public:

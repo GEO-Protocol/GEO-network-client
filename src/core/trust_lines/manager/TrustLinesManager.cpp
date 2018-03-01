@@ -18,8 +18,7 @@ TrustLinesManager::TrustLinesManager(
 void TrustLinesManager::loadTrustLinesFromDisk()
 {
     auto ioTransaction = mStorageHandler->beginTransaction();
-    //const auto kTrustLines = ioTransaction->trustLinesHandler()->allTrustLinesByEquivalent(mEquivalent);
-    const auto kTrustLines = ioTransaction->trustLinesHandler()->allTrustLines();
+    const auto kTrustLines = ioTransaction->trustLinesHandler()->allTrustLinesByEquivalent(mEquivalent);
 
     mTrustLines.reserve(kTrustLines.size());
 
@@ -28,13 +27,14 @@ void TrustLinesManager::loadTrustLinesFromDisk()
                 and kTrustLine->incomingTrustAmount() == 0
                 and kTrustLine->balance() == 0) {
 
-            // Empty trust line occured.
-            // This might occure in case if trust line wasn't deleted properly when it was closed by both sides.
+            // Empty trust line occurred.
+            // This might occurre in case if trust line wasn't deleted properly when it was closed by both sides.
             // Now it must be removed.
             ioTransaction->trustLinesHandler()->deleteTrustLine(
-                kTrustLine->contractorNodeUUID());
+                kTrustLine->contractorNodeUUID(),
+                mEquivalent);
             info() << "Trust line to the node " << kTrustLine->contractorNodeUUID()
-                   << " is empty (outgoing trust amount = 0, incoming trust amount = 0, balane = 0). Removed.";
+                   << " is empty (outgoing trust amount = 0, incoming trust amount = 0, balance = 0). Removed.";
             continue;
 
         } else {
@@ -501,7 +501,8 @@ void TrustLinesManager::removeTrustLine(
     }
 
     IOTransaction->trustLinesHandler()->deleteTrustLine(
-        contractorUUID);
+        contractorUUID,
+        mEquivalent);
     mTrustLines.erase(contractorUUID);
 }
 

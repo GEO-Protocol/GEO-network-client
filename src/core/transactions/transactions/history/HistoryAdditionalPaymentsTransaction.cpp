@@ -24,6 +24,7 @@ TransactionResult::SharedConst HistoryAdditionalPaymentsTransaction::run()
     auto ioTransaction = mStorageHandler->beginTransaction();
 
     auto const paymentRecords = ioTransaction->historyStorage()->allPaymentAdditionalRecords(
+        mCommand->equivalent(),
         mCommand->historyCount(),
         mCommand->historyFrom(),
         mCommand->timeFrom(),

@@ -15,6 +15,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         BaseTransaction::IntermediateNodePaymentTransaction,
         message->transactionUUID(),
         currentNodeUUID,
+        0,
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -918,7 +919,8 @@ void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::IntermediatePaymentType,
-            mCommittedAmount));
+            mCommittedAmount),
+        mEquivalent);
     debug() << "Operation saved";
 }
 

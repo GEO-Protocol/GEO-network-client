@@ -37,7 +37,7 @@ TransactionResult::SharedConst RejectOutgoingTrustLineTransaction::run()
             TrustLineRecord::RejectingOutgoing,
             kContractor);
 
-        ioTransaction->historyStorage()->saveTrustLineRecord(record);
+        ioTransaction->historyStorage()->saveTrustLineRecord(record, 0);
 
         processConfirmationMessage(
             kContractor,
@@ -57,7 +57,7 @@ TransactionResult::SharedConst RejectOutgoingTrustLineTransaction::run()
                << "Details are: " << e.what();
 
         // Rethrowing the exception,
-        // because the TA can't finish propely and no result may be returned.
+        // because the TA can't finish properly and no result may be returned.
         throw e;
     }
 }

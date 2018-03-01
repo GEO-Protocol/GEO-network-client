@@ -6,13 +6,17 @@
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../cycles/RoutingTableManager.h"
 
+#include "../../../network/messages/routing_table/RoutingTableRequestMessage.h"
+#include "../../../network/messages/routing_table/RoutingTableResponseMessage.h"
+
 class RoutingTableInitTransaction:
     public BaseTransaction {
 
 public:
     RoutingTableInitTransaction(
         const NodeUUID &nodeUUID,
-        TrustLinesManager *trustlineManager,
+        const SerializedEquivalent equivalent,
+        TrustLinesManager *trustLinesManager,
         RoutingTableManager *routingTableManager,
         Logger &logger);
 
@@ -32,7 +36,8 @@ protected:
 
 protected:
     NodeUUID mNodeUUID;
-    TrustLinesManager *mTrustlineManager;
+    SerializedEquivalent mEquivalent;
+    TrustLinesManager *mTrustLinesManager;
     RoutingTableManager *mRoutingTableManager;
     Logger &mLog;
 };

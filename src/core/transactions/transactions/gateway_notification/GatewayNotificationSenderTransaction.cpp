@@ -2,6 +2,7 @@
 
 GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
     const NodeUUID &nodeUUID,
+    const SerializedEquivalent equivalent,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     bool iAmGateway,
@@ -11,7 +12,7 @@ GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
         BaseTransaction::TransactionType::GatewayNotificationSenderType,
         nodeUUID,
         logger),
-
+    mEquivalent(equivalent),
     mTrustLineManager(manager),
     mStorageHandler(storageHandler),
     mIAmGateway(iAmGateway)

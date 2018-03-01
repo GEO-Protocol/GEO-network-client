@@ -38,7 +38,8 @@ const CommandUUID& PaymentTransactionByCommandUUIDCommand::paymentTransactionCom
     return mPaymentTransactionCommandUUID;
 }
 
-CommandResult::SharedConst PaymentTransactionByCommandUUIDCommand::resultOk(string &transactionUUIDStr) const
+CommandResult::SharedConst PaymentTransactionByCommandUUIDCommand::resultOk(
+    string &transactionUUIDStr) const
 {
     return CommandResult::SharedConst(
         new CommandResult(

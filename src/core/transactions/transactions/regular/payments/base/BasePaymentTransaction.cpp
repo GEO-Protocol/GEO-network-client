@@ -3,6 +3,7 @@
 BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
     const NodeUUID &currentNodeUUID,
+    const SerializedEquivalent equivalent,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -14,6 +15,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         type,
         currentNodeUUID,
         log),
+    mEquivalent(equivalent),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
@@ -28,6 +30,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID,
     const NodeUUID &currentNodeUUID,
+    const SerializedEquivalent equivalent,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -40,6 +43,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         transactionUUID,
         currentNodeUUID,
         log),
+    mEquivalent(equivalent),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
@@ -1277,6 +1281,11 @@ const SerializedPathLengthSize BasePaymentTransaction::cycleLength() const
     return 0;
 }
 
+const SerializedEquivalent BasePaymentTransaction::equivalent() const
+{
+    return mEquivalent;
+}
+
 bool BasePaymentTransaction::isCommonVotesCheckingStage() const
 {
     return mStep == Common_VotesChecking;
@@ -1288,10 +1297,14 @@ void BasePaymentTransaction::setRollbackByOtherTransactionStage()
 }
 
 void BasePaymentTransaction::runThreeNodesCyclesTransactions() {
-    mBuildCycleThreeNodesSignal(mCreditorsForCycles);
+    mBuildCycleThreeNodesSignal(
+        mCreditorsForCycles,
+        mEquivalent);
 }
 
 void BasePaymentTransaction::runFourNodesCyclesTransactions() {
-    mBuildCycleFourNodesSignal(mCreditorsForCycles);
+    mBuildCycleFourNodesSignal(
+        mCreditorsForCycles,
+        mEquivalent);
 }
 

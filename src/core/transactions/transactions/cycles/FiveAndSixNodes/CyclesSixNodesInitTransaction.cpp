@@ -1,5 +1,22 @@
 #include "CyclesSixNodesInitTransaction.h"
 
+CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
+    const NodeUUID &nodeUUID,
+    const SerializedEquivalent equivalent,
+    TrustLinesManager *manager,
+    CyclesManager *cyclesManager,
+    StorageHandler *storageHandler,
+    Logger &logger) :
+    CyclesBaseFiveSixNodesInitTransaction(
+        BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction,
+        nodeUUID,
+        equivalent,
+        manager,
+        cyclesManager,
+        storageHandler,
+        logger)
+{}
+
 const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactionType() const
 {
     return BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction;
@@ -14,28 +31,11 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndS
     for(const auto &kNodeUUID: firstLevelNodes){
         sendMessage<CyclesSixNodesInBetweenMessage>(
             kNodeUUID,
-            path
-        );
+            path);
     }
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);
 }
-
-CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
-    const NodeUUID &nodeUUID,
-    TrustLinesManager *manager,
-    CyclesManager *cyclesManager,
-    StorageHandler *storageHandler,
-    Logger &logger) :
-    CyclesBaseFiveSixNodesInitTransaction(
-        BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction,
-        nodeUUID,
-        manager,
-        cyclesManager,
-        storageHandler,
-        logger)
-{}
-
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"

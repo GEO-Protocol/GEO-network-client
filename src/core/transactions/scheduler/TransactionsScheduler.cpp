@@ -275,7 +275,9 @@ void TransactionsScheduler::forgetTransaction(
     }
 
     if (transaction->transactionType() == BaseTransaction::Payments_CycleCloserInitiatorTransaction) {
-        cycleCloserTransactionWasFinishedSignal();
+        cycleCloserTransactionWasFinishedSignal(
+            static_pointer_cast<BasePaymentTransaction>(
+                transaction)->equivalent());
     }
     mTransactions->erase(transaction);
 }

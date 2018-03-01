@@ -235,6 +235,6 @@ void SetIncomingTrustLineTransaction::populateHistory(
         mMessage->senderUUID,
         mMessage->amount());
 
-    ioTransaction->historyStorage()->saveTrustLineRecord(record);
+    ioTransaction->historyStorage()->saveTrustLineRecord(record, 0);
 #endif
 }

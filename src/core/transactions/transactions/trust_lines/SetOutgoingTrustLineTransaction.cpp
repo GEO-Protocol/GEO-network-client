@@ -209,6 +209,6 @@ void SetOutgoingTrustLineTransaction::populateHistory(
         mCommand->contractorUUID(),
         mCommand->amount());
 
-    ioTransaction->historyStorage()->saveTrustLineRecord(record);
+    ioTransaction->historyStorage()->saveTrustLineRecord(record, 0);
 #endif
 }

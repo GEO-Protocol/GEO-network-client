@@ -13,7 +13,7 @@ public:
     PaymentTransactionByCommandUUIDTransaction(
         NodeUUID &nodeUUID,
         PaymentTransactionByCommandUUIDCommand::Shared command,
-        BaseTransaction::Shared reuqestedTransaction,
+        BaseTransaction::Shared requestedTransaction,
         Logger &logger);
 
     PaymentTransactionByCommandUUIDCommand::Shared command() const;

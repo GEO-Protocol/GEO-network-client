@@ -31,8 +31,15 @@ TransactionResult::SharedConst PaymentTransactionByCommandUUIDTransaction::run()
         info() << "Requested transaction found";
     }
     auto result = stream.str();
+    return resultOk(result);
+}
+
+TransactionResult::SharedConst PaymentTransactionByCommandUUIDTransaction::resultOk(
+    string &transactionUUIDStr)
+{
     return transactionResultFromCommand(
-        mCommand->resultOk(result));
+        mCommand->resultOk(
+            transactionUUIDStr));
 }
 
 const string PaymentTransactionByCommandUUIDTransaction::logHeader() const

@@ -1,22 +1,24 @@
 #include "RoutingTableInitTransaction.h"
-#include "../../../network/messages/routing_table/RoutingTableRequestMessage.h"
-#include "../../../network/messages/routing_table/RoutingTableResponseMessage.h"
 
 RoutingTableInitTransaction::RoutingTableInitTransaction(
     const NodeUUID &nodeUUID,
-    TrustLinesManager *trustlineManager,
+    const SerializedEquivalent equivalent,
+    TrustLinesManager *trustLinesManager,
     RoutingTableManager *routingTableManager,
     Logger &logger):
+
     BaseTransaction(
-    BaseTransaction::TransactionType::RoutingTableInitTransactionType,
-    nodeUUID,
-    logger),
-    mTrustlineManager(trustlineManager),
+        BaseTransaction::TransactionType::RoutingTableInitTransactionType,
+        nodeUUID,
+        logger),
+    mEquivalent(equivalent),
+    mTrustLinesManager(trustLinesManager),
     mRoutingTableManager(routingTableManager),
     mLog(logger)
 {}
 
-TransactionResult::SharedConst RoutingTableInitTransaction::run() {
+TransactionResult::SharedConst RoutingTableInitTransaction::run()
+{
     while (true) {
         debug() << "run: stage: " << mStep;
         try {
@@ -39,8 +41,9 @@ TransactionResult::SharedConst RoutingTableInitTransaction::run() {
     }
 }
 
-TransactionResult::SharedConst RoutingTableInitTransaction::runCollectDataStage() {
-    auto neighbors = mTrustlineManager->rt1();
+TransactionResult::SharedConst RoutingTableInitTransaction::runCollectDataStage()
+{
+    auto neighbors = mTrustLinesManager->rt1();
     for(const auto &kNeighborNode: neighbors){
         sendMessage<RoutingTableRequestMessage>(
             kNeighborNode,
@@ -50,7 +53,8 @@ TransactionResult::SharedConst RoutingTableInitTransaction::runCollectDataStage(
     return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);
 }
 
-const string RoutingTableInitTransaction::logHeader() const {
+const string RoutingTableInitTransaction::logHeader() const
+{
     stringstream s;
     s << "[RoutingTableInitTA: " << currentTransactionUUID() << "] ";
     return s.str();
@@ -66,7 +70,7 @@ TransactionResult::SharedConst RoutingTableInitTransaction::runUpdateRoutingTabl
 
     for(auto &stepMessage: mContext){
         auto message = static_pointer_cast<RoutingTableResponseMessage>(stepMessage);
-        if(!mTrustlineManager->isNeighbor(message->senderUUID)){
+        if(!mTrustLinesManager->isNeighbor(message->senderUUID)){
             continue;
         }
         mRoutingTableManager->updateMapAddSeveralNeighbors(

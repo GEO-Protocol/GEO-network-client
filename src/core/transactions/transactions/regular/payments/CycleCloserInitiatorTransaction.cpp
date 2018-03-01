@@ -3,6 +3,7 @@
 CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     const NodeUUID &kCurrentNodeUUID,
     Path::ConstShared path,
+    const SerializedEquivalent equivalent,
     TrustLinesManager *trustLines,
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
@@ -15,6 +16,7 @@ noexcept :
     BasePaymentTransaction(
         BaseTransaction::Payments_CycleCloserInitiatorTransaction,
         kCurrentNodeUUID,
+        equivalent,
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -1042,7 +1044,8 @@ void CycleCloserInitiatorTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::CycleCloserType,
-            mCommittedAmount));
+            mCommittedAmount),
+        mEquivalent);
     debug() << "Operation saved";
 }
 

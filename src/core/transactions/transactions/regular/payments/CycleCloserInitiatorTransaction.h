@@ -23,6 +23,7 @@ public:
     CycleCloserInitiatorTransaction(
         const NodeUUID &kCurrentNodeUUID,
         Path::ConstShared path,
+        const SerializedEquivalent equivalent,
         TrustLinesManager *trustLines,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,

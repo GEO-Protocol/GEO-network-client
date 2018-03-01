@@ -15,6 +15,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         BaseTransaction::ReceiverPaymentTransaction,
         message->transactionUUID(),
         currentNodeUUID,
+        0,
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -675,7 +676,8 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
             PaymentRecord::PaymentOperationType::IncomingPaymentType,
             mParticipantsVotesMessage->coordinatorUUID(),
             mCommittedAmount,
-            *mTrustLines->totalBalance().get()));
+            *mTrustLines->totalBalance().get()),
+        mEquivalent);
     debug() << "Operation saved";
 }
 

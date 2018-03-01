@@ -16,6 +16,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     BasePaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction,
         kCurrentNodeUUID,
+        kCommand->equivalent(),
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -141,7 +142,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
 
     mResourcesManager->requestPaths(
         currentTransactionUUID(),
-        mCommand->contractorUUID());
+        mCommand->contractorUUID(),
+        mEquivalent);
 
     mStep = Stages::Coordinator_ReceiverResourceProcessing;
     return resultWaitForResourceTypes(
@@ -1808,7 +1810,8 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory(
             mCommand->contractorUUID(),
             mCommittedAmount,
             *mTrustLines->totalBalance().get(),
-            mCommand->UUID()));
+            mCommand->UUID()),
+        mEquivalent);
     debug() << "Operation saved";
 }
 

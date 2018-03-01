@@ -128,6 +128,6 @@ void CloseIncomingTrustLineTransaction::populateHistory(
         operationType,
         mCommand->contractorUUID());
 
-    ioTransaction->historyStorage()->saveTrustLineRecord(record);
+    ioTransaction->historyStorage()->saveTrustLineRecord(record, 0);
 #endif
 }
