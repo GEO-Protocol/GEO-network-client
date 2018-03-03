@@ -24,17 +24,17 @@ Protocol | Purpose | Brief| State
 
 
 ## Design decisions summary 
-* **Efficient decentralisation** is distribution. Provided solutions are **not block-chain based**, doesn't implies all the participants to store and process all operations, doesn't relies on network majority, and doesn't need global network consesus to proceed. Anoother one focus point for the project is to keep protocols as efficient as possible, so them would be able to run on low-power devices (for example, modern cell-phones) and IoT devices.
+* **Efficient decentralisation** is distribution. Provided solutions are **not block-chain based**, doesn't imply all the participants to store and process all operations, doesn't rely on network majority, and doesn't need global network consensus to proceed. Another one focus point for the project is to keep protocols as efficient as possible, so they would be able to run on low-power devices (for example, modern cellphones) and IoT devices.
 
-* **Modularity** — almost all provided protocols are capable to work independently. The common dependancies are (I) trust lines mechanics and (II) low-level information transfer approaches. Also, there are several common crypto-techniques shared between protocols (III).
+* **Modularity** — almost all provided protocols are capable to work independently. The common dependencies are (I) trust lines mechanics and (II) low-level information transfer approaches. Also, there are several common crypto-techniques shared between protocols (III).
 
-* **Minimalism** — provided solutions strive to be as simple as possible, and to solve one and only one problem. In case if project needs solution for another one problem — new research branch should be open. We believe, that good modularity will play crusial role in efficient crypt-analising and protocols popularisation. 
+* **Minimalism** — provided solutions strives to be as simple as possible, and to solve one and only one problem. In case if the project needs solution for another one problem — new research branch should be open. We believe, that good modularity will play crucial role in efficient crypt-analising and protocols popularisation. 
 
-* **Lightweightness** — all present protocols are capable to perform well on modern cell-phones, and/or IoT devices, thus extends the frontier of modern p2p systems.
+* **Lightweightness** — all present protocols are capable to perform well on modern cellphones, and/or IoT devices, thus extends the frontier of modern p2p systems.
 
 
 ## Commisions
-GEO Project provides open protocol suite for sending payments across different ledgers. It doesn't implies attendees to charge any protocol-fixed commissions, and doesn't provides any low-level primitives for thus process (for example, any network-relevant token). But, the attendees are free to set custom requirements for payments processing. One important notice here, that routing protocol is now not able (yet) to choose cheapest path in the network. 
+The GEO Project provides open protocol suite for sending payments across different ledgers. It doesn't imply attendees to charge any protocol-fixed commissions, and doesn't provide any low-level primitives for this process (for example, any network-relevant token). But, the attendees are free to set custom requirements for payment processing. One important notice here, that routing protocol is now not able (yet) to choose the cheapest path in the network. 
 
 
 ## Related projects
@@ -44,9 +44,7 @@ GEO Project provides open protocol suite for sending payments across different l
 ## Contribution
 **- Why should I contribute to GEO Project?**
 
-GEO Projects makes it easier for people to transfer assets through the Internet in the p2p manner, without (or with significantly less) commisions, fast, and in predictalbe manner. Unlike many other decentralised payment systems, it is able to process significant transactions flow and to distribute it through the whoole network. 
-
-Also, the project itself aims to be ready for post-quantuum epoch, and looks for stronger cryptography than most of other decentralised systems.
+GEO Projects make it easier for people to transfer assets through the Internet in the p2p manner, without (or with significantly less) commissions, fast, and in a predictable manner. Unlike many other decentralised payment systems, it is able to process significant transactions flow and to distribute it through the whole network. Also, the project itself aims to be ready for post-quantum epoch, and looks for stronger cryptography than most of other decentralised systems.
 
 **- How I can help?**
 
@@ -58,4 +56,3 @@ Today the project is looking for:
 **- How I can join?**
 
 Please, refer to the one of public Telegram groups, and find somebody there. 
-You also can ask for the details there.
