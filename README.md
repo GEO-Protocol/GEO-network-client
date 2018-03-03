@@ -1,108 +1,58 @@
-![GEObg](https://geo-project.github.io/static/images/background.png)
+# GEO Project
+[<img src="https://camo.githubusercontent.com/aebd3cdcab53bdc6fbd1362bcc78a0812677c627/68747470733a2f2f706174726f6c617669612e6769746875622e696f2f74656c656772616d2d62616467652f666f6c6c6f772e706e67">](http://t.me/geopeopleeng) — International Community. [<img src="https://camo.githubusercontent.com/aebd3cdcab53bdc6fbd1362bcc78a0812677c627/68747470733a2f2f706174726f6c617669612e6769746875622e696f2f74656c656772616d2d62616467652f666f6c6c6f772e706e67">](http://https://t.me/geopeoplegroup) — Ukrainian Community.
+
+Stack of `open-source`, `lightweight`, `low-level` protocols for `decentralised` `p2p` `multihop` financial cooperation.
+
+The main goal of a project is to provide solution for sending payments directly, and indirectly (through middleware participants), even across different payment networks with different infrastructures, safely and in a predictable manner.
+Our mission is to provide base protocols for decentralised financial cooperation, that would power the Financial Internet, as TCP does for the Internet itself.
 
 
-# GEO - Project
-GEO – is **decentralized `p2p` (or better `f2f`: friend to friend) platform** for economic cooperation between people.
-
-| [`Decentralized protocol white paper`](https://docs.google.com/document/d/1Kw6kXdDC-NvpSfoVPBm7OTCQicxaGO-3UP7DoCbsM9U/edit?usp=sharing) (docs are open for comments, welcome)
-
-## Quick summary
-##### GEO Core is the stack of protocols
-* for nodes discovering and path(s) finding; `[#todo: add graph traverse approaches description]`
-* for payment transactions processing through pair (or several) nodes; `[#todo: add protocol descripion]`
-* for cryptographic transactions signing and overall network fraud defence. `[#todo: add protocol descripion]`;
-
-##### Is **not** blockchain-based
-Unlike most of nowadays distributed payment systems, GEO does not relays on blockchain technology, and, therefore, is able do independently process dozens of millions of transactions per day. `[#todo: describe why blockchain is limited for tasks like that]` [#todo:add comparison with [Ripple](https://ripple.com) and [Stellar](https://www.stellar.org/)]
-
-##### GEO is p2p:
-* worldwide availalbe;
-* completely decentralized architecture with no supernodes and nodes ranks (*planned*);
-* no central point of failure;
-* no common-network operations: transactions are balanced between nodes influenced;
-
-##### The problem to be solved by GEO
-The problem to be solved by GEO is limiting and destructive influence of the current financial system on the relationships between people. GEO offers an alternative way of economic interaction - the implementation and usage of a decentralized system of trust bonds between people.
-
-Read more about it in [russian](https://docs.google.com/document/d/1Yu6IvTfQ3cCUQoyP0C_zI_JtyVXYv9ffc_3rRP2NW_Y/edit) or in [english](https://drive.google.com/open?id=0B0xtlHQ9B_8VNWZRbmdKeHBjVmM).
-
-
-## Brief economic model description
-GEO offers an alternative way of economic interaction - interchange without money using of a decentralized system of trust bonds between people.
-
-Consequences for society that we expect:
-
-- resources of exchange are generated directly by the members of society in accordance with the
-economic feasibility, and the excess is automatically deleted from the system as unnecessary
-
-- access to the means of exchange is practically unlimited
-
-- human well-being (enterprises, communities) depends only on the kind of value it creates for society
-
-- effective decentralized and automatic regulation of economic processes (reduction or absence of the
-causes of financial crises, inflation, etc.)
-
-##### How to join to the discussion about the economic model
-To add you to the discussion, - please, through us a word to the `demyanmax@gmail.com`. `[#todo: add email subscription]` `[#todo: open Google docs for commenting and collaborating]`
-
-
-## Project status
-##### GEO is a work in progress!
-Today, we have the economic model proven by real experiment `[#todo: add info about experiment in CV]`, the mathematic model and centralized implementation `[#todo: describe GEO Pay]`, that is used to improve the economic and algorithmic visions before decentralised protocol will be implemented. In our vision, this way gives us ability to prove our expectations and to move out all hypothesis. 
-
-
-## How you can join or help
-You are welcome 
-* to join the community via [slack](mailto:demyanmax@gmail.com?subject=GEO%20slack%20channel&body=Hi,%20I%20want%20to%20be%20in%20GEO%20slack%20channel) (please, through us a word to one of the following emails: `demyanmax@gmail.com` or `dima.chizhevsky@gmail.com`, and we will add you to the discussion)
-* co-writing the economic model `[#todo: add email subscription]` `[#todo: open Google docs for commenting and collaborating]`;
-* or support the project by coding the protocol `[#todo: add instructions]`;  
-
-
-## Thanks
-
-###### Economic model developing:
-* Max Demianiuk
-* Sergiy Vdovichuk 
-* Andriy Sluzhuk 
-* Mychailo Mychailiuk 
-
-###### Communications (and media):
-* Andriy Dubetsky
-* Bogdan Trofaniuk 
-* Natalia Lastivka
+## Summary
+Protocol | Purpose | Brief| State
+--- | --- | --- | ---
+**[Trust&nbsp;Lines](todo)** | Safe, predictable and minimalistic,  fault-tolerance, fraud-resistant, replication-friendly, activities accounting. |  `Decentralised` `Distributed` **`QRCrypto^`** | `Draft`
+**[Routing](todo)** / **[NAT&nbsp;Traversing](todo)** | Fast, network fault tolerance, participants discovering and traffic routing. | `Decentralised` `Distributed` | `WiP^`
+**[Payment](todo)** | Fast, safe, double-spending resistant, distributed multi-attendee payment crypto-protocol with **time predictable 100% participants consensus.** | `Decentralised` `Distributed` **`QRCrypto^`** | `Draft`
+**[Payment&nbsp;flow predicition](todo)** | Near real-time (depends on network segment) participants abilities forecasting towards other participants. | `Decentralised` `Distributed` | `Draft`
+**[Cycles&nbsp;discovering and processing](todo)** | Automatic, atomic, discovering and overlapping circular debts for up to 6 participants included. | `Decentralised` `Distributed` `Crypto` | `Draft`
  
-###### Decentralized protocol developing:
-* Max Demianiuk
-* [Dima Chizhevsky](https://github.com/HaySayCheese)
- 
-###### Centralized CV experiment:
-* [Nata Kopylenko](https://github.com/natakopulenko)
-* Denis Makovsky
+*^ QR Crypto — quantum resistant cryptography. In most cases, solutions are based on top of [Lamport signature.](https://en.wikipedia.org/wiki/Lamport_signature)*
+
+*^WiP — work in progress*.
 
 
-#####Thanks a lot for helping out!
+## Design decisions summary 
+* **Efficient decentralisation** is distribution. Provided solutions are **not block-chain based**, doesn't implies all the participants to store and process all operations, doesn't relies on network majority, and doesn't need global network consesus to proceed. Anoother one focus point for the project is to keep protocols as efficient as possible, so them would be able to run on low-power devices (for example, modern cell-phones) and IoT devices.
+
+* **Modularity** — almost all provided protocols are capable to work independently. The common dependancies are (I) trust lines mechanics and (II) low-level information transfer approaches. Also, there are several common crypto-techniques shared between protocols (III).
+
+* **Minimalism** — provided solutions strive to be as simple as possible, and to solve one and only one problem. In case if project needs solution for another one problem — new research branch should be open. We believe, that good modularity will play crusial role in efficient crypt-analising and protocols popularisation. 
+
+* **Lightweightness** — all present protocols are capable to perform well on modern cell-phones, and/or IoT devices, thus extends the frontier of modern p2p systems.
 
 
-## Licence 
-<img align="right" src="http://opensource.org/trademarks/opensource/OSI-Approved-License-100x137.png">
-MIT License
+## Commisions
+GEO Project provides open protocol suite for sending payments across different ledgers. It doesn't implies attendees to charge any protocol-fixed commissions, and doesn't provides any low-level primitives for thus process (for example, any network-relevant token). But, the attendees are free to set custom requirements for payments processing. One important notice here, that routing protocol is now not able (yet) to choose cheapest path in the network. 
 
-Copyright (c) 2016, GEO Developent Community
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+## Related projects
+* **[geo-pay.net](https://geo-pay.net)** — first payment service, built on top of GEO Project technologies.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+## Contribution
+**- Why should I contribute to GEO Project?**
+
+GEO Projects makes it easier for people to transfer assets through the Internet in the p2p manner, without (or with significantly less) commisions, fast, and in predictalbe manner. Unlike many other decentralised payment systems, it is able to process significant transactions flow and to distribute it through the whoole network. 
+
+Also, the project itself aims to be ready for post-quantuum epoch, and looks for stronger cryptography than most of other decentralised systems.
+
+**- How I can help?**
+
+Today the project is looking for:
+* C/C++ developers for joining core protocols designing and developing;
+* Crypt-analitycs for analising core protocols for vulnerabilities and providing solutions for the project's challenges;
+
+
+**- How I can join?**
+
+Please, refer to the public Telegram group and find somebody there. You also can ask for the details there.
