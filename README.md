@@ -1,10 +1,10 @@
 # GEO Project
-[<img src="https://camo.githubusercontent.com/aebd3cdcab53bdc6fbd1362bcc78a0812677c627/68747470733a2f2f706174726f6c617669612e6769746875622e696f2f74656c656772616d2d62616467652f666f6c6c6f772e706e67">](http://t.me/geopeopleeng) — International Community. [<img src="https://camo.githubusercontent.com/aebd3cdcab53bdc6fbd1362bcc78a0812677c627/68747470733a2f2f706174726f6c617669612e6769746875622e696f2f74656c656772616d2d62616467652f666f6c6c6f772e706e67">](http://https://t.me/geopeoplegroup) — Ukrainian Community.
-
 Stack of `open-source`, `lightweight`, `low-level` protocols for `decentralised` `p2p` `multihop` financial cooperation.
 
 The main goal of a project is to provide solution for sending payments directly, and indirectly (through middleware participants), even across different payment networks with different infrastructures, safely and in a predictable manner.
 Our mission is to provide base protocols for decentralised financial cooperation, that would power the Financial Internet, as TCP does for the Internet itself.
+
+[<img src="https://camo.githubusercontent.com/aebd3cdcab53bdc6fbd1362bcc78a0812677c627/68747470733a2f2f706174726f6c617669612e6769746875622e696f2f74656c656772616d2d62616467652f666f6c6c6f772e706e67">](http://t.me/geopeopleeng) — International Community. [<img src="https://camo.githubusercontent.com/aebd3cdcab53bdc6fbd1362bcc78a0812677c627/68747470733a2f2f706174726f6c617669612e6769746875622e696f2f74656c656772616d2d62616467652f666f6c6c6f772e706e67">](http://https://t.me/geopeoplegroup) — Ukrainian Community.
 
 
 ## Summary
@@ -55,4 +55,5 @@ Today the project is looking for:
 
 **- How I can join?**
 
-Please, refer to the public Telegram group and find somebody there. You also can ask for the details there.
+Please, refer to the one of public Telegram groups, and find somebody there. 
+You also can ask for the details there.
