@@ -11,6 +11,7 @@ public:
 
 public:
     DestinationMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const NodeUUID &destinationUUID)

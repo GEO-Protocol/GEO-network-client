@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_CYCLEBASEFIVEORSIXNODESINBETWEENMESSAGE_H
 #define GEO_NETWORK_CLIENT_CYCLEBASEFIVEORSIXNODESINBETWEENMESSAGE_H
 
-#include "../../../Message.hpp"
+#include "../../../EquivalentMessage.h"
 
 #include "../../../../../common/Types.h"
 #include "../../../../../common/memory/MemoryUtils.h"
@@ -9,12 +9,12 @@
 #include "../../../../../common/NodeUUID.h"
 
 class CycleBaseFiveOrSixNodesInBetweenMessage:
-        public Message {
+        public EquivalentMessage {
 public:
     typedef shared_ptr<CycleBaseFiveOrSixNodesInBetweenMessage> Shared;
 public:
-    CycleBaseFiveOrSixNodesInBetweenMessage();
     CycleBaseFiveOrSixNodesInBetweenMessage(
+        const SerializedEquivalent equivalent,
         vector<NodeUUID> &path);
     CycleBaseFiveOrSixNodesInBetweenMessage(
         BytesShared buffer);
@@ -27,9 +27,6 @@ public:
     void addNodeToPath(NodeUUID InBetweenNode);
 
 protected:
-    void deserializeFromBytes(
-        BytesShared buffer);
-
     const size_t kOffsetToInheritedBytes();
 
 protected:

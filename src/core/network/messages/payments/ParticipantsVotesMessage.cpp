@@ -2,11 +2,13 @@
 
 
 ParticipantsVotesMessage::ParticipantsVotesMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const NodeUUID &coordinatorUUID) :
 
     TransactionMessage(
+        equivalent,
         senderUUID,
         transactionUUID),
     mCoordinatorUUID(coordinatorUUID)
@@ -50,6 +52,7 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
     const NodeUUID &senderUUID,
     const ParticipantsVotesMessage::Shared &message):
     TransactionMessage(
+        message->equivalent(),
         senderUUID,
         message->transactionUUID()),
     mCoordinatorUUID(message->coordinatorUUID()),

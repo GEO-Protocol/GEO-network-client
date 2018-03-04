@@ -30,6 +30,7 @@ public:
 
 public:
     ParticipantsVotesMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const NodeUUID &coordinatorUUID);

@@ -8,6 +8,7 @@ RemoveNodeFromBlackListTransaction::RemoveNodeFromBlackListTransaction(
     BaseTransaction(
         BaseTransaction::RemoveNodeFromBlackListTransactionType,
         nodeUUID,
+        0,      // none equivalent
         logger),
     mCommand(command),
     mStorageHandler(storageHandler)

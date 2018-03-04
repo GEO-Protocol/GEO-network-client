@@ -13,6 +13,7 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
     BaseCollectTopologyTransaction(
         BaseTransaction::InitiateMaxFlowCalculationTransactionType,
         nodeUUID,
+        command->equivalent(),
         trustLinesManager,
         topologyTrustLineManager,
         topologyCacheManager,
@@ -81,6 +82,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
 
     const auto kTransaction = make_shared<CollectTopologyTransaction>(
         mNodeUUID,
+        mEquivalent,
         nonCachedContractors,
         mTrustLinesManager,
         mTopologyTrustLineManager,

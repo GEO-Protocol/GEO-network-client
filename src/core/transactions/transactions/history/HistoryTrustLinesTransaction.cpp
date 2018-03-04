@@ -9,6 +9,7 @@ HistoryTrustLinesTransaction::HistoryTrustLinesTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::HistoryTrustLinesTransactionType,
         nodeUUID,
+        command->equivalent(),
         logger),
     mCommand(command),
     mStorageHandler(storageHandler)

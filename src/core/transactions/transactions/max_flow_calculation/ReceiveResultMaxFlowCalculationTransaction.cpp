@@ -10,6 +10,7 @@ ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTrans
     BaseTransaction(
         BaseTransaction::TransactionType::ReceiveResultMaxFlowCalculationTransactionType,
         nodeUUID,
+        message->equivalent(),
         logger),
     mMessage(message),
     mTrustLinesManager(trustLinesManager),

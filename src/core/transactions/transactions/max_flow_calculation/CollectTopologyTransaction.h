@@ -18,6 +18,7 @@ public:
 public:
     CollectTopologyTransaction(
         const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
         const vector<NodeUUID> &contractors,
         TrustLinesManager *manager,
         TopologyTrustLinesManager *topologyTrustLineManager,

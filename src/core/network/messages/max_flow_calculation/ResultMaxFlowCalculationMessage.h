@@ -14,6 +14,7 @@ public:
 
 public:
     ResultMaxFlowCalculationMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID& senderUUID,
         vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
         vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows);

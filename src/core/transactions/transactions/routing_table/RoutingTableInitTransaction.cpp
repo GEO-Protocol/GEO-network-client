@@ -10,8 +10,8 @@ RoutingTableInitTransaction::RoutingTableInitTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::RoutingTableInitTransactionType,
         nodeUUID,
+        equivalent,
         logger),
-    mEquivalent(equivalent),
     mTrustLinesManager(trustLinesManager),
     mRoutingTableManager(routingTableManager),
     mLog(logger)
@@ -47,10 +47,12 @@ TransactionResult::SharedConst RoutingTableInitTransaction::runCollectDataStage(
     for(const auto &kNeighborNode: neighbors){
         sendMessage<RoutingTableRequestMessage>(
             kNeighborNode,
+            mEquivalent,
             currentNodeUUID());
     }
     mStep = Stages::UpdateRoutingTableStage;
-    return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);
+    return resultAwakeAfterMilliseconds(
+        mkWaitingForResponseTime);
 }
 
 const string RoutingTableInitTransaction::logHeader() const

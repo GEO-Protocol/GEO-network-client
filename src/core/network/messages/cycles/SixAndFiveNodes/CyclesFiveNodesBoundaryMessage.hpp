@@ -7,9 +7,11 @@ class CyclesFiveNodesBoundaryMessage:
     public CyclesBaseFiveOrSixNodesBoundaryMessage {
 public:
     CyclesFiveNodesBoundaryMessage(
+        const SerializedEquivalent equivalent,
         vector<NodeUUID> &path,
         vector<NodeUUID> &boundaryNodes) :
         CyclesBaseFiveOrSixNodesBoundaryMessage(
+            equivalent,
             path,
             boundaryNodes){};
 

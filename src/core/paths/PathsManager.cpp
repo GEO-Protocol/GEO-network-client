@@ -377,5 +377,7 @@ LoggerStream PathsManager::info() const
 
 const string PathsManager::logHeader() const
 {
-    return "[PathsManager]";
+    stringstream s;
+    s << "[PathsManager: " << mEquivalent << "] ";
+    return s.str();
 }

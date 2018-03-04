@@ -4,6 +4,7 @@
 DebugMessage::DebugMessage()
     noexcept :
     TransactionMessage (
+        0,
         NodeUUID::empty(),
         TransactionUUID::empty())
 {}

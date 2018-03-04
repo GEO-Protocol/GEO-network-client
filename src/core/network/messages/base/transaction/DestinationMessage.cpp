@@ -1,12 +1,14 @@
 #include "DestinationMessage.h"
 
 DestinationMessage::DestinationMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const NodeUUID &destinationUUID)
     noexcept :
 
     TransactionMessage(
+        equivalent,
         senderUUID,
         transactionUUID),
     mDestinationUUID(destinationUUID)

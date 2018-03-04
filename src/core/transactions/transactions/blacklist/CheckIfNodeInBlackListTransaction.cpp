@@ -8,6 +8,7 @@ CheckIfNodeInBlackListTransaction::CheckIfNodeInBlackListTransaction(
     BaseTransaction(
         BaseTransaction::CheckIfNodeInBlackListTransactionType,
         nodeUUID,
+        0,      // none equivalent
         logger),
     mCommand(command),
     mStorageHandler(storageHandler)

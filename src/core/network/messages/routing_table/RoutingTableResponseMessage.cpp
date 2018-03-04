@@ -1,14 +1,12 @@
 #include "RoutingTableResponseMessage.h"
 
-const Message::MessageType RoutingTableResponseMessage::typeID() const
-{
-    return Message::MessageType::RoutingTableResponse;
-}
-
 RoutingTableResponseMessage::RoutingTableResponseMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &sender,
     set<NodeUUID> neighbors):
-    SenderMessage(sender),
+    SenderMessage(
+        equivalent,
+        sender),
     mNeighbors(neighbors)
 {}
 
@@ -24,6 +22,11 @@ RoutingTableResponseMessage::RoutingTableResponseMessage(
         bytesBufferOffset += NodeUUID::kBytesSize;
         mNeighbors.insert(nodeUUID);
     }
+}
+
+const Message::MessageType RoutingTableResponseMessage::typeID() const
+{
+    return Message::MessageType::RoutingTableResponse;
 }
 
 pair<BytesShared, size_t> RoutingTableResponseMessage::serializeToBytes() const

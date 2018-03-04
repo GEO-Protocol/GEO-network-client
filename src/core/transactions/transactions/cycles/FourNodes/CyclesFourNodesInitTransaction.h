@@ -19,8 +19,9 @@ public:
     CyclesFourNodesInitTransaction(
         const NodeUUID &nodeUUID,
         const NodeUUID &creditorContractorUUID,
+        const SerializedEquivalent equivalent,
         TrustLinesManager *manager,
-        RoutingTableManager *roughtingTable,
+        RoutingTableManager *routingTable,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         Logger &logger);
@@ -47,7 +48,7 @@ protected:
     TrustLinesManager *mTrustLinesManager;
     CyclesManager *mCyclesManager;
     StorageHandler *mStorageHandler;
-    RoutingTableManager *mRoughtingTable;
+    RoutingTableManager *mRoutingTable;
 
     map<NodeUUID, NodeUUID> mWaitingResponses;
 };

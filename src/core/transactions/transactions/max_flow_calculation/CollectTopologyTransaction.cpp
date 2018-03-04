@@ -2,6 +2,7 @@
 
 CollectTopologyTransaction::CollectTopologyTransaction(
     const NodeUUID &nodeUUID,
+    const SerializedEquivalent equivalent,
     const vector<NodeUUID> &contractors,
     TrustLinesManager *manager,
     TopologyTrustLinesManager *topologyTrustLineManager,
@@ -12,6 +13,7 @@ CollectTopologyTransaction::CollectTopologyTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::CollectTopologyTransactionType,
         nodeUUID,
+        equivalent,
         logger),
     mContractors(contractors),
     mTrustLinesManager(manager),
@@ -48,6 +50,7 @@ void CollectTopologyTransaction::sendMessagesToContractors()
     for (const auto &contractorUUID : mContractors)
         sendMessage<InitiateMaxFlowCalculationMessage>(
             contractorUUID,
+            mEquivalent,
             currentNodeUUID());
 }
 
@@ -57,6 +60,7 @@ void CollectTopologyTransaction::sendMessagesOnFirstLevel()
     for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
         sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
             nodeUUIDOutgoingFlow,
+            mEquivalent,
             mNodeUUID);
     }
 }

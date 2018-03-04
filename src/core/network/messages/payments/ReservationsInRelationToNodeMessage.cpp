@@ -1,11 +1,13 @@
 #include "ReservationsInRelationToNodeMessage.h"
 
 ReservationsInRelationToNodeMessage::ReservationsInRelationToNodeMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const vector<pair<PathID, AmountReservation::ConstShared>> &reservations) :
 
     TransactionMessage(
+        equivalent,
         senderUUID,
         transactionUUID),
 

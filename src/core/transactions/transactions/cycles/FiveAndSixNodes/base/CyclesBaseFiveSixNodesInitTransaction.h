@@ -38,7 +38,6 @@ protected:
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
     CyclesManager *mCyclesManager;
-    SerializedEquivalent mEquivalent;
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESINITTRANSACTION_H

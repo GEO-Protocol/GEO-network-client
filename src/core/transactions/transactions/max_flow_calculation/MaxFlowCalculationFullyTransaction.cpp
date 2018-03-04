@@ -12,6 +12,7 @@ MaxFlowCalculationFullyTransaction::MaxFlowCalculationFullyTransaction(
     BaseCollectTopologyTransaction(
         BaseTransaction::MaxFlowCalculationFullyTransactionType,
         nodeUUID,
+        command->equivalent(),
         trustLinesManager,
         topologyTrustLineManager,
         topologyCacheManager,
@@ -54,6 +55,7 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::sendRequestFo
 
     const auto kTransaction = make_shared<CollectTopologyTransaction>(
         mNodeUUID,
+        mEquivalent,
         mCommand->contractors(),
         mTrustLinesManager,
         mTopologyTrustLineManager,

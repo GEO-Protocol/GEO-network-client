@@ -10,6 +10,7 @@ AddNodeToBlackListTransaction::AddNodeToBlackListTransaction(
     BaseTransaction(
         BaseTransaction::AddNodeToBlackListTransactionType,
         nodeUUID,
+        0,      //none equivalent
         logger),
     mCommand(command),
     mStorageHandler(storageHandler),
@@ -58,6 +59,7 @@ TransactionResult::SharedConst AddNodeToBlackListTransaction::run()
         // so the TA itself might finish without any response from the remote node.
         sendMessage<CloseOutgoingTrustLineMessage>(
             mCommand->contractorUUID(),
+            0,
             mNodeUUID,
             mTransactionUUID,
             mCommand->contractorUUID());

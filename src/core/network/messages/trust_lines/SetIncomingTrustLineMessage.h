@@ -13,6 +13,7 @@ public:
 
 public:
     SetIncomingTrustLineMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &sender,
         const TransactionUUID &transactionUUID,
         const NodeUUID &destinationMessage,

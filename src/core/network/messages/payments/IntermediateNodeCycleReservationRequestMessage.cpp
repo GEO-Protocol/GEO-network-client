@@ -1,6 +1,7 @@
 #include "IntermediateNodeCycleReservationRequestMessage.h"
 
 IntermediateNodeCycleReservationRequestMessage::IntermediateNodeCycleReservationRequestMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const TrustLineAmount& amount,
@@ -8,6 +9,7 @@ IntermediateNodeCycleReservationRequestMessage::IntermediateNodeCycleReservation
     SerializedPathLengthSize cycleLength) :
 
     RequestCycleMessage(
+        equivalent,
         senderUUID,
         transactionUUID,
         amount),

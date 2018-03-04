@@ -1,11 +1,13 @@
 #include "RequestCycleMessage.h"
 
 RequestCycleMessage::RequestCycleMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount) :
 
     TransactionMessage(
+        equivalent,
         senderUUID,
         transactionUUID),
     mAmount(amount)

@@ -15,6 +15,7 @@ public:
     // TODO: Amount may be used as flag for approved/rejected
     // (true if amount > 0)
     IntermediateNodeCycleReservationResponseMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const OperationState state,

@@ -13,11 +13,13 @@ public:
 
 public:
     CyclesThreeNodesBalancesResponseMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         SerializedRecordsCount neighborsUUUIDCount);
 
     CyclesThreeNodesBalancesResponseMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         vector<NodeUUID> &neighborsUUUID);

@@ -15,7 +15,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         BaseTransaction::ReceiverPaymentTransaction,
         message->transactionUUID(),
         currentNodeUUID,
-        0,
+        message->equivalent(),
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -94,7 +94,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
 const string ReceiverPaymentTransaction::logHeader() const
 {
     stringstream s;
-    s << "[ReceiverPaymentTA: " << currentTransactionUUID() << "] ";
+    s << "[ReceiverPaymentTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }
 
@@ -111,6 +111,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
     if (kTotalAvailableIncomingAmount < mMessage->amount()) {
         sendMessage<ReceiverInitPaymentResponseMessage>(
             kCoordinator,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             mMessage->pathID(),
@@ -122,6 +123,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
 
     sendMessage<ReceiverInitPaymentResponseMessage>(
         kCoordinator,
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID(),
         mMessage->pathID(),
@@ -161,6 +163,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         debug() << "Send TTLTransaction message to coordinator " << mMessage->senderUUID;
         sendMessage<TTLProlongationRequestMessage>(
             mMessage->senderUUID,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID());
         mStep = Stages::Common_ClarificationTransactionBeforeVoting;
@@ -177,6 +180,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         warning() << "Reservation vector is empty";
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             0,                  // 0, because we don't know pathID
@@ -195,6 +199,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     if (! mTrustLines->isNeighbor(kNeighbor)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             kReservation.first,
@@ -226,6 +231,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         }
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             kReservation.first,
@@ -246,6 +252,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         warning() << "Available amount equals zero. Reservation reject.";
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             kReservation.first,
@@ -295,6 +302,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         warning() << "Can't reserve incoming amount. Reservation reject.";
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             kReservation.first,
@@ -313,6 +321,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     if (kTotalReserved > kTotalTransactionAmount){
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             kReservation.first,
@@ -330,6 +339,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     debug() << "Reserved locally: " << kReservationAmount;
     sendMessage<IntermediateNodeReservationResponseMessage>(
         kNeighbor,
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID(),
         kReservation.first,
@@ -418,6 +428,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalAmountsConfig
     debug() << "Send TTLTransaction message to coordinator " << mMessage->senderUUID;
     sendMessage<TTLProlongationRequestMessage>(
         coordinatorUUID(),
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID());
     mStep = Common_ClarificationTransactionDuringFinalAmountsClarification;
@@ -442,6 +453,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
             kMessage->finalAmountsConfiguration())) {
         sendMessage<FinalAmountsConfigurationResponseMessage>(
             coordinatorUUID(),
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             FinalAmountsConfigurationResponseMessage::Rejected);
@@ -460,6 +472,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
     for (const auto &nodeAndReservations : mReservations) {
         sendMessage<ReservationsInRelationToNodeMessage>(
             nodeAndReservations.first,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             nodeAndReservations.second);
@@ -470,6 +483,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
         if (checkAllNeighborsReservationsAppropriate()) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
                 coordinatorUUID(),
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 FinalAmountsConfigurationResponseMessage::Accepted);
@@ -483,6 +497,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
         } else {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
                 coordinatorUUID(),
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 FinalAmountsConfigurationResponseMessage::Rejected);
@@ -519,6 +534,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
         if (checkAllNeighborsReservationsAppropriate()) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
                 coordinatorUUID(),
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 FinalAmountsConfigurationResponseMessage::Accepted);
@@ -532,6 +548,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
         } else {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
                 coordinatorUUID(),
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 FinalAmountsConfigurationResponseMessage::Rejected);
@@ -607,6 +624,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runVotesCheckingStage
     debug() << "Send TTLTransaction message to coordinator " << mMessage->senderUUID;
     sendMessage<TTLProlongationRequestMessage>(
         mMessage->senderUUID,
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID());
     mStep = Stages::Common_ClarificationTransactionDuringVoting;

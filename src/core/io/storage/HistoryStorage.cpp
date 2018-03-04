@@ -106,7 +106,7 @@ HistoryStorage::HistoryStorage(
                        "operation_timestamp INTEGER NOT NULL, "
                        "record_type INTEGER NOT NULL, "
                        "record_body BLOB NOT NULL, "
-                       "record_body_bytes_count INT NOT NULL "
+                       "record_body_bytes_count INT NOT NULL, "
                        "equivalent INTEGER NOT NULL);";
     rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -372,7 +372,7 @@ void HistoryStorage::savePaymentMainIncomingRecord(
                           "Bad binding of Equivalent; sqlite error: " + to_string(rc));
     }
 
-    rc = sqlite3_bind_int(stmt, 3, record->recordType());
+    rc = sqlite3_bind_int(stmt, 4, record->recordType());
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert main payment: "
                           "Bad binding of RecordType; sqlite error: " + to_string(rc));
@@ -380,14 +380,14 @@ void HistoryStorage::savePaymentMainIncomingRecord(
 
     auto serializedPaymentRecordAndSize = serializedPaymentRecordBody(
         record);
-    rc = sqlite3_bind_blob(stmt, 4, serializedPaymentRecordAndSize.first.get(),
+    rc = sqlite3_bind_blob(stmt, 5, serializedPaymentRecordAndSize.first.get(),
                            (int) serializedPaymentRecordAndSize.second, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert main payment: "
                           "Bad binding of RecordBody; sqlite error: " + to_string(rc));
     }
 
-    rc = sqlite3_bind_int(stmt, 5, (int) serializedPaymentRecordAndSize.second);
+    rc = sqlite3_bind_int(stmt, 6, (int) serializedPaymentRecordAndSize.second);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert main payment: "
                           "Bad binding of RecordBody bytes count; sqlite error: " + to_string(rc));

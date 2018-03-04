@@ -141,6 +141,11 @@ public:
         return false;
     }
 
+    virtual const SerializedEquivalent equivalent() const
+    {
+        return 0;
+    }
+
     virtual const MessageType typeID() const = 0;
 
     /**

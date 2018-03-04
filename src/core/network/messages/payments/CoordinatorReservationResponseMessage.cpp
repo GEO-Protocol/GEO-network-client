@@ -2,6 +2,7 @@
 
 
 CoordinatorReservationResponseMessage::CoordinatorReservationResponseMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const PathID& pathID,
@@ -9,6 +10,7 @@ CoordinatorReservationResponseMessage::CoordinatorReservationResponseMessage(
     const TrustLineAmount& reservedAmount):
 
     ResponseMessage(
+        equivalent,
         senderUUID,
         transactionUUID,
         pathID,

@@ -9,6 +9,7 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::VoutesStatusResponsePaymentTransaction,
         nodeUUID,
+        message->equivalent(),
         logger),
     mStorageHandler(storageHandler),
     mRequest(message),
@@ -22,6 +23,7 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
         // if requested transaction didn't finish yet,
         // we send empty message, which means that requester should wait and ask again
         const auto kResponse = make_shared<ParticipantsVotesMessage>(
+            mEquivalent,
             mNodeUUID,
             mRequest->transactionUUID(),
             NodeUUID::empty());
@@ -49,6 +51,7 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
         // it means that coordinator didn't accept this transaction (maybe crash)
         // in this case we send reject message
         const auto kResponse = make_shared<ParticipantsVotesMessage>(
+            mEquivalent,
             mNodeUUID,
             mRequest->transactionUUID(),
             mNodeUUID);

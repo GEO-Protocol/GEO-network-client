@@ -440,5 +440,7 @@ LoggerStream CyclesManager::warning() const
 
 const string CyclesManager::logHeader() const
 {
-    return "[CyclesManager]";
+    stringstream s;
+    s << "[CyclesManager: " << mEquivalent << "] ";
+    return s.str();
 }

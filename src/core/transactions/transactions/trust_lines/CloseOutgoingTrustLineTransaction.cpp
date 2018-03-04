@@ -14,6 +14,7 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
         BaseTransaction::CloseOutgoingTrustLineTransaction,
         message->transactionUUID(),
         nodeUUID,
+        message->equivalent(),
         logger),
     mMessage(message),
     mTrustLines(manager),
@@ -53,6 +54,7 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
         // Sending confirmation back.
         sendMessage<ConfirmationMessage>(
             mMessage->senderUUID,
+            mEquivalent,
             mNodeUUID,
             mMessage->transactionUUID());
 
@@ -64,6 +66,7 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
                << "Details are: " << e.what();
         sendMessage<ConfirmationMessage>(
             mMessage->senderUUID,
+            mEquivalent,
             mNodeUUID,
             mMessage->transactionUUID(),
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
@@ -98,7 +101,7 @@ const string CloseOutgoingTrustLineTransaction::logHeader() const
 noexcept
 {
     stringstream s;
-    s << "[CloseOutgoingTrustLineTA: " << currentTransactionUUID() << "]";
+    s << "[CloseOutgoingTrustLineTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }
 
@@ -112,6 +115,8 @@ void CloseOutgoingTrustLineTransaction::populateHistory(
         operationType,
         mMessage->senderUUID);
 
-    ioTransaction->historyStorage()->saveTrustLineRecord(record, 0);
+    ioTransaction->historyStorage()->saveTrustLineRecord(
+        record,
+        mEquivalent);
 #endif
 }

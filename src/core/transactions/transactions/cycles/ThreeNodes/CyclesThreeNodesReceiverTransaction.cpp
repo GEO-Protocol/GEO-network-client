@@ -10,6 +10,7 @@ CyclesThreeNodesReceiverTransaction::CyclesThreeNodesReceiverTransaction(
         BaseTransaction::TransactionType::Cycles_ThreeNodesReceiverTransaction,
         message->transactionUUID(),
         nodeUUID,
+        message->equivalent(),
         logger),
     mTrustLinesManager(manager),
     mRequestMessage(message)
@@ -20,6 +21,7 @@ TransactionResult::SharedConst CyclesThreeNodesReceiverTransaction::run() {
     stringstream ss;
     // Create message and reserve memory for neighbors
     const auto kMessage = make_shared<CyclesThreeNodesBalancesResponseMessage>(
+        mEquivalent,
         mNodeUUID,
         currentTransactionUUID(),
         kNeighbors.size());
@@ -43,7 +45,9 @@ TransactionResult::SharedConst CyclesThreeNodesReceiverTransaction::run() {
                 kNodeUUID);
     }
     if (kMessage->NeighborsAndBalances().size() > 0)
-        sendMessage(mRequestMessage->senderUUID, kMessage);
+        sendMessage(
+            mRequestMessage->senderUUID,
+            kMessage);
     return resultDone();
 }
 

@@ -17,7 +17,10 @@ set(SOURCE_FILES
         SenderMessage.h     # todo: why are not this message in base?
 
         debug/DebugMessage.h
-        debug/DebugMessage.cpp)
+        debug/DebugMessage.cpp
+
+        EquivalentMessage.h
+        EquivalentMessage.cpp )
 
 
 add_library(network__messages ${SOURCE_FILES})

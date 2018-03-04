@@ -36,7 +36,6 @@ protected:
 
 protected:
     NodeUUID mNodeUUID;
-    SerializedEquivalent mEquivalent;
     TrustLinesManager *mTrustLinesManager;
     RoutingTableManager *mRoutingTableManager;
     Logger &mLog;

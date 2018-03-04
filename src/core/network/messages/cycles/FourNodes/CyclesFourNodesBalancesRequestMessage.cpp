@@ -1,12 +1,16 @@
 #include "CyclesFourNodesBalancesRequestMessage.h"
 
 CyclesFourNodesBalancesRequestMessage::CyclesFourNodesBalancesRequestMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const NodeUUID &creditorNeighbor,
     const NodeUUID &debtorNeighbor):
 
-    TransactionMessage(senderUUID, transactionUUID),
+    TransactionMessage(
+        equivalent,
+        senderUUID,
+        transactionUUID),
     mCreditorUUID(creditorNeighbor),
     mDebtorUUID(debtorNeighbor)
 {}

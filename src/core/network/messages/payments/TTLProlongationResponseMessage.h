@@ -17,6 +17,7 @@ public:
 
 public:
     TTLProlongationResponseMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const OperationState state);

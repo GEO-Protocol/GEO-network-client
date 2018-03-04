@@ -1,16 +1,39 @@
 #include "CyclesBaseFiveOrSixNodesBoundaryMessage.h"
 
 CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(
+    const SerializedEquivalent equivalent,
     vector<NodeUUID>& path,
     vector<NodeUUID>& boundaryNodes) :
 
-    CycleBaseFiveOrSixNodesInBetweenMessage(path),
+    CycleBaseFiveOrSixNodesInBetweenMessage(
+        equivalent,
+        path),
     mBoundaryNodes(boundaryNodes)
 {}
 
-CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(BytesShared buffer)
+CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(
+    BytesShared buffer):
+    CycleBaseFiveOrSixNodesInBetweenMessage(
+        buffer)
 {
-    deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes();
+    //    Get NodesCount
+    SerializedRecordsCount boundaryNodesCount;
+    memcpy(
+        &boundaryNodesCount,
+        buffer.get() + bytesBufferOffset,
+        sizeof(SerializedRecordsCount));
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
+    //    Parse boundary nodes
+    NodeUUID stepNodeUUID;
+    for (SerializedRecordNumber i=1; i<=boundaryNodesCount; i++){
+        memcpy(
+            stepNodeUUID.data,
+            buffer.get() + bytesBufferOffset,
+            NodeUUID::kBytesSize);
+        bytesBufferOffset += NodeUUID::kBytesSize;
+        mBoundaryNodes.push_back(stepNodeUUID);
+    }
 }
 
 pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBytes() const
@@ -49,29 +72,6 @@ pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBy
     return make_pair(
         dataBytesShared,
         bytesCount);
-}
-
-void CyclesBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared buffer)
-{
-    CycleBaseFiveOrSixNodesInBetweenMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes();
-    //    Get NodesCount
-    SerializedRecordsCount boundaryNodesCount;
-    memcpy(
-        &boundaryNodesCount,
-        buffer.get() + bytesBufferOffset,
-        sizeof(SerializedRecordsCount));
-    bytesBufferOffset += sizeof(SerializedRecordsCount);
-    //    Parse boundary nodes
-    NodeUUID stepNodeUUID;
-    for (SerializedRecordNumber i=1; i<=boundaryNodesCount; i++){
-        memcpy(
-            stepNodeUUID.data,
-            buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        mBoundaryNodes.push_back(stepNodeUUID);
-    }
 }
 
 const vector<NodeUUID> CyclesBaseFiveOrSixNodesBoundaryMessage::BoundaryNodes() const

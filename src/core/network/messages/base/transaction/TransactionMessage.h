@@ -15,6 +15,7 @@ public:
 
 public:
     TransactionMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID)
         noexcept;

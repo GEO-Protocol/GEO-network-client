@@ -3,6 +3,7 @@
 BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     const TransactionType type,
     const NodeUUID &nodeUUID,
+    const SerializedEquivalent equivalent,
     TrustLinesManager *trustLinesManager,
     TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
@@ -12,6 +13,7 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     BaseTransaction(
         type,
         nodeUUID,
+        equivalent,
         logger),
     mTrustLinesManager(trustLinesManager),
     mTopologyTrustLineManager(topologyTrustLineManager),
@@ -23,6 +25,7 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID,
     const NodeUUID &nodeUUID,
+    const SerializedEquivalent equivalent,
     TrustLinesManager *trustLinesManager,
     TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
@@ -33,6 +36,7 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
         type,
         transactionUUID,
         nodeUUID,
+        equivalent,
         logger),
     mTrustLinesManager(trustLinesManager),
     mTopologyTrustLineManager(topologyTrustLineManager),

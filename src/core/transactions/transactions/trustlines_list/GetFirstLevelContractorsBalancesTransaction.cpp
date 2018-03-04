@@ -9,6 +9,7 @@ GetFirstLevelContractorsBalancesTransaction::GetFirstLevelContractorsBalancesTra
     BaseTransaction(
         BaseTransaction::TrustlinesList,
         nodeUUID,
+        command->equivalent(),
         logger),
     mCommand(command),
     mTrustLinesManager(manager)

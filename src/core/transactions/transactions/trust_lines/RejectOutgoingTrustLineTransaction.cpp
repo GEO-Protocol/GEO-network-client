@@ -12,6 +12,7 @@ RejectOutgoingTrustLineTransaction::RejectOutgoingTrustLineTransaction(
         BaseTransaction::RejectOutgoingTrustLineTransaction,
         message->transactionUUID(),
         nodeUUID,
+        message->equivalent(),
         logger),
     mMessage(message),
     mTrustLinesManager(manager),
@@ -37,7 +38,9 @@ TransactionResult::SharedConst RejectOutgoingTrustLineTransaction::run()
             TrustLineRecord::RejectingOutgoing,
             kContractor);
 
-        ioTransaction->historyStorage()->saveTrustLineRecord(record, 0);
+        ioTransaction->historyStorage()->saveTrustLineRecord(
+            record,
+            mEquivalent);
 
         processConfirmationMessage(
             kContractor,
@@ -66,6 +69,6 @@ const string RejectOutgoingTrustLineTransaction::logHeader() const
 noexcept
 {
     stringstream s;
-    s << "[RejectOutgoingTrustLineTA: " << currentTransactionUUID() << "]";
+    s << "[RejectOutgoingTrustLineTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

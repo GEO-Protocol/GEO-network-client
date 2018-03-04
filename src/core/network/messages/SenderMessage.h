@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_SENDERMESSAGE_H
 
 
-#include "Message.hpp"
+#include "EquivalentMessage.h"
 
 #include "../../common/NodeUUID.h"
 #include "../../common/serialization/BytesDeserializer.h"
@@ -13,13 +13,14 @@
  * Abstract base class for messages that must contain sender node UUID.
  */
 class SenderMessage:
-    public Message {
+    public EquivalentMessage {
 
 public:
     const NodeUUID senderUUID;
 
 public:
     SenderMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID)
         noexcept;
 

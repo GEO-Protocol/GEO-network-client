@@ -1,11 +1,13 @@
 #include "RequestMessageWithReservations.h"
 
 RequestMessageWithReservations::RequestMessageWithReservations(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig) :
 
     TransactionMessage(
+        equivalent,
         senderUUID,
         transactionUUID),
 

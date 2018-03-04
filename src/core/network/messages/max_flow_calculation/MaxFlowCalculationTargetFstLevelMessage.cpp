@@ -1,10 +1,14 @@
 #include "MaxFlowCalculationTargetFstLevelMessage.h"
 
 MaxFlowCalculationTargetFstLevelMessage::MaxFlowCalculationTargetFstLevelMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const NodeUUID& targetUUID) :
 
-    MaxFlowCalculationMessage(senderUUID, targetUUID)
+    MaxFlowCalculationMessage(
+        equivalent,
+        senderUUID,
+        targetUUID)
 {}
 
 MaxFlowCalculationTargetFstLevelMessage::MaxFlowCalculationTargetFstLevelMessage(

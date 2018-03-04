@@ -16,9 +16,10 @@ public:
 
 public:
     FinalAmountsConfigurationResponseMessage(
-    const NodeUUID &senderUUID,
-    const TransactionUUID &transactionUUID,
-    const OperationState state);
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+        const OperationState state);
 
     FinalAmountsConfigurationResponseMessage(
         BytesShared buffer);

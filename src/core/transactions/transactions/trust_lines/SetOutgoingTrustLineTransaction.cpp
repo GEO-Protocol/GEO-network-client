@@ -16,6 +16,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     BaseTransaction(
         BaseTransaction::SetOutgoingTrustLineTransaction,
         nodeUUID,
+        command->equivalent(),
         logger),
     mCommand(command),
     mTrustLines(manager),
@@ -109,6 +110,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
         if (mIAmGateway) {
             sendMessage<SetIncomingTrustLineFromGatewayMessage>(
                 mCommand->contractorUUID(),
+                mEquivalent,
                 mNodeUUID,
                 mTransactionUUID,
                 mCommand->contractorUUID(),
@@ -116,6 +118,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
         } else {
             sendMessage<SetIncomingTrustLineMessage>(
                 mCommand->contractorUUID(),
+                mEquivalent,
                 mNodeUUID,
                 mTransactionUUID,
                 mCommand->contractorUUID(),
@@ -194,7 +197,7 @@ const string SetOutgoingTrustLineTransaction::logHeader() const
     noexcept
 {
     stringstream s;
-    s << "[SetOutgoingTrustLineTA: " << currentTransactionUUID() << "]";
+    s << "[SetOutgoingTrustLineTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }
 
@@ -209,6 +212,8 @@ void SetOutgoingTrustLineTransaction::populateHistory(
         mCommand->contractorUUID(),
         mCommand->amount());
 
-    ioTransaction->historyStorage()->saveTrustLineRecord(record, 0);
+    ioTransaction->historyStorage()->saveTrustLineRecord(
+        record,
+        mEquivalent);
 #endif
 }

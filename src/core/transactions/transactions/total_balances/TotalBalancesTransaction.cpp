@@ -9,6 +9,7 @@ TotalBalancesTransaction::TotalBalancesTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::TotalBalancesTransactionType,
         nodeUUID,
+        command->equivalent(),
         logger),
     mCommand(command),
     mTrustLinesManager(manager)

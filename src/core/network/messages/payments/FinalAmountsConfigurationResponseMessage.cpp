@@ -1,11 +1,13 @@
 #include "FinalAmountsConfigurationResponseMessage.h"
 
 FinalAmountsConfigurationResponseMessage::FinalAmountsConfigurationResponseMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const OperationState state) :
 
     TransactionMessage(
+        equivalent,
         senderUUID,
         transactionUUID),
     mState(state)

@@ -1,23 +1,45 @@
 #include "CyclesBaseFiveOrSixNodesInBetweenMessage.h"
 
-CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage()
-{}
-
 CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage(
+    const SerializedEquivalent equivalent,
     vector<NodeUUID> &path):
+    EquivalentMessage(
+        equivalent),
     mPath(path)
 {}
 
 CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage(
-    BytesShared buffer)
+    BytesShared buffer):
+    EquivalentMessage(buffer)
 {
-    deserializeFromBytes(buffer);
+    // Message Type
+    size_t bytesBufferOffset = 0;
+    MessageType *messageType = new (buffer.get()) MessageType;
+    bytesBufferOffset += sizeof(SerializedType);
+    // path
+    SerializedPositionInPath nodesInPath;
+    memcpy(
+        &nodesInPath,
+        buffer.get() + bytesBufferOffset,
+        sizeof(SerializedPathLengthSize));
+    bytesBufferOffset += sizeof(SerializedPathLengthSize);
+    if (nodesInPath <= 0)
+        return;
+    for (SerializedPositionInPath i = 1; i <= nodesInPath; ++i) {
+        NodeUUID stepNode;
+        memcpy(
+            stepNode.data,
+            buffer.get() + bytesBufferOffset,
+            NodeUUID::kBytesSize);
+        bytesBufferOffset += NodeUUID::kBytesSize;
+        mPath.push_back(stepNode);
+    }
 }
 
 pair<BytesShared, size_t> CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBytes() const
     throw(bad_alloc)
 {
-    auto parentBytesAndCount = Message::serializeToBytes();
+    auto parentBytesAndCount = EquivalentMessage::serializeToBytes();
     const SerializedPathLengthSize kNodesInPath = (SerializedPathLengthSize)mPath.size();
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(SerializedPathLengthSize)
@@ -52,40 +74,13 @@ pair<BytesShared, size_t> CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBy
         bytesCount);
 }
 
-void CycleBaseFiveOrSixNodesInBetweenMessage::deserializeFromBytes(
-    BytesShared buffer)
-{
-    // Message Type
-    size_t bytesBufferOffset = 0;
-    MessageType *messageType = new (buffer.get()) MessageType;
-    bytesBufferOffset += sizeof(SerializedType);
-    // path
-    SerializedPositionInPath nodesInPath;
-    memcpy(
-        &nodesInPath,
-        buffer.get() + bytesBufferOffset,
-        sizeof(SerializedPathLengthSize));
-    bytesBufferOffset += sizeof(SerializedPathLengthSize);
-    if (nodesInPath <= 0)
-        return;
-    for (SerializedPositionInPath i = 1; i <= nodesInPath; ++i) {
-        NodeUUID stepNode;
-        memcpy(
-            stepNode.data,
-            buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        mPath.push_back(stepNode);
-    }
-}
-
 const size_t CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes()
 {
     const SerializedPathLengthSize kNodesInPath = (SerializedPathLengthSize)mPath.size();
     const size_t offset =
         + sizeof(kNodesInPath)
         + NodeUUID::kBytesSize * kNodesInPath
-        + Message::kOffsetToInheritedBytes();
+        + EquivalentMessage::kOffsetToInheritedBytes();
     return offset;
 }
 

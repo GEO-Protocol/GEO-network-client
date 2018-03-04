@@ -107,8 +107,6 @@ public:
      */
     virtual const SerializedPathLengthSize cycleLength() const;
 
-    const SerializedEquivalent equivalent() const;
-
     /**
      * @return if payment transaction on Common_VotesChecking stage
      * used in CyclesManager for resolving cycle closing conflicts
@@ -425,7 +423,6 @@ protected:
     StorageHandler *mStorageHandler;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
-    SerializedEquivalent mEquivalent;
 
     // If true - votes check stage has been processed and transaction has been approved.
     // In this case transaction can't be simply rolled back.

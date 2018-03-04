@@ -405,6 +405,10 @@ void TransactionsManager::processMessage(
     /*
      * Cycles
      */
+    } else if (message->typeID() == Message::MessageType::Cycles_FiveNodesBoundary
+               or message->typeID() == Message::MessageType::Cycles_SixNodesBoundary) {
+        mScheduler->tryAttachMessageToCyclesFiveAndSixNodes(message);
+
     } else if (message->typeID() == Message::MessageType::Cycles_SixNodesMiddleware) {
         launchSixNodesCyclesResponseTransaction(
             static_pointer_cast<CyclesSixNodesInBetweenMessage>(message));
@@ -446,6 +450,10 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::RoutingTableRequest) {
         launchRoutingTableResponseTransaction(
             static_pointer_cast<RoutingTableRequestMessage>(message));
+
+    } else if (message->typeID() == Message::RoutingTableResponse) {
+        mScheduler->tryAttachMessageToRoutingTableTransaction(message);
+
     /*
      * Gateway notification
      */
@@ -508,16 +516,15 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
 void TransactionsManager::launchSetIncomingTrustLineTransaction(
     SetIncomingTrustLineMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<SetIncomingTrustLineTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mStorageHandler,
-                mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
-                mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
                 mIAmGateway,
                 mLog),
             true,
@@ -525,23 +532,22 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
             true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for SetIncomingTrustLineTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
 void TransactionsManager::launchSetIncomingTrustLineTransaction(
     SetIncomingTrustLineFromGatewayMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<SetIncomingTrustLineTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mStorageHandler,
-                mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
-                mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
                 mIAmGateway,
                 mLog),
             true,
@@ -549,42 +555,40 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
             true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for SetIncomingTrustLineTransaction from gateway "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
 void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
     CloseOutgoingTrustLineMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<CloseOutgoingTrustLineTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mStorageHandler,
-                mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
-                mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
                 mLog),
             true,
             false,
             true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CloseOutgoingTrustLineTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
 void TransactionsManager::launchRejectOutgoingTrustLineTransaction(
     ConfirmationMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         auto transaction = make_shared<RejectOutgoingTrustLineTransaction>(
             mNodeUUID,
             message,
-            mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+            mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
             mStorageHandler,
             mLog);
         subscribeForProcessingConfirmationMessage(
@@ -596,7 +600,7 @@ void TransactionsManager::launchRejectOutgoingTrustLineTransaction(
             false);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for RejectOutgoingTrustLineTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -664,14 +668,13 @@ void TransactionsManager::launchMaxFlowCalculationFullyTransaction(
 void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
     InitiateMaxFlowCalculationMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<ReceiveMaxFlowCalculationOnTargetTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
-                mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mLog),
             false,
             false,
@@ -680,7 +683,7 @@ void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for ReceiveMaxFlowCalculationOnTargetTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -691,14 +694,13 @@ void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
 void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
     ResultMaxFlowCalculationMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<ReceiveResultMaxFlowCalculationTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
-                mEquivalentsSubsystemsRouter->topologyTrustLineManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
                 mLog),
             false,
             false,
@@ -707,7 +709,7 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for ReceiveResultMaxFlowCalculationTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -718,14 +720,13 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
 void TransactionsManager::launchReceiveResultMaxFlowCalculationTransactionFromGateway(
     ResultMaxFlowCalculationGatewayMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<ReceiveResultMaxFlowCalculationTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
-                mEquivalentsSubsystemsRouter->topologyTrustLineManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
                 mLog),
             false,
             false,
@@ -734,7 +735,7 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransactionFromGa
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for ReceiveResultMaxFlowCalculationTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -745,13 +746,12 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransactionFromGa
 void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
     MaxFlowCalculationSourceFstLevelMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationSourceFstLevelTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog,
                 mIAmGateway),
             false,
@@ -761,7 +761,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for MaxFlowCalculationSourceFstLevelTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -772,13 +772,12 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
 void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
     MaxFlowCalculationTargetFstLevelMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationTargetFstLevelTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog,
                 mIAmGateway),
             false,
@@ -788,7 +787,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for MaxFlowCalculationTargetFstLevelTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -799,14 +798,13 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
 void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
     MaxFlowCalculationSourceSndLevelMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationSourceSndLevelTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
-                mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mLog,
                 mIAmGateway),
             false,
@@ -816,7 +814,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for MaxFlowCalculationSourceSndLevelTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -827,14 +825,13 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
 void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
     MaxFlowCalculationTargetSndLevelMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationTargetSndLevelTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
-                mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mLog,
                 mIAmGateway),
             false,
@@ -844,7 +841,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for MaxFlowCalculationTargetSndLevelTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -875,15 +872,14 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
 void TransactionsManager::launchReceiverPaymentTransaction(
     ReceiverInitPaymentRequestMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         auto transaction = make_shared<ReceiverPaymentTransaction>(
             mNodeUUID,
             message,
-            mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+            mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
             mStorageHandler,
-            mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
-            mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+            mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
+            mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
             mLog,
             mSubsystemsController);
         subscribeForBuildCyclesThreeNodesTransaction(
@@ -891,22 +887,21 @@ void TransactionsManager::launchReceiverPaymentTransaction(
         prepareAndSchedule(transaction, false, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for ReceiverPaymentTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
 void TransactionsManager::launchIntermediateNodePaymentTransaction(
     IntermediateNodeReservationRequestMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         auto transaction = make_shared<IntermediateNodePaymentTransaction>(
             mNodeUUID,
             message,
-            mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+            mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
             mStorageHandler,
-            mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
-            mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+            mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
+            mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
             mLog,
             mSubsystemsController);
         subscribeForBuildCyclesThreeNodesTransaction(
@@ -916,7 +911,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
         prepareAndSchedule(transaction, false, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for IntermediateNodePaymentTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -951,17 +946,16 @@ void TransactionsManager::onCloseCycleTransaction(
 void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
     IntermediateNodeCycleReservationRequestMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try{
         prepareAndSchedule(
             make_shared<CycleCloserIntermediateNodeTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
-                mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mEquivalentsCyclesSubsystemsRouter->cyclesManager(message->equivalent()),
                 mStorageHandler,
-                mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
-                mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
                 mLog,
                 mSubsystemsController),
             false,
@@ -971,9 +965,8 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CycleCloserIntermediateNodeTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
-
 }
 
 void TransactionsManager::launchVotesResponsePaymentsTransaction(
@@ -1005,6 +998,7 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(
             make_shared<CyclesThreeNodesInitTransaction>(
                 mNodeUUID,
                 contractorUUID,
+                equivalent,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
@@ -1024,13 +1018,12 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(
 void TransactionsManager::launchThreeNodesCyclesResponseTransaction(
     CyclesThreeNodesBalancesRequestMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<CyclesThreeNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog),
             false,
             false,
@@ -1039,7 +1032,7 @@ void TransactionsManager::launchThreeNodesCyclesResponseTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CyclesThreeNodesReceiverTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -1069,13 +1062,12 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction(
 void TransactionsManager::launchSixNodesCyclesResponseTransaction(
     CyclesSixNodesInBetweenMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<CyclesSixNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog),
             false,
             false,
@@ -1084,7 +1076,7 @@ void TransactionsManager::launchSixNodesCyclesResponseTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CyclesSixNodesReceiverTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -1114,13 +1106,12 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction(
 void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
     CyclesFiveNodesInBetweenMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<CyclesFiveNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog),
             false,
             false,
@@ -1129,7 +1120,7 @@ void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CyclesFiveNodesReceiverTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -1142,6 +1133,7 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(
             make_shared<CyclesFourNodesInitTransaction>(
                 mNodeUUID,
                 creditorUUID,
+                equivalent,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
@@ -1161,13 +1153,12 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(
 void TransactionsManager::launchFourNodesCyclesResponseTransaction(
     CyclesFourNodesBalancesRequestMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<CyclesFourNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog),
             false,
             false,
@@ -1176,7 +1167,7 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CyclesFourNodesReceiverTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -1358,13 +1349,12 @@ void TransactionsManager::launchGetTrustLineTransaction(
 void TransactionsManager::launchRoutingTableResponseTransaction(
     RoutingTableRequestMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<RoutingTableResponseTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog),
             false,
             false,
@@ -1373,7 +1363,7 @@ void TransactionsManager::launchRoutingTableResponseTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for RoutingTableResponseTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -1520,13 +1510,12 @@ void TransactionsManager::launchGatewayNotificationSenderTransaction(
 void TransactionsManager::launchGatewayNotificationReceiverTransaction(
     GatewayNotificationMessage::Shared message)
 {
-    SerializedEquivalent equivalent = 0;
     try {
         prepareAndSchedule(
             make_shared<GatewayNotificationReceiverTransaction>(
                 mNodeUUID,
                 message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mStorageHandler,
                 mLog),
             false,
@@ -1536,7 +1525,7 @@ void TransactionsManager::launchGatewayNotificationReceiverTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for GatewayNotificationReceiverTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -1551,6 +1540,7 @@ void TransactionsManager::launchFindPathByMaxFlowTransaction(
                 mNodeUUID,
                 destinationNodeUUID,
                 requestedTransactionUUID,
+                equivalent,
                 mEquivalentsSubsystemsRouter->pathsManager(equivalent),
                 mResourcesManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),

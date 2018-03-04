@@ -15,6 +15,7 @@ public:
 
 public:
     CyclesThreeNodesBalancesRequestMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         set<NodeUUID> &neighbors);

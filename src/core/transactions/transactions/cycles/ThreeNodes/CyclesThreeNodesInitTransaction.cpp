@@ -3,8 +3,9 @@
 CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
     const NodeUUID &nodeUUID,
     const NodeUUID &contractorUUID,
+    const SerializedEquivalent equivalent,
     TrustLinesManager *manager,
-    RoutingTableManager *roughtingTable,
+    RoutingTableManager *routingTable,
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     Logger &logger) :
@@ -12,12 +13,13 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_ThreeNodesInitTransaction,
         nodeUUID,
+        equivalent,
         logger),
     mTrustLinesManager(manager),
     mCyclesManager(cyclesManager),
     mContractorUUID(contractorUUID),
     mStorageHandler(storageHandler),
-    mRoughtingTable(roughtingTable)
+    mRougingTable(routingTable)
 {}
 
 TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run()
@@ -41,7 +43,7 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor()
     const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
     const TrustLineBalance kZeroBalance = 0;
     auto ioTransactions = mStorageHandler->beginTransaction();
-    const auto contractorNeighbors = mRoughtingTable->secondLevelContractorsForNode(mContractorUUID);
+    const auto contractorNeighbors = mRougingTable->secondLevelContractorsForNode(mContractorUUID);
 
     set<NodeUUID> ownNeighbors, commonNeighbors;
     for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()){
@@ -77,6 +79,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
     }
     sendMessage<CyclesThreeNodesBalancesRequestMessage>(
         mContractorUUID,
+        mEquivalent,
         mNodeUUID,
         currentTransactionUUID(),
         neighbors);

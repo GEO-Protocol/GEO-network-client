@@ -11,8 +11,8 @@ CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(
     BaseTransaction(
         type,
         nodeUUID,
+        equivalent,
         logger),
-    mEquivalent(equivalent),
     mTrustLinesManager(manager),
     mCyclesManager(cyclesManager),
     mStorageHandler(storageHandler)

@@ -14,8 +14,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     BaseTransaction(
         type,
         currentNodeUUID,
+        equivalent,
         log),
-    mEquivalent(equivalent),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
@@ -42,8 +42,8 @@ BasePaymentTransaction::BasePaymentTransaction(
         type,
         transactionUUID,
         currentNodeUUID,
+        equivalent,
         log),
-    mEquivalent(equivalent),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
@@ -76,6 +76,13 @@ BasePaymentTransaction::BasePaymentTransaction(
 {
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
     mStep = Stages::Common_Recovery;
+
+    // mEquivalent
+    memcpy(
+        &mEquivalent,
+        buffer.get() + bytesBufferOffset,
+        sizeof(SerializedEquivalent));
+    bytesBufferOffset += sizeof(SerializedEquivalent);
 
     // mParticipantsVotesMessage
     size_t participantsVotesMessageBytesCount;
@@ -575,7 +582,7 @@ void BasePaymentTransaction::commit(
         } else ioTransaction->trustLinesHandler()->saveTrustLine(
                 mTrustLines->trustLines().at(
                     kNodeUUIDAndReservations.first),
-                0);
+                mEquivalent);
     }
 
     // delete transaction references on dropped reservations
@@ -952,6 +959,7 @@ TransactionResult::SharedConst BasePaymentTransaction::sendVotesRequestMessageAn
 {
     debug() << "sendVotesRequestMessageAndWaitForResponse";
     auto requestMessage = make_shared<VotesStatusRequestMessage>(
+        mEquivalent,
         mNodeUUID,
         currentTransactionUUID());
 
@@ -1166,6 +1174,7 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
     const auto kBufferAndSizeParticipantsVotesMessage = mParticipantsVotesMessage->serializeToBytes();
     // parent part
     size_t bytesCount = parentBytesAndCount.second
+                        + sizeof(SerializedEquivalent)
                         + sizeof(size_t)
                         + kBufferAndSizeParticipantsVotesMessage.second
                         + reservationsSizeInBytes();
@@ -1179,6 +1188,13 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
+
+    // mEquivalent
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &mEquivalent,
+        sizeof(SerializedEquivalent));
+    dataBytesOffset += sizeof(SerializedEquivalent);
 
     // mParticipantsVotesMessage Part
     memcpy(
@@ -1279,11 +1295,6 @@ const NodeUUID& BasePaymentTransaction::coordinatorUUID() const
 const SerializedPathLengthSize BasePaymentTransaction::cycleLength() const
 {
     return 0;
-}
-
-const SerializedEquivalent BasePaymentTransaction::equivalent() const
-{
-    return mEquivalent;
 }
 
 bool BasePaymentTransaction::isCommonVotesCheckingStage() const

@@ -3,6 +3,7 @@
 CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
     const NodeUUID &nodeUUID,
     const NodeUUID &creditorContractorUUID,
+    const SerializedEquivalent equivalent,
     TrustLinesManager *manager,
     RoutingTableManager *routingTable,
     CyclesManager *cyclesManager,
@@ -12,10 +13,11 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_FourNodesInitTransaction,
         nodeUUID,
+        equivalent,
         logger),
     mTrustLinesManager(manager),
     mCyclesManager(cyclesManager),
-    mRoughtingTable(routingTable),
+    mRoutingTable(routingTable),
     mStorageHandler(storageHandler),
     mCreditorContractorUUID(creditorContractorUUID)
 {}
@@ -49,6 +51,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
             mWaitingResponses[kCommonNode] = kDebtorNode;
             sendMessage<CyclesFourNodesBalancesRequestMessage>(
                 kCommonNode,
+                mEquivalent,
                 mNodeUUID,
                 currentTransactionUUID(),
                 kDebtorNode,
@@ -101,8 +104,8 @@ vector<NodeUUID> CyclesFourNodesInitTransaction::calculateCommonNodes(
     const NodeUUID &firstNode,
     const NodeUUID &secondNode)
 {
-    auto secondNodeNeighbors = mRoughtingTable->secondLevelContractorsForNode(secondNode);
-    auto firstNodeNeighbors = mRoughtingTable->secondLevelContractorsForNode(firstNode);
+    auto secondNodeNeighbors = mRoutingTable->secondLevelContractorsForNode(secondNode);
+    auto firstNodeNeighbors = mRoutingTable->secondLevelContractorsForNode(firstNode);
     vector<NodeUUID> commonNeighbors;
 
     set_intersection(

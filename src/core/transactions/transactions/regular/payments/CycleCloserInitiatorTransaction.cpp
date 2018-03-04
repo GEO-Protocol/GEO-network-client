@@ -206,6 +206,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
     mTransactionIsVoted = true;
 
     mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
+        mEquivalent,
         kCurrentNodeUUID,
         kTransactionUUID,
         kCurrentNodeUUID);
@@ -339,6 +340,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
     debug() << "Send request reservation (" << path->maxFlow() << ") message to " << mNextNode;
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
         mNextNode,
+        mEquivalent,
         kCurrentNode,
         kTransactionUUID,
         path->maxFlow(),
@@ -376,6 +378,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
     debug() << "Send request reservation (" << path->maxFlow() << ") message to " << mNextNode;
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
         mNextNode,
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID(),
         path->maxFlow(),
@@ -448,6 +451,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
 
     sendMessage<CoordinatorCycleReservationRequestMessage>(
         mNextNode,
+        mEquivalent,
         kCoordinator,
         kTransactionUUID,
         path->maxFlow(),
@@ -557,6 +561,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
 
     sendMessage<CoordinatorCycleReservationRequestMessage>(
         remoteNode,
+        mEquivalent,
         kCoordinator,
         kTransactionUUID,
         path->maxFlow(),
@@ -722,6 +727,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
         if (*kIncomingAmountWithoutReservations == TrustLine::kZeroAmount()) {
             sendMessage<IntermediateNodeCycleReservationResponseMessage>(
                 mPreviousNode,
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 ResponseCycleMessage::Rejected);
@@ -756,6 +762,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
     if (0 == mIncomingAmount || ! reserveIncomingAmount(mPreviousNode, mIncomingAmount, 0)) {
         sendMessage<IntermediateNodeCycleReservationResponseMessage>(
             mPreviousNode,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::RejectedBecauseReservations);
@@ -773,6 +780,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
     debug() << "send accepted message with reserve (" << mIncomingAmount << ") to node " << mPreviousNode;
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID(),
         ResponseCycleMessage::Accepted,
@@ -798,6 +806,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
     if (! reserveIncomingAmount(mPreviousNode, mIncomingAmount, 0)) {
         sendMessage<IntermediateNodeCycleReservationResponseMessage>(
             mPreviousNode,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::RejectedBecauseReservations);
@@ -815,6 +824,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
     debug() << "send accepted message with reserve (" << mIncomingAmount << ") to node " << mPreviousNode;
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID(),
         ResponseCycleMessage::Accepted,
@@ -994,6 +1004,7 @@ void CycleCloserInitiatorTransaction::informIntermediateNodesAboutTransactionFin
     for (SerializedPositionInPath nodePosition = 1; nodePosition <= lastInformedNodePosition; nodePosition++) {
         sendMessage<TTLProlongationResponseMessage>(
             mPathStats->path()->nodes.at(nodePosition),
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Finish);
@@ -1010,6 +1021,7 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
         debug() << "send message with final path amount info for node " << intermediateNode;
         sendMessage<FinalPathCycleConfigurationMessage>(
             intermediateNode,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             finalPathAmount);
@@ -1019,6 +1031,7 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
     for (const auto &nodeAndReservations : mReservations) {
         sendMessage<ReservationsInRelationToNodeMessage>(
             nodeAndReservations.first,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             nodeAndReservations.second);
@@ -1093,6 +1106,6 @@ const SerializedPathLengthSize CycleCloserInitiatorTransaction::cycleLength() co
 const string CycleCloserInitiatorTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CycleCloserInitiatorTA: " << currentTransactionUUID() << "] ";
+    s << "[CycleCloserInitiatorTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }

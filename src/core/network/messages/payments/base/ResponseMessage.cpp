@@ -2,12 +2,14 @@
 
 
 ResponseMessage::ResponseMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const PathID &pathID,
     const OperationState state) :
 
     TransactionMessage(
+        equivalent,
         senderUUID,
         transactionUUID),
     mPathID(pathID),

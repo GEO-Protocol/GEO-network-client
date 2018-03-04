@@ -10,6 +10,7 @@ MaxFlowCalculationTargetFstLevelTransaction::MaxFlowCalculationTargetFstLevelTra
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationTargetFstLevelTransactionType,
         nodeUUID,
+        message->equivalent(),
         logger),
     mMessage(message),
     mTrustLinesManager(manager),
@@ -38,6 +39,7 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
         // inform that I am is gateway
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
             mMessage->targetUUID(),
+            mEquivalent,
             mNodeUUID,
             outgoingFlows,
             incomingFlows);
@@ -54,6 +56,7 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
 #endif
         sendMessage<MaxFlowCalculationTargetSndLevelMessage>(
             nodeUUIDIncomingFlow,
+            mEquivalent,
             mNodeUUID,
             mMessage->targetUUID());
     }

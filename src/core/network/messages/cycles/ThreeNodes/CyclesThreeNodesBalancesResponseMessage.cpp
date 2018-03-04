@@ -2,18 +2,24 @@
 
 
 CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     vector<NodeUUID> &neighbors) :
-    TransactionMessage(senderUUID, transactionUUID),
+    TransactionMessage(
+        equivalent,
+        senderUUID,
+        transactionUUID),
     mNeighborsUUUID(neighbors)
 {}
 
 CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     SerializedRecordsCount neighborsUUUIDCount):
     TransactionMessage(
+        equivalent,
         senderUUID,
         transactionUUID)
 {

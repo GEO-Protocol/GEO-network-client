@@ -15,7 +15,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction,
         message->transactionUUID(),
         currentNodeUUID,
-        0,
+        message->equivalent(),
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -106,6 +106,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     if (!mTrustLines->isNeighbor(mPreviousNode)) {
         sendMessage<IntermediateNodeCycleReservationResponseMessage>(
             mPreviousNode,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::Rejected);
@@ -124,6 +125,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
         if (*kIncomingAmountWithoutReservations == TrustLine::kZeroAmount()) {
             sendMessage<IntermediateNodeCycleReservationResponseMessage>(
                 mPreviousNode,
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 ResponseCycleMessage::Rejected);
@@ -162,6 +164,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     if (0 == mReservationAmount || ! reserveIncomingAmount(mPreviousNode, mReservationAmount, 0)) {
         sendMessage<IntermediateNodeCycleReservationResponseMessage>(
             mPreviousNode,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::RejectedBecauseReservations);
@@ -181,6 +184,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     debug() << "send accepted message with reserve (" << mReservationAmount << ") to node " << mPreviousNode;
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID(),
         ResponseCycleMessage::Accepted,
@@ -206,6 +210,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     if (! reserveIncomingAmount(mPreviousNode, mReservationAmount, 0)) {
         sendMessage<IntermediateNodeCycleReservationResponseMessage>(
             mPreviousNode,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::RejectedBecauseReservations);
@@ -225,6 +230,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     debug() << "send accepted message with reserve (" << mReservationAmount << ") to node " << mPreviousNode;
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID(),
         ResponseCycleMessage::Accepted,
@@ -271,6 +277,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     if (!mTrustLines->isNeighbor(mNextNode)) {
         sendMessage<CoordinatorCycleReservationResponseMessage>(
             mCoordinator,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::Rejected);
@@ -291,6 +298,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
         if (*kOutgoingAmountWithoutReservations == TrustLine::kZeroAmount()) {
             sendMessage<CoordinatorCycleReservationResponseMessage>(
                 mCoordinator,
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 ResponseCycleMessage::Rejected);
@@ -330,6 +338,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     if (0 == mReservationAmount || ! reserveOutgoingAmount(mNextNode, mReservationAmount, 0)) {
         sendMessage<CoordinatorCycleReservationResponseMessage>(
             mCoordinator,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::RejectedBecauseReservations);
@@ -349,6 +358,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     debug() << "Send request reservation on " << mReservationAmount << " to " << mNextNode;
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
         mNextNode,
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID(),
         mReservationAmount,
@@ -375,6 +385,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     if (! reserveOutgoingAmount(mNextNode, mReservationAmount, 0)) {
         sendMessage<CoordinatorCycleReservationResponseMessage>(
             mCoordinator,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::RejectedBecauseReservations);
@@ -393,6 +404,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     mLastReservedAmount = mReservationAmount;
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
         mNextNode,
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID(),
         mReservationAmount,
@@ -414,6 +426,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
         rollBack();
         sendMessage<CoordinatorCycleReservationResponseMessage>(
             mCoordinator,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::NextNodeInaccessible);
@@ -427,6 +440,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
             kMessage->state() == IntermediateNodeCycleReservationResponseMessage::RejectedBecauseReservations){
         sendMessage<CoordinatorCycleReservationResponseMessage>(
             mCoordinator,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             kMessage->state());
@@ -442,6 +456,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
         // add offline nodes and closed trustlines on coordinator
         sendMessage<CoordinatorCycleReservationResponseMessage>(
             mCoordinator,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::RejectedBecauseReservations);
@@ -472,6 +487,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
     debug() << "send accepted message with reserve (" << mLastReservedAmount << ") to node " << mCoordinator;
     sendMessage<CoordinatorCycleReservationResponseMessage>(
         mCoordinator,
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID(),
         ResponseCycleMessage::Accepted,
@@ -544,6 +560,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     for (const auto &nodeAndReservations : mReservations) {
         sendMessage<ReservationsInRelationToNodeMessage>(
             nodeAndReservations.first,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             nodeAndReservations.second);
@@ -554,6 +571,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         if (checkAllNeighborsReservationsAppropriate()) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
                 kMessage->senderUUID,
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 FinalAmountsConfigurationResponseMessage::Accepted);
@@ -568,6 +586,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         } else {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
                 kMessage->senderUUID,
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 FinalAmountsConfigurationResponseMessage::Rejected);
@@ -603,6 +622,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
         if (checkAllNeighborsReservationsAppropriate()) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
                 mCoordinator,
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 FinalAmountsConfigurationResponseMessage::Accepted);
@@ -617,6 +637,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
         } else {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
                 mCoordinator,
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 FinalAmountsConfigurationResponseMessage::Rejected);
@@ -719,6 +740,6 @@ bool CycleCloserIntermediateNodeTransaction::checkReservationsDirections() const
 const string CycleCloserIntermediateNodeTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CycleCloserIntermediateNodeTA: " << currentTransactionUUID() << "] ";
+    s << "[CycleCloserIntermediateNodeTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }

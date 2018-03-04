@@ -1,11 +1,13 @@
 #include "ConfirmationMessage.h"
 
 ConfirmationMessage::ConfirmationMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const OperationState state) :
 
     TransactionMessage(
+        equivalent,
         senderUUID,
         transactionUUID),
     mState(state)

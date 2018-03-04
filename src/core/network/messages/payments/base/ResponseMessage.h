@@ -19,6 +19,7 @@ public:
 
 public:
     ResponseMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const PathID &pathID,

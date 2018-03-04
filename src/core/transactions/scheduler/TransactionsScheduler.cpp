@@ -61,47 +61,21 @@ void TransactionsScheduler::postponeTransaction(
     adjustAwakeningToNextTransaction();
 }
 
-void TransactionsScheduler::killTransaction(
-    const TransactionUUID &transactionUUID)
-{
-    for (const auto &transactionAndState : *mTransactions) {
-        if (transactionAndState.first->currentTransactionUUID() == transactionUUID) {
-            forgetTransaction(transactionAndState.first);
-        }
-    }
-}
-
 void TransactionsScheduler::tryAttachMessageToTransaction(
     Message::Shared message)
 {
-    // TODO: check the message type before the loop
+    if (!message->isTransactionMessage()) {
+        throw ValueError(
+            "TransactionsScheduler::tryAttachMessageToTransaction: "
+                "message received is not TransactionMessage " + to_string(message->typeID()));
+    }
+
+    auto transactionMessage = static_pointer_cast<TransactionMessage>(message);
     for (auto const &transactionAndState : *mTransactions) {
 
-        if (message->isTransactionMessage()) {
-            if (static_pointer_cast<TransactionMessage>(message)->transactionUUID() != transactionAndState.first->currentTransactionUUID()) {
-                continue;
-            }
+        if (transactionMessage->transactionUUID() != transactionAndState.first->currentTransactionUUID()) {
+            continue;
         }
-
-        // Six and five nodes cycles should be discovered only once per day,
-        // so, theoretically, only one discovering transaction may exist at once,
-        // and message may be attached to first found transaction.
-        if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction and
-            message->typeID() == Message::MessageType::Cycles_SixNodesBoundary) {
-            transactionAndState.first->pushContext(message);
-            return;
-        }
-        if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction and
-            message->typeID() == Message::MessageType::Cycles_FiveNodesBoundary) {
-            transactionAndState.first->pushContext(message);
-            return;
-        }
-        if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::RoutingTableInitTransactionType and
-            message->typeID() == Message::MessageType::RoutingTableResponse) {
-            transactionAndState.first->pushContext(message);
-            return;
-        }
-
 
         for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
             if (message->typeID() != messageType) {
@@ -116,8 +90,7 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
                     message->typeID() == Message::Payments_FinalPathConfiguration) {
                 auto paymentTransaction = static_pointer_cast<BasePaymentTransaction>(
                     transactionAndState.first);
-                auto senderMessage = static_pointer_cast<SenderMessage>(message);
-                if (paymentTransaction->coordinatorUUID() != senderMessage->senderUUID) {
+                if (paymentTransaction->coordinatorUUID() != transactionMessage->senderUUID) {
                     continue;
                 }
             }
@@ -130,7 +103,7 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
         }
     }
     throw NotFoundError(
-        "TransactionsScheduler::handleMessage: "
+        "TransactionsScheduler::tryAttachMessageToTransaction: "
             "invalid/unexpected message/response received " + to_string(message->typeID()));
 
 }
@@ -408,15 +381,10 @@ const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
     return scheduler->mTransactions.get();
 }
 
-void TransactionsScheduler::addTransactionAndState(BaseTransaction::Shared transaction, TransactionState::SharedConst state)
-{
-    mTransactions->insert(make_pair(transaction, state));
-}
-
 const BaseTransaction::Shared TransactionsScheduler::cycleClosingTransactionByUUID(
     const TransactionUUID &transactionUUID) const
 {
-    for (const auto &transactionAndState : *mTransactions.get()) {
+    for (const auto &transactionAndState : *mTransactions) {
         if (transactionAndState.first->currentTransactionUUID() == transactionUUID) {
             if (transactionAndState.first->transactionType() != BaseTransaction::Payments_CycleCloserInitiatorTransaction &&
                 transactionAndState.first->transactionType() != BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
@@ -433,7 +401,7 @@ const BaseTransaction::Shared TransactionsScheduler::cycleClosingTransactionByUU
 bool TransactionsScheduler::isTransactionInProcess(
     const TransactionUUID &transactionUUID) const
 {
-    for (const auto &transactionAndState : *mTransactions.get()) {
+    for (const auto &transactionAndState : *mTransactions) {
         if (transactionAndState.first->currentTransactionUUID() == transactionUUID) {
             return true;
         }
@@ -456,13 +424,56 @@ void TransactionsScheduler::tryAttachMessageToCollectTopologyTransaction(
     throw NotFoundError(
             "TransactionsScheduler::tryAttachMessageToCollectTopologyTransaction: "
                     "can't find CollectTopologyTransaction");
+}
 
+void TransactionsScheduler::tryAttachMessageToCyclesFiveAndSixNodes(
+    Message::Shared message)
+{
+    for (auto const &transactionAndState : *mTransactions) {
+        // Six and five nodes cycles should be discovered only once per day,
+        // so, theoretically, only one discovering transaction may exist at once,
+        // and message may be attached to first found transaction.
+        if (transactionAndState.first->transactionType() == BaseTransaction::Cycles_SixNodesInitTransaction
+            and message->typeID() == Message::Cycles_SixNodesBoundary
+            and message->equivalent() == transactionAndState.first->equivalent()) {
+            transactionAndState.first->pushContext(message);
+            return;
+        }
+        if (transactionAndState.first->transactionType() == BaseTransaction::Cycles_FiveNodesInitTransaction
+            and message->typeID() == Message::Cycles_FiveNodesBoundary
+            and message->equivalent() == transactionAndState.first->equivalent()) {
+            transactionAndState.first->pushContext(message);
+            return;
+        }
+    }
+    throw NotFoundError(
+            "TransactionsScheduler::tryAttachMessageToCyclesFiveAndSixNodes: "
+                "can't find appropriate transaction");
+}
+
+void TransactionsScheduler::tryAttachMessageToRoutingTableTransaction(
+    Message::Shared message)
+{
+    for (auto const &transactionAndState : *mTransactions) {
+        // Routing table updating TA should be run only once per 3 days,
+        // so, theoretically, only one runned transaction may exist at once,
+        // and message may be attached to first found transaction.
+        if (transactionAndState.first->transactionType() == BaseTransaction::RoutingTableInitTransactionType
+            and message->typeID() == Message::RoutingTableResponse
+            and message->equivalent() == transactionAndState.first->equivalent()) {
+            transactionAndState.first->pushContext(message);
+            return;
+        }
+    }
+    throw NotFoundError(
+            "TransactionsScheduler::tryAttachMessageToRoutingTableTransaction: "
+                "can't find appropriate transaction");
 }
 
 const BaseTransaction::Shared TransactionsScheduler::paymentTransactionByCommandUUID(
     const CommandUUID &commandUUID) const
 {
-    for (const auto &transactionAndState : *mTransactions.get()) {
+    for (const auto &transactionAndState : *mTransactions) {
         if (transactionAndState.first->transactionType() != BaseTransaction::CoordinatorPaymentTransaction) {
             continue;
         }

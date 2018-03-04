@@ -109,5 +109,7 @@ LoggerStream TopologyCacheUpdateDelayedTask::warning() const
 
 const string TopologyCacheUpdateDelayedTask::logHeader() const
 {
-    return "[TopologyCacheUpdateDelayedTask]";
+    stringstream s;
+    s << "[TopologyCacheUpdateDelayedTask: " << mEquivalent << "] ";
+    return s.str();
 }

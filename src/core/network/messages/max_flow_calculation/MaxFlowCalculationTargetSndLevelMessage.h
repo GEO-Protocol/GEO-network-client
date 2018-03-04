@@ -10,6 +10,7 @@ public:
 
 public:
     MaxFlowCalculationTargetSndLevelMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID& senderUUID,
         const NodeUUID& targetUUID);
 

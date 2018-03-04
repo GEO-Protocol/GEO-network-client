@@ -36,11 +36,13 @@ BaseTransaction::BaseTransaction(
 BaseTransaction::BaseTransaction(
     const TransactionType type,
     const NodeUUID &nodeUUID,
+    const SerializedEquivalent equivalent,
     Logger &log) :
 
     mType(type),
     mLog(log),
-    mNodeUUID(nodeUUID)
+    mNodeUUID(nodeUUID),
+    mEquivalent(equivalent)
 {
     mStep = 1;
 }
@@ -49,12 +51,14 @@ BaseTransaction::BaseTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID,
     const NodeUUID &nodeUUID,
+    const SerializedEquivalent equivalent,
     Logger &log) :
 
     mType(type),
     mLog(log),
     mTransactionUUID(transactionUUID),
-    mNodeUUID(nodeUUID)
+    mNodeUUID(nodeUUID),
+    mEquivalent(equivalent)
 {
     mStep = 1;
 }
@@ -136,6 +140,11 @@ const TransactionUUID &BaseTransaction::currentTransactionUUID () const
 const NodeUUID &BaseTransaction::currentNodeUUID () const
 {
     return mNodeUUID;
+}
+
+const SerializedEquivalent BaseTransaction::equivalent() const
+{
+    return mEquivalent;
 }
 
 void BaseTransaction::pushContext(

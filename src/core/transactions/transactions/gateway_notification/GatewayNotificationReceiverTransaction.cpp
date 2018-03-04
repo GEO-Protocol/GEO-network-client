@@ -11,6 +11,7 @@ GatewayNotificationReceiverTransaction::GatewayNotificationReceiverTransaction(
         BaseTransaction::TransactionType::GatewayNotificationReceiverType,
         message->transactionUUID(),
         nodeUUID,
+        message->equivalent(),
         logger),
     mMessage(message),
     mTrustLineManager(manager),
@@ -49,6 +50,7 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
     debug() << "Send confirmation to node " << mMessage->senderUUID;
     sendMessage<ConfirmationMessage>(
         mMessage->senderUUID,
+        mEquivalent,
         currentNodeUUID(),
         mMessage->transactionUUID());
     return resultDone();

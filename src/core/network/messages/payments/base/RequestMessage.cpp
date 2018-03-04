@@ -2,12 +2,14 @@
 
 
 RequestMessage::RequestMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const PathID &pathID,
     const TrustLineAmount &amount) :
 
     TransactionMessage(
+        equivalent,
         senderUUID,
         transactionUUID),
     mPathID(pathID),

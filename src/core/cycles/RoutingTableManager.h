@@ -46,7 +46,7 @@ public:
     mutable UpdateRoutingTableSignal updateRoutingTableSignal;
 
 protected:
-    static string logHeader();
+    string logHeader() const;
 
     LoggerStream warning() const;
 

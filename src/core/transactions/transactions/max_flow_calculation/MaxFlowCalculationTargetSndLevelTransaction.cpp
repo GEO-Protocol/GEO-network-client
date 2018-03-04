@@ -11,6 +11,7 @@ MaxFlowCalculationTargetSndLevelTransaction::MaxFlowCalculationTargetSndLevelTra
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationTargetSndLevelTransactionType,
         nodeUUID,
+        message->equivalent(),
         logger),
     mMessage(message),
     mTrustLinesManager(manager),
@@ -72,6 +73,7 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator()
     if (!outgoingFlows.empty() || !incomingFlows.empty()) {
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->targetUUID(),
+            mEquivalent,
             mNodeUUID,
             outgoingFlows,
             incomingFlows);
@@ -113,6 +115,7 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(
     if (!outgoingFlowsForSending.empty() || !incomingFlowsForSending.empty()) {
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->targetUUID(),
+            mEquivalent,
             mNodeUUID,
             outgoingFlowsForSending,
             incomingFlowsForSending);
@@ -156,6 +159,7 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendGatewayResultToInitiator()
     if (!outgoingFlows.empty() || !incomingFlows.empty()) {
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
             mMessage->targetUUID(),
+            mEquivalent,
             mNodeUUID,
             outgoingFlows,
             incomingFlows);
@@ -197,6 +201,7 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendCachedGatewayResultToIniti
     if (!outgoingFlowsForSending.empty() || !incomingFlowsForSending.empty()) {
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
             mMessage->targetUUID(),
+            mEquivalent,
             mNodeUUID,
             outgoingFlowsForSending,
             incomingFlowsForSending);

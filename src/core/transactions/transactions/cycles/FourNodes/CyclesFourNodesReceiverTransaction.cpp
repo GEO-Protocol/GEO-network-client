@@ -9,6 +9,7 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
         BaseTransaction::TransactionType::Cycles_FourNodesReceiverTransaction,
         message->transactionUUID(),
         nodeUUID,
+        message->equivalent(),
         logger),
     mTrustLinesManager(manager),
     mRequestMessage(message)
@@ -27,9 +28,9 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run()
 
     sendMessage<CyclesFourNodesBalancesResponseMessage>(
         mRequestMessage->senderUUID,
+        mEquivalent,
         mNodeUUID,
-        currentTransactionUUID()
-    );
+        currentTransactionUUID());
 
     return resultDone();
 }

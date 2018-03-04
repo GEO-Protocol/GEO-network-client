@@ -9,6 +9,7 @@ HistoryAdditionalPaymentsTransaction::HistoryAdditionalPaymentsTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::HistoryAdditionalPaymentsTransactionType,
         nodeUUID,
+        command->equivalent(),
         logger),
     mCommand(command),
     mStorageHandler(storageHandler)

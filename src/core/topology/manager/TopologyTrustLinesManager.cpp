@@ -295,6 +295,6 @@ LoggerStream TopologyTrustLinesManager::debug() const
 const string TopologyTrustLinesManager::logHeader() const
 {
     stringstream s;
-    s << "[TopologyTrustLinesManager]";
+    s << "[TopologyTrustLinesManager: " << mEquivalent << "] ";
     return s.str();
 }

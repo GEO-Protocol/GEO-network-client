@@ -9,6 +9,7 @@ noexcept :
     BaseTransaction(
         BaseTransaction::ContractorsList,
         nodeUUID,
+        0,      // none equivalent
         logger),
     mCommand(command),
     mStorageHandler(storageHandler)

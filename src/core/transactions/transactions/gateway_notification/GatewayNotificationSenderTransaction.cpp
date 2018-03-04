@@ -11,8 +11,8 @@ GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::GatewayNotificationSenderType,
         nodeUUID,
+        equivalent,
         logger),
-    mEquivalent(equivalent),
     mTrustLineManager(manager),
     mStorageHandler(storageHandler),
     mIAmGateway(iAmGateway)
@@ -39,6 +39,7 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::run()
                 info() << "Send message that I am gateway to " << neighbor;
                 sendMessage<GatewayNotificationMessage>(
                     neighbor,
+                    mEquivalent,
                     currentNodeUUID(),
                     currentTransactionUUID(),
                     GatewayNotificationMessage::Gateway);
@@ -55,6 +56,7 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::run()
                 info() << "Send message that I am common node to " << neighbor;
                 sendMessage<GatewayNotificationMessage>(
                     neighbor,
+                    mEquivalent,
                     currentNodeUUID(),
                     currentTransactionUUID(),
                     GatewayNotificationMessage::Common);

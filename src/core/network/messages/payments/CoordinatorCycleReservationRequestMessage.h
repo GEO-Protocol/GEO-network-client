@@ -12,6 +12,7 @@ public:
 
 public:
     CoordinatorCycleReservationRequestMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID& senderUUID,
         const TransactionUUID& transactionUUID,
         const TrustLineAmount& amount,

@@ -13,11 +13,12 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     mIOService(ioService),
     mLogger(logger)
 {
-    {
+    // todo: uncomment me after applying new equivalent adding logic
+//    {
 //        auto ioTransaction = storageHandler->beginTransaction();
 //        mEquivalents = ioTransaction->trustLinesHandler()->equivalents();
-        mEquivalents.push_back(0);
-    }
+//    }
+    mEquivalents.push_back(1);
     for (const auto &equivalent : mEquivalents) {
         info() << "Equivalent " << equivalent;
         mTrustLinesManagers.insert(

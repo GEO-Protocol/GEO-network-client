@@ -2,6 +2,7 @@
 
 
 SetIncomingTrustLineMessage::SetIncomingTrustLineMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &sender,
     const TransactionUUID &transactionUUID,
     const NodeUUID &destination,
@@ -9,6 +10,7 @@ SetIncomingTrustLineMessage::SetIncomingTrustLineMessage(
     noexcept :
 
     DestinationMessage(
+        equivalent,
         sender,
         transactionUUID,
         destination),
@@ -18,7 +20,6 @@ SetIncomingTrustLineMessage::SetIncomingTrustLineMessage(
 SetIncomingTrustLineMessage::SetIncomingTrustLineMessage(
     BytesShared buffer)
     noexcept :
-
     DestinationMessage(buffer)
 {
     // todo: use desrializer

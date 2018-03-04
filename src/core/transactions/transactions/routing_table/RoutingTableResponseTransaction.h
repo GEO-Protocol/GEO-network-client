@@ -14,10 +14,10 @@ class RoutingTableResponseTransaction :
 
 public:
     RoutingTableResponseTransaction(
-            const NodeUUID &nodeUUID,
-            RoutingTableRequestMessage::Shared message,
-            TrustLinesManager *manager,
-            Logger &logger);
+        const NodeUUID &nodeUUID,
+        RoutingTableRequestMessage::Shared message,
+        TrustLinesManager *manager,
+        Logger &logger);
 
     TransactionResult::SharedConst run();
 

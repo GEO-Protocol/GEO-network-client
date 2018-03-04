@@ -13,6 +13,7 @@ public:
 
 public:
     ReservationsInRelationToNodeMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const vector<pair<PathID, AmountReservation::ConstShared>> &reservations);

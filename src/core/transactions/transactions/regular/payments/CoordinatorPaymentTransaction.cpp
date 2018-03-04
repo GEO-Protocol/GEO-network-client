@@ -191,6 +191,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
     // Sending message to the receiver note to approve the payment receiving.
     sendMessage<ReceiverInitPaymentRequestMessage>(
         mCommand->contractorUUID(),
+        mEquivalent,
         currentNodeUUID(),
         currentTransactionUUID(),
         mCurrentAmountReservingPathIdentifier,
@@ -295,6 +296,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     mTransactionIsVoted = true;
 
     mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
+        mEquivalent,
         kCurrentNodeUUID,
         kTransactionUUID,
         kCurrentNodeUUID);
@@ -440,6 +442,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     debug() << "Send reservations size: " << reservations.size();
     sendMessage<IntermediateNodeReservationRequestMessage>(
         kContractor,
+        mEquivalent,
         kCoordinator,
         kTransactionUUID,
         reservations);
@@ -606,6 +609,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
 
     sendMessage<IntermediateNodeReservationRequestMessage>(
         neighbor,
+        mEquivalent,
         kCurrentNode,
         kTransactionUUID,
         reservations);
@@ -655,6 +659,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
 
     sendMessage<CoordinatorReservationRequestMessage>(
         neighbor,
+        mEquivalent,
         kCoordinator,
         kTransactionUUID,
         reservations,
@@ -688,6 +693,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -754,6 +760,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -801,6 +808,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -825,6 +833,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -926,6 +935,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
 
     sendMessage<CoordinatorReservationRequestMessage>(
         remoteNode,
+        mEquivalent,
         kCoordinator,
         kTransactionUUID,
         reservations,
@@ -956,6 +966,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -1004,6 +1015,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -1034,6 +1046,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -1163,6 +1176,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
         debug() << "send final amount configuration to " << nodeAndFinalAmountsConfig.first;
         sendMessage<FinalAmountsConfigurationMessage>(
             nodeAndFinalAmountsConfig.first,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             nodeAndFinalAmountsConfig.second);
@@ -1178,6 +1192,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     for (const auto &nodeAndReservations : mReservations) {
         sendMessage<ReservationsInRelationToNodeMessage>(
             nodeAndReservations.first,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             nodeAndReservations.second);
@@ -1396,7 +1411,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultUnexpectedEr
 const string CoordinatorPaymentTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CoordinatorPaymentTA: " << currentTransactionUUID() << "] ";
+    s << "[CoordinatorPaymentTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }
 
@@ -1565,6 +1580,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
         if (kMessage->senderUUID == mCommand->contractorUUID()) {
             sendMessage<TTLProlongationResponseMessage>(
                 kMessage->senderUUID,
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 TTLProlongationResponseMessage::Continue);
@@ -1574,6 +1590,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
             // coordinator has configuration for requested node
             sendMessage<TTLProlongationResponseMessage>(
                 kMessage->senderUUID,
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 TTLProlongationResponseMessage::Continue);
@@ -1581,6 +1598,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
         } else {
             sendMessage<TTLProlongationResponseMessage>(
                 kMessage->senderUUID,
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 TTLProlongationResponseMessage::Finish);
@@ -1591,6 +1609,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
         if (mParticipantsVotesMessage->containsParticipant(kMessage->senderUUID)) {
             sendMessage<TTLProlongationResponseMessage>(
                 kMessage->senderUUID,
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 TTLProlongationResponseMessage::Continue);
@@ -1598,6 +1617,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
         } else {
             sendMessage<TTLProlongationResponseMessage>(
                 kMessage->senderUUID,
+                mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 TTLProlongationResponseMessage::Finish);
@@ -1726,6 +1746,7 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
         debug() << "send message with drop reservation info for node " << intermediateNode;
         sendMessage<FinalPathConfigurationMessage>(
             intermediateNode,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             pathID,
@@ -1746,6 +1767,7 @@ void CoordinatorPaymentTransaction::sendFinalPathConfiguration(
         debug() << "send message with final path amount info for node " << intermediateNode;
         sendMessage<FinalPathConfigurationMessage>(
             intermediateNode,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             pathID,
@@ -1759,6 +1781,7 @@ void CoordinatorPaymentTransaction::informAllNodesAboutTransactionFinish()
     for (auto const &nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
         sendMessage<TTLProlongationResponseMessage>(
             nodeAndFinalAmountsConfig.first,
+            mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Finish);

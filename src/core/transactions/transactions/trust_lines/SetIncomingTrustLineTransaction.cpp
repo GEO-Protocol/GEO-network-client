@@ -16,6 +16,7 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
         BaseTransaction::SetIncomingTrustLineTransaction,
         message->transactionUUID(),
         nodeUUID,
+        message->equivalent(),
         logger),
     mMessage(message),
     mTrustLines(manager),
@@ -41,6 +42,7 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
         BaseTransaction::SetIncomingTrustLineTransaction,
         message->transactionUUID(),
         nodeUUID,
+        message->equivalent(),
         logger),
     mMessage(message),
     mTrustLines(manager),
@@ -54,6 +56,8 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
 TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 {
     const auto kContractor = mMessage->senderUUID;
+    info() << "sender: " << mMessage->senderUUID;
+    info() << "equivalent: " << mMessage->equivalent();
 
     if (kContractor == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
@@ -70,6 +74,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         warning() << "Contractor " << kContractor << " is in black list. Transaction rejected";
         sendMessage<ConfirmationMessage>(
             mMessage->senderUUID,
+            mEquivalent,
             mNodeUUID,
             mMessage->transactionUUID(),
             ConfirmationMessage::ContractorBanned);
@@ -116,6 +121,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
                 // so the TA itself might finish without any response from the remote node.
                 sendMessage<GatewayNotificationMessage>(
                     kContractor,
+                    mEquivalent,
                     currentNodeUUID(),
                     currentTransactionUUID(),
                     GatewayNotificationMessage::Gateway);
@@ -145,6 +151,8 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         case TrustLinesManager::TrustLineOperationResult::NoChanges: {
             // It is possible, that set trust line request will arrive twice or more times,
             // but only first processed update must be written to the trust lines history.
+            info() << "Incoming trust line from the node " << kContractor
+                   << " has not been changed.";
             break;
         }
         }
@@ -152,6 +160,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         // Sending confirmation back.
         sendMessage<ConfirmationMessage>(
             mMessage->senderUUID,
+            mEquivalent,
             mNodeUUID,
             mMessage->transactionUUID());
 
@@ -163,6 +172,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
                << "Cannot open trustline with zero amount.";
         sendMessage<ConfirmationMessage>(
             mMessage->senderUUID,
+            mEquivalent,
             mNodeUUID,
             mMessage->transactionUUID(),
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
@@ -220,7 +230,7 @@ const string SetIncomingTrustLineTransaction::logHeader() const
     noexcept
 {
     stringstream s;
-    s << "[SetIncomingTrustLineTA: " << currentTransactionUUID() << "]";
+    s << "[SetIncomingTrustLineTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }
 
@@ -235,6 +245,8 @@ void SetIncomingTrustLineTransaction::populateHistory(
         mMessage->senderUUID,
         mMessage->amount());
 
-    ioTransaction->historyStorage()->saveTrustLineRecord(record, 0);
+    ioTransaction->historyStorage()->saveTrustLineRecord(
+        record,
+        mEquivalent);
 #endif
 }

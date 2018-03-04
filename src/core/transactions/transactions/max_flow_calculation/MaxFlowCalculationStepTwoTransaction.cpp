@@ -15,6 +15,7 @@ MaxFlowCalculationStepTwoTransaction::MaxFlowCalculationStepTwoTransaction(
         BaseTransaction::MaxFlowCalculationStepTwoTransactionType,
         transactionUUID,
         nodeUUID,
+        command->equivalent(),
         trustLinesManager,
         topologyTrustLineManager,
         topologyCacheManager,

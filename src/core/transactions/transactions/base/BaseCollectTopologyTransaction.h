@@ -20,6 +20,7 @@ public:
     BaseCollectTopologyTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
@@ -30,6 +31,7 @@ public:
         const TransactionType type,
         const TransactionUUID &transactionUUID,
         const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,

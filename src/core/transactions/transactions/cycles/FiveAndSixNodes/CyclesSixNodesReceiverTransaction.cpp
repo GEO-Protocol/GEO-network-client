@@ -44,6 +44,7 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
         path.push_back(mNodeUUID);
         sendMessage<CyclesSixNodesBoundaryMessage>(
             path.front(),
+            mEquivalent,
             path,
             kFirstLevelNodes);
     }

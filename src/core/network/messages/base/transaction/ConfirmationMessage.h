@@ -19,6 +19,7 @@ public:
 
 public:
     ConfirmationMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const OperationState state = OK);

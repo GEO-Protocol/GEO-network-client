@@ -1,6 +1,7 @@
 ﻿#include "IntermediateNodeReservationResponseMessage.h"
 
 IntermediateNodeReservationResponseMessage::IntermediateNodeReservationResponseMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const PathID& pathID,
@@ -8,6 +9,7 @@ IntermediateNodeReservationResponseMessage::IntermediateNodeReservationResponseM
     const TrustLineAmount& reservedAmount):
 
     ResponseMessage(
+        equivalent,
         senderUUID,
         transactionUUID,
         pathID,

@@ -1,20 +1,22 @@
 #include "GatewayNotificationMessage.h"
 
 GatewayNotificationMessage::GatewayNotificationMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const NodeState state) :
 
     TransactionMessage(
+        equivalent,
         senderUUID,
         transactionUUID),
     mNodeState(state)
 {}
 
 GatewayNotificationMessage::GatewayNotificationMessage(
-        BytesShared buffer):
+    BytesShared buffer):
 
-        TransactionMessage(buffer)
+    TransactionMessage(buffer)
 {
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------

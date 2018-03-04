@@ -1,18 +1,20 @@
 #include "ResultMaxFlowCalculationMessage.h"
 
 ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows) :
 
-    SenderMessage(senderUUID),
+    SenderMessage(
+        equivalent,
+        senderUUID),
     mOutgoingFlows(outgoingFlows),
     mIncomingFlows(incomingFlows)
 {}
 
 ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
     BytesShared buffer):
-
     SenderMessage(buffer)
 {
     size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();

@@ -2,11 +2,14 @@
 
 
 TransactionMessage::TransactionMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID)
     noexcept :
 
-    SenderMessage(senderUUID),
+    SenderMessage(
+        equivalent,
+        senderUUID),
     mTransactionUUID(transactionUUID)
 {}
 

@@ -1,12 +1,14 @@
 #include "IntermediateNodeCycleReservationResponseMessage.h"
 
 IntermediateNodeCycleReservationResponseMessage::IntermediateNodeCycleReservationResponseMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const ResponseCycleMessage::OperationState state,
     const TrustLineAmount& reservedAmount):
 
     ResponseCycleMessage(
+        equivalent,
         senderUUID,
         transactionUUID,
         state),

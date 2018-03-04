@@ -9,6 +9,7 @@ HistoryWithContractorTransaction::HistoryWithContractorTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::HistoryWithContractorTransactionType,
         nodeUUID,
+        command->equivalent(),
         logger),
     mCommand(command),
     mStorageHandler(storageHandler)

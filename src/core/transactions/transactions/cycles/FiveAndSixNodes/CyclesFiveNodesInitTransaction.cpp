@@ -33,10 +33,12 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAnd
     for(const auto &value: firstLevelNodesNegativeBalance)
         sendMessage<CyclesFiveNodesInBetweenMessage>(
             value,
+            mEquivalent,
             path);
     for(const auto &value: firstLevelNodesPositiveBalance)
         sendMessage<CyclesFiveNodesInBetweenMessage>(
             value,
+            mEquivalent,
             path);
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);

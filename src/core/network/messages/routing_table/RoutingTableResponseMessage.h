@@ -12,9 +12,9 @@ public:
 
 public:
     RoutingTableResponseMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &sender,
-        set<NodeUUID> neighbors
-    );
+        set<NodeUUID> neighbors);
 
     RoutingTableResponseMessage(
         BytesShared buffer);

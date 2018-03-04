@@ -146,6 +146,8 @@ public:
 
     const NodeUUID &currentNodeUUID () const;
 
+    const SerializedEquivalent equivalent() const;
+
     const int currentStep() const;
 
     void recreateTransactionUUID();
@@ -173,12 +175,14 @@ protected:
     BaseTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
         Logger &log);
 
     BaseTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID,
         const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
         Logger &log);
 
     BaseTransaction(
@@ -265,6 +269,7 @@ protected:
     TransactionType mType;
     TransactionUUID mTransactionUUID;
     NodeUUID mNodeUUID;
+    SerializedEquivalent mEquivalent;
     deque<Message::Shared> mContext;
     deque<BaseResource::Shared> mResources;
     SerializedStep mStep = 1;

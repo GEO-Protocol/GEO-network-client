@@ -9,6 +9,7 @@ noexcept:
     BaseTransaction(
         BaseTransaction::TrustLineOne,
         nodeUUID,
+        command->equivalent(),
         logger),
     mCommand(command),
     mTrustLinesManager(manager)

@@ -1,12 +1,14 @@
 #include "CoordinatorCycleReservationResponseMessage.h"
 
 CoordinatorCycleReservationResponseMessage::CoordinatorCycleReservationResponseMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const ResponseCycleMessage::OperationState state,
     const TrustLineAmount& reservedAmount):
 
     ResponseCycleMessage(
+        equivalent,
         senderUUID,
         transactionUUID,
         state),

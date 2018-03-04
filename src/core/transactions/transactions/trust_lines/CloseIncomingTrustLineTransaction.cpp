@@ -14,6 +14,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     BaseTransaction(
         BaseTransaction::CloseIncomingTrustLineTransaction,
         nodeUUID,
+        command->equivalent(),
         logger),
     mCommand(command),
     mTrustLines(manager),
@@ -60,6 +61,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
         // so the TA itself might finish without any response from the remote node.
         sendMessage<CloseOutgoingTrustLineMessage>(
             mCommand->contractorUUID(),
+            mEquivalent,
             mNodeUUID,
             mTransactionUUID,
             mCommand->contractorUUID());
@@ -114,7 +116,7 @@ const string CloseIncomingTrustLineTransaction::logHeader() const
 noexcept
 {
     stringstream s;
-    s << "[CloseIncomingTrustLineTA: " << currentTransactionUUID() << "]";
+    s << "[CloseIncomingTrustLineTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }
 
@@ -128,6 +130,8 @@ void CloseIncomingTrustLineTransaction::populateHistory(
         operationType,
         mCommand->contractorUUID());
 
-    ioTransaction->historyStorage()->saveTrustLineRecord(record, 0);
+    ioTransaction->historyStorage()->saveTrustLineRecord(
+        record,
+        mEquivalent);
 #endif
 }

@@ -7,8 +7,8 @@ RoutingTableResponseTransaction::RoutingTableResponseTransaction(
     Logger &logger):
     BaseTransaction(
         BaseTransaction::TransactionType::RoutingTableResponceTransactionType,
-
         nodeUUID,
+        message->equivalent(),
         logger),
     mRequestMessage(message),
     mTrustLinesManager(manager)
@@ -28,13 +28,14 @@ TransactionResult::SharedConst RoutingTableResponseTransaction::run()
     }
     auto neighbors = mTrustLinesManager->rt1();
     set<NodeUUID> result;
-    for(auto node:neighbors){
+    for(auto &node:neighbors){
         if(node == mRequestMessage->senderUUID)
             continue;
         result.insert(node);
     }
     sendMessage<RoutingTableResponseMessage>(
         mRequestMessage->senderUUID,
+        mEquivalent,
         mNodeUUID,
         result);
     return resultDone();

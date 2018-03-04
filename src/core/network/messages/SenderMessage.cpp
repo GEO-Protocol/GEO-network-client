@@ -2,19 +2,22 @@
 
 
 SenderMessage::SenderMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID)
     noexcept :
-
+    EquivalentMessage(
+        equivalent),
     senderUUID(senderUUID)
 {}
 
 SenderMessage::SenderMessage(
     BytesShared buffer)
-    noexcept
+    noexcept:
+    EquivalentMessage(buffer)
 {
     memcpy(
         const_cast<NodeUUID*>(&senderUUID),
-        buffer.get() + Message::kOffsetToInheritedBytes(),
+        buffer.get() + EquivalentMessage::kOffsetToInheritedBytes(),
         NodeUUID::kBytesSize);
 }
 
@@ -26,7 +29,7 @@ pair<BytesShared, size_t> SenderMessage::serializeToBytes() const
 {
     BytesSerializer serializer;
 
-    serializer.enqueue(Message::serializeToBytes());
+    serializer.enqueue(EquivalentMessage::serializeToBytes());
     serializer.enqueue(senderUUID);
     return serializer.collect();
 }
@@ -35,8 +38,7 @@ const size_t SenderMessage::kOffsetToInheritedBytes() const
     noexcept
 {
     static const auto kOffset =
-        Message::kOffsetToInheritedBytes()
+        EquivalentMessage::kOffsetToInheritedBytes()
         + NodeUUID::kBytesSize;
-
     return kOffset;
 }

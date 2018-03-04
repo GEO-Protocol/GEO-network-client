@@ -31,6 +31,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndS
     for(const auto &kNodeUUID: firstLevelNodes){
         sendMessage<CyclesSixNodesInBetweenMessage>(
             kNodeUUID,
+            mEquivalent,
             path);
     }
     mStep = Stages::ParseMessageAndCreateCycles;

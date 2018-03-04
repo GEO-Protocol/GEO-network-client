@@ -27,6 +27,7 @@ public:
 
 protected:
     MaxFlowCalculationMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const NodeUUID &targetUUID);
 

@@ -10,6 +10,7 @@ ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetT
     BaseTransaction(
         BaseTransaction::TransactionType::ReceiveMaxFlowCalculationOnTargetTransactionType,
         nodeUUID,
+        message->equivalent(),
         logger),
     mMessage(message),
     mTrustLinesManager(trustLinesManager),
@@ -57,6 +58,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator()
     if (!incomingFlows.empty()) {
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->senderUUID,
+            mEquivalent,
             mNodeUUID,
             outgoingFlows,
             incomingFlows);
@@ -89,6 +91,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
     if (!incomingFlowsForSending.empty()) {
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->senderUUID,
+            mEquivalent,
             mNodeUUID,
             outgoingFlowsForSending,
             incomingFlowsForSending);
@@ -107,6 +110,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel()
 #endif
         sendMessage<MaxFlowCalculationTargetFstLevelMessage>(
             nodeUUIDIncomingFlow,
+            mEquivalent,
             mNodeUUID,
             mMessage->senderUUID);
     }

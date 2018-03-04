@@ -16,6 +16,7 @@ public:
 
 public:
     GatewayNotificationMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const NodeState state);

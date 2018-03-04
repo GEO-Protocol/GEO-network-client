@@ -58,13 +58,13 @@ public:
         BaseTransaction::Shared transaction,
         uint32_t millisecondsDelay);
 
-    void killTransaction(
-        const TransactionUUID &transactionUUID);
-
     // TODO: add error log if unsuccessful
     // TODO: throw exception on failure,
     //       so the communicator would be able to know
     //       if contractor node doesn't follows the protocol.
+    /*
+     * This method used only for Transaction Messages
+     */
     void tryAttachMessageToTransaction(
         Message::Shared message);
 
@@ -74,8 +74,6 @@ public:
     friend const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
         TransactionsScheduler *scheduler);
 
-    void addTransactionAndState(BaseTransaction::Shared transaction, TransactionState::SharedConst state);
-
     const BaseTransaction::Shared cycleClosingTransactionByUUID(
         const TransactionUUID &transactionUUID) const;
 
@@ -83,6 +81,12 @@ public:
         const TransactionUUID &transactionUUID) const;
 
     void tryAttachMessageToCollectTopologyTransaction(
+        Message::Shared message);
+
+    void tryAttachMessageToCyclesFiveAndSixNodes(
+        Message::Shared message);
+
+    void tryAttachMessageToRoutingTableTransaction(
         Message::Shared message);
 
     const BaseTransaction::Shared paymentTransactionByCommandUUID(

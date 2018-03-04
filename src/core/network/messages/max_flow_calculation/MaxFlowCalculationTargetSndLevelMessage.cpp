@@ -2,10 +2,14 @@
 
 
 MaxFlowCalculationTargetSndLevelMessage::MaxFlowCalculationTargetSndLevelMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const NodeUUID &targetUUID) :
 
-    MaxFlowCalculationMessage(senderUUID, targetUUID)
+    MaxFlowCalculationMessage(
+        equivalent,
+        senderUUID,
+        targetUUID)
 {}
 
 MaxFlowCalculationTargetSndLevelMessage::MaxFlowCalculationTargetSndLevelMessage(

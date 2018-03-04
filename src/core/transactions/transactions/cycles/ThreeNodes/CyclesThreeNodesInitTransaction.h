@@ -20,8 +20,9 @@ public:
     CyclesThreeNodesInitTransaction(
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent,
         TrustLinesManager *manager,
-        RoutingTableManager *roughtingTable,
+        RoutingTableManager *routingTable,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         Logger &logger);
@@ -46,7 +47,7 @@ protected:
     TrustLinesManager *mTrustLinesManager;
     CyclesManager *mCyclesManager;
     StorageHandler *mStorageHandler;
-    RoutingTableManager *mRoughtingTable;
+    RoutingTableManager *mRougingTable;
 };
 
 #endif //GEO_NETWORK_CLIENT_THREENODESINITTRANSACTION_H

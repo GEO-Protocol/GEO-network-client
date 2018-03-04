@@ -70,9 +70,11 @@ void RoutingTableManager::runSignalUpdateTimer(
     updateRoutingTableSignal(mEquivalent);
 }
 
-string RoutingTableManager::logHeader()
+string RoutingTableManager::logHeader() const
 {
-    return "[RoutingTableManager]";
+    stringstream s;
+    s << "[RoutingTableManager: " << mEquivalent << "] ";
+    return s.str();
 }
 
 LoggerStream RoutingTableManager::error() const

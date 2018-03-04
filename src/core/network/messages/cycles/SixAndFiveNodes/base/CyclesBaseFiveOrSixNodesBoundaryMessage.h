@@ -9,6 +9,7 @@ public:
 
 public:
     CyclesBaseFiveOrSixNodesBoundaryMessage(
+        const SerializedEquivalent equivalent,
         vector<NodeUUID> &path,
         vector<NodeUUID> &boundaryNodes);
 
@@ -20,10 +21,6 @@ public:
     throw(bad_alloc);
 
     const vector<NodeUUID> BoundaryNodes() const;
-
-protected:
-    void deserializeFromBytes(
-        BytesShared buffer);
 
 private:
     vector<NodeUUID> mBoundaryNodes;

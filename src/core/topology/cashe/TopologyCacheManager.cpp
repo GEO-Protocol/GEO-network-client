@@ -104,6 +104,6 @@ LoggerStream TopologyCacheManager::info() const
 const string TopologyCacheManager::logHeader() const
 {
     stringstream s;
-    s << "[TopologyCacheManager]";
+    s << "[TopologyCacheManager: " << mEquivalent << "] ";
     return s.str();
 }

@@ -7,11 +7,17 @@ class CyclesFiveNodesInBetweenMessage: public CycleBaseFiveOrSixNodesInBetweenMe
 public:
     typedef shared_ptr<CyclesFiveNodesInBetweenMessage> Shared;
 public:
-    CyclesFiveNodesInBetweenMessage(){};
     CyclesFiveNodesInBetweenMessage(
-        vector<NodeUUID> &path):CycleBaseFiveOrSixNodesInBetweenMessage(path){};
+        const SerializedEquivalent equivalent,
+        vector<NodeUUID> &path):
+        CycleBaseFiveOrSixNodesInBetweenMessage(
+            equivalent,
+            path){};
+
     CyclesFiveNodesInBetweenMessage(
-        BytesShared buffer):CycleBaseFiveOrSixNodesInBetweenMessage(buffer){};
+        BytesShared buffer):
+        CycleBaseFiveOrSixNodesInBetweenMessage(
+            buffer){};
 
     const MessageType typeID() const {
         return Message::MessageType::Cycles_FiveNodesMiddleware;

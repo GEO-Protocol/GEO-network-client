@@ -9,6 +9,7 @@ class RequestCycleMessage : public TransactionMessage {
 
 public:
     RequestCycleMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount);

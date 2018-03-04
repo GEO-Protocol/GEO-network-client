@@ -13,6 +13,7 @@ public:
 
 public:
     RequestMessageWithReservations(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig);

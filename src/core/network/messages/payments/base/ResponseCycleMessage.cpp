@@ -1,11 +1,13 @@
 #include "ResponseCycleMessage.h"
 
 ResponseCycleMessage::ResponseCycleMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const OperationState state) :
 
     TransactionMessage(
+        equivalent,
         senderUUID,
         transactionUUID),
     mState(state)

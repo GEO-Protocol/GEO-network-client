@@ -4,6 +4,7 @@ FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
     NodeUUID &nodeUUID,
     const NodeUUID &contractorUUID,
     const TransactionUUID &requestedTransactionUUID,
+    const SerializedEquivalent equivalent,
     PathsManager *pathsManager,
     ResourcesManager *resourcesManager,
     TrustLinesManager *manager,
@@ -15,6 +16,7 @@ FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
     BaseCollectTopologyTransaction(
         BaseTransaction::FindPathByMaxFlowTransactionType,
         nodeUUID,
+        equivalent,
         manager,
         topologyTrustLineManager,
         topologyCacheManager,
@@ -38,6 +40,7 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::sendRequestForColle
         contractors.push_back(mContractorUUID);
         const auto kTransaction = make_shared<CollectTopologyTransaction>(
             mNodeUUID,
+            mEquivalent,
             contractors,
             mTrustLinesManager,
             mTopologyTrustLineManager,

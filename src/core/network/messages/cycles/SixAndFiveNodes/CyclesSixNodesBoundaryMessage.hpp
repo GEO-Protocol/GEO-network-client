@@ -9,14 +9,18 @@ public:
 
 public:
     CyclesSixNodesBoundaryMessage(
+        const SerializedEquivalent equivalent,
         vector<NodeUUID> &path,
         vector<NodeUUID> &boundaryNodes) :
-            CyclesBaseFiveOrSixNodesBoundaryMessage(
-                    path,
-                    boundaryNodes) {};
+        CyclesBaseFiveOrSixNodesBoundaryMessage(
+            equivalent,
+            path,
+            boundaryNodes) {};
 
     CyclesSixNodesBoundaryMessage(
-        BytesShared buffer):CyclesBaseFiveOrSixNodesBoundaryMessage(buffer){};
+        BytesShared buffer):
+        CyclesBaseFiveOrSixNodesBoundaryMessage(
+            buffer){};
 
     const MessageType typeID() const {
         return Message::MessageType::Cycles_SixNodesBoundary;

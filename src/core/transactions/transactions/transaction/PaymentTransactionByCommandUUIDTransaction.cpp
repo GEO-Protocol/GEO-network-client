@@ -9,6 +9,7 @@ PaymentTransactionByCommandUUIDTransaction::PaymentTransactionByCommandUUIDTrans
     BaseTransaction(
         BaseTransaction::TransactionType::TransactionByCommandUUIDType,
         nodeUUID,
+        0,      // none equivalent
         logger),
     mCommand(command),
     mRequestedPaymentTransaction(requestedTransaction)

@@ -29,7 +29,6 @@ private:
     const string kGatewayFeatureName = "GATEWAY";
 
 private:
-    SerializedEquivalent mEquivalent;
     TrustLinesManager *mTrustLineManager;
     StorageHandler *mStorageHandler;
     bool mIAmGateway;

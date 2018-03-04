@@ -49,5 +49,7 @@ LoggerStream NotifyThatIAmIsGatewayDelayedTask::warning() const
 
 const string NotifyThatIAmIsGatewayDelayedTask::logHeader() const
 {
-    return "[NotifyThatIAmIsGatewayDelayedTask]";
+    stringstream s;
+    s << "[NotifyThatIAmIsGatewayDelayedTask: " << mEquivalent << "] ";
+    return s.str();
 }
