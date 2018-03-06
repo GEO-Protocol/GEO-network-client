@@ -46,6 +46,6 @@ TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::result
 const string GetFirstLevelContractorBalanceTransaction::logHeader() const
 {
     stringstream s;
-    s << "[GetFirstLevelContractorBalanceTA: " << currentTransactionUUID() << "] ";
+    s << "[GetFirstLevelContractorBalanceTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }

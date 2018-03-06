@@ -30,16 +30,18 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAnd
     vector<NodeUUID> path;
     path.push_back(mNodeUUID);
     TrustLineBalance zeroBalance = 0;
-    for(const auto &value: firstLevelNodesNegativeBalance)
+    for(const auto &value: firstLevelNodesNegativeBalance) {
         sendMessage<CyclesFiveNodesInBetweenMessage>(
             value,
             mEquivalent,
             path);
-    for(const auto &value: firstLevelNodesPositiveBalance)
+    }
+    for(const auto &value: firstLevelNodesPositiveBalance) {
         sendMessage<CyclesFiveNodesInBetweenMessage>(
             value,
             mEquivalent,
             path);
+    }
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);
 }
@@ -144,6 +146,6 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
 const string CyclesFiveNodesInitTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CyclesFiveNodesInitTA: " << currentTransactionUUID() << "] ";
+    s << "[CyclesFiveNodesInitTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }

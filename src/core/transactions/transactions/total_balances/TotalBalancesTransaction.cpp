@@ -69,6 +69,6 @@ TransactionResult::SharedConst TotalBalancesTransaction::resultOk(
 const string TotalBalancesTransaction::logHeader() const
 {
     stringstream s;
-    s << "[TotalBalancesTA: " << currentNodeUUID() << "]";
+    s << "[TotalBalancesTA: " << currentNodeUUID() << " " << mEquivalent << "]";
     return s.str();
 }

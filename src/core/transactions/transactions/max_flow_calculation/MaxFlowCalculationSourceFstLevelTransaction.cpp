@@ -65,6 +65,6 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
 const string MaxFlowCalculationSourceFstLevelTransaction::logHeader() const
 {
     stringstream s;
-    s << "[MaxFlowCalculationSourceFstLevelTA: " << currentTransactionUUID() << "]";
+    s << "[MaxFlowCalculationSourceFstLevelTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

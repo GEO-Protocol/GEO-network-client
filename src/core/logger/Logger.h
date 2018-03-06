@@ -101,6 +101,11 @@ protected:
 
     void rotate();
 
+    bool formatLogFileName(
+        string& str,
+        const string& from,
+        const string& to);
+
     void calculateOperationsLogFileLinesNumber();
 
 private:

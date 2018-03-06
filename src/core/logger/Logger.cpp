@@ -168,15 +168,16 @@ void Logger::rotate()
     stringstream rotateFileName;
     rotateFileName << "archieved_operation_" << utc_now() << ".log";
 
-    const std::string tmp = rotateFileName.str();
+    std::string tmp = rotateFileName.str();
+    formatLogFileName(tmp, " ", "_");
     const char* newname = tmp.c_str();
     rename("operations.log", newname);
 
     mOperationsLogFile.open("operations.log", std::fstream::out | std::fstream::trunc);
 }
 
-void Logger::calculateOperationsLogFileLinesNumber() {
-
+void Logger::calculateOperationsLogFileLinesNumber()
+{
     ifstream kOperationLogFile(mOperationLogFileName);
     std::string line;
     while (std::getline(kOperationLogFile , line)){
@@ -185,4 +186,16 @@ void Logger::calculateOperationsLogFileLinesNumber() {
     if (kOperationLogFile.is_open()){
         kOperationLogFile.close();
     }
+}
+
+bool Logger::formatLogFileName(
+    string& str,
+    const string& from,
+    const string& to)
+{
+    size_t start_pos = str.find(from);
+    if(start_pos == string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
 }

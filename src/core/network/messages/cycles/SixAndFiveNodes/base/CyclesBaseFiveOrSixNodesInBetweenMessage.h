@@ -16,6 +16,7 @@ public:
     CycleBaseFiveOrSixNodesInBetweenMessage(
         const SerializedEquivalent equivalent,
         vector<NodeUUID> &path);
+
     CycleBaseFiveOrSixNodesInBetweenMessage(
         BytesShared buffer);
 
@@ -24,7 +25,8 @@ public:
 
     const vector<NodeUUID> Path() const;
 
-    void addNodeToPath(NodeUUID InBetweenNode);
+    void addNodeToPath(
+        const NodeUUID &inBetweenNode);
 
 protected:
     const size_t kOffsetToInheritedBytes();

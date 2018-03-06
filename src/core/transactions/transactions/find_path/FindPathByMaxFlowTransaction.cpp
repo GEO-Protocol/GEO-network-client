@@ -75,6 +75,6 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::processCollectingTo
 const string FindPathByMaxFlowTransaction::logHeader() const
 {
     stringstream s;
-    s << "[FindPathByMaxFlowTA: " << currentTransactionUUID() << "]";
+    s << "[FindPathByMaxFlowTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

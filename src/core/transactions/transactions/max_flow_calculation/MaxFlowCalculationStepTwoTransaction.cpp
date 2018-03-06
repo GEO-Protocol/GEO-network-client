@@ -244,6 +244,6 @@ TransactionResult::SharedConst MaxFlowCalculationStepTwoTransaction::resultOk(
 const string MaxFlowCalculationStepTwoTransaction::logHeader() const
 {
     stringstream s;
-    s << "[MaxFlowCalculationStepTwoTA: " << currentTransactionUUID() << "]";
+    s << "[MaxFlowCalculationStepTwoTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

@@ -96,7 +96,8 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
             auto NodeUIIDAndPathRange = mCreditors.equal_range(kNodeUUID);
             for (auto NodeUIDandPairOfPathandBalace = NodeUIIDAndPathRange.first;
                  NodeUIDandPairOfPathandBalace != NodeUIIDAndPathRange.second; ++NodeUIDandPairOfPathandBalace) {
-                if (((*NodeUIDandPairOfPathandBalace->second)[2] == stepPath[1]) or ((*NodeUIDandPairOfPathandBalace->second)[1] == stepPath[2]))
+                if (((*NodeUIDandPairOfPathandBalace->second)[2] == stepPath[1])
+                    or ((*NodeUIDandPairOfPathandBalace->second)[1] == stepPath[2]))
                     continue;
                 //  Find minMax flow between 3 value. 1 in map. 1 in boundaryNodes. 1 we get from creditor first node in path
                 vector<NodeUUID> stepCyclePath = {
@@ -137,6 +138,6 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
 const string CyclesSixNodesInitTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CyclesSixNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
+    s << "[CyclesSixNodesInitTransactionTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }

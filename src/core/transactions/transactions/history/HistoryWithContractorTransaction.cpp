@@ -125,6 +125,6 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
 const string HistoryWithContractorTransaction::logHeader() const
 {
     stringstream s;
-    s << "[HistoryWithContractorTA: " << currentTransactionUUID() << "]";
+    s << "[HistoryWithContractorTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

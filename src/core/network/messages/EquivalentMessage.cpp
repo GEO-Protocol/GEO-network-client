@@ -10,8 +10,6 @@ EquivalentMessage::EquivalentMessage(
     BytesShared buffer)
     noexcept
 {
-//    SerializedEquivalent *equivalent = new (buffer.get() + Message::kOffsetToInheritedBytes()) SerializedEquivalent;
-//    mEquivalent = *equivalent;
     memcpy(
         &mEquivalent,
         buffer.get() + Message::kOffsetToInheritedBytes(),

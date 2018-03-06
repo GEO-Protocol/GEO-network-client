@@ -33,11 +33,7 @@ CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(
     bytesBufferOffset += sizeof(SerializedRecordsCount);
 
     for (SerializedRecordNumber i = 1; i <= neighborsCount; ++i) {
-        NodeUUID stepNode;
-        memcpy(
-            stepNode.data,
-            buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
+        NodeUUID stepNode(buffer.get() + bytesBufferOffset);
         bytesBufferOffset += NodeUUID::kBytesSize;
         mNeighbors.push_back(stepNode);
     }

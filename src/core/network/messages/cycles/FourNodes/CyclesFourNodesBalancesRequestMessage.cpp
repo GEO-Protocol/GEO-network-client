@@ -25,15 +25,13 @@ CyclesFourNodesBalancesRequestMessage::CyclesFourNodesBalancesRequestMessage(
     memcpy(
         mDebtorUUID.data,
         buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize
-    );
+        NodeUUID::kBytesSize);
     bytesBufferOffset += NodeUUID::kBytesSize;
     // CreditorUUID
     memcpy(
         mCreditorUUID.data,
         buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize
-    );
+        NodeUUID::kBytesSize);
 }
 
 pair<BytesShared, size_t> CyclesFourNodesBalancesRequestMessage::serializeToBytes() const
@@ -51,39 +49,38 @@ pair<BytesShared, size_t> CyclesFourNodesBalancesRequestMessage::serializeToByte
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
 
     // For mDebtor
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &mDebtorUUID,
-        NodeUUID::kBytesSize
-    );
+        NodeUUID::kBytesSize);
     dataBytesOffset += NodeUUID::kBytesSize;
 
     // For mCreditor
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &mCreditorUUID,
-        NodeUUID::kBytesSize
-    );
+        NodeUUID::kBytesSize);
 
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
-const Message::MessageType CyclesFourNodesBalancesRequestMessage::typeID() const {
+const Message::MessageType CyclesFourNodesBalancesRequestMessage::typeID() const
+{
     return Message::MessageType::Cycles_FourNodesBalancesRequest;
 }
 
-const NodeUUID CyclesFourNodesBalancesRequestMessage::debtor() const{
+const NodeUUID CyclesFourNodesBalancesRequestMessage::debtor() const
+{
     return mDebtorUUID;
 }
 
-const NodeUUID CyclesFourNodesBalancesRequestMessage::creditor() const{
+const NodeUUID CyclesFourNodesBalancesRequestMessage::creditor() const
+{
     return mCreditorUUID;
 }

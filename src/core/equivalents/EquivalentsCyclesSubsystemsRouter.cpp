@@ -44,12 +44,22 @@ EquivalentsCyclesSubsystemsRouter::EquivalentsCyclesSubsystemsRouter(
 CyclesManager* EquivalentsCyclesSubsystemsRouter::cyclesManager(
     const SerializedEquivalent equivalent) const
 {
+    if (mCyclesManagers.count(equivalent) == 0) {
+        throw ValueError(
+                "EquivalentsSubsystemsRouter::cyclesManager: "
+                    "wrong equivalent " + to_string(equivalent));
+    }
     return mCyclesManagers.at(equivalent).get();
 }
 
 RoutingTableManager* EquivalentsCyclesSubsystemsRouter::routingTableManager(
     const SerializedEquivalent equivalent) const
 {
+    if (mRoutingTablesManagers.count(equivalent) == 0) {
+        throw ValueError(
+                "EquivalentsSubsystemsRouter::routingTableManager: "
+                    "wrong equivalent " + to_string(equivalent));
+    }
     return mRoutingTablesManagers.at(equivalent).get();
 }
 

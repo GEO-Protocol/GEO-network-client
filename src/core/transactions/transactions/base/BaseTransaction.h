@@ -160,6 +160,8 @@ public:
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
+    static const size_t kOffsetToInheritedBytes();
+
     virtual TransactionResult::SharedConst run() = 0;
 
 protected:
@@ -244,8 +246,6 @@ protected:
 
     virtual void deserializeFromBytes(
         BytesShared buffer);
-
-    static const size_t kOffsetToInheritedBytes();
 
     TransactionResult::SharedConst transactionResultFromCommand(
         CommandResult::SharedConst result) const;

@@ -138,6 +138,6 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
 const string CyclesThreeNodesInitTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CyclesThreeNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
+    s << "[CyclesThreeNodesInitTransactionTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }

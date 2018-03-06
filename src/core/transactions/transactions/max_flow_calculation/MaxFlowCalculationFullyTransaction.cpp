@@ -251,6 +251,6 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::resultProtoco
 const string MaxFlowCalculationFullyTransaction::logHeader() const
 {
     stringstream s;
-    s << "[MaxFlowCalculationFullyTA: " << currentTransactionUUID() << "]";
+    s << "[MaxFlowCalculationFullyTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

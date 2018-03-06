@@ -35,6 +35,6 @@ TransactionResult::SharedConst GetFirstLevelContractorsTransaction::run() {
 const string GetFirstLevelContractorsTransaction::logHeader() const
 {
     stringstream s;
-    s << "[GetFirstLevelContractorsTA: " << currentTransactionUUID() << "] ";
+    s << "[GetFirstLevelContractorsTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }

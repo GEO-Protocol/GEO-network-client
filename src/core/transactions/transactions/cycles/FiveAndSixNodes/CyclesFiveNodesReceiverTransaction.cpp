@@ -8,6 +8,7 @@ CyclesFiveNodesReceiverTransaction::CyclesFiveNodesReceiverTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_FiveNodesReceiverTransaction,
         nodeUUID,
+        message->equivalent(),
         logger),
     mTrustLinesManager(manager),
     mInBetweenNodeTopologyMessage(message)
@@ -58,6 +59,6 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run()
 const string CyclesFiveNodesReceiverTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CyclesFiveNodesReceiverTransactionTA: " << currentTransactionUUID() << "] ";
+    s << "[CyclesFiveNodesReceiverTransactionTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }

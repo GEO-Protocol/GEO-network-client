@@ -58,7 +58,7 @@ TransactionResult::SharedConst RoutingTableInitTransaction::runCollectDataStage(
 const string RoutingTableInitTransaction::logHeader() const
 {
     stringstream s;
-    s << "[RoutingTableInitTA: " << currentTransactionUUID() << "] ";
+    s << "[RoutingTableInitTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }
 

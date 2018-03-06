@@ -211,6 +211,6 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendCachedGatewayResultToIniti
 const string MaxFlowCalculationTargetSndLevelTransaction::logHeader() const
 {
     stringstream s;
-    s << "[MaxFlowCalculationTargetSndLevelTA: " << currentTransactionUUID() << "]";
+    s << "[MaxFlowCalculationTargetSndLevelTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

@@ -59,6 +59,6 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
 const string GatewayNotificationReceiverTransaction::logHeader() const
 {
     stringstream s;
-    s << "[GatewayNotificationReceiverTA: " << currentTransactionUUID() << "]";
+    s << "[GatewayNotificationReceiverTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

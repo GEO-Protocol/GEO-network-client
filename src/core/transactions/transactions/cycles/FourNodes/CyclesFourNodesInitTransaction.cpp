@@ -96,7 +96,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
 const string CyclesFourNodesInitTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CyclesFourNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
+    s << "[CyclesFourNodesInitTransactionTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }
 

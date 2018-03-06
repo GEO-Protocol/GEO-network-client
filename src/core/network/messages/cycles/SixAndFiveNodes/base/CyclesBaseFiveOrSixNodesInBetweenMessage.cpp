@@ -12,10 +12,8 @@ CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage
     BytesShared buffer):
     EquivalentMessage(buffer)
 {
-    // Message Type
-    size_t bytesBufferOffset = 0;
-    MessageType *messageType = new (buffer.get()) MessageType;
-    bytesBufferOffset += sizeof(SerializedType);
+    size_t bytesBufferOffset = EquivalentMessage::kOffsetToInheritedBytes();
+
     // path
     SerializedPositionInPath nodesInPath;
     memcpy(
@@ -26,11 +24,7 @@ CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage
     if (nodesInPath <= 0)
         return;
     for (SerializedPositionInPath i = 1; i <= nodesInPath; ++i) {
-        NodeUUID stepNode;
-        memcpy(
-            stepNode.data,
-            buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
+        NodeUUID stepNode(buffer.get() + bytesBufferOffset);
         bytesBufferOffset += NodeUUID::kBytesSize;
         mPath.push_back(stepNode);
     }
@@ -90,7 +84,8 @@ const vector<NodeUUID> CycleBaseFiveOrSixNodesInBetweenMessage::Path() const
     return mPath;
 }
 
-void CycleBaseFiveOrSixNodesInBetweenMessage::addNodeToPath(NodeUUID InBetweenNode)
+void CycleBaseFiveOrSixNodesInBetweenMessage::addNodeToPath(
+    const NodeUUID &inBetweenNode)
 {
-    mPath.push_back(InBetweenNode);
+    mPath.push_back(inBetweenNode);
 }

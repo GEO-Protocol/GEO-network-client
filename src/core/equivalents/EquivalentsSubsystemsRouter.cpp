@@ -100,30 +100,55 @@ vector<SerializedEquivalent> EquivalentsSubsystemsRouter::equivalents() const
 TrustLinesManager* EquivalentsSubsystemsRouter::trustLinesManager(
     const SerializedEquivalent equivalent) const
 {
+    if (mTrustLinesManagers.count(equivalent) == 0) {
+        throw ValueError(
+                "EquivalentsSubsystemsRouter::routingTableManager: "
+                    "wrong equivalent " + to_string(equivalent));
+    }
     return mTrustLinesManagers.at(equivalent).get();
 }
 
 TopologyTrustLinesManager* EquivalentsSubsystemsRouter::topologyTrustLineManager(
     const SerializedEquivalent equivalent) const
 {
+    if (mTopologyTrustLinesManagers.count(equivalent) == 0) {
+        throw ValueError(
+                "EquivalentsSubsystemsRouter::topologyTrustLineManager: "
+                    "wrong equivalent " + to_string(equivalent));
+    }
     return mTopologyTrustLinesManagers.at(equivalent).get();
 }
 
 TopologyCacheManager* EquivalentsSubsystemsRouter::topologyCacheManager(
     const SerializedEquivalent equivalent) const
 {
+    if (mTopologyCacheManagers.count(equivalent) == 0) {
+        throw ValueError(
+                "EquivalentsSubsystemsRouter::topologyCacheManager: "
+                    "wrong equivalent " + to_string(equivalent));
+    }
     return mTopologyCacheManagers.at(equivalent).get();
 }
 
 MaxFlowCacheManager* EquivalentsSubsystemsRouter::maxFlowCacheManager(
     const SerializedEquivalent equivalent) const
 {
+    if (mMaxFlowCacheManagers.count(equivalent) == 0) {
+        throw ValueError(
+                "EquivalentsSubsystemsRouter::maxFlowCacheManager: "
+                    "wrong equivalent " + to_string(equivalent));
+    }
     return mMaxFlowCacheManagers.at(equivalent).get();
 }
 
 PathsManager* EquivalentsSubsystemsRouter::pathsManager(
     const SerializedEquivalent equivalent) const
 {
+    if (mPathsManagers.count(equivalent) == 0) {
+        throw ValueError(
+                "EquivalentsSubsystemsRouter::pathsManager: "
+                    "wrong equivalent " + to_string(equivalent));
+    }
     return mPathsManagers.at(equivalent).get();
 }
 

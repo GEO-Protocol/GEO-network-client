@@ -17,7 +17,7 @@ RoutingTableResponseTransaction::RoutingTableResponseTransaction(
 const string RoutingTableResponseTransaction::logHeader() const
 {
     stringstream s;
-    s << "[RoutingTableResponseTA: " << currentTransactionUUID() << "] ";
+    s << "[RoutingTableResponseTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }
 

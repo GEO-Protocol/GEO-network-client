@@ -40,12 +40,8 @@ CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage
         sizeof(SerializedRecordsCount));
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     //    Parse boundary nodes
-    NodeUUID stepNodeUUID;
     for (SerializedRecordNumber i=1; i<=boundaryNodesCount; i++){
-        memcpy(
-            stepNodeUUID.data,
-            buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
+        NodeUUID stepNodeUUID(buffer.get() + bytesBufferOffset);
         bytesBufferOffset += NodeUUID::kBytesSize;
         mNeighborsUUUID.push_back(stepNodeUUID);
     }

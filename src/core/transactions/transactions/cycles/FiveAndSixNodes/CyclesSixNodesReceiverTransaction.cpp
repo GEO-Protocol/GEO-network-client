@@ -8,6 +8,7 @@ CyclesSixNodesReceiverTransaction::CyclesSixNodesReceiverTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_SixNodesReceiverTransaction,
         nodeUUID,
+        message->equivalent(),
         logger),
     mTrustLinesManager(manager),
     mInBetweenNodeTopologyMessage(message)
@@ -35,10 +36,11 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
 #endif
     if ((kCurrentDepth==1)) {
         mInBetweenNodeTopologyMessage->addNodeToPath(mNodeUUID);
-        for(const auto &kNodeUUIDAndBalance: kFirstLevelNodes)
+        for(const auto &kNodeUUIDAndBalance: kFirstLevelNodes) {
             sendMessage(
                 kNodeUUIDAndBalance,
                 mInBetweenNodeTopologyMessage);
+        }
     }
     else if (kCurrentDepth==2){
         path.push_back(mNodeUUID);
@@ -57,6 +59,6 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
 const string CyclesSixNodesReceiverTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CyclesSixNodesReceiverTransactionTA: " << currentTransactionUUID() << "] ";
+    s << "[CyclesSixNodesReceiverTransactionTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }

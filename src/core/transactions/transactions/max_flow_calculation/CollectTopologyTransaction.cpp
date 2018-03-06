@@ -68,6 +68,6 @@ void CollectTopologyTransaction::sendMessagesOnFirstLevel()
 const string CollectTopologyTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CollectTopologyTA: " << currentTransactionUUID() << "]";
+    s << "[CollectTopologyTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

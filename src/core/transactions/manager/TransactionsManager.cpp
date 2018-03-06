@@ -60,6 +60,7 @@ TransactionsManager::TransactionsManager(
         loadTransactionsFromStorage();
 
     } catch (exception &e) {
+        error() << "loadTransactionsFromStorage. Details: " << e.what();
         throw RuntimeError(e.what());
     }
 
@@ -75,7 +76,9 @@ void TransactionsManager::loadTransactionsFromStorage()
         BaseTransaction::SerializedTransactionType *transactionType =
                 new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
         auto transactionTypeId = *transactionType;
-        SerializedEquivalent equivalent = 0;
+        SerializedEquivalent *equivalent =
+                new (kTABufferAndSize.first.get()
+                     + BaseTransaction::kOffsetToInheritedBytes()) SerializedEquivalent;
 
         switch (transactionTypeId) {
             case BaseTransaction::TransactionType::CoordinatorPaymentTransaction: {
@@ -83,12 +86,12 @@ void TransactionsManager::loadTransactionsFromStorage()
                     auto transaction = make_shared<CoordinatorPaymentTransaction>(
                         kTABufferAndSize.first,
                         mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
-                        mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
-                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                        mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
+                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
                         mResourcesManager,
-                        mEquivalentsSubsystemsRouter->pathsManager(equivalent),
+                        mEquivalentsSubsystemsRouter->pathsManager(*equivalent),
                         mLog,
                         mSubsystemsController);
                     subscribeForBuildCyclesThreeNodesTransaction(
@@ -100,7 +103,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         true);
                 } catch (NotFoundError &e) {
                     error() << "There are no subsystems for serialized CoordinatorPaymentTransaction "
-                            "with equivalent " << equivalent  << " Details are: " << e.what();
+                            "with equivalent " << *equivalent  << " Details are: " << e.what();
                     continue;
                 }
                 break;
@@ -110,10 +113,10 @@ void TransactionsManager::loadTransactionsFromStorage()
                     auto transaction = make_shared<IntermediateNodePaymentTransaction>(
                         kTABufferAndSize.first,
                         mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
-                        mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
-                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                        mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
+                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
                         mLog,
                         mSubsystemsController);
                     subscribeForBuildCyclesThreeNodesTransaction(
@@ -127,7 +130,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         true);
                 } catch (NotFoundError &e) {
                     error() << "There are no subsystems for serialized IntermediateNodePaymentTransaction "
-                            "with equivalent " << equivalent << " Details are: " << e.what();
+                            "with equivalent " << *equivalent << " Details are: " << e.what();
                     continue;
                 }
                 break;
@@ -137,10 +140,10 @@ void TransactionsManager::loadTransactionsFromStorage()
                     auto transaction = make_shared<ReceiverPaymentTransaction>(
                         kTABufferAndSize.first,
                         mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
-                        mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
-                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                        mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
+                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
                         mLog,
                         mSubsystemsController);
                     subscribeForBuildCyclesThreeNodesTransaction(
@@ -152,7 +155,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         true);
                 } catch (NotFoundError &e) {
                     error() << "There are no subsystems for serialized ReceiverPaymentTransaction "
-                            "with equivalent " << equivalent << " Details are: " << e.what();
+                            "with equivalent " << *equivalent << " Details are: " << e.what();
                     continue;
                 }
                 break;
@@ -162,11 +165,11 @@ void TransactionsManager::loadTransactionsFromStorage()
                     auto transaction = make_shared<CycleCloserInitiatorTransaction>(
                         kTABufferAndSize.first,
                         mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
-                        mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
+                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
+                        mEquivalentsCyclesSubsystemsRouter->cyclesManager(*equivalent),
                         mStorageHandler,
-                        mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
-                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                        mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
+                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
                         mLog,
                         mSubsystemsController);
                     prepareAndSchedule(
@@ -176,7 +179,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         true);
                 } catch (NotFoundError &e) {
                     error() << "There are no subsystems for serialized CycleCloserInitiatorTransaction "
-                            "with equivalent " << equivalent << " Details are: " << e.what();
+                            "with equivalent " << *equivalent << " Details are: " << e.what();
                     continue;
                 }
                 break;
@@ -186,11 +189,11 @@ void TransactionsManager::loadTransactionsFromStorage()
                     auto transaction = make_shared<CycleCloserIntermediateNodeTransaction>(
                         kTABufferAndSize.first,
                         mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
-                        mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
+                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
+                        mEquivalentsCyclesSubsystemsRouter->cyclesManager(*equivalent),
                         mStorageHandler,
-                        mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
-                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                        mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
+                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
                         mLog,
                         mSubsystemsController);
                     prepareAndSchedule(
@@ -200,7 +203,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         true);
                 } catch (NotFoundError &e) {
                     error() << "There are no subsystems for serialized CycleCloserIntermediateNodeTransaction "
-                            "with equivalent " << equivalent << " Details are: " << e.what();
+                            "with equivalent " << *equivalent << " Details are: " << e.what();
                     continue;
                 }
                 break;

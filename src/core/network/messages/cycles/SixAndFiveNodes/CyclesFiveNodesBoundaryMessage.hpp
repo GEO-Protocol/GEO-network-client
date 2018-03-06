@@ -5,19 +5,9 @@
 
 class CyclesFiveNodesBoundaryMessage:
     public CyclesBaseFiveOrSixNodesBoundaryMessage {
-public:
-    CyclesFiveNodesBoundaryMessage(
-        const SerializedEquivalent equivalent,
-        vector<NodeUUID> &path,
-        vector<NodeUUID> &boundaryNodes) :
-        CyclesBaseFiveOrSixNodesBoundaryMessage(
-            equivalent,
-            path,
-            boundaryNodes){};
 
-    CyclesFiveNodesBoundaryMessage(
-        BytesShared buffer) :
-        CyclesBaseFiveOrSixNodesBoundaryMessage(buffer){};
+public:
+    using CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage;
 
     const MessageType typeID() const {
         return Message::MessageType::Cycles_FiveNodesBoundary;
