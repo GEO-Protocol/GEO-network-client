@@ -12,8 +12,7 @@ TransactionsManager::TransactionsManager(
     ResultsInterface *resultsInterface,
     StorageHandler *storageHandler,
     Logger &logger,
-    SubsystemsController *subsystemsController,
-    bool iAmGateway) :
+    SubsystemsController *subsystemsController) :
 
         mNodeUUID(nodeUUID),
         mIOService(IOService),
@@ -23,7 +22,6 @@ TransactionsManager::TransactionsManager(
         mStorageHandler(storageHandler),
         mLog(logger),
         mSubsystemsController(subsystemsController),
-        mIAmGateway(iAmGateway),
 
         mScheduler(
             new TransactionsScheduler(
@@ -464,6 +462,10 @@ void TransactionsManager::processMessage(
         launchGatewayNotificationReceiverTransaction(
             static_pointer_cast<GatewayNotificationMessage>(message));
 
+    } else if (message->typeID() == Message::GatewayNotificationOneEquivalent) {
+        launchGatewayNotificationOneEquivalentReceiverTransaction(
+            static_pointer_cast<GatewayNotificationOneEquivalentMessage>(message));
+
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
     }
@@ -482,7 +484,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
                 mEquivalentsSubsystemsRouter->topologyCacheManager(command->equivalent()),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
                 mSubsystemsController,
-                mIAmGateway,
+                mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
                 mLog),
             true,
             false,
@@ -528,7 +530,7 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
                 mStorageHandler,
                 mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
-                mIAmGateway,
+                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
                 mLog),
             true,
             false,
@@ -551,7 +553,7 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
                 mStorageHandler,
                 mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
-                mIAmGateway,
+                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
                 mLog),
             true,
             false,
@@ -623,7 +625,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
                 mEquivalentsSubsystemsRouter->topologyTrustLineManager(command->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyCacheManager(command->equivalent()),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
-                mIAmGateway,
+                mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
                 mLog),
             true,
             true,
@@ -756,7 +758,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
                 message,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog,
-                mIAmGateway),
+                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent())),
             false,
             false,
             true);
@@ -782,7 +784,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
                 message,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog,
-                mIAmGateway),
+                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent())),
             false,
             false,
             true);
@@ -809,7 +811,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mLog,
-                mIAmGateway),
+                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent())),
             false,
             false,
             true);
@@ -836,7 +838,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mLog,
-                mIAmGateway),
+                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent())),
             false,
             false,
             true);
@@ -1487,26 +1489,19 @@ void TransactionsManager::launchPaymentTransactionByCommandUUIDTransaction(
     }
 }
 
-void TransactionsManager::launchGatewayNotificationSenderTransaction(
-    const SerializedEquivalent equivalent)
+void TransactionsManager::launchGatewayNotificationSenderTransaction()
 {
     try {
         prepareAndSchedule(
             make_shared<GatewayNotificationSenderTransaction>(
                 mNodeUUID,
-                equivalent,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
-                mStorageHandler,
-                mIAmGateway,
+                mEquivalentsSubsystemsRouter,
                 mLog),
             false,
             false,
             true);
     } catch (ConflictError &e){
         throw ConflictError(e.message());
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for GatewayNotificationSenderTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
     }
 }
 
@@ -1518,6 +1513,25 @@ void TransactionsManager::launchGatewayNotificationReceiverTransaction(
             make_shared<GatewayNotificationReceiverTransaction>(
                 mNodeUUID,
                 message,
+                mEquivalentsSubsystemsRouter,
+                mStorageHandler,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchGatewayNotificationOneEquivalentReceiverTransaction(
+    GatewayNotificationOneEquivalentMessage::Shared message)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<GatewayNotificationOneEquivalentReceiverTransaction>(
+                mNodeUUID,
+                message,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mStorageHandler,
                 mLog),
@@ -1527,7 +1541,7 @@ void TransactionsManager::launchGatewayNotificationReceiverTransaction(
     } catch (ConflictError &e){
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
-        error() << "There are no subsystems for GatewayNotificationReceiverTransaction "
+        error() << "There are no subsystems for launchGatewayNotificationOneEquivalentReceiverTransaction "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
@@ -1702,8 +1716,7 @@ void TransactionsManager::subscribeForGatewayNotificationSignal(
     signal.connect(
         boost::bind(
             &TransactionsManager::onGatewayNotificationSlot,
-            this,
-            _1));
+            this));
 }
 
 void TransactionsManager::onTransactionOutgoingMessageReady(
@@ -1826,11 +1839,9 @@ void TransactionsManager::onUpdatingRoutingTableSlot(
         equivalent);
 }
 
-void TransactionsManager::onGatewayNotificationSlot(
-    const SerializedEquivalent equivalent)
+void TransactionsManager::onGatewayNotificationSlot()
 {
-    launchGatewayNotificationSenderTransaction(
-        equivalent);
+    launchGatewayNotificationSenderTransaction();
 }
 
 /**

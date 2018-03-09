@@ -2,66 +2,37 @@
 
 GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
     const NodeUUID &nodeUUID,
-    const SerializedEquivalent equivalent,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    bool iAmGateway,
+    EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::GatewayNotificationSenderType,
         nodeUUID,
-        equivalent,
+        0,
         logger),
-    mTrustLineManager(manager),
-    mStorageHandler(storageHandler),
-    mIAmGateway(iAmGateway)
+    mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter)
 {}
 
 TransactionResult::SharedConst GatewayNotificationSenderTransaction::run()
 {
-    bool wasGatewayOnPreviousSession = false;
-    auto ioTransaction = mStorageHandler->beginTransaction();
-
-    try {
-        ioTransaction->nodeFeaturesHandler()->featureValue(kGatewayFeatureName);
-        wasGatewayOnPreviousSession = true;
-    } catch (NotFoundError) {}
-
-    if (mIAmGateway) {
-        if (!wasGatewayOnPreviousSession) {
-            info() << "Current node was't recent gateway, but now is";
-            ioTransaction->nodeFeaturesHandler()->saveRecord(kGatewayFeatureName);
-            for (const auto &neighbor : mTrustLineManager->rt1()) {
-                // Notifying remote node that current node is gateway.
-                // Network communicator knows, that this message must be forced to be delivered,
-                // so the TA itself might finish without any response from the remote node.
-                info() << "Send message that I am gateway to " << neighbor;
-                sendMessage<GatewayNotificationMessage>(
-                    neighbor,
-                    mEquivalent,
-                    currentNodeUUID(),
-                    currentTransactionUUID(),
-                    GatewayNotificationMessage::Gateway);
-            }
+    set<NodeUUID> allNeighbors;
+    vector<SerializedEquivalent> gatewaysEquivalents;
+    for (const auto &equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
+        if (mEquivalentsSubsystemsRouter->iAmGateway(equivalent)) {
+            gatewaysEquivalents.push_back(
+                equivalent);
         }
-    } else {
-        if (wasGatewayOnPreviousSession) {
-            info() << "Current node was gateway, but now isn't";
-            ioTransaction->nodeFeaturesHandler()->deleteRecord(kGatewayFeatureName);
-            for (const auto &neighbor : mTrustLineManager->rt1()) {
-                // Notifying remote node that current node is not gateway.
-                // Network communicator knows, that this message must be forced to be delivered,
-                // so the TA itself might finish without any response from the remote node.
-                info() << "Send message that I am common node to " << neighbor;
-                sendMessage<GatewayNotificationMessage>(
-                    neighbor,
-                    mEquivalent,
-                    currentNodeUUID(),
-                    currentTransactionUUID(),
-                    GatewayNotificationMessage::Common);
-            }
+        for (const auto &neighbor : mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->rt1()) {
+            allNeighbors.insert(
+                neighbor);
         }
+    }
+    for (const auto &neighbor : allNeighbors) {
+        sendMessage<GatewayNotificationMessage>(
+            neighbor,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            gatewaysEquivalents);
     }
     return resultDone();
 }

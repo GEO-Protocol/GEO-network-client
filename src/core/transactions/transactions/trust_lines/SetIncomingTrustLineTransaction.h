@@ -9,7 +9,7 @@
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
-#include "../../../network/messages/gateway_notification/GatewayNotificationMessage.h"
+#include "../../../network/messages/gateway_notification/GatewayNotificationOneEquivalentMessage.h"
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
 
 

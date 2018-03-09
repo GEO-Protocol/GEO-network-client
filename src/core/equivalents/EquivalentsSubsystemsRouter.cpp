@@ -4,11 +4,10 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     NodeUUID &nodeUUID,
     StorageHandler *storageHandler,
     as::io_service &ioService,
-    bool iAmGateway,
+    vector<SerializedEquivalent> &equivalentsIAmGateway,
     Logger &logger):
 
     mNodeUUID(nodeUUID),
-    mIAmGateway(iAmGateway),
     mStorageHandler(storageHandler),
     mIOService(ioService),
     mLogger(logger)
@@ -21,6 +20,15 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     mEquivalents.push_back(1);
     for (const auto &equivalent : mEquivalents) {
         info() << "Equivalent " << equivalent;
+
+        mIAmGateways.insert(
+            make_pair(
+                equivalent,
+                find(
+                    equivalentsIAmGateway.begin(),
+                    equivalentsIAmGateway.end(),
+                    equivalent) != equivalentsIAmGateway.end()));
+
         mTrustLinesManagers.insert(
             make_pair(
                 equivalent,
@@ -35,7 +43,7 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                 equivalent,
                 make_unique<TopologyTrustLinesManager>(
                     equivalent,
-                    mIAmGateway,
+                    mIAmGateways[equivalent],
                     mNodeUUID,
                     mLogger)));
         info() << "Topology Trust Lines Manager is successfully initialized";
@@ -78,23 +86,30 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                     mTopologyTrustLinesManagers[equivalent].get(),
                     mLogger)));
         info() << "Paths Manager is successfully initialized";
-
-        mNotifyThatIAmIsGatewayDelayedTasks.insert(
-            make_pair(
-                equivalent,
-                make_unique<NotifyThatIAmIsGatewayDelayedTask>(
-                    equivalent,
-                    mIOService,
-                    mLogger)));
-        info() << "Gateway Notification Delayed Task is successfully initialized";
     }
 
-    connectSignalsToSlots();
+    mNotifyThatIAmIsGatewayDelayedTask = make_unique<NotifyThatIAmIsGatewayDelayedTask>(
+        mIOService,
+        mLogger);
+    subscribeForGatewayNotification(
+        mNotifyThatIAmIsGatewayDelayedTask->gatewayNotificationSignal);
+    info() << "Gateway Notification Delayed Task is successfully initialized";
 }
 
 vector<SerializedEquivalent> EquivalentsSubsystemsRouter::equivalents() const
 {
     return mEquivalents;
+}
+
+bool EquivalentsSubsystemsRouter::iAmGateway(
+    const SerializedEquivalent equivalent) const
+{
+    if (mIAmGateways.count(equivalent) == 0) {
+        throw ValueError(
+                "EquivalentsSubsystemsRouter::iAmGateway: "
+                        "wrong equivalent " + to_string(equivalent));
+    }
+    return mIAmGateways.at(equivalent);
 }
 
 TrustLinesManager* EquivalentsSubsystemsRouter::trustLinesManager(
@@ -162,6 +177,11 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
                     "try init equivalent which is already exists");
     }
 
+    mIAmGateways.insert(
+        make_pair(
+            equivalent,
+            false));
+
     mTrustLinesManagers.insert(
         make_pair(
             equivalent,
@@ -176,7 +196,7 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
             equivalent,
             make_unique<TopologyTrustLinesManager>(
                 equivalent,
-                mIAmGateway,
+                false,
                 mNodeUUID,
                 mLogger)));
     info() << "Topology Trust Lines Manager is successfully initialized";
@@ -219,25 +239,6 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
                  mTopologyTrustLinesManagers[equivalent].get(),
                  mLogger)));
     info() << "Paths Manager is successfully initialized";
-
-    mNotifyThatIAmIsGatewayDelayedTasks.insert(
-        make_pair(
-           equivalent,
-           make_unique<NotifyThatIAmIsGatewayDelayedTask>(
-               equivalent,
-               mIOService,
-               mLogger)));
-    subscribeForGatewayNotification(
-        mNotifyThatIAmIsGatewayDelayedTasks[equivalent]->gatewayNotificationSignal);
-    info() << "Gateway Notification Delayed Task is successfully initialized";
-}
-
-void EquivalentsSubsystemsRouter::connectSignalsToSlots()
-{
-    for (const auto &notifyThatIAmIsGatewayDelayedTask : mNotifyThatIAmIsGatewayDelayedTasks) {
-        subscribeForGatewayNotification(
-            notifyThatIAmIsGatewayDelayedTask.second->gatewayNotificationSignal);
-    }
 }
 
 void EquivalentsSubsystemsRouter::subscribeForGatewayNotification(
@@ -246,14 +247,12 @@ void EquivalentsSubsystemsRouter::subscribeForGatewayNotification(
     signal.connect(
         boost::bind(
             &EquivalentsSubsystemsRouter::onGatewayNotificationSlot,
-            this,
-            _1));
+            this));
 }
 
-void EquivalentsSubsystemsRouter::onGatewayNotificationSlot(
-    const SerializedEquivalent equivalent)
+void EquivalentsSubsystemsRouter::onGatewayNotificationSlot()
 {
-    gatewayNotificationSignal(equivalent);
+    gatewayNotificationSignal();
 }
 
 string EquivalentsSubsystemsRouter::logHeader() const

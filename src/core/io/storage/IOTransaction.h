@@ -7,7 +7,6 @@
 #include "PaymentOperationStateHandler.h"
 #include "TransactionsHandler.h"
 #include "BlackListHandler.h"
-#include "NodeFeaturesHandler.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -24,7 +23,6 @@ public:
         PaymentOperationStateHandler *paymentOperationStorage,
         TransactionsHandler *transactionHandler,
         BlackListHandler *blackListHandler,
-        NodeFeaturesHandler *nodeFeaturesHandler,
         Logger &logger);
 
     ~IOTransaction();
@@ -38,8 +36,6 @@ public:
     TransactionsHandler *transactionHandler();
 
     BlackListHandler *blackListHandler();
-
-    NodeFeaturesHandler *nodeFeaturesHandler();
 
     void rollback();
 
@@ -62,7 +58,6 @@ private:
     PaymentOperationStateHandler *mPaymentOperationStateHandler;
     TransactionsHandler *mTransactionHandler;
     BlackListHandler *mBlackListHandler;
-    NodeFeaturesHandler *mNodeFeaturesHandler;
     bool mIsTransactionBegin;
     Logger &mLog;
 };

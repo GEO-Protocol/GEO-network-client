@@ -1,11 +1,9 @@
 #include "NotifyThatIAmIsGatewayDelayedTask.h"
 
 NotifyThatIAmIsGatewayDelayedTask::NotifyThatIAmIsGatewayDelayedTask(
-    const SerializedEquivalent equivalent,
     as::io_service &ioService,
     Logger &logger):
 
-    mEquivalent(equivalent),
     mIOService(ioService),
     mLog(logger)
 {
@@ -23,13 +21,13 @@ NotifyThatIAmIsGatewayDelayedTask::NotifyThatIAmIsGatewayDelayedTask(
 }
 
 void NotifyThatIAmIsGatewayDelayedTask::runSignalNotify(
-        const boost::system::error_code &errorCode)
+    const boost::system::error_code &errorCode)
 {
     if (errorCode) {
         warning() << errorCode.message().c_str();
     }
     info() << "run gateway notification signal";
-    gatewayNotificationSignal(mEquivalent);
+    gatewayNotificationSignal();
 }
 
 LoggerStream NotifyThatIAmIsGatewayDelayedTask::debug() const
@@ -50,6 +48,6 @@ LoggerStream NotifyThatIAmIsGatewayDelayedTask::warning() const
 const string NotifyThatIAmIsGatewayDelayedTask::logHeader() const
 {
     stringstream s;
-    s << "[NotifyThatIAmIsGatewayDelayedTask: " << mEquivalent << "] ";
+    s << "[NotifyThatIAmIsGatewayDelayedTask]";
     return s.str();
 }

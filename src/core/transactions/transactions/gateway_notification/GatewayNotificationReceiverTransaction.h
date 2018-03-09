@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_GATEWAYNOTIFICATIONRECEIVERTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
-#include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../equivalents/EquivalentsSubsystemsRouter.h"
 #include "../../../io/storage/StorageHandler.h"
 #include "../../../network/messages/gateway_notification/GatewayNotificationMessage.h"
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
@@ -16,7 +16,7 @@ public:
     GatewayNotificationReceiverTransaction(
         const NodeUUID &nodeUUID,
         GatewayNotificationMessage::Shared message,
-        TrustLinesManager *manager,
+        EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         StorageHandler *storageHandler,
         Logger &logger);
 
@@ -27,7 +27,7 @@ protected:
 
 private:
     GatewayNotificationMessage::Shared mMessage;
-    TrustLinesManager *mTrustLineManager;
+    EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     StorageHandler *mStorageHandler;
 };
 

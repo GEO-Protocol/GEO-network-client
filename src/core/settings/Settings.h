@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_SETTINGS_H
 
 #include "../common/NodeUUID.h"
+#include "../common/Types.h"
 
 #include "../common/exceptions/IOError.h"
 #include "../common/exceptions/RuntimeError.h"
@@ -33,16 +34,7 @@ public:
     const uint16_t uuid2addressPort(
         const json *conf = nullptr) const;
 
-    const string influxDbName(
-        const json *conf = nullptr) const;
-
-    const string influxDbHost(
-        const json *conf = nullptr) const;
-
-    const uint16_t influxDbPort(
-        const json *conf = nullptr) const;
-
-    bool iAmGateway(
+    vector<SerializedEquivalent> iAmGateway(
         const json *conf = nullptr) const;
 
     json loadParsedJSON() const;

@@ -2,9 +2,10 @@
 #define GEO_NETWORK_CLIENT_GATEWAYNOTIFICATIONSENDERTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
-#include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../io/storage/StorageHandler.h"
+#include "../../../equivalents/EquivalentsSubsystemsRouter.h"
 #include "../../../network/messages/gateway_notification/GatewayNotificationMessage.h"
+
+#include <set>
 
 class GatewayNotificationSenderTransaction : public BaseTransaction {
 
@@ -14,10 +15,7 @@ public:
 public:
     GatewayNotificationSenderTransaction(
         const NodeUUID &nodeUUID,
-        const SerializedEquivalent equivalent,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        bool iAmGateway,
+        EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -26,12 +24,7 @@ protected:
     const string logHeader() const;
 
 private:
-    const string kGatewayFeatureName = "GATEWAY";
-
-private:
-    TrustLinesManager *mTrustLineManager;
-    StorageHandler *mStorageHandler;
-    bool mIAmGateway;
+    EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
 };
 
 

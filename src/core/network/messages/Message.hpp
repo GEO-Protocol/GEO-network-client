@@ -95,6 +95,7 @@ public:
          * Gateway notification
          */
         GatewayNotification = 700,
+        GatewayNotificationOneEquivalent = 701,
 
         /*
          * DEBUG

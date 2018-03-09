@@ -3,7 +3,7 @@
 GatewayNotificationReceiverTransaction::GatewayNotificationReceiverTransaction(
     const NodeUUID &nodeUUID,
     GatewayNotificationMessage::Shared message,
-    TrustLinesManager *manager,
+    EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     StorageHandler *storageHandler,
     Logger &logger) :
 
@@ -14,36 +14,47 @@ GatewayNotificationReceiverTransaction::GatewayNotificationReceiverTransaction(
         message->equivalent(),
         logger),
     mMessage(message),
-    mTrustLineManager(manager),
+    mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
     mStorageHandler(storageHandler)
 {}
 
 TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
 {
-    if (!mTrustLineManager->isNeighbor(mMessage->senderUUID)) {
-        warning() << "Sender " << mMessage->senderUUID << " is not neighbor of current node";
-        return resultDone();
-    }
+    bool isContractorNeighbor = false;
     auto ioTransaction = mStorageHandler->beginTransaction();
-    try {
-        // note: io transaction would commit automatically on destructor call.
-        // there is no need to call commit manually.
-        mTrustLineManager->setContractorAsGateway(
-            ioTransaction,
+    for (const auto &equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
+        auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+        if (trustLinesManager->isNeighbor(
+                mMessage->senderUUID)) {
+            continue;
+        }
+        isContractorNeighbor = true;
+        bool isContractorGateway = find(
+            mMessage->gatewayEquivalents().begin(),
+            mMessage->gatewayEquivalents().end(),
+            equivalent) != mMessage->gatewayEquivalents().end();
+        try {
+            trustLinesManager->setContractorAsGateway(
+                ioTransaction,
+                mMessage->senderUUID,
+                isContractorGateway);
+        } catch (IOError &e) {
+            ioTransaction->rollback();
+            warning() << "Attempt to set contractor " << mMessage->senderUUID << " as gateway failed. "
+                      << "IO transaction can't be completed. "
+                      << "Details are: " << e.what();
+            return resultDone();
+        }
+    }
+
+    if (!isContractorNeighbor) {
+        warning() << "Sender " << mMessage->senderUUID << " is not neighbor of current node on all equivalents";
+        sendMessage<ConfirmationMessage>(
             mMessage->senderUUID,
-            mMessage->nodeState() == GatewayNotificationMessage::Gateway);
-        info() << "Node " << mMessage->senderUUID << " inform that it is gateway "
-               << (mMessage->nodeState() == GatewayNotificationMessage::Gateway);
-    } catch (NotFoundError &e) {
-        ioTransaction->rollback();
-        warning() << "Attempt to set contractor " << mMessage->senderUUID << " as gateway failed. "
-               << "Details are: " << e.what();
-        return resultDone();
-    } catch (IOError &e) {
-        ioTransaction->rollback();
-        warning() << "Attempt to set to set contractor " << mMessage->senderUUID << " as gateway failed. "
-                << "IO transaction can't be completed. "
-                << "Details are: " << e.what();
+            mEquivalent,
+            currentNodeUUID(),
+            mMessage->transactionUUID(),
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         return resultDone();
     }
 

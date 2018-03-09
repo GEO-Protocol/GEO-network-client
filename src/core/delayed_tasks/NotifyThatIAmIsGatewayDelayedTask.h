@@ -17,11 +17,10 @@ namespace signals = boost::signals2;
 class NotifyThatIAmIsGatewayDelayedTask {
 
 public:
-    typedef signals::signal<void(const SerializedEquivalent equivalent)> GatewayNotificationSignal;
+    typedef signals::signal<void()> GatewayNotificationSignal;
 
 public:
     NotifyThatIAmIsGatewayDelayedTask(
-        const SerializedEquivalent equivalent,
         as::io_service &mIOService,
         Logger &logger);
 
@@ -46,7 +45,6 @@ private:
 private:
     as::io_service &mIOService;
     unique_ptr<as::steady_timer> mNotificationTimer;
-    SerializedEquivalent mEquivalent;
     Logger &mLog;
 };
 

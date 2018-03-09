@@ -119,12 +119,11 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
                 // Notifying remote node that current node is gateway.
                 // Network communicator knows, that this message must be forced to be delivered,
                 // so the TA itself might finish without any response from the remote node.
-                sendMessage<GatewayNotificationMessage>(
+                sendMessage<GatewayNotificationOneEquivalentMessage>(
                     kContractor,
                     mEquivalent,
                     currentNodeUUID(),
-                    currentTransactionUUID(),
-                    GatewayNotificationMessage::Gateway);
+                    currentTransactionUUID());
             }
 
             break;

@@ -58,7 +58,8 @@ private:
 
     int initResultsInterface();
 
-    int initEquivalentsSubsystemsRouter();
+    int initEquivalentsSubsystemsRouter(
+        vector<SerializedEquivalent> equivalentIAmGateway);
 
     int initResourcesManager();
 
@@ -125,7 +126,6 @@ protected:
 
     NodeUUID mNodeUUID;
     as::io_service mIOService;
-    bool mIAmGateway;
 
     unique_ptr<Logger> mLog;
     unique_ptr<Settings> mSettings;

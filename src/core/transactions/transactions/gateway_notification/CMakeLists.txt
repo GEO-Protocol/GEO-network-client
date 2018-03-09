@@ -5,7 +5,10 @@ set(SOURCE_FILES
         GatewayNotificationSenderTransaction.cpp
 
         GatewayNotificationReceiverTransaction.h
-        GatewayNotificationReceiverTransaction.cpp)
+        GatewayNotificationReceiverTransaction.cpp
+
+        GatewayNotificationOneEquivalentReceiverTransaction.h
+        GatewayNotificationOneEquivalentReceiverTransaction.cpp)
 
 add_library(transactions__gateway_notification ${SOURCE_FILES})
 

@@ -7,6 +7,7 @@
 #include "../../../messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 #include "../../../messages/gateway_notification/GatewayNotificationMessage.h"
+#include "../../../messages/gateway_notification/GatewayNotificationOneEquivalentMessage.h"
 
 #include <boost/signals2.hpp>
 
@@ -89,6 +90,9 @@ protected: // messages handlers
 
     void updateGatewayNotificationInTheQueue(
         GatewayNotificationMessage::Shared message);
+
+    void updateGatewayNotificationOneEquivalentInTheQueue(
+        GatewayNotificationOneEquivalentMessage::Shared message);
 
 protected:
     // Stores messages queue by the transaction UUID.

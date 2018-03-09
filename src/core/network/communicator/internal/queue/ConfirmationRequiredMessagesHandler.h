@@ -27,7 +27,7 @@ namespace as = boost::asio;
  * otherwise, current node must re-send it until remote node would not process it and send confirmation back.
  *
  * This mechanism allows to force processing of some events by the remote nodes,
- * and is useful for preventing various types of desyncronysations.
+ * and is useful for preventing various types of desynchronysations.
  *
  * This handler is used for storing and processing queues of the messages,
  * that must be confirmed by the remote nodes. Messages are sent once in a timeout.

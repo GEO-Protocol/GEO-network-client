@@ -17,17 +17,20 @@ namespace signals = boost::signals2;
 class EquivalentsSubsystemsRouter {
 
 public:
-    typedef signals::signal<void(const SerializedEquivalent equivalent)> GatewayNotificationSignal;
+    typedef signals::signal<void()> GatewayNotificationSignal;
 
 public:
     EquivalentsSubsystemsRouter(
         NodeUUID &nodeUUID,
         StorageHandler *storageHandler,
         as::io_service &ioService,
-        bool iAmGateway,
+        vector<SerializedEquivalent> &equivalentsIAmGateway,
         Logger &logger);
 
     vector<SerializedEquivalent> equivalents() const;
+
+    bool iAmGateway(
+        const SerializedEquivalent equivalent) const;
 
     TrustLinesManager* trustLinesManager(
         const SerializedEquivalent equivalent) const;
@@ -62,17 +65,14 @@ protected:
     LoggerStream debug() const;
 
 private:
-    void connectSignalsToSlots();
-
     void subscribeForGatewayNotification(
         NotifyThatIAmIsGatewayDelayedTask::GatewayNotificationSignal &signal);
 
-    void onGatewayNotificationSlot(
-        const SerializedEquivalent equivalent);
+    void onGatewayNotificationSlot();
 
 private:
     NodeUUID mNodeUUID;
-    bool mIAmGateway;
+    map<SerializedEquivalent, bool> mIAmGateways;
     as::io_service &mIOService;
     StorageHandler *mStorageHandler;
     Logger &mLogger;
@@ -83,7 +83,7 @@ private:
     map<SerializedEquivalent, unique_ptr<TopologyCacheUpdateDelayedTask>> mTopologyCacheUpdateDelayedTasks;
     map<SerializedEquivalent, unique_ptr<MaxFlowCacheManager>> mMaxFlowCacheManagers;
     map<SerializedEquivalent, unique_ptr<PathsManager>> mPathsManagers;
-    map<SerializedEquivalent, unique_ptr<NotifyThatIAmIsGatewayDelayedTask>> mNotifyThatIAmIsGatewayDelayedTasks;
+    unique_ptr<NotifyThatIAmIsGatewayDelayedTask> mNotifyThatIAmIsGatewayDelayedTask;
 };
 
 

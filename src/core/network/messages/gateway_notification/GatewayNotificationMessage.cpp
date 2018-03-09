@@ -1,16 +1,15 @@
 #include "GatewayNotificationMessage.h"
 
 GatewayNotificationMessage::GatewayNotificationMessage(
-    const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
-    const NodeState state) :
+    const vector<SerializedEquivalent> gatewayEquivalents) :
 
     TransactionMessage(
-        equivalent,
+        0,
         senderUUID,
         transactionUUID),
-    mNodeState(state)
+    mGatewayEquivalents(gatewayEquivalents)
 {}
 
 GatewayNotificationMessage::GatewayNotificationMessage(
@@ -20,13 +19,26 @@ GatewayNotificationMessage::GatewayNotificationMessage(
 {
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
-    SerializedNodeState *state = new (buffer.get() + bytesBufferOffset) SerializedNodeState;
-    mNodeState = (NodeState) (*state);
+    SerializedRecordsCount *equivalentGatewaysCount = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
+    //-----------------------------------------------------
+    mGatewayEquivalents.reserve(*equivalentGatewaysCount);
+    for (SerializedRecordNumber idx = 0; idx < *equivalentGatewaysCount; idx++) {
+        SerializedEquivalent gatewayEquivalent;
+        memcpy(
+            &gatewayEquivalent,
+            buffer.get() + Message::kOffsetToInheritedBytes(),
+            sizeof(SerializedEquivalent));
+        bytesBufferOffset += sizeof(SerializedEquivalent);
+        //---------------------------------------------------
+        mGatewayEquivalents.push_back(
+            gatewayEquivalent);
+    }
 }
 
-const GatewayNotificationMessage::NodeState GatewayNotificationMessage::nodeState() const
+const vector<SerializedEquivalent> GatewayNotificationMessage::gatewayEquivalents() const
 {
-    return mNodeState;
+    return mGatewayEquivalents;
 }
 
 pair<BytesShared, size_t> GatewayNotificationMessage::serializeToBytes() const
@@ -35,7 +47,8 @@ pair<BytesShared, size_t> GatewayNotificationMessage::serializeToBytes() const
 
     size_t bytesCount =
         parentBytesAndCount.second
-        + sizeof(SerializedNodeState);
+        + sizeof(SerializedRecordsCount)
+        + mGatewayEquivalents.size() * sizeof(SerializedEquivalent);
 
     BytesShared dataBytesShared = tryMalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -46,11 +59,20 @@ pair<BytesShared, size_t> GatewayNotificationMessage::serializeToBytes() const
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
-    SerializedNodeState state(mNodeState);
+    SerializedRecordsCount equivalentGatewaysCount = (SerializedRecordsCount)mGatewayEquivalents.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
-        &state,
-        sizeof(SerializedNodeState));
+        &equivalentGatewaysCount,
+        sizeof(SerializedRecordsCount));
+    dataBytesOffset += sizeof(SerializedRecordsCount);
+    //----------------------------------------------------
+    for (auto const &gatewayEquivalent : mGatewayEquivalents) {
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            &gatewayEquivalent,
+            sizeof(SerializedEquivalent));
+        dataBytesOffset += sizeof(SerializedEquivalent);
+    }
     //----------------------------------------------------
     return make_pair(
         dataBytesShared,

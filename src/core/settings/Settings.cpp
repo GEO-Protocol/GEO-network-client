@@ -97,67 +97,17 @@ const NodeUUID Settings::nodeUUID(const json *conf) const {
     }
 }
 
-/*
- * Returns host of the uuid2address service;
- * Throws RuntimeError in case when settings can't be read.
- */
-const uint16_t Settings::influxDbPort(const json *conf) const {
+vector<SerializedEquivalent> Settings::iAmGateway(const json *conf) const {
     if (conf == nullptr) {
         auto j = loadParsedJSON();
         conf = &j;
     }
+    vector<SerializedEquivalent> result;
     try {
-        return (*conf).at("influxDB").at("port");
-    } catch (...) {
-        throw RuntimeError(
-            "Settings::uuid2addressHost: can't read node interface settings.");
-    }
-}
-
-
-/*
- * Returns host of the uuid2address service;
- * Throws RuntimeError in case when settings can't be read.
- */
-const string Settings::influxDbHost(const json *conf) const {
-    if (conf == nullptr) {
-        auto j = loadParsedJSON();
-        conf = &j;
-    }
-    try {
-        return (*conf).at("influxDB").at("host");
-    } catch (...) {
-        throw RuntimeError(
-            "Settings::uuid2addressHost: can't read node interface settings.");
-    }
-}
-
-/*
- * Returns host of the uuid2address service;
- * Throws RuntimeError in case when settings can't be read.
- */
-const string Settings::influxDbName(const json *conf) const {
-    if (conf == nullptr) {
-        auto j = loadParsedJSON();
-        conf = &j;
-    }
-    try {
-        return (*conf).at("influxDB").at("database");
-    } catch (...) {
-        throw RuntimeError(
-            "Settings::uuid2addressHost: can't read node interface settings.");
-    }
-}
-
-bool Settings::iAmGateway(const json *conf) const {
-    if (conf == nullptr) {
-        auto j = loadParsedJSON();
-        conf = &j;
-    }
-    try {
-        return (*conf).at("gateway");
+        result = (*conf).at("gateway").get<vector<SerializedEquivalent>>();
+        return result;
     } catch (...) {
         // todo : throw RuntimeError
-        return false;
+        return result;
     }
 }

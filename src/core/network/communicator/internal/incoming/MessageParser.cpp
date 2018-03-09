@@ -168,6 +168,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::GatewayNotification:
             return messageCollected<GatewayNotificationMessage>(buffer);
 
+        case Message::GatewayNotificationOneEquivalent:
+            return messageCollected<GatewayNotificationOneEquivalentMessage>(buffer);
+
 #ifdef DEBUG
         /*
          * Debug messages

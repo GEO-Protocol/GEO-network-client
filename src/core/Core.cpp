@@ -69,8 +69,9 @@ int Core::initSubsystems()
         return -1;
     }
 
+    vector<SerializedEquivalent>equivalentsOnWhichIAmIsGateway;
     try {
-        mIAmGateway = mSettings->iAmGateway(&conf);
+        equivalentsOnWhichIAmIsGateway = mSettings->iAmGateway(&conf);
     } catch (RuntimeError &) {
         // Logger was not initialized yet
         cerr << utc_now() <<" : ERROR\tCORE\tCan't read if node is gateway from the settings" << endl;
@@ -78,20 +79,24 @@ int Core::initSubsystems()
     }
 
     initCode = initLogger();
-    if (initCode != 0)
+    if (initCode != 0) {
         return initCode;
+    }
 
     initCode = initCommunicator(conf);
-    if (initCode != 0)
+    if (initCode != 0) {
         return initCode;
+    }
 
     initCode = initResultsInterface();
-    if (initCode != 0)
+    if (initCode != 0) {
         return initCode;
+    }
 
     initCode = initStorageHandler();
-    if (initCode != 0)
+    if (initCode != 0) {
         return initCode;
+    }
 
     initCode = initResourcesManager();
     if (initCode != 0) {
@@ -103,18 +108,21 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initEquivalentsSubsystemsRouter();
+    initCode = initEquivalentsSubsystemsRouter(
+        equivalentsOnWhichIAmIsGateway);
     if (initCode != 0) {
         return initCode;
     }
 
     initCode = initTransactionsManager();
-    if (initCode != 0)
+    if (initCode != 0) {
         return initCode;
+    }
 
     initCode = initCommandsInterface();
-    if (initCode != 0)
+    if (initCode != 0) {
         return initCode;
+    }
 
     connectSignalsToSlots();
     return 0;
@@ -183,14 +191,15 @@ int Core::initResultsInterface()
     }
 }
 
-int Core::initEquivalentsSubsystemsRouter()
+int Core::initEquivalentsSubsystemsRouter(
+    vector<SerializedEquivalent> equivalentIAmGateway)
 {
     try {
         mEquivalentsSubsystemsRouter = make_unique<EquivalentsSubsystemsRouter>(
             mNodeUUID,
             mStorageHandler.get(),
             mIOService,
-            mIAmGateway,
+            equivalentIAmGateway,
             *mLog);
         info() << "EquivalentsSubsystemsRouter is successfully initialised";
         return 0;
@@ -224,8 +233,7 @@ int Core::initTransactionsManager()
             mResultsInterface.get(),
             mStorageHandler.get(),
             *mLog,
-            mSubsystemsController.get(),
-            mIAmGateway);
+            mSubsystemsController.get());
         info() << "Transactions handler is successfully initialised";
         return 0;
 

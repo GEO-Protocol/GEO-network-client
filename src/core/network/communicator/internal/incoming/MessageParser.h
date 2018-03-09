@@ -50,6 +50,7 @@
 #include "../../../messages/routing_table/RoutingTableResponseMessage.h"
 
 #include "../../../messages/gateway_notification/GatewayNotificationMessage.h"
+#include "../../../messages/gateway_notification/GatewayNotificationOneEquivalentMessage.h"
 
 #ifdef DEBUG
 #include "../../../messages/debug/DebugMessage.h"

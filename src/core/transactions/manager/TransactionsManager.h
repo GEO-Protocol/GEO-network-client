@@ -109,6 +109,7 @@
 
 #include "../transactions/gateway_notification/GatewayNotificationSenderTransaction.h"
 #include "../transactions/gateway_notification/GatewayNotificationReceiverTransaction.h"
+#include "../transactions/gateway_notification/GatewayNotificationOneEquivalentReceiverTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -132,8 +133,7 @@ public:
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
         Logger &logger,
-        SubsystemsController *subsystemsController,
-        bool iAmGateway);
+        SubsystemsController *subsystemsController);
 
     void processCommand(
         BaseUserCommand::Shared command);
@@ -334,11 +334,13 @@ protected: // Transactions
     /*
      * Gateway notification transactions
      */
-    void launchGatewayNotificationSenderTransaction(
-        const SerializedEquivalent equivalent);
+    void launchGatewayNotificationSenderTransaction();
 
     void launchGatewayNotificationReceiverTransaction(
         GatewayNotificationMessage::Shared message);
+
+    void launchGatewayNotificationOneEquivalentReceiverTransaction(
+        GatewayNotificationOneEquivalentMessage::Shared message);
 
 protected:
     // Signals connection to manager's slots
@@ -423,8 +425,7 @@ protected:
     void onUpdatingRoutingTableSlot(
         const SerializedEquivalent equivalent);
 
-    void onGatewayNotificationSlot(
-        const SerializedEquivalent equivalent);
+    void onGatewayNotificationSlot();
 
 protected:
     void prepareAndSchedule(
@@ -448,7 +449,6 @@ protected:
 
 private:
     NodeUUID &mNodeUUID;
-    bool mIAmGateway;
     as::io_service &mIOService;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     ResourcesManager *mResourcesManager;
