@@ -4,7 +4,7 @@ AddNodeToBlackListTransaction::AddNodeToBlackListTransaction(
     NodeUUID &nodeUUID,
     AddNodeToBlackListCommand::Shared command,
     StorageHandler *storageHandler,
-    TrustLinesManager *trustLinesManager,
+    EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     SubsystemsController *subsystemsController,
     Logger &logger):
     BaseTransaction(
@@ -14,7 +14,7 @@ AddNodeToBlackListTransaction::AddNodeToBlackListTransaction(
         logger),
     mCommand(command),
     mStorageHandler(storageHandler),
-    mTrustLinesManager(trustLinesManager),
+    mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
     mSubsystemsController(subsystemsController)
 {}
 
@@ -39,54 +39,66 @@ TransactionResult::SharedConst AddNodeToBlackListTransaction::run()
         return resultProtocolError();
     }
 
-    // Trust line must be created (or updated) in the internal storage.
+    // Trust line must be deleted from the internal storage.
     // Also, history record must be written about this operation.
     // Both writes must be done atomically, so the IO transaction is used.
-    try {
-        // note: io transaction would commit automatically on destructor call.
-        // there is no need to call commit manually.
-        mTrustLinesManager->closeIncoming(
-            ioTransaction,
-            kContractor);
+    for (const auto equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
+        auto trustLineManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
 
-        populateHistory(ioTransaction);
+        try {
+            trustLineManager->closeIncoming(
+                ioTransaction,
+                kContractor);
+
+            populateHistory(
+                equivalent,
+                ioTransaction);
+        } catch (NotFoundError &e) {
+            info() << "There are no opened incoming trust line from the node " << kContractor
+                   << " on equivalent " << equivalent;
+            continue;
+        } catch (IOError &e) {
+            ioTransaction->rollback();
+            warning() << "Attempt to close incoming trust line from the node " << kContractor << " failed. "
+                      << "IO transaction can't be completed. "
+                      << "Details are: " << e.what();
+
+            // Rethrowing the exception,
+            // because the TA can't finish properly and no result may be returned.
+            throw e;
+        }
 
         info() << "Incoming trust line from the node " << kContractor
-               << " successfully closed.";
+               << " on equivalent " << equivalent << " successfully closed.";
 
-        // Notifying remote node about trust line state changed.
-        // Network communicator knows, that this message must be forced to be delivered,
-        // so the TA itself might finish without any response from the remote node.
+        // Notifying remote node about trust line closing.
+        // Network communicator knows, that this message must be forced to be delivered.
         sendMessage<CloseOutgoingTrustLineMessage>(
             mCommand->contractorUUID(),
-            0,
+            equivalent,
             mNodeUUID,
             mTransactionUUID,
             mCommand->contractorUUID());
+    }
 
-        ioTransaction->blackListHandler()->addNode(contractorNode);
-        info() << "Node " << kContractor << " successfully added to black list";
-        return resultOK();
-
-    } catch (NotFoundError &e) {
-        info() << "There are no opened incoming trust line from the node " << kContractor;
-        ioTransaction->blackListHandler()->addNode(contractorNode);
-        info() << "Node " << kContractor << " successfully added to black list";
-        return resultOK();
-
+    try {
+        ioTransaction->blackListHandler()->addNode(
+            contractorNode);
     } catch (IOError &e) {
         ioTransaction->rollback();
-        warning() << "Attempt to close incoming trust line from the node " << kContractor << " failed. "
-               << "IO transaction can't be completed. "
-               << "Details are: " << e.what();
+        warning() << "Attempt to add node " << kContractor << " to black list failed. "
+                  << "IO transaction can't be completed. Details are: " << e.what();
 
         // Rethrowing the exception,
         // because the TA can't finish properly and no result may be returned.
         throw e;
     }
+        info() << "Node " << kContractor << " successfully added to black list";
+        return resultOK();
 }
 
 void AddNodeToBlackListTransaction::populateHistory(
+    const SerializedEquivalent equivalent,
     IOTransaction::Shared ioTransaction)
 {
 #ifndef TESTS
@@ -95,7 +107,9 @@ void AddNodeToBlackListTransaction::populateHistory(
         TrustLineRecord::ClosingIncoming,
         mCommand->contractorUUID());
 
-    ioTransaction->historyStorage()->saveTrustLineRecord(record, 0);
+    ioTransaction->historyStorage()->saveTrustLineRecord(
+        record,
+        equivalent);
 #endif
 }
 

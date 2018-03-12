@@ -4,7 +4,7 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/blacklist/AddNodeToBlackListCommand.h"
-#include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../equivalents/EquivalentsSubsystemsRouter.h"
 #include "../../../network/messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 
@@ -20,7 +20,7 @@ public:
         NodeUUID &nodeUUID,
         AddNodeToBlackListCommand::Shared command,
         StorageHandler *storageHandler,
-        TrustLinesManager *trustLinesManager,
+        EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         SubsystemsController *subsystemsController,
         Logger &logger);
 
@@ -37,6 +37,7 @@ protected:
 
 protected:
     void populateHistory(
+        const SerializedEquivalent equivalent,
         IOTransaction::Shared ioTransaction);
 
 protected:
@@ -45,7 +46,7 @@ protected:
 private:
     AddNodeToBlackListCommand::Shared mCommand;
     StorageHandler *mStorageHandler;
-    TrustLinesManager *mTrustLinesManager;
+    EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     SubsystemsController *mSubsystemsController;
 };
 

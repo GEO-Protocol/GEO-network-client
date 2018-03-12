@@ -1397,15 +1397,13 @@ void TransactionsManager::launchRoutingTableRequestTransaction(
 void TransactionsManager::launchAddNodeToBlackListTransaction(
     AddNodeToBlackListCommand::Shared command)
 {
-    SerializedEquivalent equivalent = 0;
-    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
     try {
         prepareAndSchedule(
             make_shared<AddNodeToBlackListTransaction>(
                 mNodeUUID,
                 command,
                 mStorageHandler,
-                trustLinesManager,
+                mEquivalentsSubsystemsRouter,
                 mSubsystemsController,
                 mLog),
             true,
