@@ -32,10 +32,12 @@ void ConfirmationRequiredMessagesQueue::enqueue(
         case Message::TrustLines_SetIncomingFromGateway: {
             updateTrustLineFromGatewayNotificationInTheQueue(
                 static_pointer_cast<SetIncomingTrustLineFromGatewayMessage>(message));
+            break;
         }
         case Message::GatewayNotificationOneEquivalent: {
             updateGatewayNotificationOneEquivalentInTheQueue(
                 static_pointer_cast<GatewayNotificationOneEquivalentMessage>(message));
+            break;
         }
         //todo : add logger and warning default case
     }
@@ -93,7 +95,8 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineNotificationInTheQueue(
     for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
         const auto kMessage = it->second;
 
-        if (kMessage->typeID() == Message::TrustLines_SetIncoming) {
+        if (kMessage->typeID() == Message::TrustLines_SetIncoming
+            and kMessage->equivalent() == message->equivalent()) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,
@@ -117,7 +120,8 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineFromGatewayNotificationIn
     for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
         const auto kMessage = it->second;
 
-        if (kMessage->typeID() == Message::TrustLines_SetIncomingFromGateway) {
+        if (kMessage->typeID() == Message::TrustLines_SetIncomingFromGateway
+            and kMessage->equivalent() == message->equivalent()) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,
@@ -142,7 +146,8 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineCloseNotificationInTheQue
     for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
         const auto kMessage = it->second;
 
-        if (kMessage->typeID() == Message::TrustLines_CloseOutgoing) {
+        if (kMessage->typeID() == Message::TrustLines_CloseOutgoing
+            and kMessage->equivalent() == message->equivalent()) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,
@@ -190,7 +195,8 @@ void ConfirmationRequiredMessagesQueue::updateGatewayNotificationOneEquivalentIn
     for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
         const auto kMessage = it->second;
 
-        if (kMessage->typeID() == Message::GatewayNotificationOneEquivalent) {
+        if (kMessage->typeID() == Message::GatewayNotificationOneEquivalent
+            and kMessage->equivalent() == message->equivalent()) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,

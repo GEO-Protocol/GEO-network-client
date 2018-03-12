@@ -170,7 +170,6 @@ PathsManager* EquivalentsSubsystemsRouter::pathsManager(
 void EquivalentsSubsystemsRouter::initNewEquivalent(
     const SerializedEquivalent equivalent)
 {
-
     if (mTrustLinesManagers.count(equivalent) != 0) {
         throw ValueError(
                 "EquivalentsCyclesSubsystemsRouter::initNewEquivalent: "

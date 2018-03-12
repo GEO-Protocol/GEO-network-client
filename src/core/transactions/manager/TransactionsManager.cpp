@@ -326,7 +326,7 @@ void TransactionsManager::processMessage(
     Message::Shared message)
 {
     // ToDo: sort calls in the call probability order.
-    // For example, max flows calculations would be called much oftet, then credit usage transactions.
+    // For example, max flows calculations would be called much often, then credit usage transactions.
 
     /*
      * Max flow
@@ -475,6 +475,14 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
     SetOutgoingTrustLineCommand::Shared command)
 {
     try {
+        mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
+    } catch (NotFoundError &e) {
+        info() << "launchSetOutgoingTrustLineTransaction: init new equivalent "
+               << command->equivalent();
+        mEquivalentsSubsystemsRouter->initNewEquivalent(command->equivalent());
+        mEquivalentsCyclesSubsystemsRouter->initNewEquivalent(command->equivalent());
+    }
+    try {
         prepareAndSchedule(
             make_shared<SetOutgoingTrustLineTransaction>(
                 mNodeUUID,
@@ -522,6 +530,14 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
     SetIncomingTrustLineMessage::Shared message)
 {
     try {
+        mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent());
+    } catch (NotFoundError &e) {
+        info() << "launchSetIncomingTrustLineTransaction: init new equivalent "
+               << message->equivalent();
+        mEquivalentsSubsystemsRouter->initNewEquivalent(message->equivalent());
+        mEquivalentsCyclesSubsystemsRouter->initNewEquivalent(message->equivalent());
+    }
+    try {
         prepareAndSchedule(
             make_shared<SetIncomingTrustLineTransaction>(
                 mNodeUUID,
@@ -544,6 +560,14 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
 void TransactionsManager::launchSetIncomingTrustLineTransaction(
     SetIncomingTrustLineFromGatewayMessage::Shared message)
 {
+    try {
+        mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent());
+    } catch (NotFoundError &e) {
+        info() << "launchSetIncomingTrustLineTransaction from gateway: init new equivalent "
+               << message->equivalent();
+        mEquivalentsSubsystemsRouter->initNewEquivalent(message->equivalent());
+        mEquivalentsCyclesSubsystemsRouter->initNewEquivalent(message->equivalent());
+    }
     try {
         prepareAndSchedule(
             make_shared<SetIncomingTrustLineTransaction>(
