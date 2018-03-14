@@ -76,6 +76,18 @@ private:
         return duration;
     }
 
+    static const byte kClearTrustLinesHours = 0;
+    static const byte kClearTrustLinesMinutes = 30;
+    static const byte kClearTrustLinesSeconds = 0;
+
+    static Duration& kClearTrustLinesDuration() {
+        static auto duration = Duration(
+            kClearTrustLinesHours,
+            kClearTrustLinesMinutes,
+            kClearTrustLinesSeconds);
+        return duration;
+    }
+
 private:
     LoggerStream info() const;
     LoggerStream debug() const;
@@ -88,6 +100,7 @@ private:
     Logger &mLog;
     bool mPreventDeleting;
     set<NodeUUID> mGateways;
+    DateTime mLastTrustLineTimeAdding;
 };
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINEMANAGER_H

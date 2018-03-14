@@ -1,6 +1,7 @@
 #include "MaxFlowCalculationCacheManager.h"
 
-MaxFlowCalculationCacheManager::MaxFlowCalculationCacheManager(Logger &logger):
+MaxFlowCalculationCacheManager::MaxFlowCalculationCacheManager(
+    Logger &logger):
     mLog(logger)
 {
     mInitiatorCache.first = false;
@@ -11,8 +12,14 @@ void MaxFlowCalculationCacheManager::addCache(
     MaxFlowCalculationCache::Shared cache)
 {
     NodeUUID* nodeUUIDPtr = new NodeUUID(keyUUID);
-    mCaches.insert(make_pair(*nodeUUIDPtr, cache));
-    msCache.insert(make_pair(utc_now(), nodeUUIDPtr));
+    mCaches.insert(
+        make_pair(
+            *nodeUUIDPtr,
+            cache));
+    msCache.insert(
+        make_pair(
+            utc_now(),
+            nodeUUIDPtr));
 }
 
 MaxFlowCalculationCache::Shared MaxFlowCalculationCacheManager::cacheByNode(

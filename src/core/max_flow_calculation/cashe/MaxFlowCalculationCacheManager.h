@@ -13,9 +13,12 @@
 class MaxFlowCalculationCacheManager {
 
 public:
-    MaxFlowCalculationCacheManager(Logger &logger);
+    MaxFlowCalculationCacheManager(
+        Logger &logger);
 
-    void addCache(const NodeUUID &keyUUID, MaxFlowCalculationCache::Shared cache);
+    void addCache(
+        const NodeUUID &keyUUID,
+        MaxFlowCalculationCache::Shared cache);
 
     MaxFlowCalculationCache::Shared cacheByNode(
         const NodeUUID &nodeUUID) const;
