@@ -27,6 +27,8 @@ public:
      */
     signals::signal<void(pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared>)> signalOutgoingMessageReady;
 
+    signals::signal<void(const NodeUUID&)> signalClearTopologyCache;
+
 public:
     ConfirmationNotStronglyRequiredMessagesHandler(
         IOService &ioService,
@@ -78,7 +80,7 @@ protected:
      * Sends postponed messages to the remote nodes.
      * This method would be called every time when some queue timeout would fire up.
      */
-    void sendPostponedMessages() const;
+    void sendPostponedMessages();
 
 protected:
     /**

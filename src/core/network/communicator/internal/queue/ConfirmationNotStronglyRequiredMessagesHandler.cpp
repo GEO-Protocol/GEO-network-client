@@ -131,14 +131,19 @@ void ConfirmationNotStronglyRequiredMessagesHandler::rescheduleResending()
     });
 }
 
-void ConfirmationNotStronglyRequiredMessagesHandler::sendPostponedMessages() const
+void ConfirmationNotStronglyRequiredMessagesHandler::sendPostponedMessages()
 {
     const auto now = utc_now();
 
-    info() << "sendPostponedMessages " << mQueues.size();
     for (const auto &contractorUUIDAndQueue : mQueues) {
-        const auto kContractor = contractorUUIDAndQueue.first;
+        auto kContractor = contractorUUIDAndQueue.first;
         const auto kQueue = contractorUUIDAndQueue.second;
+
+        if (!kQueue->checkIfNeedResendMessages()) {
+            signalClearTopologyCache(kContractor);
+            mQueues.erase(kContractor);
+            continue;
+        }
 
         if (kQueue->nextSendingAttemptDateTime() > now) {
             // This queue's timeout is not fired up yet.
@@ -146,7 +151,6 @@ void ConfirmationNotStronglyRequiredMessagesHandler::sendPostponedMessages() con
         }
 
         for (const auto &confirmationIDAndMessage : kQueue->messages()) {
-            info() << "send Postponed Message";
             signalOutgoingMessageReady(
                 make_pair(
                     kContractor,

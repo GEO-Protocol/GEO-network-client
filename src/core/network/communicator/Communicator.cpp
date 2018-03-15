@@ -77,6 +77,12 @@ Communicator::Communicator(
             &Communicator::onConfirmationNotStronglyRequiredMessageReadyToResend,
             this,
             _1));
+
+    mConfirmationNotStronglyRequiredMessagesHandler->signalClearTopologyCache.connect(
+        boost::bind(
+            &Communicator::onClearTopologyCache,
+            this,
+            _1));
 }
 
 /**
@@ -227,6 +233,12 @@ void Communicator::onConfirmationNotStronglyRequiredMessageReadyToResend(
         static_pointer_cast<Message>(
             addresseeAndMessage.second),
         addresseeAndMessage.first);
+}
+
+void Communicator::onClearTopologyCache(
+    const NodeUUID &nodeUUID)
+{
+    signalClearTopologyCache(nodeUUID);
 }
 
 string Communicator::logHeader()

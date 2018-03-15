@@ -52,13 +52,7 @@ const DateTime &ConfirmationNotStronglyRequiredMessagesQueue::nextSendingAttempt
 const map<ConfirmationID, MaxFlowCalculationConfirmationMessage::Shared> &ConfirmationNotStronglyRequiredMessagesQueue::messages()
     noexcept
 {
-    // Exponentially increase re-sending timeout up to 10+ minutes.
-    if (mNextTimeoutSeconds < 60 * 10) {
-        mNextTimeoutSeconds *= 2;
-    }
-
     mNextSendingAttemptDateTime = utc_now() + boost::posix_time::seconds(mNextTimeoutSeconds);
-
     return mMessages;
 }
 
@@ -72,6 +66,17 @@ void ConfirmationNotStronglyRequiredMessagesQueue::resetInternalTimeout()
     noexcept
 {
     mNextTimeoutSeconds = 3;
+    mCountResendingAttempts = 0;
+}
+
+bool ConfirmationNotStronglyRequiredMessagesQueue::checkIfNeedResendMessages()
+{
+    mCountResendingAttempts++;
+    if (mCountResendingAttempts > kMaxCountResendingAttempts) {
+        mMessages.clear();
+        return false;
+    }
+    return true;
 }
 
 void ConfirmationNotStronglyRequiredMessagesQueue::updateResultMaxFlowNotificationInTheQueue(

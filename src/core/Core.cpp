@@ -422,6 +422,12 @@ void Core::connectCommunicatorSignals()
             this,
             _1));
 
+    mCommunicator->signalClearTopologyCache.connect(
+        boost::bind(
+            &Core::onClearTopologyCacheSlot,
+            this,
+            _1));
+
     //transactions manager's to communicator slot
     mTransactionsManager->transactionOutgoingMessageReadySignal.connect(
         boost::bind(
@@ -538,6 +544,13 @@ void Core::onMessageReceivedSlot(
     } catch(exception &e) {
         mLog->logException("Core", e);
     }
+}
+
+void Core::onClearTopologyCacheSlot(
+    const NodeUUID &nodeUUID)
+{
+    mMaxFlowCalculationCacheManager->removeCache(
+        nodeUUID);
 }
 
 void Core::onMessageSendSlot(

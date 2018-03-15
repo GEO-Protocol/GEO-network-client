@@ -24,6 +24,8 @@ class Communicator {
 public:
     signals::signal<void(Message::Shared)> signalMessageReceived;
 
+    signals::signal<void(const NodeUUID&)> signalClearTopologyCache;
+
 public:
     explicit Communicator(
         IOService &ioService,
@@ -67,6 +69,9 @@ protected:
 
     void onConfirmationNotStronglyRequiredMessageReadyToResend(
         pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared>);
+
+    void onClearTopologyCache(
+        const NodeUUID& nodeUUID);
 
     static string logHeader()
     noexcept;

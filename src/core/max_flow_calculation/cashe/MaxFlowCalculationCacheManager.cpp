@@ -75,6 +75,24 @@ bool MaxFlowCalculationCacheManager::isInitiatorCached()
     return mInitiatorCache.first;
 }
 
+void MaxFlowCalculationCacheManager::removeCache(
+    const NodeUUID &nodeUUID)
+{
+    for (auto &timeAndNodeUUID : msCache) {
+        NodeUUID* keyUUIDPtr = timeAndNodeUUID.second;
+        if (*keyUUIDPtr == nodeUUID) {
+#ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
+            info() << "removeCache delete cache\t" << *keyUUIDPtr;
+#endif
+            mCaches.erase(*keyUUIDPtr);
+            msCache.erase(timeAndNodeUUID.first);
+            delete keyUUIDPtr;
+            return;
+        }
+    }
+    warning() << "no cache found for key " << nodeUUID;
+}
+
 DateTime MaxFlowCalculationCacheManager::closestTimeEvent() const
 {
     // if initiator cache is active then take initiator cache removing time as result closest time event
@@ -102,6 +120,11 @@ DateTime MaxFlowCalculationCacheManager::closestTimeEvent() const
 LoggerStream MaxFlowCalculationCacheManager::info() const
 {
     return mLog.info(logHeader());
+}
+
+LoggerStream MaxFlowCalculationCacheManager::warning() const
+{
+    return mLog.warning(logHeader());
 }
 
 const string MaxFlowCalculationCacheManager::logHeader() const

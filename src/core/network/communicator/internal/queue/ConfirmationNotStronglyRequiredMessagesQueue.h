@@ -53,6 +53,8 @@ public:
     const size_t size() const
         noexcept;
 
+    bool checkIfNeedResendMessages();
+
 protected:
     /**
      * Sets re-sending timeout to the default value.
@@ -66,6 +68,9 @@ protected: // messages handlers
 
     void updateResultMaxFlowFromGatewayNotificationInTheQueue(
         ResultMaxFlowCalculationGatewayMessage::Shared message);
+
+protected:
+    const uint8_t kMaxCountResendingAttempts = 3;
 
 protected:
     // Stores messages queue bykMessagesDeserializationDelayedSecondsTime the ConfirmationID.
@@ -86,6 +91,7 @@ protected:
 
     NodeUUID mContractorUUID;
 
+    uint8_t mCountResendingAttempts;
 };
 
 

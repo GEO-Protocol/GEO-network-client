@@ -33,6 +33,9 @@ public:
 
     void resetInitiatorCache();
 
+    void removeCache(
+        const NodeUUID &nodeUUID);
+
 private:
     static const byte kResetSenderCacheHours = 0;
     static const byte kResetSenderCacheMinutes = 10;
@@ -60,6 +63,8 @@ private:
 
 private:
     LoggerStream info() const;
+
+    LoggerStream warning() const;
 
     const string logHeader() const;
 
