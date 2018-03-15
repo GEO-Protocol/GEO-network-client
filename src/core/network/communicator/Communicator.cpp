@@ -52,6 +52,11 @@ Communicator::Communicator(
         make_unique<ConfirmationRequiredMessagesHandler>(
             IOService,
             mCommunicatorStorageHandler.get(),
+            logger)),
+
+    mConfirmationNotStronglyRequiredMessagesHandler(
+        make_unique<ConfirmationNotStronglyRequiredMessagesHandler>(
+            IOService,
             logger))
 {
     // Direct signals chaining.
@@ -64,6 +69,12 @@ Communicator::Communicator(
     mConfirmationRequiredMessagesHandler->signalOutgoingMessageReady.connect(
         boost::bind(
             &Communicator::onConfirmationRequiredMessageReadyToResend,
+            this,
+            _1));
+
+    mConfirmationNotStronglyRequiredMessagesHandler->signalOutgoingMessageReady.connect(
+        boost::bind(
+            &Communicator::onConfirmationNotStronglyRequiredMessageReadyToResend,
             this,
             _1));
 }
@@ -122,6 +133,10 @@ void Communicator::sendMessage (
         contractorUUID,
         message);
 
+    mConfirmationNotStronglyRequiredMessagesHandler->tryEnqueueMessage(
+        contractorUUID,
+        message);
+
     mOutgoingMessagesHandler->sendMessage(
         message,
         contractorUUID);
@@ -139,9 +154,33 @@ void Communicator::processConfirmationMessage(
 void Communicator::onMessageReceived(
     Message::Shared message)
 {
+    // these messages contain parts of topology and after theirs receiving we should send confirmation
+    if (message->typeID() == 405 || message->typeID() == 406) {
+        const auto kResultMaxFlowCalculationMessage =
+                static_pointer_cast<MaxFlowCalculationConfirmationMessage>(message);
+        sendMessage(
+            make_shared<MaxFlowCalculationConfirmationMessage>(
+                mNodeUUID,
+                kResultMaxFlowCalculationMessage->confirmationID()),
+            kResultMaxFlowCalculationMessage->senderUUID);
+    }
+
+    // In case if received message is of type "max flow confirmation message" -
+    // then it must not be transferred for further processing.
+    // Instead of that, it must be transferred for processing into
+    // confirmation not strongly required messages handler.
+    else if (message->typeID() == Message::MaxFlow_Confirmation) {
+        const auto kConfirmationMessage =
+                static_pointer_cast<MaxFlowCalculationConfirmationMessage>(message);
+            mConfirmationNotStronglyRequiredMessagesHandler->tryProcessConfirmation(
+                kConfirmationMessage->senderUUID,
+                kConfirmationMessage);
+            return;
+    }
+
     // these messages are inherited from DestinationMessage
     // and should be checked if they were delivered on address
-    if (message->typeID() >= 100 && message->typeID() <= 102) {
+    else if (message->typeID() >= 100 && message->typeID() <= 102) {
         const auto kDestinationMessage =
             static_pointer_cast<DestinationMessage>(message);
         if (kDestinationMessage->destinationUUID() != mNodeUUID) {
@@ -158,7 +197,7 @@ void Communicator::onMessageReceived(
     // then it must not be transferred for further processing.
     // Instead of that, it must be transferred for processing into
     // confirmation required messages handler.
-    if (message->typeID() == Message::System_Confirmation) {
+    else if (message->typeID() == Message::System_Confirmation) {
         const auto kConfirmationMessage =
             static_pointer_cast<ConfirmationMessage>(message);
         if (kConfirmationMessage->state() != ConfirmationMessage::ContractorBanned) {
@@ -173,11 +212,21 @@ void Communicator::onMessageReceived(
 }
 
 void Communicator::onConfirmationRequiredMessageReadyToResend(
-    pair<NodeUUID, TransactionMessage::Shared> adreseeAndMessage)
+    pair<NodeUUID, TransactionMessage::Shared> addresseeAndMessage)
 {
     mOutgoingMessagesHandler->sendMessage(
-        static_pointer_cast<Message>(adreseeAndMessage.second),
-        adreseeAndMessage.first);
+        static_pointer_cast<Message>(
+            addresseeAndMessage.second),
+        addresseeAndMessage.first);
+}
+
+void Communicator::onConfirmationNotStronglyRequiredMessageReadyToResend(
+    pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared> addresseeAndMessage)
+{
+    mOutgoingMessagesHandler->sendMessage(
+        static_pointer_cast<Message>(
+            addresseeAndMessage.second),
+        addresseeAndMessage.first);
 }
 
 string Communicator::logHeader()

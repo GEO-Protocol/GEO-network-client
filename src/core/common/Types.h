@@ -44,4 +44,6 @@ typedef uint16_t PathID;
 typedef uint8_t SerializedPathLengthSize;
 typedef SerializedPathLengthSize SerializedPositionInPath;
 
+typedef uint16_t ConfirmationID;
+
 #endif //GEO_NETWORK_CLIENT_TYPES_H

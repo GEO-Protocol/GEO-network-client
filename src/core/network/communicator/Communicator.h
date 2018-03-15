@@ -7,6 +7,7 @@
 #include "internal/outgoing/OutgoingMessagesHandler.h"
 #include "internal/incoming/IncomingMessagesHandler.h"
 #include "internal/queue/ConfirmationRequiredMessagesHandler.h"
+#include "internal/queue/ConfirmationNotStronglyRequiredMessagesHandler.h"
 #include "../../io/storage/StorageHandler.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "internal/uuid2address/UUID2Address.h"
@@ -64,7 +65,8 @@ protected:
     void onConfirmationRequiredMessageReadyToResend(
         pair<NodeUUID, TransactionMessage::Shared>);
 
-    void deserializeAndResendMessages();
+    void onConfirmationNotStronglyRequiredMessageReadyToResend(
+        pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared>);
 
     static string logHeader()
     noexcept;
@@ -85,6 +87,7 @@ protected:
     unique_ptr<IncomingMessagesHandler> mIncomingMessagesHandler;
     unique_ptr<OutgoingMessagesHandler> mOutgoingMessagesHandler;
     unique_ptr<ConfirmationRequiredMessagesHandler> mConfirmationRequiredMessagesHandler;
+    unique_ptr<ConfirmationNotStronglyRequiredMessagesHandler> mConfirmationNotStronglyRequiredMessagesHandler;
 };
 
 

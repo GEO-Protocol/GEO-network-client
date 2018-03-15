@@ -1,13 +1,13 @@
 #ifndef GEO_NETWORK_CLIENT_RESULTMAXFLOWCALCULATIONMESSAGE_H
 #define GEO_NETWORK_CLIENT_RESULTMAXFLOWCALCULATIONMESSAGE_H
 
-#include "../SenderMessage.h"
+#include "../base/max_flow_calculation/MaxFlowCalculationConfirmationMessage.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
 
 #include <vector>
 
 class ResultMaxFlowCalculationMessage:
-    public SenderMessage {
+    public MaxFlowCalculationConfirmationMessage {
 
 public:
     typedef shared_ptr<ResultMaxFlowCalculationMessage> Shared;

@@ -5,7 +5,9 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows) :
 
-    SenderMessage(senderUUID),
+    MaxFlowCalculationConfirmationMessage(
+        senderUUID,
+        0),
     mOutgoingFlows(outgoingFlows),
     mIncomingFlows(incomingFlows)
 {}
@@ -13,9 +15,9 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
 ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
     BytesShared buffer):
 
-    SenderMessage(buffer)
+    MaxFlowCalculationConfirmationMessage(buffer)
 {
-    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
+    size_t bytesBufferOffset = MaxFlowCalculationConfirmationMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     SerializedRecordsCount *trustLinesOutCount = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
     bytesBufferOffset += sizeof(SerializedRecordsCount);
@@ -66,7 +68,7 @@ const Message::MessageType ResultMaxFlowCalculationMessage::typeID() const
 pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() const
     throw(bad_alloc)
 {
-    auto parentBytesAndCount = SenderMessage::serializeToBytes();
+    auto parentBytesAndCount = MaxFlowCalculationConfirmationMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(SerializedRecordsCount) + mOutgoingFlows.size()
                                                            * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount)

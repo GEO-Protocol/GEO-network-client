@@ -274,8 +274,8 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
 }
 
 void ConfirmationRequiredMessagesHandler::tryEnqueueMessageWithoutConnectingSignalsToSlots(
-        const NodeUUID &contractorUUID,
-        const Message::Shared message)
+    const NodeUUID &contractorUUID,
+    const Message::Shared message)
 {
     if (message->typeID() == Message::TrustLines_SetIncoming
         or message->typeID() == Message::TrustLines_CloseOutgoing

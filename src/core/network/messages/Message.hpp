@@ -80,6 +80,7 @@ public:
         MaxFlow_CalculationTargetSecondLevel = 404,
         MaxFlow_ResultMaxFlowCalculation = 405,
         MaxFlow_ResultMaxFlowCalculationFromGateway = 406,
+        MaxFlow_Confirmation = 407,
 
         /*
          * Empty slot with codes 500-599

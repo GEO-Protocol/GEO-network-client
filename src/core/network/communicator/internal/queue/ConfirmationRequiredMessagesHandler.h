@@ -44,10 +44,6 @@ namespace as = boost::asio;
  *
  * But, it would be much more efficient, if remote node might send "I'm online message" to it's contractors,
  * and them would know that it's time to try to send postponed messages once more.
- *
- * ---------------------------------------------------------------------------------------------------------
- * ToDo: disk backed queues.
- * Postponed messages must be restored after the node restart.
  */
 class ConfirmationRequiredMessagesHandler:
     protected LoggerMixin {
