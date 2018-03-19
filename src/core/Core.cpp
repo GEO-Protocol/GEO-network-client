@@ -324,8 +324,7 @@ void Core::connectCommunicatorSignals()
         boost::bind(
             &Core::onProcessConfirmationMessageSlot,
             this,
-            _1,
-            _2));
+            _1));
 }
 
 void Core::connectResourcesManagerSignals()
@@ -468,11 +467,9 @@ void Core::onResourceCollectedSlot(
 }
 
 void Core::onProcessConfirmationMessageSlot(
-    const NodeUUID &contractorUUID,
     ConfirmationMessage::Shared confirmationMessage)
 {
     mCommunicator->processConfirmationMessage(
-        contractorUUID,
         confirmationMessage);
 }
 

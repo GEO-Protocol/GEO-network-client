@@ -30,6 +30,7 @@ public:
 
 public:
     ConfirmationRequiredMessagesQueue(
+        const SerializedEquivalent equivalent,
         const NodeUUID &contractorUUID)
         noexcept;
 
@@ -41,8 +42,8 @@ public:
         TransactionMessage::Shared message);
 
     /**
-     * Cancels resending of the message with transaction UUID = "trasnactionUUID".
-     * @returns true in case if queue was containing appropriate message, otherwase - returns fasle.
+     * Cancels resending of the message with transaction UUID = "transactionUUID".
+     * @returns true in case if queue was containing appropriate message, otherwise - returns false.
      */
     bool tryProcessConfirmation(
         ConfirmationMessage::Shared confirmationMessage);
@@ -112,6 +113,7 @@ protected:
     DateTime mNextSendingAttemptDateTime;
 
     NodeUUID mContractorUUID;
+    SerializedEquivalent mEquivalent;
 };
 
 #endif // CONFIRMATIONREQUIREDMESSAGESQUEUE_H

@@ -122,7 +122,7 @@ namespace signals = boost::signals2;
 class TransactionsManager {
 public:
     signals::signal<void(Message::Shared, const NodeUUID&)> transactionOutgoingMessageReadySignal;
-    signals::signal<void(const NodeUUID&, ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
+    signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
 
 public:
     TransactionsManager(
@@ -419,7 +419,6 @@ protected:
         const SerializedEquivalent equivalent);
 
     void onProcessConfirmationMessageSlot(
-        const NodeUUID &contractorUUID,
         ConfirmationMessage::Shared confirmationMessage);
 
     void onUpdatingRoutingTableSlot(

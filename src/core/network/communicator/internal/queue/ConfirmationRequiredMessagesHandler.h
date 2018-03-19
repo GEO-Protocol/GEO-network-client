@@ -27,7 +27,7 @@ namespace as = boost::asio;
  * otherwise, current node must re-send it until remote node would not process it and send confirmation back.
  *
  * This mechanism allows to force processing of some events by the remote nodes,
- * and is useful for preventing various types of desynchronysations.
+ * and is useful for preventing various types of desynchronisations.
  *
  * This handler is used for storing and processing queues of the messages,
  * that must be confirmed by the remote nodes. Messages are sent once in a timeout.
@@ -69,7 +69,7 @@ public:
      * enqueues it for further processing. If there is no queue for the "contractor" -
      * it would be created.
      *
-     * (This method might be expended with othe messages types).
+     * (This method might be expended with other messages types).
      *
      * @param contractorUUID - remote node UUID.
      * @param message - message that must be confirmed by the remote node.
@@ -79,13 +79,12 @@ public:
         const Message::Shared message);
 
     /**
-     * Tries to find corresponding postponed message to the recevied confirmation message.
+     * Tries to find corresponding postponed message to the received confirmation message.
      * In case of success - postponed message would be removed from the queue, as confirmed.
      *
      * @param contractorUUID - UUID of the remote node, that sent confirmation.
      */
     void tryProcessConfirmation(
-        const NodeUUID &contractorUUID,
         const ConfirmationMessage::Shared confirmationMessage);
 
 protected:
@@ -94,7 +93,7 @@ protected:
 
     /**
      * @returns timestamp, when next timer awakeness must be performed.
-     * This method checks all queues and returns the smalles one time duration,
+     * This method checks all queues and returns the smallest one time duration,
      * between now and queue timeout.
      */
     const DateTime closestQueueSendingTimestamp() const
@@ -138,7 +137,7 @@ protected:
      * Current GCC realisation of the "map" and "unordered_map"
      * makes simple "map" faster up to several thousand of items.
      */
-    map<NodeUUID, ConfirmationRequiredMessagesQueue::Shared> mQueues;
+    map<pair<SerializedEquivalent, NodeUUID>, ConfirmationRequiredMessagesQueue::Shared> mQueues;
 
     IOService &mIOService;
 

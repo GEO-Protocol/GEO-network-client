@@ -29,7 +29,7 @@ public:
         ConfirmationID confirmationID);
 
     /**
-     * Cancels resending of the message with transaction UUID = "trasnactionUUID".
+     * Cancels resending of the message with transaction UUID = "transactionUUID".
      * @returns true in case if queue was containing appropriate message, otherwise - returns false.
      */
     bool tryProcessConfirmation(

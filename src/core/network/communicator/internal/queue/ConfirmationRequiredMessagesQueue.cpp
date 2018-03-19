@@ -2,8 +2,10 @@
 
 
 ConfirmationRequiredMessagesQueue::ConfirmationRequiredMessagesQueue(
+    const SerializedEquivalent equivalent,
     const NodeUUID &contractorUUID)
     noexcept:
+    mEquivalent(equivalent),
     mContractorUUID(contractorUUID)
 {
     resetInternalTimeout();

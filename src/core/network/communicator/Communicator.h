@@ -50,7 +50,6 @@ public:
         noexcept;
 
     void processConfirmationMessage(
-        const NodeUUID &contractorUUID,
         ConfirmationMessage::Shared confirmationMessage);
 
 protected:

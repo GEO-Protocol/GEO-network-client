@@ -37,7 +37,7 @@ public:
 
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
-    typedef signals::signal<void(const NodeUUID&, ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
+    typedef signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
 
 public:
     // TODO: add other states shortcuts here
@@ -232,11 +232,9 @@ protected:
     }
 
     void processConfirmationMessage(
-        const NodeUUID &contractorUUID,
         const ConfirmationMessage::Shared confirmationMessage)
     {
         processConfirmationMessageSignal(
-            contractorUUID,
             confirmationMessage);
     }
 

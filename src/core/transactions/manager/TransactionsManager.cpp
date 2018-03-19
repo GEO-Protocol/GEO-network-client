@@ -1718,8 +1718,7 @@ void TransactionsManager::subscribeForProcessingConfirmationMessage(
         boost::bind(
             &TransactionsManager::onProcessConfirmationMessageSlot,
             this,
-            _1,
-            _2));
+            _1));
 }
 
 void TransactionsManager::subscribeForUpdatingRoutingTable(
@@ -1846,11 +1845,9 @@ void TransactionsManager::onTryCloseNextCycleSlot(
 }
 
 void TransactionsManager::onProcessConfirmationMessageSlot(
-    const NodeUUID &contractorUUID,
     ConfirmationMessage::Shared confirmationMessage)
 {
     ProcessConfirmationMessageSignal(
-        contractorUUID,
         confirmationMessage);
 }
 

@@ -30,8 +30,12 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
 
         // Appropriate message occurred and must be enqueued.
         // In case if no queue is present for this contractor - new one must be created.
-        if (mQueues.count(contractorUUID) == 0) {
+        const auto queueKey = make_pair(
+            message->equivalent(),
+            contractorUUID);
+        if (mQueues.count(queueKey) == 0) {
             auto newQueue = make_shared<ConfirmationRequiredMessagesQueue>(
+                queueKey.first,
                 contractorUUID);
             newQueue->signalSaveMessageToStorage.connect(
                 boost::bind(
@@ -45,16 +49,17 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
                     this,
                     _1,
                     _2));
-            mQueues[contractorUUID] = newQueue;
+            mQueues[queueKey] = newQueue;
         }
 
         ioTransactionUnique = mCommunicatorStorageHandler->beginTransactionUnique();
-        mQueues[contractorUUID]->enqueue(
+        mQueues[queueKey]->enqueue(
             static_pointer_cast<TransactionMessage>(message));
         ioTransactionUnique = nullptr;
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        debug() << "Message of type " << message->typeID() << " enqueued for confirmation receiving.";
+        debug() << "Message of type " << message->typeID() << " for equivalent " message->equivalent()
+                << " enqueued for confirmation receiving.";
 #endif
 
         if (mQueues.size() == 1
@@ -67,29 +72,31 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
 }
 
 void ConfirmationRequiredMessagesHandler::tryProcessConfirmation(
-    const NodeUUID &contractorUUID,
     const ConfirmationMessage::Shared confirmationMessage)
 {
-    if (mQueues.count(contractorUUID) == 0) {
-        // No queue is present for this contractor.
-        // No enqueued messages are present.
+    const auto queueKey = make_pair(
+        confirmationMessage->equivalent(),
+        confirmationMessage->senderUUID);
+    if (mQueues.count(queueKey) == 0) {
+        warning() << "tryProcessConfirmation: no queue is present for contractor "
+                  << queueKey.second << " on equivalent " << queueKey.first;
         return;
     }
 
-    auto queue = mQueues[contractorUUID];
+    auto queue = mQueues[queueKey];
     if (queue->tryProcessConfirmation(confirmationMessage)) {
 
         if (confirmationMessage->state() == ConfirmationMessage::ErrorShouldBeRemovedFromQueue) {
-            warning() << "Contractor " << contractorUUID << " reject this message";
+            warning() << "Contractor " << queueKey.second << " reject this message";
         }
 
         if (confirmationMessage->state() == ConfirmationMessage::ContractorBanned) {
-            info() << "Contractor " << contractorUUID << " reject incoming TL";
+            info() << "Contractor " << queueKey.second << " reject incoming TL";
         }
 
         auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
         ioTransaction->communicatorMessagesQueueHandler()->deleteRecord(
-            contractorUUID,
+            queueKey.second,
             confirmationMessage->transactionUUID());
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
@@ -100,7 +107,7 @@ void ConfirmationRequiredMessagesHandler::tryProcessConfirmation(
         // In case if last message was removed from the queue -
         // the queue itself must be removed too.
         if (queue->size() == 0) {
-            mQueues.erase(contractorUUID);
+            mQueues.erase(queueKey);
         }
     }
 }
@@ -169,7 +176,7 @@ void ConfirmationRequiredMessagesHandler::sendPostponedMessages() const
     const auto now = utc_now();
 
     for (const auto &contractorUUIDAndQueue : mQueues) {
-        const auto kContractor = contractorUUIDAndQueue.first;
+        const auto kContractor = contractorUUIDAndQueue.first.second;
         const auto kQueue = contractorUUIDAndQueue.second;
 
         if (kQueue->nextSendingAttemptDateTime() > now) {
@@ -291,19 +298,24 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessageWithoutConnectingSign
 
         // Appropriate message occurred and must be enqueued.
         // In case if no queue is present for this contractor - new one must be created.
-        if (mQueues.count(contractorUUID) == 0) {
+        const auto queueKey = make_pair(
+            message->equivalent(),
+            contractorUUID);
+        if (mQueues.count(queueKey) == 0) {
             auto newQueue = make_shared<ConfirmationRequiredMessagesQueue>(
+                queueKey.first,
                 contractorUUID);
-            mQueues[contractorUUID] = newQueue;
+            mQueues[queueKey] = newQueue;
         }
 
         ioTransactionUnique = mCommunicatorStorageHandler->beginTransactionUnique();
-        mQueues[contractorUUID]->enqueue(
+        mQueues[queueKey]->enqueue(
             static_pointer_cast<TransactionMessage>(message));
         ioTransactionUnique = nullptr;
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        debug() << "Message of type " << message->typeID() << " enqueued for confirmation receiving.";
+        debug() << "Message of type " << message->typeID() << " for equivalent " message->equivalent()
+                << " enqueued for confirmation receiving.";
 #endif
     }
 }

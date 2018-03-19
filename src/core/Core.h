@@ -92,7 +92,6 @@ private:
         const NodeUUID &contractorUUID);
 
     void onProcessConfirmationMessageSlot(
-        const NodeUUID &contractorUUID,
         ConfirmationMessage::Shared confirmationMessage);
 
     void onPathsResourceRequestedSlot(

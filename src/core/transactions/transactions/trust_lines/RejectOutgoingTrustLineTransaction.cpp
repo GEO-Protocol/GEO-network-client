@@ -43,14 +43,12 @@ TransactionResult::SharedConst RejectOutgoingTrustLineTransaction::run()
             mEquivalent);
 
         processConfirmationMessage(
-            kContractor,
             mMessage);
         info() << "Outgoing TL to the node " << kContractor << " successfully rejected";
         return resultDone();
     } catch (NotFoundError &e) {
         warning() << "Can't reject outgoing TL because absence. Details are: " << e.what();
         processConfirmationMessage(
-            kContractor,
             mMessage);
         return resultDone();
     } catch (IOError &e) {
