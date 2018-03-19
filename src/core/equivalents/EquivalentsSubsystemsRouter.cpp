@@ -173,7 +173,7 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
     if (mTrustLinesManagers.count(equivalent) != 0) {
         throw ValueError(
                 "EquivalentsCyclesSubsystemsRouter::initNewEquivalent: "
-                    "try init equivalent which is already exists");
+                    "try init equivalent " + to_string(equivalent) + " which is already exists");
     }
 
     mIAmGateways.insert(

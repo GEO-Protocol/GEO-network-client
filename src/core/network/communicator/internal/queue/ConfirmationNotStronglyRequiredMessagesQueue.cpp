@@ -1,8 +1,10 @@
 #include "ConfirmationNotStronglyRequiredMessagesQueue.h"
 
 ConfirmationNotStronglyRequiredMessagesQueue::ConfirmationNotStronglyRequiredMessagesQueue(
+    const SerializedEquivalent equivalent,
     const NodeUUID &contractorUUID)
     noexcept:
+    mEquivalent(equivalent),
     mContractorUUID(contractorUUID)
 {
     resetInternalTimeout();
@@ -16,14 +18,9 @@ void ConfirmationNotStronglyRequiredMessagesQueue::enqueue(
     message->setConfirmationID(
         confirmationID);
     switch (message->typeID()) {
-        case Message::MaxFlow_ResultMaxFlowCalculation: {
-            updateResultMaxFlowNotificationInTheQueue(
-                static_pointer_cast<ResultMaxFlowCalculationMessage>(message));
-            break;
-        }
+        case Message::MaxFlow_ResultMaxFlowCalculation:
         case Message::MaxFlow_ResultMaxFlowCalculationFromGateway: {
-            updateResultMaxFlowFromGatewayNotificationInTheQueue(
-                static_pointer_cast<ResultMaxFlowCalculationGatewayMessage>(message));
+            mMessages[message->confirmationID()] = message;
             break;
         }
         //todo : add logger and warning default case
@@ -77,16 +74,4 @@ bool ConfirmationNotStronglyRequiredMessagesQueue::checkIfNeedResendMessages()
         return false;
     }
     return true;
-}
-
-void ConfirmationNotStronglyRequiredMessagesQueue::updateResultMaxFlowNotificationInTheQueue(
-    ResultMaxFlowCalculationMessage::Shared message)
-{
-    mMessages[message->confirmationID()] = message;
-}
-
-void ConfirmationNotStronglyRequiredMessagesQueue::updateResultMaxFlowFromGatewayNotificationInTheQueue(
-    ResultMaxFlowCalculationGatewayMessage::Shared message)
-{
-    mMessages[message->confirmationID()] = message;
 }

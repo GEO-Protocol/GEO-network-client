@@ -1,10 +1,12 @@
 #include "MaxFlowCalculationConfirmationMessage.h"
 
 MaxFlowCalculationConfirmationMessage::MaxFlowCalculationConfirmationMessage(
+    const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const ConfirmationID confirmationID) :
 
     SenderMessage(
+        equivalent,
         senderUUID),
     mConfirmationID(confirmationID)
 {}

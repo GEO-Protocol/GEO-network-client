@@ -82,7 +82,8 @@ Communicator::Communicator(
         boost::bind(
             &Communicator::onClearTopologyCache,
             this,
-            _1));
+            _1,
+            _2));
 }
 
 /**
@@ -166,6 +167,7 @@ void Communicator::onMessageReceived(
                 static_pointer_cast<MaxFlowCalculationConfirmationMessage>(message);
         sendMessage(
             make_shared<MaxFlowCalculationConfirmationMessage>(
+                kResultMaxFlowCalculationMessage->equivalent(),
                 mNodeUUID,
                 kResultMaxFlowCalculationMessage->confirmationID()),
             kResultMaxFlowCalculationMessage->senderUUID);
@@ -179,7 +181,6 @@ void Communicator::onMessageReceived(
         const auto kConfirmationMessage =
                 static_pointer_cast<MaxFlowCalculationConfirmationMessage>(message);
             mConfirmationNotStronglyRequiredMessagesHandler->tryProcessConfirmation(
-                kConfirmationMessage->senderUUID,
                 kConfirmationMessage);
             return;
     }
@@ -236,9 +237,12 @@ void Communicator::onConfirmationNotStronglyRequiredMessageReadyToResend(
 }
 
 void Communicator::onClearTopologyCache(
+    const SerializedEquivalent equivalent,
     const NodeUUID &nodeUUID)
 {
-    signalClearTopologyCache(nodeUUID);
+    signalClearTopologyCache(
+        equivalent,
+        nodeUUID);
 }
 
 string Communicator::logHeader()

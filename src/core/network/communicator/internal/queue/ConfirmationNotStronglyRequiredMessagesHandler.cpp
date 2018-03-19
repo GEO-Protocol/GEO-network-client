@@ -21,19 +21,25 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryEnqueueMessage(
 
         // Appropriate message occurred and must be enqueued.
         // In case if no queue is present for this contractor - new one must be created.
-        if (mQueues.count(contractorUUID) == 0) {
+        const auto equivalent = message->equivalent();
+        const auto queueKey = make_pair(
+            equivalent,
+            contractorUUID);
+        if (mQueues.count(queueKey) == 0) {
             auto newQueue = make_shared<ConfirmationNotStronglyRequiredMessagesQueue>(
+                equivalent,
                 contractorUUID);
-            mQueues[contractorUUID] = newQueue;
+            mQueues[queueKey] = newQueue;
         }
 
-        mQueues[contractorUUID]->enqueue(
+        mQueues[queueKey]->enqueue(
             static_pointer_cast<MaxFlowCalculationConfirmationMessage>(message),
             mCurrentConfirmationID);
         mCurrentConfirmationID++;
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        debug() << "Message of type " << message->typeID() << " enqueued for not strongly confirmation receiving.";
+        debug() << "Message of type " << message->typeID() << " for equivalent " << equivalent
+                << " enqueued for not strongly confirmation receiving.";
 #endif
 
         if (mQueues.size() == 1
@@ -46,15 +52,18 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryEnqueueMessage(
 }
 
 void ConfirmationNotStronglyRequiredMessagesHandler::tryProcessConfirmation(
-    const NodeUUID &contractorUUID,
     const MaxFlowCalculationConfirmationMessage::Shared confirmationMessage)
 {
-    if (mQueues.count(contractorUUID) == 0) {
-        warning() << "tryProcessConfirmation: no queue is present for contractor " << contractorUUID;
+    const auto queueKey = make_pair(
+        confirmationMessage->equivalent(),
+        confirmationMessage->senderUUID);
+    if (mQueues.count(queueKey) == 0) {
+        warning() << "tryProcessConfirmation: no queue is present for contractor "
+                  << queueKey.second << " on equivalent " << queueKey.first;
         return;
     }
 
-    auto queue = mQueues[contractorUUID];
+    auto queue = mQueues[queueKey];
     if (queue->tryProcessConfirmation(confirmationMessage)) {
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
@@ -65,7 +74,7 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryProcessConfirmation(
         // In case if last message was removed from the queue -
         // the queue itself must be removed too.
         if (queue->size() == 0) {
-            mQueues.erase(contractorUUID);
+            mQueues.erase(queueKey);
         }
     } else {
         warning() << "tryProcessConfirmation: can't process";
@@ -136,12 +145,15 @@ void ConfirmationNotStronglyRequiredMessagesHandler::sendPostponedMessages()
     const auto now = utc_now();
 
     for (const auto &contractorUUIDAndQueue : mQueues) {
-        auto kContractor = contractorUUIDAndQueue.first;
+        auto kEquivalent = contractorUUIDAndQueue.first.first;
+        auto kContractor = contractorUUIDAndQueue.first.second;
         const auto kQueue = contractorUUIDAndQueue.second;
 
         if (!kQueue->checkIfNeedResendMessages()) {
-            signalClearTopologyCache(kContractor);
-            mQueues.erase(kContractor);
+            signalClearTopologyCache(
+                kEquivalent,
+                kContractor);
+            mQueues.erase(contractorUUIDAndQueue.first);
             continue;
         }
 

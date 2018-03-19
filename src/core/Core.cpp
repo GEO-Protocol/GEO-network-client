@@ -309,7 +309,8 @@ void Core::connectCommunicatorSignals()
         boost::bind(
             &Core::onClearTopologyCacheSlot,
             this,
-            _1));
+            _1,
+            _2));
 
     //transactions manager's to communicator slot
     mTransactionsManager->transactionOutgoingMessageReadySignal.connect(
@@ -405,10 +406,15 @@ void Core::onMessageReceivedSlot(
 }
 
 void Core::onClearTopologyCacheSlot(
+    const SerializedEquivalent equivalent,
     const NodeUUID &nodeUUID)
 {
-    mMaxFlowCalculationCacheManager->removeCache(
-        nodeUUID);
+    try {
+        mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent)->removeCache(nodeUUID);
+    } catch (NotFoundError &e) {
+        error() << "There are no topologyCacheManager for onClearTopologyCacheSlot "
+                "with equivalent " << equivalent << " Details are: " << e.what();
+    }
 }
 
 void Core::onMessageSendSlot(

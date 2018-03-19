@@ -81,6 +81,7 @@ private:
         BaseUserCommand::Shared command);
 
     void onClearTopologyCacheSlot(
+        const SerializedEquivalent equivalent,
         const NodeUUID &nodeUUID);
 
     void onMessageReceivedSlot(

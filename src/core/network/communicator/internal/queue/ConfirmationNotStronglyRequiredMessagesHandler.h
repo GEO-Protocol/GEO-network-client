@@ -27,7 +27,7 @@ public:
      */
     signals::signal<void(pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared>)> signalOutgoingMessageReady;
 
-    signals::signal<void(const NodeUUID&)> signalClearTopologyCache;
+    signals::signal<void(const SerializedEquivalent, const NodeUUID&)> signalClearTopologyCache;
 
 public:
     ConfirmationNotStronglyRequiredMessagesHandler(
@@ -56,7 +56,6 @@ public:
      * @param contractorUUID - UUID of the remote node, that sent confirmation.
      */
     void tryProcessConfirmation(
-        const NodeUUID &contractorUUID,
         const MaxFlowCalculationConfirmationMessage::Shared confirmationMessage);
 
 protected:
@@ -90,7 +89,7 @@ protected:
      * Current GCC realisation of the "map" and "unordered_map"
      * makes simple "map" faster up to several thousand of items.
      */
-    map<NodeUUID, ConfirmationNotStronglyRequiredMessagesQueue::Shared> mQueues;
+    map<pair<SerializedEquivalent, NodeUUID>, ConfirmationNotStronglyRequiredMessagesQueue::Shared> mQueues;
 
     IOService &mIOService;
 

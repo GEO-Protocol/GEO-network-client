@@ -240,7 +240,7 @@ void TopologyTrustLinesManager::printTrustLines() const
     info() << "print\t" << "timesMap size: " << mtTrustLines.size();
     for (const auto &timeAndTrustLine : mtTrustLines) {
         info() << "print\t" << "key: " << timeAndTrustLine.first;
-        auto trustLine = timeAndTrustLine.second->maxFlowCalculationtrustLine();
+        auto trustLine = timeAndTrustLine.second->topologyTrustLine();
         info() << "print\t" << "value: " << trustLine->targetUUID() << " " << *trustLine->amount().get()
                << " free amount: " << *trustLine->freeAmount();
     }

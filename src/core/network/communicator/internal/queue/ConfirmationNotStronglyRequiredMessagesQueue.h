@@ -16,6 +16,7 @@ public:
 
 public:
     ConfirmationNotStronglyRequiredMessagesQueue(
+        const SerializedEquivalent equivalent,
         const NodeUUID &contractorUUID)
         noexcept;
 
@@ -62,13 +63,6 @@ protected:
     void resetInternalTimeout()
         noexcept;
 
-protected: // messages handlers
-    void updateResultMaxFlowNotificationInTheQueue(
-        ResultMaxFlowCalculationMessage::Shared message);
-
-    void updateResultMaxFlowFromGatewayNotificationInTheQueue(
-        ResultMaxFlowCalculationGatewayMessage::Shared message);
-
 protected:
     const uint8_t kMaxCountResendingAttempts = 3;
 
@@ -90,6 +84,7 @@ protected:
     DateTime mNextSendingAttemptDateTime;
 
     NodeUUID mContractorUUID;
+    SerializedEquivalent mEquivalent;
 
     uint8_t mCountResendingAttempts;
 };

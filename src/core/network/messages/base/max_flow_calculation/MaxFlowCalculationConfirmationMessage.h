@@ -10,6 +10,7 @@ public:
 
 public:
     MaxFlowCalculationConfirmationMessage(
+        const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const ConfirmationID confirmationID);
 

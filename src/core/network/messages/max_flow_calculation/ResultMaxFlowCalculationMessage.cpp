@@ -7,6 +7,7 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows) :
 
     MaxFlowCalculationConfirmationMessage(
+        equivalent,
         senderUUID,
         0),
     mOutgoingFlows(outgoingFlows),
