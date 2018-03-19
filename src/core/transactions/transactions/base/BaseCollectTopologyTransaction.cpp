@@ -67,6 +67,7 @@ void BaseCollectTopologyTransaction::fillTopology()
             const auto kMessage = popNextMessage<ResultMaxFlowCalculationMessage>();
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
             info() << "Sender " << kMessage->senderUUID << " common";
+            info() << "ConfirmationID " << kMessage->confirmationID();
 #endif
             for (auto const &outgoingFlow : kMessage->outgoingFlows()) {
                 mTopologyTrustLineManager->addTrustLine(

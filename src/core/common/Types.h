@@ -44,6 +44,8 @@ typedef uint16_t PathID;
 typedef uint8_t SerializedPathLengthSize;
 typedef SerializedPathLengthSize SerializedPositionInPath;
 
+typedef uint16_t ConfirmationID;
+
 //equivalents
 typedef uint32_t SerializedEquivalent;
 

@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
         MaxFlowCalculationMessage.cpp
-        MaxFlowCalculationMessage.h)
+        MaxFlowCalculationMessage.h
+
+        MaxFlowCalculationConfirmationMessage.h
+        MaxFlowCalculationConfirmationMessage.cpp)
 
 add_library(messages__base__max_flow_calculation ${SOURCE_FILES})
 

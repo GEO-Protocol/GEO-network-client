@@ -154,6 +154,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::MaxFlow_CalculationTargetSecondLevel:
             return messageCollected<MaxFlowCalculationTargetSndLevelMessage>(buffer);
 
+        case Message::MaxFlow_Confirmation:
+            return messageCollected<MaxFlowCalculationConfirmationMessage>(buffer);
+
         /*
          * RoutingTables
          */

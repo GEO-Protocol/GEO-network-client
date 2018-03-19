@@ -108,7 +108,7 @@ protected:
     uint16_t mNextTimeoutSeconds;
 
     // Stores date time, when messages from this queue must be sent to the remote node.
-    // On each sending attempt this temout must be increased by the mNextTiemoutSeconds.
+    // On each sending attempt this timeout must be increased by the mNextTimeoutSeconds.
     DateTime mNextSendingAttemptDateTime;
 
     NodeUUID mContractorUUID;

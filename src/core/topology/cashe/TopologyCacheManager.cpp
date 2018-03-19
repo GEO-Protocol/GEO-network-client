@@ -15,8 +15,14 @@ void TopologyCacheManager::addCache(
     TopologyCache::Shared cache)
 {
     NodeUUID* nodeUUIDPtr = new NodeUUID(keyUUID);
-    mCaches.insert(make_pair(*nodeUUIDPtr, cache));
-    msCache.insert(make_pair(utc_now(), nodeUUIDPtr));
+    mCaches.insert(
+        make_pair(
+            *nodeUUIDPtr,
+            cache));
+    msCache.insert(
+        make_pair(
+            utc_now(),
+            nodeUUIDPtr));
 }
 
 TopologyCache::Shared TopologyCacheManager::cacheByNode(
@@ -72,6 +78,24 @@ bool TopologyCacheManager::isInitiatorCached()
     return mInitiatorCache.first;
 }
 
+void TopologyCacheManager::removeCache(
+    const NodeUUID &nodeUUID)
+{
+    for (auto &timeAndNodeUUID : msCache) {
+        NodeUUID* keyUUIDPtr = timeAndNodeUUID.second;
+        if (*keyUUIDPtr == nodeUUID) {
+#ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
+            info() << "removeCache delete cache\t" << *keyUUIDPtr;
+#endif
+            mCaches.erase(*keyUUIDPtr);
+            msCache.erase(timeAndNodeUUID.first);
+            delete keyUUIDPtr;
+            return;
+        }
+    }
+    warning() << "no cache found for key " << nodeUUID;
+}
+
 DateTime TopologyCacheManager::closestTimeEvent() const
 {
     // if initiator cache is active then take initiator cache removing time as result closest time event
@@ -99,6 +123,11 @@ DateTime TopologyCacheManager::closestTimeEvent() const
 LoggerStream TopologyCacheManager::info() const
 {
     return mLog.info(logHeader());
+}
+
+LoggerStream TopologyCacheManager::warning() const
+{
+    return mLog.warning(logHeader());
 }
 
 const string TopologyCacheManager::logHeader() const

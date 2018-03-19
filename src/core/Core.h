@@ -80,6 +80,9 @@ private:
     void onCommandReceivedSlot(
         BaseUserCommand::Shared command);
 
+    void onClearTopologyCacheSlot(
+        const NodeUUID &nodeUUID);
+
     void onMessageReceivedSlot(
         Message::Shared message);
 

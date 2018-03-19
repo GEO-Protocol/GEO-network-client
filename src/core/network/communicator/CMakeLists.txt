@@ -44,7 +44,11 @@ set(SOURCE_FILES
         internal/queue/ConfirmationRequiredMessagesQueue.h
         internal/queue/ConfirmationRequiredMessagesQueue.cpp
         internal/queue/ConfirmationRequiredMessagesHandler.h
-        internal/queue/ConfirmationRequiredMessagesHandler.cpp)
+        internal/queue/ConfirmationRequiredMessagesHandler.cpp
+        internal/queue/ConfirmationNotStronglyRequiredMessagesHandler.h
+        internal/queue/ConfirmationNotStronglyRequiredMessagesHandler.cpp
+        internal/queue/ConfirmationNotStronglyRequiredMessagesQueue.h
+        internal/queue/ConfirmationNotStronglyRequiredMessagesQueue.cpp)
 
 
 add_library(network__communicator ${SOURCE_FILES})
