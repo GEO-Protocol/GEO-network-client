@@ -67,6 +67,11 @@ const Message::MessageType ResultMaxFlowCalculationMessage::typeID() const
     return Message::MessageType::MaxFlow_ResultMaxFlowCalculation;
 }
 
+const bool ResultMaxFlowCalculationMessage::isAddToConfirmationNotStronglyRequiredMessagesHandler() const
+{
+    return true;
+}
+
 pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() const
     throw(bad_alloc)
 {

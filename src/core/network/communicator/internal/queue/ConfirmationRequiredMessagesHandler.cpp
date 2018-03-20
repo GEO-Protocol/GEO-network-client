@@ -21,53 +21,53 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
     const NodeUUID &contractorUUID,
     const Message::Shared message)
 {
-    if (message->typeID() == Message::TrustLines_SetIncoming
-        or message->typeID() == Message::TrustLines_CloseOutgoing
-        or message->typeID() == Message::TrustLines_SetIncomingFromGateway
-        or message->typeID() == Message::GatewayNotification
-        or message->typeID() == Message::GatewayNotificationOneEquivalent
-        /* or <other message type here> */) {
-
-        // Appropriate message occurred and must be enqueued.
-        // In case if no queue is present for this contractor - new one must be created.
-        const auto queueKey = make_pair(
-            message->equivalent(),
+    // Only messages on which method isAddToConfirmationRequiredMessagesHandler returns true
+    // can be enqueued, so if you want add message to ConfirmationRequiredMessagesHandler,
+    // you should override this method
+    // In case if no queue is present for this contractor - new one must be created.
+    const auto queueKey = make_pair(
+        message->equivalent(),
+        contractorUUID);
+    if (mQueues.count(queueKey) == 0) {
+        auto newQueue = make_shared<ConfirmationRequiredMessagesQueue>(
+            queueKey.first,
             contractorUUID);
-        if (mQueues.count(queueKey) == 0) {
-            auto newQueue = make_shared<ConfirmationRequiredMessagesQueue>(
-                queueKey.first,
-                contractorUUID);
-            newQueue->signalSaveMessageToStorage.connect(
-                boost::bind(
-                    &ConfirmationRequiredMessagesHandler::addMessageToStorage,
-                    this,
-                    _1,
-                    _2));
-            newQueue->signalRemoveMessageFromStorage.connect(
-                boost::bind(
-                    &ConfirmationRequiredMessagesHandler::removeMessageFromStorage,
-                    this,
-                    _1,
-                    _2));
-            mQueues[queueKey] = newQueue;
-        }
+        newQueue->signalSaveMessageToStorage.connect(
+            boost::bind(
+                &ConfirmationRequiredMessagesHandler::addMessageToStorage,
+                this,
+                _1,
+                _2));
+        newQueue->signalRemoveMessageFromStorage.connect(
+            boost::bind(
+                &ConfirmationRequiredMessagesHandler::removeMessageFromStorage,
+                this,
+                _1,
+                _2,
+                _3));
+        mQueues[queueKey] = newQueue;
+    }
 
-        ioTransactionUnique = mCommunicatorStorageHandler->beginTransactionUnique();
-        mQueues[queueKey]->enqueue(
-            static_pointer_cast<TransactionMessage>(message));
-        ioTransactionUnique = nullptr;
+    ioTransactionUnique = mCommunicatorStorageHandler->beginTransactionUnique();
+    if (!mQueues[queueKey]->enqueue(
+        static_pointer_cast<TransactionMessage>(message))) {
+        warning() << "Can't enqueue message, invalid message type " << message->typeID();
+        if (mQueues[queueKey]->size() == 0) {
+            mQueues.erase(queueKey);
+        }
+    }
+    ioTransactionUnique = nullptr;
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        debug() << "Message of type " << message->typeID() << " for equivalent " message->equivalent()
-                << " enqueued for confirmation receiving.";
+    debug() << "Message of type " << message->typeID() << " for equivalent " message->equivalent()
+            << " enqueued for confirmation receiving.";
 #endif
 
-        if (mQueues.size() == 1
-            and mQueues.begin()->second->size() == 1) {
+    if (mQueues.size() == 1
+        and mQueues.begin()->second->size() == 1) {
 
-            // First message was added for further re-sending.
-            rescheduleResending();
-        }
+        // First message was added for further re-sending.
+        rescheduleResending();
     }
 }
 
@@ -87,11 +87,13 @@ void ConfirmationRequiredMessagesHandler::tryProcessConfirmation(
     if (queue->tryProcessConfirmation(confirmationMessage)) {
 
         if (confirmationMessage->state() == ConfirmationMessage::ErrorShouldBeRemovedFromQueue) {
-            warning() << "Contractor " << queueKey.second << " reject this message";
+            warning() << "Contractor " << queueKey.second << " reject message "
+                      << confirmationMessage->typeID() << " for equivalent " << queueKey.first;
         }
 
         if (confirmationMessage->state() == ConfirmationMessage::ContractorBanned) {
-            info() << "Contractor " << queueKey.second << " reject incoming TL";
+            info() << "Contractor " << queueKey.second << " reject incoming TL for equivalent "
+                   << queueKey.first;
         }
 
         auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
@@ -195,12 +197,13 @@ void ConfirmationRequiredMessagesHandler::sendPostponedMessages() const
 
 void ConfirmationRequiredMessagesHandler::addMessageToStorage(
     const NodeUUID &contractorUUID,
-    Message::Shared message)
+    TransactionMessage::Shared message)
 {
     auto bufferAndSize = message->serializeToBytes();
     ioTransactionUnique->communicatorMessagesQueueHandler()->saveRecord(
         contractorUUID,
-        (static_pointer_cast<TransactionMessage>(message))->transactionUUID(),
+        message->equivalent(),
+        message->transactionUUID(),
         message->typeID(),
         bufferAndSize.first,
         bufferAndSize.second);
@@ -208,10 +211,12 @@ void ConfirmationRequiredMessagesHandler::addMessageToStorage(
 
 void ConfirmationRequiredMessagesHandler::removeMessageFromStorage(
     const NodeUUID &contractorUUID,
+    const SerializedEquivalent equivalent,
     Message::SerializedType messageType)
 {
     ioTransactionUnique->communicatorMessagesQueueHandler()->deleteRecord(
         contractorUUID,
+        equivalent,
         messageType);
 }
 
@@ -274,7 +279,8 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
                 &ConfirmationRequiredMessagesHandler::removeMessageFromStorage,
                 this,
                 _1,
-                _2));
+                _2,
+                _3));
     }
     mDeserializationMessagesTimer->expires_from_now(
         chrono::seconds(
@@ -287,37 +293,31 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
 
 void ConfirmationRequiredMessagesHandler::tryEnqueueMessageWithoutConnectingSignalsToSlots(
     const NodeUUID &contractorUUID,
-    const Message::Shared message)
+    const TransactionMessage::Shared message)
 {
-    if (message->typeID() == Message::TrustLines_SetIncoming
-        or message->typeID() == Message::TrustLines_CloseOutgoing
-        or message->typeID() == Message::TrustLines_SetIncomingFromGateway
-        or message->typeID() == Message::GatewayNotification
-        or message->typeID() == Message::GatewayNotificationOneEquivalent
-        /* and <other message type here> */) {
-
-        // Appropriate message occurred and must be enqueued.
-        // In case if no queue is present for this contractor - new one must be created.
-        const auto queueKey = make_pair(
-            message->equivalent(),
+    const auto queueKey = make_pair(
+        message->equivalent(),
+        contractorUUID);
+    if (mQueues.count(queueKey) == 0) {
+        auto newQueue = make_shared<ConfirmationRequiredMessagesQueue>(
+            queueKey.first,
             contractorUUID);
-        if (mQueues.count(queueKey) == 0) {
-            auto newQueue = make_shared<ConfirmationRequiredMessagesQueue>(
-                queueKey.first,
-                contractorUUID);
-            mQueues[queueKey] = newQueue;
-        }
+        mQueues[queueKey] = newQueue;
+    }
 
-        ioTransactionUnique = mCommunicatorStorageHandler->beginTransactionUnique();
-        mQueues[queueKey]->enqueue(
-            static_pointer_cast<TransactionMessage>(message));
-        ioTransactionUnique = nullptr;
+    ioTransactionUnique = mCommunicatorStorageHandler->beginTransactionUnique();
+    if (!mQueues[queueKey]->enqueue(message)) {
+        warning() << "Can't enqueue message after deserialization, invalid message type " << message->typeID();
+        if (mQueues[queueKey]->size() == 0) {
+            mQueues.erase(queueKey);
+        }
+    }
+    ioTransactionUnique = nullptr;
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        debug() << "Message of type " << message->typeID() << " for equivalent " message->equivalent()
-                << " enqueued for confirmation receiving.";
+    debug() << "Message of type " << message->typeID() << " for equivalent " message->equivalent()
+            << " enqueued for confirmation receiving.";
 #endif
-    }
 }
 
 void ConfirmationRequiredMessagesHandler::delayedRescheduleResendingAfterDeserialization()

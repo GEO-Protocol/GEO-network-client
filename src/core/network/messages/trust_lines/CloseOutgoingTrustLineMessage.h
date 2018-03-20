@@ -12,8 +12,9 @@ public:
 public:
     using DestinationMessage::DestinationMessage;
 
-protected:
     const MessageType typeID() const;
+
+    const bool isAddToConfirmationRequiredMessagesHandler() const;
 };
 
 

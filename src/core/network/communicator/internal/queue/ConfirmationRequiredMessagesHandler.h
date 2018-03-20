@@ -112,17 +112,18 @@ protected:
 
     void addMessageToStorage(
         const NodeUUID &contractorUUID,
-        Message::Shared message);
+        TransactionMessage::Shared message);
 
     void removeMessageFromStorage(
         const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent,
         Message::SerializedType messageType);
 
     void deserializeMessages();
 
     void tryEnqueueMessageWithoutConnectingSignalsToSlots(
         const NodeUUID &contractorUUID,
-        const Message::Shared message);
+        const TransactionMessage::Shared message);
 
     void delayedRescheduleResendingAfterDeserialization();
 

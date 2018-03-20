@@ -143,6 +143,16 @@ public:
         return false;
     }
 
+    virtual const bool isAddToConfirmationRequiredMessagesHandler() const
+    {
+        return false;
+    }
+
+    virtual const bool isAddToConfirmationNotStronglyRequiredMessagesHandler() const
+    {
+        return false;
+    }
+
     virtual const SerializedEquivalent equivalent() const
     {
         return 0;

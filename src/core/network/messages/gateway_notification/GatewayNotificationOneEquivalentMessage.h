@@ -12,6 +12,8 @@ public:
     using TransactionMessage::TransactionMessage;
 
     const MessageType typeID() const;
+
+    const bool isAddToConfirmationRequiredMessagesHandler() const;
 };
 
 

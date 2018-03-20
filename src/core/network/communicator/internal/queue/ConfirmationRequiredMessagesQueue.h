@@ -24,9 +24,9 @@ public:
     typedef shared_ptr<ConfirmationRequiredMessagesQueue> Shared;
 
 public:
-    signals::signal<void(NodeUUID, Message::SerializedType)> signalRemoveMessageFromStorage;
+    signals::signal<void(const NodeUUID&, const SerializedEquivalent, Message::SerializedType)> signalRemoveMessageFromStorage;
 
-    signals::signal<void(NodeUUID, Message::Shared)> signalSaveMessageToStorage;
+    signals::signal<void(const NodeUUID&, TransactionMessage::Shared)> signalSaveMessageToStorage;
 
 public:
     ConfirmationRequiredMessagesQueue(
@@ -38,7 +38,7 @@ public:
      * Checks message type, and in case if this message requires confirmation -
      * adds it to the internal queue for further re-sending. Otherwise - does nothing.
      */
-    void enqueue(
+    bool enqueue(
         TransactionMessage::Shared message);
 
     /**
@@ -81,19 +81,19 @@ protected: // messages handlers
      * to prevent messages order collision.
      */
     void updateTrustLineNotificationInTheQueue(
-        SetIncomingTrustLineMessage::Shared message);
+        TransactionMessage::Shared message);
 
     void updateTrustLineFromGatewayNotificationInTheQueue(
-        SetIncomingTrustLineFromGatewayMessage::Shared message);
+        TransactionMessage::Shared message);
 
     void updateTrustLineCloseNotificationInTheQueue(
-        CloseOutgoingTrustLineMessage::Shared message);
+        TransactionMessage::Shared message);
 
     void updateGatewayNotificationInTheQueue(
-        GatewayNotificationMessage::Shared message);
+        TransactionMessage::Shared message);
 
     void updateGatewayNotificationOneEquivalentInTheQueue(
-        GatewayNotificationOneEquivalentMessage::Shared message);
+        TransactionMessage::Shared message);
 
 protected:
     // Stores messages queue by the transaction UUID.

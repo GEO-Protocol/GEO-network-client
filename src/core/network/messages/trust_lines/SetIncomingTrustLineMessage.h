@@ -30,6 +30,8 @@ public:
     const TrustLineAmount& amount() const
         noexcept;
 
+    const bool isAddToConfirmationRequiredMessagesHandler() const;
+
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
 protected:

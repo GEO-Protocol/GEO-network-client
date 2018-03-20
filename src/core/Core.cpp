@@ -369,8 +369,7 @@ void Core::onCommandReceivedSlot (
         // set node as gateway
         if ((subsystemsInfluenceCommand->flags() & 0x80000000000) != 0) {
             info() << "from now I am gateway";
-            mIAmGateway = true;
-            mTransactionsManager->setMeAsGateway();
+            mEquivalentsSubsystemsRouter->setMeAsGateway();
         }
 #endif
         info() << "SubsystemsInfluenceCommand processed";

@@ -24,7 +24,7 @@ public:
      * Checks message type, and in case if this message requires confirmation -
      * adds it to the internal queue for further re-sending. Otherwise - does nothing.
      */
-    void enqueue(
+    bool enqueue(
         MaxFlowCalculationConfirmationMessage::Shared message,
         ConfirmationID confirmationID);
 

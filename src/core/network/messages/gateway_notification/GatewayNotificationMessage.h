@@ -21,6 +21,8 @@ public:
 
     const MessageType typeID() const;
 
+    const bool isAddToConfirmationRequiredMessagesHandler() const;
+
 protected:
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 

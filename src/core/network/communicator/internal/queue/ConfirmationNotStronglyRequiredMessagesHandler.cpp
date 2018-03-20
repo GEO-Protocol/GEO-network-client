@@ -15,39 +15,36 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryEnqueueMessage(
     const NodeUUID &contractorUUID,
     const Message::Shared message)
 {
-    if (message->typeID() == Message::MaxFlow_ResultMaxFlowCalculation
-        or message->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway
-        /* or <other message type here> */) {
-
-        // Appropriate message occurred and must be enqueued.
-        // In case if no queue is present for this contractor - new one must be created.
-        const auto equivalent = message->equivalent();
-        const auto queueKey = make_pair(
+    // Only messages on which method isAddToConfirmationNotStronglyRequiredMessagesHandler returns true
+    // can be enqueued, so if you want add message to ConfirmationNotStronglyRequiredMessagesHandler,
+    // you should override this method
+    // In case if no queue is present for this contractor - new one must be created.
+    const auto equivalent = message->equivalent();
+    const auto queueKey = make_pair(
+        equivalent,
+        contractorUUID);
+    if (mQueues.count(queueKey) == 0) {
+        auto newQueue = make_shared<ConfirmationNotStronglyRequiredMessagesQueue>(
             equivalent,
             contractorUUID);
-        if (mQueues.count(queueKey) == 0) {
-            auto newQueue = make_shared<ConfirmationNotStronglyRequiredMessagesQueue>(
-                equivalent,
-                contractorUUID);
-            mQueues[queueKey] = newQueue;
-        }
+        mQueues[queueKey] = newQueue;
+    }
 
-        mQueues[queueKey]->enqueue(
-            static_pointer_cast<MaxFlowCalculationConfirmationMessage>(message),
-            mCurrentConfirmationID);
-        mCurrentConfirmationID++;
+    mQueues[queueKey]->enqueue(
+        static_pointer_cast<MaxFlowCalculationConfirmationMessage>(message),
+        mCurrentConfirmationID);
+    mCurrentConfirmationID++;
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        debug() << "Message of type " << message->typeID() << " for equivalent " << equivalent
-                << " enqueued for not strongly confirmation receiving.";
+    debug() << "Message of type " << message->typeID() << " for equivalent " << equivalent
+            << " enqueued for not strongly confirmation receiving.";
 #endif
 
-        if (mQueues.size() == 1
-            and mQueues.begin()->second->size() == 1) {
+    if (mQueues.size() == 1
+        and mQueues.begin()->second->size() == 1) {
 
-            // First message was added for further re-sending.
-            rescheduleResending();
-        }
+        // First message was added for further re-sending.
+        rescheduleResending();
     }
 }
 

@@ -254,6 +254,15 @@ void EquivalentsSubsystemsRouter::onGatewayNotificationSlot()
     gatewayNotificationSignal();
 }
 
+#ifdef TESTS
+void EquivalentsSubsystemsRouter::setMeAsGateway()
+{
+    for (auto iAmGateway : mIAmGateways) {
+        iAmGateway.second = true;
+    }
+}
+#endif
+
 string EquivalentsSubsystemsRouter::logHeader() const
 {
     return "[EquivalentsSubsystemsRouter]";

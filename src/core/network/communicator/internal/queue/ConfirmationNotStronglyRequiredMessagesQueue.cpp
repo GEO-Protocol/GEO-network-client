@@ -11,7 +11,7 @@ ConfirmationNotStronglyRequiredMessagesQueue::ConfirmationNotStronglyRequiredMes
     mNextSendingAttemptDateTime = utc_now() + boost::posix_time::seconds(mNextTimeoutSeconds);
 }
 
-void ConfirmationNotStronglyRequiredMessagesQueue::enqueue(
+bool ConfirmationNotStronglyRequiredMessagesQueue::enqueue(
     MaxFlowCalculationConfirmationMessage::Shared message,
     ConfirmationID confirmationID)
 {
@@ -21,9 +21,10 @@ void ConfirmationNotStronglyRequiredMessagesQueue::enqueue(
         case Message::MaxFlow_ResultMaxFlowCalculation:
         case Message::MaxFlow_ResultMaxFlowCalculationFromGateway: {
             mMessages[message->confirmationID()] = message;
-            break;
+            return true;
         }
-        //todo : add logger and warning default case
+        default:
+            return false;
     }
 }
 

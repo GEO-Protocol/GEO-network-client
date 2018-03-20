@@ -83,3 +83,8 @@ const Message::MessageType GatewayNotificationMessage::typeID() const
 {
     return Message::GatewayNotification;
 }
+
+const bool GatewayNotificationMessage::isAddToConfirmationRequiredMessagesHandler() const
+{
+    return true;
+}

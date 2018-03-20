@@ -24,6 +24,8 @@ public:
 
     const MessageType typeID() const;
 
+    const bool isAddToConfirmationNotStronglyRequiredMessagesHandler() const;
+
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 

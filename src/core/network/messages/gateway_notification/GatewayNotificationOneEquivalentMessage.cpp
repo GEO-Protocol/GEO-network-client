@@ -4,3 +4,8 @@ const Message::MessageType GatewayNotificationOneEquivalentMessage::typeID() con
 {
     return Message::GatewayNotificationOneEquivalent;
 }
+
+const bool GatewayNotificationOneEquivalentMessage::isAddToConfirmationRequiredMessagesHandler() const
+{
+    return true;
+}

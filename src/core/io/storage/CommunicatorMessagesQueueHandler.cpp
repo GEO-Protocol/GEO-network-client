@@ -11,6 +11,7 @@ CommunicatorMessagesQueueHandler::CommunicatorMessagesQueueHandler(
 {
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    " (contractor_uuid BLOB NOT NULL, "
+                       "equivalent INT NOT NULL, "
                        "transaction_uuid BLOB NOT NULL, "
                        "message_type INT NOT NULL, "
                        "message BLOB NOT NULL, "
@@ -34,14 +35,15 @@ CommunicatorMessagesQueueHandler::CommunicatorMessagesQueueHandler(
 
 void CommunicatorMessagesQueueHandler::saveRecord(
     const NodeUUID &contractorUUID,
+    const SerializedEquivalent equivalent,
     const TransactionUUID &transactionUUID,
     const Message::SerializedType messageType,
     BytesShared message,
     size_t messageBytesCount)
 {
     string query = "INSERT INTO " + mTableName +
-               " (contractor_uuid, transaction_uuid, message_type, message, message_bytes_count, recording_time) "
-                       "VALUES(?, ?, ?, ?, ?, ?);";
+               " (contractor_uuid, equivalent, transaction_uuid, message_type, message, message_bytes_count, recording_time) "
+                       "VALUES(?, ?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -53,28 +55,33 @@ void CommunicatorMessagesQueueHandler::saveRecord(
         throw IOError("CommunicatorMessagesQueueHandler::insert: "
                           "Bad binding of ContractorUUID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 2, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_int(stmt, 2, equivalent);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::insert: "
-                              "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
+                          "Bad binding of Equivalent; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 3, (int)messageType);
+    rc = sqlite3_bind_blob(stmt, 3, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("CommunicatorMessagesQueueHandler::insert: "
+                          "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 4, (int)messageType);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::insert: "
                           "Bad binding of MessageType bytes count; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 4, message.get(), (int)messageBytesCount, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 5, message.get(), (int)messageBytesCount, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::insert: "
                           "Bad binding of Message; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 5, (int)messageBytesCount);
+    rc = sqlite3_bind_int(stmt, 6, (int)messageBytesCount);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::insert: "
                           "Bad binding of Message bytes count; sqlite error: " + to_string(rc));
     }
     GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(utc_now());
-    rc = sqlite3_bind_int64(stmt, 6, timestamp);
+    rc = sqlite3_bind_int64(stmt, 7, timestamp);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::insert: "
                           "Bad binding of Timestamp; sqlite error: " + to_string(rc));
@@ -98,9 +105,11 @@ void CommunicatorMessagesQueueHandler::saveRecord(
 
 void CommunicatorMessagesQueueHandler::deleteRecord(
     const NodeUUID &contractorUUID,
+    const SerializedEquivalent equivalent,
     const Message::SerializedType messageType)
 {
-    string query = "DELETE FROM " + mTableName + " WHERE contractor_uuid = ? AND message_type = ?;";
+    string query = "DELETE FROM " + mTableName
+                   + " WHERE contractor_uuid = ? AND equivalent = ? AND message_type = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -112,7 +121,12 @@ void CommunicatorMessagesQueueHandler::deleteRecord(
         throw IOError("CommunicatorMessagesQueueHandler::delete: "
                           "Bad binding of ContractorUUID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 2, (int)messageType);
+    rc = sqlite3_bind_int(stmt, 2, equivalent);
+    if (rc != SQLITE_OK) {
+        throw IOError("CommunicatorMessagesQueueHandler::delete: "
+                          "Bad binding of Equivalent; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 3, (int)messageType);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::delete: "
                           "Bad binding of MessageType; sqlite error: " + to_string(rc));

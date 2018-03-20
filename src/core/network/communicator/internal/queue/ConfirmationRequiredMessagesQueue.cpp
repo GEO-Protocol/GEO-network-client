@@ -12,36 +12,37 @@ ConfirmationRequiredMessagesQueue::ConfirmationRequiredMessagesQueue(
     mNextSendingAttemptDateTime = utc_now() + boost::posix_time::seconds(mNextTimeoutSeconds);
 }
 
-void ConfirmationRequiredMessagesQueue::enqueue(
+bool ConfirmationRequiredMessagesQueue::enqueue(
     TransactionMessage::Shared message)
 {
     switch (message->typeID()) {
         case Message::TrustLines_SetIncoming: {
             updateTrustLineNotificationInTheQueue(
-                static_pointer_cast<SetIncomingTrustLineMessage>(message));
-            break;
+                message);
+            return true;
         }
         case Message::TrustLines_CloseOutgoing: {
             updateTrustLineCloseNotificationInTheQueue(
-                static_pointer_cast<CloseOutgoingTrustLineMessage>(message));
-            break;
+                message);
+            return true;
         }
         case Message::GatewayNotification: {
             updateGatewayNotificationInTheQueue(
-                static_pointer_cast<GatewayNotificationMessage>(message));
-            break;
+                message);
+            return true;
         }
         case Message::TrustLines_SetIncomingFromGateway: {
             updateTrustLineFromGatewayNotificationInTheQueue(
-                static_pointer_cast<SetIncomingTrustLineFromGatewayMessage>(message));
-            break;
+                message);
+            return true;
         }
         case Message::GatewayNotificationOneEquivalent: {
             updateGatewayNotificationOneEquivalentInTheQueue(
-                static_pointer_cast<GatewayNotificationOneEquivalentMessage>(message));
-            break;
+                message);
+            return true;
         }
-        //todo : add logger and warning default case
+        default:
+            return false;
     }
 }
 
@@ -90,18 +91,18 @@ void ConfirmationRequiredMessagesQueue::resetInternalTimeout()
 }
 
 void ConfirmationRequiredMessagesQueue::updateTrustLineNotificationInTheQueue(
-    SetIncomingTrustLineMessage::Shared message)
+    TransactionMessage::Shared message)
 {
     // Only one SetIncomingTrustLineMessage should be in the queue in one moment of time.
     // queue must contains only newest one notification, all other must be removed.
     for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
         const auto kMessage = it->second;
 
-        if (kMessage->typeID() == Message::TrustLines_SetIncoming
-            and kMessage->equivalent() == message->equivalent()) {
+        if (kMessage->typeID() == Message::TrustLines_SetIncoming) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,
+                mEquivalent,
                 kMessage->typeID());
         } else {
             ++it;
@@ -115,18 +116,18 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineNotificationInTheQueue(
 }
 
 void ConfirmationRequiredMessagesQueue::updateTrustLineFromGatewayNotificationInTheQueue(
-    SetIncomingTrustLineFromGatewayMessage::Shared message)
+    TransactionMessage::Shared message)
 {
     // Only one SetIncomingTrustLineFromGatewayMessage should be in the queue in one moment of time.
     // queue must contains only newest one notification, all other must be removed.
     for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
         const auto kMessage = it->second;
 
-        if (kMessage->typeID() == Message::TrustLines_SetIncomingFromGateway
-            and kMessage->equivalent() == message->equivalent()) {
+        if (kMessage->typeID() == Message::TrustLines_SetIncomingFromGateway) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,
+                mEquivalent,
                 kMessage->typeID());
         } else {
             ++it;
@@ -141,18 +142,18 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineFromGatewayNotificationIn
 
 // todo : discuss if need keep only one message in queue
 void ConfirmationRequiredMessagesQueue::updateTrustLineCloseNotificationInTheQueue(
-    CloseOutgoingTrustLineMessage::Shared message)
+    TransactionMessage::Shared message)
 {
     // Only one CloseOutgoingTrustLineMessage should be in the queue in one moment of time.
     // queue must contains only newest one notification, all other must be removed.
     for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
         const auto kMessage = it->second;
 
-        if (kMessage->typeID() == Message::TrustLines_CloseOutgoing
-            and kMessage->equivalent() == message->equivalent()) {
+        if (kMessage->typeID() == Message::TrustLines_CloseOutgoing) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,
+                mEquivalent,
                 kMessage->typeID());
         } else {
             ++it;
@@ -166,7 +167,7 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineCloseNotificationInTheQue
 }
 
 void ConfirmationRequiredMessagesQueue::updateGatewayNotificationInTheQueue(
-    GatewayNotificationMessage::Shared message)
+    TransactionMessage::Shared message)
 {
     // Only one GatewayNotificationMessage should be in the queue in one moment of time.
     // queue must contains only newest one notification, all other must be removed.
@@ -177,6 +178,7 @@ void ConfirmationRequiredMessagesQueue::updateGatewayNotificationInTheQueue(
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,
+                mEquivalent,
                 kMessage->typeID());
         } else {
             ++it;
@@ -190,18 +192,18 @@ void ConfirmationRequiredMessagesQueue::updateGatewayNotificationInTheQueue(
 }
 
 void ConfirmationRequiredMessagesQueue::updateGatewayNotificationOneEquivalentInTheQueue(
-    GatewayNotificationOneEquivalentMessage::Shared message)
+    TransactionMessage::Shared message)
 {
     // Only one GatewayNotificationOneEquivalentMessage should be in the queue in one moment of time.
     // queue must contains only newest one notification, all other must be removed.
     for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
         const auto kMessage = it->second;
 
-        if (kMessage->typeID() == Message::GatewayNotificationOneEquivalent
-            and kMessage->equivalent() == message->equivalent()) {
+        if (kMessage->typeID() == Message::GatewayNotificationOneEquivalent) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,
+                mEquivalent,
                 kMessage->typeID());
         } else {
             ++it;

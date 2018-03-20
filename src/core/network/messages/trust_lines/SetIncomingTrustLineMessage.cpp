@@ -73,3 +73,8 @@ pair<BytesShared, size_t> SetIncomingTrustLineMessage::serializeToBytes() const
         dataBytesShared,
         bytesCount);
 }
+
+const bool SetIncomingTrustLineMessage::isAddToConfirmationRequiredMessagesHandler() const
+{
+    return true;
+}

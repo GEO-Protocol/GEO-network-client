@@ -136,13 +136,17 @@ void Communicator::sendMessage (
     noexcept
 {
     // Filter outgoing messages for confirmation-required messages.
-    mConfirmationRequiredMessagesHandler->tryEnqueueMessage(
-        contractorUUID,
-        message);
+    if (message->isAddToConfirmationNotStronglyRequiredMessagesHandler()) {
+        mConfirmationNotStronglyRequiredMessagesHandler->tryEnqueueMessage(
+            contractorUUID,
+            message);
+    }
 
-    mConfirmationNotStronglyRequiredMessagesHandler->tryEnqueueMessage(
-        contractorUUID,
-        message);
+    else if (message->isAddToConfirmationRequiredMessagesHandler()) {
+        mConfirmationRequiredMessagesHandler->tryEnqueueMessage(
+            contractorUUID,
+            message);
+    }
 
     mOutgoingMessagesHandler->sendMessage(
         message,

@@ -50,6 +50,10 @@ public:
     void initNewEquivalent(
         const SerializedEquivalent equivalent);
 
+#ifdef TESTS
+    void setMeAsGateway();
+#endif
+
 public:
     mutable GatewayNotificationSignal gatewayNotificationSignal;
 

@@ -22,6 +22,7 @@ public:
 
     void saveRecord(
         const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent,
         const TransactionUUID &transactionUUID,
         const Message::SerializedType messageType,
         BytesShared message,
@@ -31,6 +32,7 @@ public:
 
     void deleteRecord(
         const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent,
         const Message::SerializedType messageType);
 
     void deleteRecord(
