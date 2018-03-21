@@ -39,13 +39,20 @@ private:
 
 private:
     // ToDo: move to separate config file
-    const uint32_t kTopologyCollectingMillisecondsTimeout = 3000;
+    static const uint32_t kTopologyCollectingMillisecondsTimeout = 3000;
+
+    static const uint32_t kTopologyCollectingAgainMillisecondsTimeout = 500;
+    static const uint32_t kMaxTopologyCollectingMillisecondsTimeout = 6000;
+    static const uint16_t kCountRunningProcessCollectingTopologyStage =
+            (kMaxTopologyCollectingMillisecondsTimeout - kTopologyCollectingMillisecondsTimeout) /
+            kTopologyCollectingAgainMillisecondsTimeout;
 
 private:
     NodeUUID mContractorUUID;
     TransactionUUID mRequestedTransactionUUID;
     PathsManager *mPathsManager;
     ResourcesManager *mResourcesManager;
+    size_t mCountProcessCollectingTopologyRun;
 };
 
 

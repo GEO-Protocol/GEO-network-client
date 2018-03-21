@@ -54,13 +54,21 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::sendRequestForColle
         warning() << "Can not launch Collecting Topology transaction for " << mContractorUUID << ".";
     }
 
+    mCountProcessCollectingTopologyRun = 0;
     return resultAwakeAfterMilliseconds(
         kTopologyCollectingMillisecondsTimeout);
 }
 
 TransactionResult::SharedConst FindPathByMaxFlowTransaction::processCollectingTopology()
 {
+    auto const contextSize = mContext.size();
     fillTopology();
+    mCountProcessCollectingTopologyRun++;
+    if (contextSize > 0 && mCountProcessCollectingTopologyRun <= kCountRunningProcessCollectingTopologyStage) {
+        return resultAwakeAfterMilliseconds(
+            kTopologyCollectingAgainMillisecondsTimeout);
+    }
+
     mPathsManager->buildPaths(
         mContractorUUID);
     mResourcesManager->putResource(

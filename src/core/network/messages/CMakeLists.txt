@@ -16,9 +16,6 @@ set(SOURCE_FILES
         SenderMessage.cpp   # todo: why are not this message in base?
         SenderMessage.h     # todo: why are not this message in base?
 
-        debug/DebugMessage.h
-        debug/DebugMessage.cpp
-
         EquivalentMessage.h
         EquivalentMessage.cpp )
 

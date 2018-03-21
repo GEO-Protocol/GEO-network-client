@@ -20,8 +20,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/signals2.hpp>
 
-
-#include "network/messages/debug/DebugMessage.h"
 #include "subsystems_controller/SubsystemsController.h"
 
 

@@ -20,12 +20,6 @@ public:
     typedef shared_ptr<MaxFlowCalculationMessage> Shared;
 
 public:
-    const NodeUUID &targetUUID() const;
-
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw(bad_alloc);
-
-protected:
     MaxFlowCalculationMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
@@ -34,10 +28,13 @@ protected:
     MaxFlowCalculationMessage(
         BytesShared buffer);
 
-    virtual void deserializeFromBytes(
-        BytesShared buffer);
+    const NodeUUID &targetUUID() const;
 
-    const size_t kOffsetToInheritedBytes();
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+        throw(bad_alloc);
+
+    const size_t kOffsetToInheritedBytes() const
+        noexcept;
 
 protected:
     NodeUUID mTargetUUID;

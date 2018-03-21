@@ -9,13 +9,7 @@ public:
     typedef shared_ptr<MaxFlowCalculationTargetSndLevelMessage> Shared;
 
 public:
-    MaxFlowCalculationTargetSndLevelMessage(
-        const SerializedEquivalent equivalent,
-        const NodeUUID& senderUUID,
-        const NodeUUID& targetUUID);
-
-    MaxFlowCalculationTargetSndLevelMessage(
-        BytesShared buffer);
+    using MaxFlowCalculationMessage::MaxFlowCalculationMessage;
 
     const MessageType typeID() const;
 };

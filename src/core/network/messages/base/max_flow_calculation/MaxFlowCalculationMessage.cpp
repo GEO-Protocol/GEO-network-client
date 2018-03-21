@@ -52,19 +52,8 @@ pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() const
         bytesCount);
 }
 
-void MaxFlowCalculationMessage::deserializeFromBytes(
-    BytesShared buffer)
+const size_t MaxFlowCalculationMessage::kOffsetToInheritedBytes() const
+    noexcept
 {
-    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    memcpy(
-        mTargetUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
-}
-
-const size_t MaxFlowCalculationMessage::kOffsetToInheritedBytes()
-{
-    static const size_t offset = sizeof(MessageType) + NodeUUID::kBytesSize;
-    return offset;
+    return  SenderMessage::kOffsetToInheritedBytes() + NodeUUID::kBytesSize;
 }

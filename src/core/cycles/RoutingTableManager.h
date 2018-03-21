@@ -26,10 +26,6 @@ public:
         as::io_service &ioService,
         Logger &logger);
 
-    void updateMapAddOneNeighbor(
-        const NodeUUID &firstLevelContractor,
-        const NodeUUID &secondLevelContractor);
-
     void updateMapAddSeveralNeighbors(
         const NodeUUID &firstLevelContractor,
         set<NodeUUID> secondLevelContractors);

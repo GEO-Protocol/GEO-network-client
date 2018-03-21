@@ -114,29 +114,20 @@ void ConfirmationRequiredMessagesHandler::tryProcessConfirmation(
     }
 }
 
-const string ConfirmationRequiredMessagesHandler::logHeader() const
-    noexcept
-{
-    return "[ConfirmationRequiredMessagesHandler]";
-}
-
 const DateTime ConfirmationRequiredMessagesHandler::closestQueueSendingTimestamp() const
     noexcept
 {
-    DateTime nextClearingDateTime = utc_now() + boost::posix_time::seconds(2);
-    bool nextClearingDateTimeInitialisedWithFirstTimestamp = false;
+    if (mQueues.empty()) {
+        return utc_now() + boost::posix_time::seconds(2);
+    }
 
+    DateTime nextClearingDateTime = mQueues.begin()->second->nextSendingAttemptDateTime();
     for (const auto &contractorUUIDAndQueue : mQueues) {
         const auto kQueueNextAttemptPlanned = contractorUUIDAndQueue.second->nextSendingAttemptDateTime();
-
-        if (not nextClearingDateTimeInitialisedWithFirstTimestamp) {
-            nextClearingDateTime = kQueueNextAttemptPlanned;
-
-        } else if (kQueueNextAttemptPlanned < nextClearingDateTime) {
+         if (kQueueNextAttemptPlanned < nextClearingDateTime) {
             nextClearingDateTime = kQueueNextAttemptPlanned;
         }
     }
-
     return nextClearingDateTime;
 }
 
@@ -325,4 +316,10 @@ void ConfirmationRequiredMessagesHandler::delayedRescheduleResendingAfterDeseria
     mDeserializationMessagesTimer->cancel();
     mDeserializationMessagesTimer = nullptr;
     rescheduleResending();
+}
+
+const string ConfirmationRequiredMessagesHandler::logHeader() const
+noexcept
+{
+    return "[ConfirmationRequiredMessagesHandler]";
 }

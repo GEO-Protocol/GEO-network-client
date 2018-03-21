@@ -19,25 +19,24 @@ RoutingTableInitTransaction::RoutingTableInitTransaction(
 
 TransactionResult::SharedConst RoutingTableInitTransaction::run()
 {
-    while (true) {
-        debug() << "run: stage: " << mStep;
-        try {
-            switch (mStep) {
-                case Stages::CollectDataStage:
-                    return runCollectDataStage();
+    debug() << "run: stage: " << mStep;
+    try {
+        switch (mStep) {
+            case Stages::CollectDataStage:
+                return runCollectDataStage();
 
-                case Stages::UpdateRoutingTableStage:
-                    return runUpdateRoutingTableStage();
+            case Stages::UpdateRoutingTableStage:
+                return runUpdateRoutingTableStage();
 
-                default:
-                    throw RuntimeError(
-                        "RoutingTableInitTransaction::run(): "
-                            "invalid transaction step.");
-            }
-        } catch(std::exception &e){
-            error() << "Something happens wrong in method run(). Transaction will be dropped; " << e.what();
-            return resultDone();
+            default:
+                throw RuntimeError(
+                    "RoutingTableInitTransaction::run(): "
+                        "invalid transaction step.");
         }
+    } catch(std::exception &e){
+        error() << "Something happens wrong in method run(). "
+                "Transaction will be dropped; " << e.what();
+        return resultDone();
     }
 }
 
@@ -55,13 +54,6 @@ TransactionResult::SharedConst RoutingTableInitTransaction::runCollectDataStage(
         mkWaitingForResponseTime);
 }
 
-const string RoutingTableInitTransaction::logHeader() const
-{
-    stringstream s;
-    s << "[RoutingTableInitTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
-    return s.str();
-}
-
 TransactionResult::SharedConst RoutingTableInitTransaction::runUpdateRoutingTableStage()
 {
     if (mContext.empty()){
@@ -73,6 +65,7 @@ TransactionResult::SharedConst RoutingTableInitTransaction::runUpdateRoutingTabl
     for(auto &stepMessage: mContext){
         auto message = static_pointer_cast<RoutingTableResponseMessage>(stepMessage);
         if(!mTrustLinesManager->isNeighbor(message->senderUUID)){
+            warning() << "Node " << message->senderUUID << " is not a neighbor";
             continue;
         }
         mRoutingTableManager->updateMapAddSeveralNeighbors(
@@ -80,4 +73,11 @@ TransactionResult::SharedConst RoutingTableInitTransaction::runUpdateRoutingTabl
             message->neighbors());
     }
     return resultDone();
+}
+
+const string RoutingTableInitTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[RoutingTableInitTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
+    return s.str();
 }

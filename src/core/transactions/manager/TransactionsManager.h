@@ -153,10 +153,6 @@ public:
         const NodeUUID &destinationNodeUUID,
         const SerializedEquivalent equivalent);
 
-#ifdef TESTS
-    void setMeAsGateway();
-#endif
-
 protected:
     void loadTransactionsFromStorage();
 

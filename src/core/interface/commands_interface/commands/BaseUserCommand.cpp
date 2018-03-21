@@ -11,8 +11,7 @@ BaseUserCommand::BaseUserCommand(
     const string &identifier) :
 
     mCommandUUID(commandUUID),
-    mCommandIdentifier(identifier),
-    mTimestampAccepted(utc_now())
+    mCommandIdentifier(identifier)
 {}
 
 
@@ -24,50 +23,6 @@ const CommandUUID &BaseUserCommand::UUID() const
 const string &BaseUserCommand::identifier() const
 {
     return mCommandIdentifier;
-}
-
-pair<BytesShared, size_t> BaseUserCommand::serializeToBytes()
-{
-    size_t bytesCount = CommandUUID::kBytesSize + sizeof(GEOEpochTimestamp);
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        mCommandUUID.data,
-        CommandUUID::kBytesSize);
-    dataBytesOffset += CommandUUID::kBytesSize;
-    //-----------------------------------------------------
-    GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(mTimestampAccepted);
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &timestamp,
-        sizeof(GEOEpochTimestamp));
-    //-----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
-}
-
-void BaseUserCommand::deserializeFromBytes(
-    BytesShared buffer)
-{
-    size_t bytesBufferOffset = 0;
-    //-----------------------------------------------------
-    memcpy(
-        const_cast<CommandUUID*>(&mCommandUUID),
-        buffer.get(),
-        CommandUUID::kBytesSize);
-    bytesBufferOffset += CommandUUID::kBytesSize;
-    //-----------------------------------------------------
-    uint64_t *commandAcceptedTimestamp = new (buffer.get() + bytesBufferOffset) uint64_t;
-    mTimestampAccepted = dateTimeFromGEOEpochTimestamp((GEOEpochTimestamp) *commandAcceptedTimestamp);
-}
-
-const size_t BaseUserCommand::kOffsetToInheritedBytes()
-{
-    static const size_t offset = CommandUUID::kHexSize + sizeof(GEOEpochTimestamp);
-    return offset;
 }
 
 /**

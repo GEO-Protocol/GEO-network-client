@@ -64,19 +64,11 @@ public:
         noexcept;
 
 protected:
-    virtual pair<BytesShared, size_t> serializeToBytes();
-
-    virtual void deserializeFromBytes(
-        BytesShared buffer);
-
-    static const size_t kOffsetToInheritedBytes();
-
     CommandResult::SharedConst makeResult(
         const uint16_t code) const;
 
 private:
     const CommandUUID mCommandUUID;
-    DateTime mTimestampAccepted;
     const string mCommandIdentifier;
 };
 #endif //GEO_NETWORK_CLIENT_COMMAND_H

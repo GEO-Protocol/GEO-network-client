@@ -1965,13 +1965,6 @@ void TransactionsManager::onSerializeTransaction(
     }
 }
 
-#ifdef TESTS
-void TransactionsManager::setMeAsGateway()
-{
-    mIAmGateway = true;
-}
-#endif
-
 string TransactionsManager::logHeader()
     noexcept
 {

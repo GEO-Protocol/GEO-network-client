@@ -25,13 +25,6 @@ RoutingTableManager::RoutingTableManager(
             as::placeholders::error));
 }
 
-void RoutingTableManager::updateMapAddOneNeighbor(
-    const NodeUUID &firstLevelContractor,
-    const NodeUUID &secondLevelContractor)
-{
-    mRoutingTable[firstLevelContractor].insert(secondLevelContractor);
-}
-
 void RoutingTableManager::updateMapAddSeveralNeighbors(
     const NodeUUID &firstLevelContractor,
     set<NodeUUID> secondLevelContractors)

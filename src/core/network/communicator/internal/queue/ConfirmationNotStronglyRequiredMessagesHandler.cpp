@@ -78,29 +78,20 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryProcessConfirmation(
     }
 }
 
-const string ConfirmationNotStronglyRequiredMessagesHandler::logHeader() const
-    noexcept
-{
-    return "[ConfirmationNotStronglyRequiredMessagesHandler]";
-}
-
 const DateTime ConfirmationNotStronglyRequiredMessagesHandler::closestQueueSendingTimestamp() const
     noexcept
 {
-    DateTime nextClearingDateTime = utc_now() + boost::posix_time::seconds(2);
-    bool nextClearingDateTimeInitialisedWithFirstTimestamp = false;
+    if (mQueues.empty()) {
+        return utc_now() + boost::posix_time::seconds(2);
+    }
 
+    DateTime nextClearingDateTime = mQueues.begin()->second->nextSendingAttemptDateTime();
     for (const auto &contractorUUIDAndQueue : mQueues) {
         const auto kQueueNextAttemptPlanned = contractorUUIDAndQueue.second->nextSendingAttemptDateTime();
-
-        if (not nextClearingDateTimeInitialisedWithFirstTimestamp) {
-            nextClearingDateTime = kQueueNextAttemptPlanned;
-
-        } else if (kQueueNextAttemptPlanned < nextClearingDateTime) {
+        if (kQueueNextAttemptPlanned < nextClearingDateTime) {
             nextClearingDateTime = kQueueNextAttemptPlanned;
         }
     }
-
     return nextClearingDateTime;
 }
 
@@ -166,4 +157,10 @@ void ConfirmationNotStronglyRequiredMessagesHandler::sendPostponedMessages()
                     confirmationIDAndMessage.second));
         }
     }
+}
+
+const string ConfirmationNotStronglyRequiredMessagesHandler::logHeader() const
+    noexcept
+{
+    return "[ConfirmationNotStronglyRequiredMessagesHandler]";
 }

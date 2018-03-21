@@ -14,17 +14,11 @@ RoutingTableResponseTransaction::RoutingTableResponseTransaction(
     mTrustLinesManager(manager)
 {}
 
-const string RoutingTableResponseTransaction::logHeader() const
-{
-    stringstream s;
-    s << "[RoutingTableResponseTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
-    return s.str();
-}
-
 TransactionResult::SharedConst RoutingTableResponseTransaction::run()
 {
     if(!mTrustLinesManager->isNeighbor(mRequestMessage->senderUUID)){
-        warning() << mRequestMessage->senderUUID << " is not a neighbor. Finish transaction;";
+        warning() << mRequestMessage->senderUUID << " is not a neighbor. Finish transaction";
+        return resultDone();
     }
     auto neighbors = mTrustLinesManager->rt1();
     set<NodeUUID> result;
@@ -39,4 +33,11 @@ TransactionResult::SharedConst RoutingTableResponseTransaction::run()
         mNodeUUID,
         result);
     return resultDone();
+}
+
+const string RoutingTableResponseTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[RoutingTableResponseTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
+    return s.str();
 }
