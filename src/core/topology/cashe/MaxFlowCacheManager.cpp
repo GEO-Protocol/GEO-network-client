@@ -12,11 +12,11 @@ void MaxFlowCacheManager::addCache(
     const NodeUUID &keyUUID,
     MaxFlowCache::Shared cache)
 {
+    auto nodeUUIDPtr = new NodeUUID(keyUUID);
     mCaches.insert(
         make_pair(
-            keyUUID,
+            *nodeUUIDPtr,
             cache));
-    NodeUUID* nodeUUIDPtr = new NodeUUID(keyUUID);
     mTimeCaches.insert(
         make_pair(
             utc_now(),

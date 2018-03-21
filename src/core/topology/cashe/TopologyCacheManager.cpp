@@ -14,7 +14,7 @@ void TopologyCacheManager::addCache(
     const NodeUUID &keyUUID,
     TopologyCache::Shared cache)
 {
-    NodeUUID* nodeUUIDPtr = new NodeUUID(keyUUID);
+    auto nodeUUIDPtr = new NodeUUID(keyUUID);
     mCaches.insert(
         make_pair(
             *nodeUUIDPtr,
