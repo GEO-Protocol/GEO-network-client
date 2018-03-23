@@ -182,6 +182,7 @@ target_link_libraries(geo_network_client
 
         interface__commands
         interface__results
+        interface__visual
 
         paths
         trust_lines

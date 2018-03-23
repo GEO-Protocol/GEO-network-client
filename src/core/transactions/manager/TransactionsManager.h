@@ -15,6 +15,8 @@
 #include "../../logger/Logger.h"
 #include "../../cycles/CyclesManager.h"
 #include "../../subsystems_controller/SubsystemsController.h"
+#include "../../interface/visual_interface/interface/VisualInterface.h"
+#include "../../interface/visual_interface/visual/VisualResult.h"
 
 /*
  * Interface commands
@@ -427,6 +429,8 @@ protected:
     LoggerStream info() const
     noexcept;
 
+    void writeTopology();
+
 private:
     NodeUUID &mNodeUUID;
     bool mIAmGateway;
@@ -443,6 +447,7 @@ private:
     Logger &mLog;
 
     SubsystemsController *mSubsystemsController;
+    unique_ptr<VisualInterface> mVisualInterface;
 
     unique_ptr<TransactionsScheduler> mScheduler;
     unique_ptr<CyclesManager> mCyclesManager;

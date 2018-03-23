@@ -67,6 +67,9 @@ TransactionsManager::TransactionsManager(
         throw RuntimeError(e.what());
     }
 
+    mVisualInterface = make_unique<VisualInterface>(mLog);
+    writeTopology();
+
     // todo: send current trust line amount to te contractors
 }
 
@@ -1730,4 +1733,32 @@ LoggerStream TransactionsManager::info() const
     noexcept
 {
     return mLog.info(logHeader());
+}
+
+void TransactionsManager::writeTopology()
+{
+    stringstream s;
+    s << "neighbors" << kTokensSeparator;
+    s << to_string(mTrustLines->rt1().size());
+    for (const auto &trustLine : mTrustLines->trustLines()) {
+        s << kTokensSeparator << trustLine.first.stringUUID();
+    }
+
+//    auto visualResult = make_shared<VisualResult>(
+//        "neighbors",
+//        s.str());
+//
+//    auto message = visualResult->serialize();
+
+    auto message = s.str();
+
+    try {
+    mVisualInterface->writeResult(
+        message.c_str(),
+        message.size());
+    } catch (IOError &e) {
+        throw RuntimeError(
+                "TransactionsManager::writeTopology: "
+                    "Error occurred when visual result has accepted. Details: " + e.message());
+    }
 }
