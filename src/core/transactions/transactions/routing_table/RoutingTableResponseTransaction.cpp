@@ -20,7 +20,7 @@ TransactionResult::SharedConst RoutingTableResponseTransaction::run()
         warning() << mRequestMessage->senderUUID << " is not a neighbor. Finish transaction";
         return resultDone();
     }
-    auto neighbors = mTrustLinesManager->rt1();
+    auto neighbors = mTrustLinesManager->firstLevelNeighbors();
     set<NodeUUID> result;
     for(auto &node:neighbors){
         if(node == mRequestMessage->senderUUID)

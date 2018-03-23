@@ -5,7 +5,6 @@
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../cycles/CyclesManager.h"
 #include "../../../../cycles/RoutingTableManager.h"
-#include "../../../../io/storage/StorageHandler.h"
 #include "../../../../paths/lib/Path.h"
 #include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
 #include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
@@ -24,7 +23,6 @@ public:
         TrustLinesManager *manager,
         RoutingTableManager *routingTable,
         CyclesManager *cyclesManager,
-        StorageHandler *storageHandler,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -46,7 +44,6 @@ protected:
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
     CyclesManager *mCyclesManager;
-    StorageHandler *mStorageHandler;
     RoutingTableManager *mRougingTable;
 };
 

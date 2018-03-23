@@ -680,7 +680,7 @@ vector<NodeUUID> TrustLinesManager::gateways() const
     return result;
 }
 
-vector<NodeUUID> TrustLinesManager::rt1() const {
+vector<NodeUUID> TrustLinesManager::firstLevelNeighbors() const {
 
     vector<NodeUUID> result;
     result.reserve(mTrustLines.size());

@@ -7,7 +7,6 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
     TrustLinesManager *manager,
     RoutingTableManager *routingTable,
     CyclesManager *cyclesManager,
-    StorageHandler *storageHandler,
     Logger &logger) :
 
     BaseTransaction(
@@ -18,7 +17,6 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
     mTrustLinesManager(manager),
     mCyclesManager(cyclesManager),
     mContractorUUID(contractorUUID),
-    mStorageHandler(storageHandler),
     mRougingTable(routingTable)
 {}
 
@@ -38,42 +36,11 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run()
     }
 }
 
-set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor()
-{
-    const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
-    const TrustLineBalance kZeroBalance = 0;
-    auto ioTransactions = mStorageHandler->beginTransaction();
-    const auto contractorNeighbors = mRougingTable->secondLevelContractorsForNode(mContractorUUID);
-
-    set<NodeUUID> ownNeighbors, commonNeighbors;
-    for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()){
-
-        const auto kTL = kNodeUUIDAndTrustLine.second;
-        if (kBalanceToContractor < kZeroBalance) {
-            if (kTL->balance() > kZeroBalance)
-                ownNeighbors.insert(kNodeUUIDAndTrustLine.first);
-        }
-        else
-            if (kTL->balance() < kZeroBalance)
-                ownNeighbors.insert(kNodeUUIDAndTrustLine.first);
-    }
-    set_intersection(
-        ownNeighbors.begin(),
-        ownNeighbors.end(),
-        contractorNeighbors.begin(),
-        contractorNeighbors.end(),
-        std::inserter(
-            commonNeighbors,
-            commonNeighbors.begin()));
-
-    return commonNeighbors;
-}
-
 TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAndSendMessageStage()
 {
     debug() << "runCollectDataAndSendMessageStage to " << mContractorUUID;
-    set<NodeUUID> neighbors = getNeighborsWithContractor();
-    if(neighbors.size() == 0){
+    set<NodeUUID> commonNeighbors = getNeighborsWithContractor();
+    if(commonNeighbors.empty()){
         info() << "No common neighbors with: " << mContractorUUID;
         return resultDone();
     }
@@ -82,7 +49,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
         mEquivalent,
         mNodeUUID,
         currentTransactionUUID(),
-        neighbors);
+        commonNeighbors);
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultWaitForMessageTypes(
         {Message::Cycles_ThreeNodesBalancesResponse},
@@ -92,21 +59,24 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
 TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageAndCreateCyclesStage()
 {
     debug() << "runParseMessageAndCreateCyclesStage";
-    if (mContext.size() != 1){
+    if (mContext.empty()){
         info() << "No responses messages are present. Can't create cycles paths;";
         return resultDone();
     }
 #ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     vector<vector<NodeUUID>> ResultCycles;
 #endif
-    auto message = static_pointer_cast<CyclesThreeNodesBalancesResponseMessage>(*mContext.begin());
-    const auto neighborsAndBalances = message->NeighborsAndBalances();
-    for(const auto &nodeUUIDAndBalance : neighborsAndBalances ){
+    auto message = popNextMessage<CyclesThreeNodesBalancesResponseMessage>();
+    for(const auto &nodeUUIDAndBalance : message->commonNodes() ){
         vector<NodeUUID> cycle = {
-            mContractorUUID,
-            nodeUUIDAndBalance};
-        reverse(cycle.begin(), cycle.end());
-        // Path object is common object. For cycle - destination and sourse node is the same
+            nodeUUIDAndBalance,
+            mContractorUUID};
+        if (mTrustLinesManager->balance(mContractorUUID) > TrustLine::kZeroBalance()) {
+            reverse(
+                cycle.begin(),
+                cycle.end());
+        }
+        // Path object is common object. For cycle - destination and source node is the same
         const auto cyclePath = make_shared<Path>(
             mNodeUUID,
             mNodeUUID,
@@ -133,6 +103,37 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
 #endif
     mCyclesManager->closeOneCycle();
     return resultDone();
+}
+
+set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor()
+{
+    set<NodeUUID> ownNeighbors, commonNeighbors;
+    const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
+    if (kBalanceToContractor == TrustLine::kZeroBalance()) {
+        return commonNeighbors;
+    }
+
+    for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()){
+        const auto kTL = kNodeUUIDAndTrustLine.second;
+        if (kBalanceToContractor < TrustLine::kZeroBalance()) {
+            if (kTL->balance() > TrustLine::kZeroBalance())
+                ownNeighbors.insert(kNodeUUIDAndTrustLine.first);
+        }
+        else if (kTL->balance() < TrustLine::kZeroBalance())
+            ownNeighbors.insert(kNodeUUIDAndTrustLine.first);
+    }
+    const auto contractorNeighbors = mRougingTable->secondLevelContractorsForNode(
+        mContractorUUID);
+    set_intersection(
+        ownNeighbors.begin(),
+        ownNeighbors.end(),
+        contractorNeighbors.begin(),
+        contractorNeighbors.end(),
+        std::inserter(
+            commonNeighbors,
+            commonNeighbors.begin()));
+
+    return commonNeighbors;
 }
 
 const string CyclesThreeNodesInitTransaction::logHeader() const

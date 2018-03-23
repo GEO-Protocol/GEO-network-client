@@ -10,12 +10,9 @@ CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(
     TransactionMessage(
         equivalent,
         senderUUID,
-        transactionUUID)
-{
-    mNeighbors.reserve(neighbors.size());
-    for(auto &value: neighbors)
-        mNeighbors.push_back(value);
-}
+        transactionUUID),
+    mNeighbors(neighbors)
+{}
 
 CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(
     BytesShared buffer):
@@ -35,7 +32,7 @@ CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(
     for (SerializedRecordNumber i = 1; i <= neighborsCount; ++i) {
         NodeUUID stepNode(buffer.get() + bytesBufferOffset);
         bytesBufferOffset += NodeUUID::kBytesSize;
-        mNeighbors.push_back(stepNode);
+        mNeighbors.insert(stepNode);
     }
 }
 
@@ -81,7 +78,7 @@ const Message::MessageType CyclesThreeNodesBalancesRequestMessage::typeID() cons
     return Message::MessageType::Cycles_ThreeNodesBalancesRequest;
 }
 
-vector<NodeUUID> CyclesThreeNodesBalancesRequestMessage::Neighbors()
+set<NodeUUID> CyclesThreeNodesBalancesRequestMessage::neighbors()
 {
     return mNeighbors;
 }

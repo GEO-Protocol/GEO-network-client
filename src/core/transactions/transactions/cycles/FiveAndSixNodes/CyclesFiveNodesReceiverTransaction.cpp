@@ -14,13 +14,10 @@ CyclesFiveNodesReceiverTransaction::CyclesFiveNodesReceiverTransaction(
     mInBetweenNodeTopologyMessage(message)
 {}
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run()
 {
     vector<NodeUUID> path = mInBetweenNodeTopologyMessage->Path();
-    SerializedPathLengthSize currentDepth = path.size();
-    TrustLineBalance zeroBalance = 0;
+    auto currentDepth = (SerializedPathLengthSize)path.size();
     // Direction has mirror sign for initiator node and receiver node.
     // Direction is calculated based on initiator node
     TrustLineBalance maxFlow = (-1) * mTrustLinesManager->balance(path.back());
@@ -30,7 +27,7 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run()
         return resultDone();
     }
     bool creditorsBranch = true;
-    if (maxFlow < zeroBalance)
+    if (maxFlow < TrustLine::kZeroBalance())
         creditorsBranch = false;
 
     if ((creditorsBranch and currentDepth==1)) {
@@ -55,7 +52,7 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run()
     }
 
 }
-#pragma clang diagnostic pop
+
 const string CyclesFiveNodesReceiverTransaction::logHeader() const
 {
     stringstream s;

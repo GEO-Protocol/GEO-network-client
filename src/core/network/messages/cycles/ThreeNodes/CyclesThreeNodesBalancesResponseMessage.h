@@ -16,12 +16,6 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        SerializedRecordsCount neighborsUUUIDCount);
-
-    CyclesThreeNodesBalancesResponseMessage(
-        const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
-        const TransactionUUID &transactionUUID,
         vector<NodeUUID> &neighborsUUUID);
 
     CyclesThreeNodesBalancesResponseMessage(
@@ -30,13 +24,10 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc);
 
-    void addNeighborUUIDAndBalance(NodeUUID neighborUUID)
-        throw (bad_alloc);
-
     const MessageType typeID() const
         noexcept;
 
-    vector<NodeUUID> NeighborsAndBalances()
+    vector<NodeUUID> commonNodes()
         noexcept;
 
 protected:

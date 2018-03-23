@@ -22,7 +22,7 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::run()
             gatewaysEquivalents.push_back(
                 equivalent);
         }
-        for (const auto &neighbor : mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->rt1()) {
+        for (const auto &neighbor : mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->firstLevelNeighbors()) {
             allNeighbors.insert(
                 neighbor);
         }

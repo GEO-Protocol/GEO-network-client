@@ -105,29 +105,32 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         /*
          * Cycles processing messages
          */
-        case Message::Cycles_SixNodesMiddleware:
-            return messageCollected<CyclesSixNodesInBetweenMessage>(buffer);
+        case Message::Cycles_FourNodesNegativeBalanceRequest:
+            return messageCollected<CyclesFourNodesNegativeBalanceRequestMessage>(buffer);
 
-        case Message::Cycles_FiveNodesMiddleware:
-            return messageCollected<CyclesFiveNodesInBetweenMessage>(buffer);
-
-        case Message::Cycles_SixNodesBoundary:
-            return messageCollected<CyclesSixNodesBoundaryMessage>(buffer);
-
-        case Message::Cycles_FiveNodesBoundary:
-            return messageCollected<CyclesFiveNodesBoundaryMessage>(buffer);
-
-        case Message::Cycles_ThreeNodesBalancesResponse:
-            return messageCollected<CyclesThreeNodesBalancesResponseMessage>(buffer);
-
-        case Message::Cycles_FourNodesBalancesRequest:
-            return messageCollected<CyclesFourNodesBalancesRequestMessage>(buffer);
+        case Message::Cycles_FourNodesPositiveBalanceRequest:
+            return messageCollected<CyclesFourNodesPositiveBalanceRequestMessage>(buffer);
 
         case Message::Cycles_FourNodesBalancesResponse:
             return messageCollected<CyclesFourNodesBalancesResponseMessage>(buffer);
 
         case Message::Cycles_ThreeNodesBalancesRequest:
             return messageCollected<CyclesThreeNodesBalancesRequestMessage>(buffer);
+
+        case Message::Cycles_ThreeNodesBalancesResponse:
+            return messageCollected<CyclesThreeNodesBalancesResponseMessage>(buffer);
+
+        case Message::Cycles_FiveNodesMiddleware:
+            return messageCollected<CyclesFiveNodesInBetweenMessage>(buffer);
+
+        case Message::Cycles_FiveNodesBoundary:
+            return messageCollected<CyclesFiveNodesBoundaryMessage>(buffer);
+
+        case Message::Cycles_SixNodesMiddleware:
+            return messageCollected<CyclesSixNodesInBetweenMessage>(buffer);
+
+        case Message::Cycles_SixNodesBoundary:
+            return messageCollected<CyclesSixNodesBoundaryMessage>(buffer);
 
 
         /*

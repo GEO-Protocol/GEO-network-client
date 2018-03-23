@@ -16,38 +16,36 @@ CyclesThreeNodesReceiverTransaction::CyclesThreeNodesReceiverTransaction(
     mRequestMessage(message)
 {}
 
-TransactionResult::SharedConst CyclesThreeNodesReceiverTransaction::run() {
-    const auto kNeighbors = mRequestMessage->Neighbors();
-    stringstream ss;
-    // Create message and reserve memory for neighbors
-    const auto kMessage = make_shared<CyclesThreeNodesBalancesResponseMessage>(
-        mEquivalent,
-        mNodeUUID,
-        currentTransactionUUID(),
-        kNeighbors.size());
+TransactionResult::SharedConst CyclesThreeNodesReceiverTransaction::run()
+{
+    const auto kNeighbors = mRequestMessage->neighbors();
     const auto kContractorBalance = mTrustLinesManager->balance(mRequestMessage->senderUUID);
-    const TrustLineBalance kZeroBalance = 0;
 
-    if (kContractorBalance == kZeroBalance) {
+    if (kContractorBalance == TrustLine::kZeroBalance()) {
         return resultDone();
     }
 
+    vector<NodeUUID> commonNeighbors;
+
     bool searchDebtors = true;
-    if (kContractorBalance > kZeroBalance)
+    if (kContractorBalance > TrustLine::kZeroBalance())
         searchDebtors = false;
 
     TrustLineBalance stepNodeBalance;
     for (const auto &kNodeUUID: kNeighbors) {
         stepNodeBalance = mTrustLinesManager->balance(kNodeUUID);
-        if ((searchDebtors and stepNodeBalance > kZeroBalance)
-            or (not searchDebtors and (stepNodeBalance < kZeroBalance)))
-            kMessage->addNeighborUUIDAndBalance(
+        if ((searchDebtors and stepNodeBalance > TrustLine::kZeroBalance())
+            or (not searchDebtors and (stepNodeBalance < TrustLine::kZeroBalance())))
+            commonNeighbors.push_back(
                 kNodeUUID);
     }
-    if (kMessage->NeighborsAndBalances().size() > 0)
-        sendMessage(
+    if (!commonNeighbors.empty())
+        sendMessage<CyclesThreeNodesBalancesResponseMessage>(
             mRequestMessage->senderUUID,
-            kMessage);
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            commonNeighbors);
     return resultDone();
 }
 

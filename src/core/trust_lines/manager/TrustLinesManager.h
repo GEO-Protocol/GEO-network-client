@@ -304,7 +304,7 @@ public:
 
     vector<NodeUUID> gateways() const;
 
-    vector<NodeUUID> rt1() const;
+    vector<NodeUUID> firstLevelNeighbors() const;
 
     // total balance to all 1st level neighbors
     ConstSharedTrustLineBalance totalBalance() const;

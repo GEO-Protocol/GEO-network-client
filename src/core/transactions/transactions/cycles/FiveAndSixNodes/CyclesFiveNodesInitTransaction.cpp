@@ -5,7 +5,6 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
     const SerializedEquivalent equivalent,
     TrustLinesManager *manager,
     CyclesManager *cyclesManager,
-    StorageHandler *storageHandler,
     Logger &logger) :
     CyclesBaseFiveSixNodesInitTransaction(
         BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction,
@@ -13,7 +12,6 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
         equivalent,
         manager,
         cyclesManager,
-        storageHandler,
         logger)
 {}
 
@@ -46,20 +44,17 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAnd
     return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage()
 {
     debug() << "runParseMessageAndCreateCyclesStage";
-    if (mContext.size() == 0) {
+    if (mContext.empty()) {
         info() << "No responses messages are present. Can't create cycles paths";
         return resultDone();
     }
     debug() << "Try to collect path";
-    TrustLineBalance zeroBalance = 0;
     CycleMap mCreditors;
     TrustLineBalance creditorsStepFlow;
-    for(const auto &mess: mContext){
+    for (const auto &mess: mContext) {
         auto message = static_pointer_cast<CyclesFiveNodesBoundaryMessage>(mess);
         const auto stepPath = make_shared<vector<NodeUUID>>(message->Path());
         //  It has to be exactly nodes count in path
@@ -67,7 +62,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
             continue;
         creditorsStepFlow = mTrustLinesManager->balance((*stepPath)[1]);
         //  If it is Debtor branch - skip it
-        if (creditorsStepFlow > zeroBalance)
+        if (creditorsStepFlow > TrustLine::kZeroBalance())
             continue;
         //  Check all Boundary Nodes and add it to map if all checks path
         for (auto &NodeUUID: message->BoundaryNodes()){
@@ -92,7 +87,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
         auto message = static_pointer_cast<CyclesFiveNodesBoundaryMessage>(mess);
         debtorsStepFlow = mTrustLinesManager->balance(message->Path()[1]);
         //  If it is Creditors branch - skip it
-        if (debtorsStepFlow < zeroBalance)
+        if (debtorsStepFlow < TrustLine::kZeroBalance())
             continue;
         stepPathDebtors = message->Path();
         //  It has to be exactly nodes count in path
@@ -137,11 +132,9 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
     }
     debug() << "CyclesFiveNodesInitTransaction::End";
 #endif
-    mContext.clear();
     mCyclesManager->closeOneCycle();
     return resultDone();
 }
-#pragma clang diagnostic pop
 
 const string CyclesFiveNodesInitTransaction::logHeader() const
 {

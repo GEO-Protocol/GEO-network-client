@@ -2,12 +2,11 @@
 
 CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
     const NodeUUID &nodeUUID,
-    const NodeUUID &creditorContractorUUID,
+    const NodeUUID &contractorUUID,
     const SerializedEquivalent equivalent,
     TrustLinesManager *manager,
     RoutingTableManager *routingTable,
     CyclesManager *cyclesManager,
-    StorageHandler *storageHandler,
     Logger &logger) :
 
     BaseTransaction(
@@ -18,8 +17,7 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
     mTrustLinesManager(manager),
     mCyclesManager(cyclesManager),
     mRoutingTable(routingTable),
-    mStorageHandler(storageHandler),
-    mCreditorContractorUUID(creditorContractorUUID)
+    mContractorUUID(contractorUUID)
 {}
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::run()
@@ -40,23 +38,54 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::run()
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAndSendMessageStage()
 {
-    debug() << "runCollectDataAndSendMessageStage; Receiver is " << mCreditorContractorUUID;
+    debug() << "runCollectDataAndSendMessageStage; creditor is " << mContractorUUID;
+    const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
+    if (kBalanceToContractor == TrustLine::kZeroBalance()) {
+        return resultDone();
+    }
 
-    auto neighborsDebtors = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
-    for(const auto &kDebtorNode:neighborsDebtors){
-        auto commonNodes = calculateCommonNodes(kDebtorNode, mCreditorContractorUUID);
-        if(commonNodes.size() == 0 )
-            continue;
-        for(const auto kCommonNode: commonNodes){
-            mWaitingResponses[kCommonNode] = kDebtorNode;
-            sendMessage<CyclesFourNodesBalancesRequestMessage>(
-                kCommonNode,
-                mEquivalent,
-                mNodeUUID,
-                currentTransactionUUID(),
-                kDebtorNode,
-                mCreditorContractorUUID);
+    vector<NodeUUID> suitableNeighbors;
+    if (kBalanceToContractor < TrustLine::kZeroBalance()) {
+        suitableNeighbors = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
+        mNegativeContractorBalance = true;
+    } else {
+        suitableNeighbors = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
+        mNegativeContractorBalance = false;
+    }
+
+    auto creditorNeighbors = mRoutingTable->secondLevelContractorsForNode(
+        mContractorUUID);
+
+    bool sendMessageToAtLeastOneNode = false;
+    for (const auto &creditorNodeNeighbor : creditorNeighbors) {
+        auto commonNodes = getCommonNodes(
+            creditorNodeNeighbor,
+            suitableNeighbors);
+        if (!commonNodes.empty()) {
+            if (mNegativeContractorBalance) {
+                sendMessage<CyclesFourNodesNegativeBalanceRequestMessage>(
+                    creditorNodeNeighbor,
+                    mEquivalent,
+                    mNodeUUID,
+                    currentTransactionUUID(),
+                    mContractorUUID,
+                    commonNodes);
+            } else {
+                sendMessage<CyclesFourNodesPositiveBalanceRequestMessage>(
+                    creditorNodeNeighbor,
+                    mEquivalent,
+                    mNodeUUID,
+                    currentTransactionUUID(),
+                    mContractorUUID,
+                    commonNodes);
+            }
+            sendMessageToAtLeastOneNode = true;
         }
+    }
+
+    if (!sendMessageToAtLeastOneNode) {
+        info() << "There are no suitable nodes for building cycles";
+        return resultDone();
     }
 
     mStep = Stages::ParseMessageAndCreateCycles;
@@ -68,29 +97,50 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage()
 {
     debug() << "runParseMessageAndCreateCyclesStage";
-    if (mContext.size() == 0) {
+    if (mContext.empty()) {
         info() << "No responses messages are present. Can't create cycles paths;";
         return resultDone();
     }
 
-    for(auto message:mContext){
-        const auto kMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(message);
+    while (!mContext.empty()) {
+        const auto kMessage = popNextMessage<CyclesFourNodesBalancesResponseMessage>();
         auto sender = kMessage->senderUUID;
-        vector<NodeUUID> stepPath = {
-            mWaitingResponses[sender],
-            sender,
-            mCreditorContractorUUID
-        };
+        for (const auto &suitableNode : kMessage->suitableNodes()) {
+            vector<NodeUUID> stepPath = {
+                suitableNode,
+                sender,
+                mContractorUUID
+            };
 
-        const auto cyclePath = make_shared<Path>(
-            mNodeUUID,
-            mNodeUUID,
-            stepPath);
-        mCyclesManager->addCycle(
-            cyclePath);
+            if (!mNegativeContractorBalance) {
+                reverse(
+                    stepPath.begin(),
+                    stepPath.end());
+            }
+
+            const auto cyclePath = make_shared<Path>(
+                mNodeUUID,
+                mNodeUUID,
+                stepPath);
+            mCyclesManager->addCycle(
+                cyclePath);
+        }
     }
     mCyclesManager->closeOneCycle();
     return resultDone();
+}
+
+vector<NodeUUID> CyclesFourNodesInitTransaction::getCommonNodes(
+    const NodeUUID &creditorNeighborNode,
+    vector<NodeUUID> currentNodeSuitableNeighbors)
+{
+    vector<NodeUUID> result;
+    for (const auto &suitableNeighbor : currentNodeSuitableNeighbors) {
+        if (mRoutingTable->secondLevelContractorsForNode(suitableNeighbor).count(creditorNeighborNode) != 0) {
+            result.push_back(suitableNeighbor);
+        }
+    }
+    return result;
 }
 
 const string CyclesFourNodesInitTransaction::logHeader() const
@@ -98,23 +148,4 @@ const string CyclesFourNodesInitTransaction::logHeader() const
     stringstream s;
     s << "[CyclesFourNodesInitTransactionTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
-}
-
-vector<NodeUUID> CyclesFourNodesInitTransaction::calculateCommonNodes(
-    const NodeUUID &firstNode,
-    const NodeUUID &secondNode)
-{
-    auto secondNodeNeighbors = mRoutingTable->secondLevelContractorsForNode(secondNode);
-    auto firstNodeNeighbors = mRoutingTable->secondLevelContractorsForNode(firstNode);
-    vector<NodeUUID> commonNeighbors;
-
-    set_intersection(
-        secondNodeNeighbors.begin(),
-        secondNodeNeighbors.end(),
-        firstNodeNeighbors.begin(),
-        firstNodeNeighbors.end(),
-        std::inserter(
-            commonNeighbors,
-            commonNeighbors.begin()));
-    return commonNeighbors;
 }

@@ -39,7 +39,8 @@
 
 #include "../../../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
 #include "../../../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
-#include "../../../messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
+#include "../../../messages/cycles/FourNodes/CyclesFourNodesNegativeBalanceRequestMessage.h"
+#include "../../../messages/cycles/FourNodes/CyclesFourNodesPositiveBalanceRequestMessage.h"
 #include "../../../messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 #include "../../../messages/cycles/SixAndFiveNodes/CyclesFiveNodesInBetweenMessage.hpp"
 #include "../../../messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"

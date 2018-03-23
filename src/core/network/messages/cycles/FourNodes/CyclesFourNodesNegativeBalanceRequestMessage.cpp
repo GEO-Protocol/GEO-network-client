@@ -1,45 +1,56 @@
-#include "CyclesFourNodesBalancesResponseMessage.h"
+#include "CyclesFourNodesNegativeBalanceRequestMessage.h"
 
-CyclesFourNodesBalancesResponseMessage::CyclesFourNodesBalancesResponseMessage(
+CyclesFourNodesNegativeBalanceRequestMessage::CyclesFourNodesNegativeBalanceRequestMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    vector<NodeUUID> &suitableNodes):
+    const NodeUUID &contractor,
+    vector<NodeUUID> &checkedNodes):
 
     TransactionMessage(
         equivalent,
         senderUUID,
         transactionUUID),
-    mSuitableNodes(suitableNodes)
+    mContractorUUID(contractor),
+    mCheckedNodes(checkedNodes)
 {}
 
-CyclesFourNodesBalancesResponseMessage::CyclesFourNodesBalancesResponseMessage(
+CyclesFourNodesNegativeBalanceRequestMessage::CyclesFourNodesNegativeBalanceRequestMessage(
     BytesShared buffer):
 
     TransactionMessage(buffer)
 {
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    SerializedRecordsCount suitableNodesCount;
+    // contractorUUID
     memcpy(
-        &suitableNodesCount,
+        mContractorUUID.data,
+        buffer.get() + bytesBufferOffset,
+        NodeUUID::kBytesSize);
+    bytesBufferOffset += NodeUUID::kBytesSize;
+
+    // checkedNodes
+    SerializedRecordsCount checkedNodesCount;
+    memcpy(
+        &checkedNodesCount,
         buffer.get() + bytesBufferOffset,
         sizeof(SerializedRecordsCount));
     bytesBufferOffset += sizeof(SerializedRecordsCount);
 
-    for (SerializedRecordNumber i = 1; i <= suitableNodesCount; ++i) {
+    for (SerializedRecordNumber i = 1; i <= checkedNodesCount; ++i) {
         NodeUUID stepNode(buffer.get() + bytesBufferOffset);
         bytesBufferOffset += NodeUUID::kBytesSize;
-        mSuitableNodes.push_back(stepNode);
+        mCheckedNodes.push_back(stepNode);
     }
 }
 
-pair<BytesShared, size_t> CyclesFourNodesBalancesResponseMessage::serializeToBytes() const
+pair<BytesShared, size_t> CyclesFourNodesNegativeBalanceRequestMessage::serializeToBytes() const
     throw(bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
-    auto debtorsCount = (SerializedRecordsCount)mSuitableNodes.size();
+    auto debtorsCount = (SerializedRecordsCount)mCheckedNodes.size();
     size_t bytesCount = parentBytesAndCount.second
+                        + NodeUUID::kBytesSize
                         + sizeof(SerializedRecordsCount)
                         + debtorsCount * NodeUUID::kBytesSize;
 
@@ -52,13 +63,21 @@ pair<BytesShared, size_t> CyclesFourNodesBalancesResponseMessage::serializeToByt
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
 
+    // For mContractor
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &mContractorUUID,
+        NodeUUID::kBytesSize);
+    dataBytesOffset += NodeUUID::kBytesSize;
+
+    // For mCheckedNodes
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &debtorsCount,
         sizeof(SerializedRecordsCount));
     dataBytesOffset += sizeof(SerializedRecordsCount);
 
-    for(auto const &debtor: mSuitableNodes) {
+    for(auto const &debtor: mCheckedNodes) {
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &debtor,
@@ -71,12 +90,17 @@ pair<BytesShared, size_t> CyclesFourNodesBalancesResponseMessage::serializeToByt
         bytesCount);
 }
 
-vector<NodeUUID> CyclesFourNodesBalancesResponseMessage::suitableNodes() const
+const Message::MessageType CyclesFourNodesNegativeBalanceRequestMessage::typeID() const
 {
-    return mSuitableNodes;
+    return Message::MessageType::Cycles_FourNodesNegativeBalanceRequest;
 }
 
-const Message::MessageType CyclesFourNodesBalancesResponseMessage::typeID() const
+vector<NodeUUID> CyclesFourNodesNegativeBalanceRequestMessage::checkedNodes() const
 {
-    return Message::MessageType::Cycles_FourNodesBalancesResponse;
+    return mCheckedNodes;
+}
+
+const NodeUUID CyclesFourNodesNegativeBalanceRequestMessage::contractor() const
+{
+    return mContractorUUID;
 }

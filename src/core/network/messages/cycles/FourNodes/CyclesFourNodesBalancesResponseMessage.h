@@ -12,8 +12,23 @@ public:
     typedef shared_ptr<CyclesFourNodesBalancesResponseMessage> Shared;
 
 public:
-    using TransactionMessage::TransactionMessage;
+    CyclesFourNodesBalancesResponseMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+        vector<NodeUUID> &suitableNodes);
+
+    CyclesFourNodesBalancesResponseMessage(
+        BytesShared buffer);
+
+    virtual pair<BytesShared, size_t> serializeToBytes()const
+        throw(bad_alloc);
 
     const MessageType typeID() const;
+
+    vector<NodeUUID> suitableNodes() const;
+
+protected:
+    vector<NodeUUID> mSuitableNodes;
 };
 #endif //GEO_NETWORK_CLIENT_FOURNODESBALANCESRESPONSEMESSAGE_H

@@ -63,12 +63,13 @@ public:
          */
         Cycles_ThreeNodesBalancesRequest = 300,
         Cycles_ThreeNodesBalancesResponse = 301,
-        Cycles_FourNodesBalancesRequest = 302,
-        Cycles_FourNodesBalancesResponse = 303,
-        Cycles_FiveNodesBoundary = 304,
-        Cycles_FiveNodesMiddleware = 305,
-        Cycles_SixNodesBoundary = 306,
-        Cycles_SixNodesMiddleware = 307,
+        Cycles_FourNodesNegativeBalanceRequest = 302,
+        Cycles_FourNodesPositiveBalanceRequest = 303,
+        Cycles_FourNodesBalancesResponse = 304,
+        Cycles_FiveNodesBoundary = 305,
+        Cycles_FiveNodesMiddleware = 306,
+        Cycles_SixNodesBoundary = 307,
+        Cycles_SixNodesMiddleware = 308,
 
         /*
          * Max flow

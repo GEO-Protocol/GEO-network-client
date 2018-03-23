@@ -15,7 +15,6 @@ public:
         const SerializedEquivalent equivalent,
         TrustLinesManager *manager,
         CyclesManager *cyclesManager,
-        StorageHandler *storageHandler,
         Logger &logger);
 
     const BaseTransaction::TransactionType transactionType() const;

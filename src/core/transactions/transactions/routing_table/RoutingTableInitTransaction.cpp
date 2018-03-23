@@ -42,7 +42,7 @@ TransactionResult::SharedConst RoutingTableInitTransaction::run()
 
 TransactionResult::SharedConst RoutingTableInitTransaction::runCollectDataStage()
 {
-    auto neighbors = mTrustLinesManager->rt1();
+    auto neighbors = mTrustLinesManager->firstLevelNeighbors();
     for(const auto &kNeighborNode: neighbors){
         sendMessage<RoutingTableRequestMessage>(
             kNeighborNode,

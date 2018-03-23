@@ -422,9 +422,13 @@ void TransactionsManager::processMessage(
         launchThreeNodesCyclesResponseTransaction(
             static_pointer_cast<CyclesThreeNodesBalancesRequestMessage>(message));
 
-    } else if (message->typeID() == Message::MessageType::Cycles_FourNodesBalancesRequest){
+    } else if (message->typeID() == Message::MessageType::Cycles_FourNodesNegativeBalanceRequest){
         launchFourNodesCyclesResponseTransaction(
-            static_pointer_cast<CyclesFourNodesBalancesRequestMessage>(message));
+            static_pointer_cast<CyclesFourNodesNegativeBalanceRequestMessage>(message));
+
+    } else if (message->typeID() == Message::MessageType::Cycles_FourNodesPositiveBalanceRequest){
+        launchFourNodesCyclesResponseTransaction(
+            static_pointer_cast<CyclesFourNodesPositiveBalanceRequestMessage>(message));
 
     /*
      * Trust lines
@@ -1031,7 +1035,6 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
-                mStorageHandler,
                 mLog),
             true,
             false,
@@ -1075,7 +1078,6 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction(
                 equivalent,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
-                mStorageHandler,
                 mLog),
             true,
             false,
@@ -1119,7 +1121,6 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction(
                 equivalent,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
-                mStorageHandler,
                 mLog),
             true,
             false,
@@ -1166,7 +1167,6 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
-                mStorageHandler,
                 mLog),
             true,
             false,
@@ -1180,7 +1180,7 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(
 }
 
 void TransactionsManager::launchFourNodesCyclesResponseTransaction(
-    CyclesFourNodesBalancesRequestMessage::Shared message)
+    CyclesFourNodesNegativeBalanceRequestMessage::Shared message)
 {
     try {
         prepareAndSchedule(
@@ -1196,6 +1196,27 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CyclesFourNodesReceiverTransaction "
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
+    }
+}
+
+void TransactionsManager::launchFourNodesCyclesResponseTransaction(
+    CyclesFourNodesPositiveBalanceRequestMessage::Shared message)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<CyclesFourNodesReceiverTransaction>(
+                mNodeUUID,
+                message,
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for CyclesFourNodesReceiverTransaction (positive) "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
@@ -1891,15 +1912,15 @@ void TransactionsManager::prepareAndSchedule(
             throw bad_alloc();
 
         } catch(ConflictError &e) {
-            warning() << "prepareAndSchedule:" << "TransactionUUID: " << transaction->currentTransactionUUID()
-                                              << " New TransactionType:" << transaction->transactionType()
-                                              << " Recreate.";
             if (regenerateUUID) {
+                warning() << "prepareAndSchedule:" << "TransactionUUID: " << transaction->currentTransactionUUID()
+                          << " New TransactionType:" << transaction->transactionType()
+                          << " Recreate.";
                 transaction->recreateTransactionUUID();
             } else {
                 warning() << "prepareAndSchedule:" << "TransactionUUID: " << transaction->currentTransactionUUID()
-                                                  << " New TransactionType:" << transaction->transactionType()
-                                                  << "Exit.";
+                          << " New TransactionType:" << transaction->transactionType()
+                          << " Exit.";
                 return;
             }
         }

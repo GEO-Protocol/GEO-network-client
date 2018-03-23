@@ -14,19 +14,6 @@ CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage
 {}
 
 CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage(
-    const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
-    const TransactionUUID &transactionUUID,
-    SerializedRecordsCount neighborsUUUIDCount):
-    TransactionMessage(
-        equivalent,
-        senderUUID,
-        transactionUUID)
-{
-    mNeighborsUUUID.reserve(neighborsUUUIDCount);
-}
-
-CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage(
     BytesShared buffer):
 
     TransactionMessage(buffer)
@@ -52,7 +39,7 @@ std::pair<BytesShared, size_t> CyclesThreeNodesBalancesResponseMessage::serializ
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
-    SerializedRecordsCount boundaryNodesCount = (SerializedRecordsCount) mNeighborsUUUID.size();
+    auto boundaryNodesCount = (SerializedRecordsCount) mNeighborsUUUID.size();
     size_t bytesCount =
         parentBytesAndCount.second +
         (NodeUUID::kBytesSize) * boundaryNodesCount +
@@ -90,16 +77,8 @@ const Message::MessageType CyclesThreeNodesBalancesResponseMessage::typeID() con
     return Message::MessageType::Cycles_ThreeNodesBalancesResponse;
 }
 
-vector<NodeUUID> CyclesThreeNodesBalancesResponseMessage::NeighborsAndBalances()
+vector<NodeUUID> CyclesThreeNodesBalancesResponseMessage::commonNodes()
     noexcept
 {
     return mNeighborsUUUID;
 }
-
-void CyclesThreeNodesBalancesResponseMessage::addNeighborUUIDAndBalance(
-    NodeUUID neighborUUID)
-    throw (bad_alloc)
-{
-    mNeighborsUUUID.push_back(neighborUUID);
-}
-

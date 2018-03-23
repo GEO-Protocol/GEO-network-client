@@ -19,7 +19,6 @@ public:
         const SerializedEquivalent equivalent,
         TrustLinesManager *manager,
         CyclesManager *cyclesManager,
-        StorageHandler *storageHandler,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -36,7 +35,6 @@ protected:
 
 protected:
     TrustLinesManager *mTrustLinesManager;
-    StorageHandler *mStorageHandler;
     CyclesManager *mCyclesManager;
 };
 

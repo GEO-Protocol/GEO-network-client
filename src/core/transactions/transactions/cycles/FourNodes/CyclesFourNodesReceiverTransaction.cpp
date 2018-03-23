@@ -2,7 +2,7 @@
 
 CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
     const NodeUUID &nodeUUID,
-    CyclesFourNodesBalancesRequestMessage::Shared message,
+    CyclesFourNodesNegativeBalanceRequestMessage::Shared message,
     TrustLinesManager *manager,
     Logger &logger) :
     BaseTransaction(
@@ -12,27 +12,87 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
         message->equivalent(),
         logger),
     mTrustLinesManager(manager),
-    mRequestMessage(message)
+    mRequestMessage(message),
+    mNegativeCycleBalance(true)
+{}
+
+CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
+    const NodeUUID &nodeUUID,
+    CyclesFourNodesPositiveBalanceRequestMessage::Shared message,
+    TrustLinesManager *manager,
+    Logger &logger) :
+    BaseTransaction(
+        BaseTransaction::TransactionType::Cycles_FourNodesReceiverTransaction,
+        message->transactionUUID(),
+        nodeUUID,
+        message->equivalent(),
+        logger),
+    mTrustLinesManager(manager),
+    mRequestMessage(message),
+    mNegativeCycleBalance(false)
 {}
 
 TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run()
 {
-    const auto kDebtorNeighbor = mRequestMessage->debtor();
-    const auto kCreditorNeighbor = mRequestMessage->creditor();
-
-    if(mTrustLinesManager->balance(kDebtorNeighbor) <= TrustLine::kZeroBalance())
+    if (!mTrustLinesManager->isNeighbor(mRequestMessage->contractor())) {
+        warning() << "Contractor node " << mRequestMessage->contractor() << " is not a neighbor";
         return resultDone();
+    }
 
-    if(mTrustLinesManager->balance(kCreditorNeighbor) >= TrustLine::kZeroBalance())
-        return resultDone();
+    if (mNegativeCycleBalance) {
+        buildSuitableDebtorsForCycleNegativeBalance();
+    } else {
+        buildSuitableDebtorsForCyclePositiveBalance();
+    }
 
-    sendMessage<CyclesFourNodesBalancesResponseMessage>(
-        mRequestMessage->senderUUID,
-        mEquivalent,
-        mNodeUUID,
-        currentTransactionUUID());
+    if (!mSuitableNodes.empty()) {
+        sendMessage<CyclesFourNodesBalancesResponseMessage>(
+            mRequestMessage->senderUUID,
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            mSuitableNodes);
+    }
 
     return resultDone();
+}
+
+void CyclesFourNodesReceiverTransaction::buildSuitableDebtorsForCycleNegativeBalance()
+{
+    auto creditorBalance = mTrustLinesManager->balance(mRequestMessage->contractor());
+    if (creditorBalance <= TrustLine::kZeroBalance()) {
+        info() << "Not positive balance with contractor node";
+        return;
+    }
+
+    for (const auto &debtor : mRequestMessage->checkedNodes()) {
+        if (!mTrustLinesManager->isNeighbor(debtor)) {
+            warning() << "Checked node " << debtor << " is not a neighbor";
+            continue;
+        }
+        if (mTrustLinesManager->balance(debtor) < TrustLine::kZeroBalance()) {
+            mSuitableNodes.push_back(debtor);
+        }
+    }
+}
+
+void CyclesFourNodesReceiverTransaction::buildSuitableDebtorsForCyclePositiveBalance()
+{
+    auto creditorBalance = mTrustLinesManager->balance(mRequestMessage->contractor());
+    if (creditorBalance >= TrustLine::kZeroBalance()) {
+        info() << "Not negative balance with contractor node";
+        return;
+    }
+
+    for (const auto &debtor : mRequestMessage->checkedNodes()) {
+        if (!mTrustLinesManager->isNeighbor(debtor)) {
+            warning() << "Checked node " << debtor << " is not a neighbor";
+            continue;
+        }
+        if (mTrustLinesManager->balance(debtor) > TrustLine::kZeroBalance()) {
+            mSuitableNodes.push_back(debtor);
+        }
+    }
 }
 
 const string CyclesFourNodesReceiverTransaction::logHeader() const

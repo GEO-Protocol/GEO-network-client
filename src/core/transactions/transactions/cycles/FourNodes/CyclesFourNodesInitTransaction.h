@@ -4,9 +4,9 @@
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../cycles/CyclesManager.h"
-#include "../../../../io/storage/StorageHandler.h"
 #include "../../../../cycles/RoutingTableManager.h"
-#include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
+#include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesNegativeBalanceRequestMessage.h"
+#include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesPositiveBalanceRequestMessage.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 #include "../../../../paths/lib/Path.h"
 
@@ -18,12 +18,11 @@ class CyclesFourNodesInitTransaction :
 public:
     CyclesFourNodesInitTransaction(
         const NodeUUID &nodeUUID,
-        const NodeUUID &creditorContractorUUID,
+        const NodeUUID &contractorUUID,
         const SerializedEquivalent equivalent,
         TrustLinesManager *manager,
         RoutingTableManager *routingTable,
         CyclesManager *cyclesManager,
-        StorageHandler *storageHandler,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -35,22 +34,23 @@ protected:
     };
 
     TransactionResult::SharedConst runCollectDataAndSendMessageStage();
+
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
 protected:
     const string logHeader() const;
-    vector<NodeUUID> calculateCommonNodes(
-        const NodeUUID &firstNode,
-        const NodeUUID &secondNode);
+
+    vector<NodeUUID> getCommonNodes(
+        const NodeUUID &creditorNeighborNode,
+        vector<NodeUUID> currentNodeSuitableNeighbors);
 
 protected:
-    NodeUUID mCreditorContractorUUID;
+    NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
     CyclesManager *mCyclesManager;
-    StorageHandler *mStorageHandler;
     RoutingTableManager *mRoutingTable;
+    bool mNegativeContractorBalance;
 
-    map<NodeUUID, NodeUUID> mWaitingResponses;
 };
 
 #endif //GEO_NETWORK_CLIENT_GETFOURNODESNEIGHBORBALANCESTRANSACTION_H

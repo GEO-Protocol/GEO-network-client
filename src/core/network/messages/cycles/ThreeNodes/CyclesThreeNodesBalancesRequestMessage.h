@@ -25,13 +25,13 @@ public:
 
     const MessageType typeID() const;
 
-    vector<NodeUUID> Neighbors();
+    set<NodeUUID> neighbors();
 
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
 protected:
-    vector<NodeUUID> mNeighbors;
+    set<NodeUUID> mNeighbors;
 };
 
 #endif //GEO_NETWORK_CLIENT_BALANCESREQUESTMESSAGE_H

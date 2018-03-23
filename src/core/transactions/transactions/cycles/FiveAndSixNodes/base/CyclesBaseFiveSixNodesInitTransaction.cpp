@@ -6,7 +6,6 @@ CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(
     const SerializedEquivalent equivalent,
     TrustLinesManager *manager,
     CyclesManager *cyclesManager,
-    StorageHandler *storageHandler,
     Logger &logger) :
     BaseTransaction(
         type,
@@ -14,9 +13,8 @@ CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(
         equivalent,
         logger),
     mTrustLinesManager(manager),
-    mCyclesManager(cyclesManager),
-    mStorageHandler(storageHandler)
-{};
+    mCyclesManager(cyclesManager)
+{}
 
 TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::run() {
     switch (mStep) {

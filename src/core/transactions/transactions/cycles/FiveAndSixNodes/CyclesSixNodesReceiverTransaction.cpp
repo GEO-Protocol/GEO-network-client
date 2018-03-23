@@ -17,17 +17,13 @@ CyclesSixNodesReceiverTransaction::CyclesSixNodesReceiverTransaction(
 TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
 {
     vector<NodeUUID> path = mInBetweenNodeTopologyMessage->Path();
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wconversion"
-    const SerializedPathLengthSize kCurrentDepth = path.size();
-#pragma clang diagnostic pop
-    const TrustLineBalance kZeroBalance = 0;
+    const auto kCurrentDepth = (SerializedPathLengthSize)path.size();
     // Direction has mirror sign for initiator node and receiver node.
     // Direction is calculated based on initiator node
     TrustLineBalance maxFlow = (-1) *  mTrustLinesManager->balance(path.back());
 
     //  If balance to previous node equal zero finish transaction
-    if (maxFlow == kZeroBalance)
+    if (maxFlow == TrustLine::kZeroBalance())
         return resultDone();
     auto kFirstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
     //  Update message path and send to next level nodes

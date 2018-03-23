@@ -5,7 +5,6 @@ CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
     const SerializedEquivalent equivalent,
     TrustLinesManager *manager,
     CyclesManager *cyclesManager,
-    StorageHandler *storageHandler,
     Logger &logger) :
     CyclesBaseFiveSixNodesInitTransaction(
         BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction,
@@ -13,7 +12,6 @@ CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
         equivalent,
         manager,
         cyclesManager,
-        storageHandler,
         logger)
 {}
 
@@ -38,8 +36,6 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndS
     return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAndCreateCyclesStage()
 {
     debug() << "runParseMessageAndCreateCyclesStage";
@@ -47,7 +43,6 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
         info() << "No responses messages are present. Can't create cycles paths;";
         return resultDone();
     }
-    const TrustLineBalance kZeroBalance = 0;
     CycleMap mCreditors;
     TrustLineBalance creditorsStepFlow;
     for(const auto &mess: mContext){
@@ -58,7 +53,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
             continue;
         creditorsStepFlow = mTrustLinesManager->balance((*stepPath)[1]);
         //  If it is Debtor branch - skip it
-        if (creditorsStepFlow > kZeroBalance)
+        if (creditorsStepFlow > TrustLine::kZeroBalance())
             continue;
         //  Check all Boundary Nodes and add it to map if all checks path
         for (auto &nodeUUID: message->BoundaryNodes()){
@@ -82,7 +77,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
         auto message = static_pointer_cast<CyclesSixNodesBoundaryMessage>(mess);
         debtorsStepFlow = mTrustLinesManager->balance(message->Path()[1]);
         //  If it is Creditors branch - skip it
-        if (debtorsStepFlow < kZeroBalance)
+        if (debtorsStepFlow < TrustLine::kZeroBalance())
             continue;
         stepPath = message->Path();
         //  It has to be exactly nodes count in path

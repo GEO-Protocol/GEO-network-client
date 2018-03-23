@@ -40,7 +40,7 @@
  */
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
-#include "../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
+#include "../../network/messages/cycles/FourNodes/CyclesFourNodesNegativeBalanceRequestMessage.h"
 #include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
 #include "../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../network/messages/routing_table/RoutingTableRequestMessage.h"
@@ -243,7 +243,10 @@ protected: // Transactions
         const SerializedEquivalent equivalent);
 
     void launchFourNodesCyclesResponseTransaction(
-        CyclesFourNodesBalancesRequestMessage::Shared message);
+        CyclesFourNodesNegativeBalanceRequestMessage::Shared message);
+
+    void launchFourNodesCyclesResponseTransaction(
+        CyclesFourNodesPositiveBalanceRequestMessage::Shared message);
 
     void launchThreeNodesCyclesInitTransaction(
         const NodeUUID &contractorUUID,
