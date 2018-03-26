@@ -1,0 +1,4 @@
+This realization does not implements any cryptographic mechanics yet. It is under heavy development and is not suitable for production usage outside of trusted and safe
+environment. Also it was never check by the community or any experts for the various vulnerabilities possible.
+
+Please, be patient for further enhancements and production usage.
