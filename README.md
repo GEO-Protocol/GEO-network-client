@@ -15,7 +15,7 @@ Protocol | Purpose | Brief| State
 **[Trust&nbsp;Lines](todo)** | Safe, predictable and minimalistic,  fault-tolerance, fraud-resistant, replication-friendly, activities accounting. |  `Decentralised` `Distributed` **`QRCrypto^`** | `Draft`
 **[Routing](todo)** / **[NAT&nbsp;Traversing](todo)** | Fast, network fault tolerance, participants discovering and traffic routing. | `Decentralised` `Distributed` | `WiP^`
 **[Payment](todo)** | Fast, safe, double-spending resistant, distributed multi-attendee payment crypto-protocol with **time predictable 100% participants consensus.** | `Decentralised` `Distributed` **`QRCrypto^`** | `Draft`
-**[Payment&nbsp;flow predicition](todo)** | Near real-time (depends on network segment) participants abilities forecasting towards other participants. | `Decentralised` `Distributed` | `Draft`
+**[Payment&nbsp;flow prediction](todo)** | Near real-time (depends on network segment) participants abilities forecasting towards other participants. | `Decentralised` `Distributed` | `Draft`
 **[Cycles&nbsp;discovering and processing](todo)** | Automatic, atomic, discovering and overlapping circular debts for up to 6 participants included. | `Decentralised` `Distributed` `Crypto` | `Draft`
  
 *^ QR Crypto — quantum resistant cryptography. In most cases, solutions are based on top of [Lamport signature.](https://en.wikipedia.org/wiki/Lamport_signature)*
