@@ -445,6 +445,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mMaxFlowCalculationCacheManager,
             mMaxFlowCalculationNodeCacheManager,
             mSubsystemsController,
+            mVisualInterface.get(),
             mIAmGateway,
             mLog),
         true,
@@ -1738,11 +1739,11 @@ LoggerStream TransactionsManager::info() const
 void TransactionsManager::writeTopology()
 {
     stringstream s;
-    s << "neighbors" << kTokensSeparator;
-    s << to_string(mTrustLines->rt1().size());
+    s << VisualResult::Topology;
     for (const auto &trustLine : mTrustLines->trustLines()) {
         s << kTokensSeparator << trustLine.first.stringUUID();
     }
+    s << kCommandsSeparator;
 
 //    auto visualResult = make_shared<VisualResult>(
 //        "neighbors",

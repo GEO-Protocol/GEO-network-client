@@ -1,4 +1,5 @@
 #include "SetOutgoingTrustLineTransaction.h"
+#include "../../../interface/visual_interface/visual/VisualResult.h"
 
 
 SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
@@ -9,6 +10,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     SubsystemsController *subsystemsController,
+    VisualInterface *visualInterface,
     bool iAmGateway,
     Logger &logger)
     noexcept :
@@ -23,6 +25,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
     mSubsystemsController(subsystemsController),
+    mVisualInterface(visualInterface),
     mIAmGateway(iAmGateway)
 {}
 
@@ -120,6 +123,20 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
                 mTransactionUUID,
                 mCommand->contractorUUID(),
                 mCommand->amount());
+        }
+
+        stringstream s;
+        s << VisualResult::OutgoingTrustLine << kTokensSeparator << mCommand->contractorUUID() << kCommandsSeparator;
+        auto message = s.str();
+
+        try {
+            mVisualInterface->writeResult(
+                message.c_str(),
+                message.size());
+        } catch (IOError &e) {
+            throw RuntimeError(
+                    "SetOutgoingTrustLineTransaction: "
+                        "Error occurred when visual result has accepted. Details: " + e.message());
         }
 
         return resultOK();

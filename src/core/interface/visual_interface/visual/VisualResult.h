@@ -13,6 +13,13 @@ public:
 
     const string serialize() const;
 
+    enum VisualResultType {
+        Topology = 0,
+        // 1 - creating node
+        OutgoingTrustLine = 2,
+        IncomingTrustLine = 3,
+    };
+
 private:
     string mVisualIdentifier;
     string mVisualInformation;
