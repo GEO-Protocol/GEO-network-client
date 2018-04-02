@@ -68,6 +68,7 @@ TransactionsManager::TransactionsManager(
     }
 
     mVisualInterface = make_unique<VisualInterface>(mLog);
+    // todo visualisation : add ifdef
     writeTopology();
 
     // todo: send current trust line amount to te contractors
@@ -769,7 +770,8 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         mResourcesManager,
         mPathsManager,
         mLog,
-        mSubsystemsController);
+        mSubsystemsController,
+        mVisualInterface.get());
     subscribeForBuildCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction, true, false, true);

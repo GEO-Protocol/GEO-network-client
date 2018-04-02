@@ -18,6 +18,9 @@ public:
         // 1 - creating node
         OutgoingTrustLine = 2,
         IncomingTrustLine = 3,
+        PaymentTopology = 4,
+        PaymentPaths = 5,
+        ActualPaymentPaths = 6
     };
 
 private:
