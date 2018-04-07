@@ -8,6 +8,7 @@ SubsystemsController::SubsystemsController(
     mIsRunCycleClosingTransactions = true;
     mIsRunPaymentTransactions = true;
     mIsRunTrustLineTransactions = true;
+    mIsWriteVisualResults = false;
 
     mForbidSendMessageToReceiverOnReservationStage = false;
     mForbidSendMessageToCoordinatorOnReservationStage = false;
@@ -86,6 +87,7 @@ void SubsystemsController::setFlags(size_t flags)
     mSleepOnVoteStage = (flags & 0x800000000) > 0;
     mSleepOnVoteConsistencyStage = (flags & 0x1000000000) > 0;
 
+    mIsWriteVisualResults = (flags & 0x10000000000) != 0;
     mIsRunPaymentTransactions = (flags & 0x20000000000) == 0;
     mIsRunTrustLineTransactions = (flags & 0x40000000000) == 0;
 
@@ -93,6 +95,7 @@ void SubsystemsController::setFlags(size_t flags)
     debug() << "payment transactions " << mIsRunPaymentTransactions;
     debug() << "trust line transactions " << mIsRunTrustLineTransactions;
     debug() << "close cycles " << mIsRunCycleClosingTransactions;
+    debug() << "write visual results " << mIsWriteVisualResults;
 }
 
 void SubsystemsController::setForbiddenNodeUUID(
@@ -135,6 +138,11 @@ bool SubsystemsController::isRunTrustLineTransactions() const
 bool SubsystemsController::isRunCycleClosingTransactions() const
 {
     return mIsRunCycleClosingTransactions;
+}
+
+bool SubsystemsController::isWriteVisualResults() const
+{
+    return mIsWriteVisualResults;
 }
 
 void SubsystemsController::turnOffNetwork()

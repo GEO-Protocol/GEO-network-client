@@ -8,6 +8,8 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    SubsystemsController *subsystemsController,
+    VisualInterface *visualInterface,
     bool iAmGateway,
     Logger &logger)
     noexcept:
@@ -22,6 +24,8 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
+    mSubsystemsController(subsystemsController),
+    mVisualInterface(visualInterface),
     mIAmGateway(iAmGateway),
     mSenderIsGateway(false)
 {}
@@ -33,6 +37,8 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    SubsystemsController *subsystemsController,
+    VisualInterface *visualInterface,
     bool iAmGateway,
     Logger &logger)
     noexcept:
@@ -47,6 +53,8 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
+    mSubsystemsController(subsystemsController),
+    mVisualInterface(visualInterface),
     mIAmGateway(iAmGateway),
     mSenderIsGateway(true)
 {}
@@ -154,6 +162,43 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
             mMessage->senderUUID,
             mNodeUUID,
             mMessage->transactionUUID());
+
+        if (mSubsystemsController->isWriteVisualResults()) {
+            if (kOperationResult == TrustLinesManager::TrustLineOperationResult::Opened) {
+                stringstream s;
+                s << VisualResult::IncomingTrustLineOpen << kTokensSeparator
+                  << microsecondsSinceUnixEpoch() << kTokensSeparator
+                  << currentTransactionUUID() << kTokensSeparator
+                  << mMessage->senderUUID << kCommandsSeparator;
+                auto message = s.str();
+
+                try {
+                    mVisualInterface->writeResult(
+                        message.c_str(),
+                        message.size());
+                } catch (IOError &e) {
+                    error() << "SetIncomingTrustLineTransaction: "
+                                    "Error occurred when visual result has accepted. Details: " << e.message();
+                }
+            }
+            if (kOperationResult == TrustLinesManager::TrustLineOperationResult::Closed) {
+                stringstream s;
+                s << VisualResult::IncomingTrustLineClose << kTokensSeparator
+                  << microsecondsSinceUnixEpoch() << kTokensSeparator
+                  << currentTransactionUUID() << kTokensSeparator
+                  << mMessage->senderUUID << kCommandsSeparator;
+                auto message = s.str();
+
+                try {
+                    mVisualInterface->writeResult(
+                        message.c_str(),
+                        message.size());
+                } catch (IOError &e) {
+                    error() << "SetIncomingTrustLineTransaction: "
+                                    "Error occurred when visual result has accepted. Details: " << e.message();
+                }
+            }
+        }
 
         return resultDone();
 

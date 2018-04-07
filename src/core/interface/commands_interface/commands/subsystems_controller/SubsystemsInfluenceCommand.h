@@ -60,6 +60,7 @@ protected:
 //    35 - sleep on Vote Stage  0x800000000  //  34359738368
 //    36 - sleep on Vote Consistency Stage  0x1000000000  //  68719476736
 
+//    40 - write visual results 0x10000000000  //  1099511627776
 //    41 - forbid run payment transactions  0x20000000000  //  2199023255552
 //    42 - forbid run trust line transactions  0x40000000000  //  4398046511104
 //    43 - set node as gateway 0x80000000000  // 8796093022208

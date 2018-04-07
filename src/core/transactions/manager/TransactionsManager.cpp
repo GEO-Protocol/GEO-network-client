@@ -67,9 +67,7 @@ TransactionsManager::TransactionsManager(
         throw RuntimeError(e.what());
     }
 
-    mVisualInterface = make_unique<VisualInterface>(mLog);
-    // todo visualisation : add ifdef
-    writeTopology();
+    mVisualInterface = nullptr;
 
     // todo: send current trust line amount to te contractors
 }
@@ -483,6 +481,8 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
             mStorageHandler,
             mMaxFlowCalculationCacheManager,
             mMaxFlowCalculationNodeCacheManager,
+            mSubsystemsController,
+            mVisualInterface.get(),
             mIAmGateway,
             mLog),
         true,
@@ -501,6 +501,8 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
             mStorageHandler,
             mMaxFlowCalculationCacheManager,
             mMaxFlowCalculationNodeCacheManager,
+            mSubsystemsController,
+            mVisualInterface.get(),
             mIAmGateway,
             mLog),
         true,
@@ -788,7 +790,8 @@ void TransactionsManager::launchReceiverPaymentTransaction(
         mMaxFlowCalculationCacheManager,
         mMaxFlowCalculationNodeCacheManager,
         mLog,
-        mSubsystemsController);
+        mSubsystemsController,
+        mVisualInterface.get());
     subscribeForBuildCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction, false, false, true);
@@ -1738,30 +1741,22 @@ LoggerStream TransactionsManager::info() const
     return mLog.info(logHeader());
 }
 
-void TransactionsManager::writeTopology()
+void TransactionsManager::activateVisualInterface()
 {
-    stringstream s;
-    s << VisualResult::Topology;
-    for (const auto &trustLine : mTrustLines->trustLines()) {
-        s << kTokensSeparator << trustLine.first.stringUUID();
+    if (mVisualInterface == nullptr) {
+        mVisualInterface = make_unique<VisualInterface>(mLog);
+        info() << "Visual interface activated";
+    } else {
+        warning() << "Visual interface already activated";
     }
-    s << kCommandsSeparator;
+}
 
-//    auto visualResult = make_shared<VisualResult>(
-//        "neighbors",
-//        s.str());
-//
-//    auto message = visualResult->serialize();
-
-    auto message = s.str();
-
-    try {
-    mVisualInterface->writeResult(
-        message.c_str(),
-        message.size());
-    } catch (IOError &e) {
-        throw RuntimeError(
-                "TransactionsManager::writeTopology: "
-                    "Error occurred when visual result has accepted. Details: " + e.message());
+void TransactionsManager::deactivateVisualInterface()
+{
+    if (mVisualInterface != nullptr) {
+        mVisualInterface = nullptr;
+        info() << "Visual interface deactivated";
+    } else {
+        warning() << "Visual interface already deactivated";
     }
 }

@@ -1,5 +1,4 @@
 #include "SetOutgoingTrustLineTransaction.h"
-#include "../../../interface/visual_interface/visual/VisualResult.h"
 
 
 SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
@@ -125,18 +124,41 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
                 mCommand->amount());
         }
 
-        stringstream s;
-        s << VisualResult::OutgoingTrustLine << kTokensSeparator << mCommand->contractorUUID() << kCommandsSeparator;
-        auto message = s.str();
+        if (mSubsystemsController->isWriteVisualResults()) {
+            if (kOperationResult == TrustLinesManager::TrustLineOperationResult::Opened) {
+                stringstream s;
+                s << VisualResult::OutgoingTrustLineOpen << kTokensSeparator
+                  << microsecondsSinceUnixEpoch() << kTokensSeparator
+                  << currentTransactionUUID() << kTokensSeparator
+                  << mCommand->contractorUUID() << kCommandsSeparator;
+                auto message = s.str();
 
-        try {
-            mVisualInterface->writeResult(
-                message.c_str(),
-                message.size());
-        } catch (IOError &e) {
-            throw RuntimeError(
-                    "SetOutgoingTrustLineTransaction: "
-                        "Error occurred when visual result has accepted. Details: " + e.message());
+                try {
+                    mVisualInterface->writeResult(
+                        message.c_str(),
+                        message.size());
+                } catch (IOError &e) {
+                    error() << "SetOutgoingTrustLineTransaction: "
+                                    "Error occurred when visual result has accepted. Details: " << e.message();
+                }
+            }
+            if (kOperationResult == TrustLinesManager::TrustLineOperationResult::Closed) {
+                stringstream s;
+                s << VisualResult::OutgoingTrustLineClose << kTokensSeparator
+                  << microsecondsSinceUnixEpoch() << kTokensSeparator
+                  << currentTransactionUUID() << kTokensSeparator
+                  << mCommand->contractorUUID() << kCommandsSeparator;
+                auto message = s.str();
+
+                try {
+                    mVisualInterface->writeResult(
+                        message.c_str(),
+                        message.size());
+                } catch (IOError &e) {
+                    error() << "SetOutgoingTrustLineTransaction: "
+                                    "Error occurred when visual result has accepted. Details: " << e.message();
+                }
+            }
         }
 
         return resultOK();

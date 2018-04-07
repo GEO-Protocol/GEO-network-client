@@ -9,7 +9,8 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &log,
-    SubsystemsController *subsystemsController) :
+    SubsystemsController *subsystemsController,
+    VisualInterface *visualInterface) :
 
     BasePaymentTransaction(
         BaseTransaction::ReceiverPaymentTransaction,
@@ -22,7 +23,8 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         log,
         subsystemsController),
     mMessage(message),
-    mTransactionShouldBeRejected(false)
+    mTransactionShouldBeRejected(false),
+    mVisualInterface(visualInterface)
 {
     mStep = Stages::Receiver_CoordinatorRequestApproving;
 }
@@ -125,6 +127,24 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
         currentTransactionUUID(),
         mMessage->pathID(),
         ReceiverInitPaymentResponseMessage::Accepted);
+
+    if (mSubsystemsController->isWriteVisualResults()) {
+        stringstream s;
+        s << VisualResult::ReceiverOnPayment << kTokensSeparator
+          << microsecondsSinceUnixEpoch() << kTokensSeparator
+          << currentTransactionUUID() << kTokensSeparator
+          << mMessage->senderUUID << kCommandsSeparator;
+        auto message = s.str();
+
+        try {
+            mVisualInterface->writeResult(
+                message.c_str(),
+                message.size());
+        } catch (IOError &e) {
+            error() << "ReceiverPaymentTransaction::runInitialisationStage: "
+                            "Error occurred when visual result has accepted. Details: " << e.message();
+        }
+    }
 
     // Begin waiting for amount reservation requests.
     // There is non-zero probability, that first couple of paths will fail.

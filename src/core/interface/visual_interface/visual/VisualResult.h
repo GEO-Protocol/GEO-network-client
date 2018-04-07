@@ -16,11 +16,14 @@ public:
     enum VisualResultType {
         Topology = 0,
         // 1 - creating node
-        OutgoingTrustLine = 2,
-        IncomingTrustLine = 3,
-        PaymentTopology = 4,
-        PaymentPaths = 5,
-        ActualPaymentPaths = 6
+        OutgoingTrustLineOpen = 2,
+        OutgoingTrustLineClose = 3,
+        IncomingTrustLineOpen = 4,
+        IncomingTrustLineClose = 5,
+        CoordinatorOnPayment = 6,
+        PaymentPaths = 7,
+        ActualPaymentPaths = 8,
+        ReceiverOnPayment = 9,
     };
 
 private:

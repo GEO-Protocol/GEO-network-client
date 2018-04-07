@@ -17,6 +17,9 @@ VisualInterface::~VisualInterface()
     if (mFIFODescriptor != 0) {
         close(mFIFODescriptor);
     }
+    if (remove(FIFOFilePath().c_str()) != 0) {
+        mLog.warning("visual.fifo didn't delete");
+    }
 }
 
 void VisualInterface::writeResult(

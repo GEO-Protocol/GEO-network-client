@@ -331,8 +331,13 @@ public:
      */
     void launchRoutingTableResponseTransaction(
         RoutingTableRequestMessage::Shared message);
+
 public:
     void launchRoutingTableRequestTransaction();
+
+    void activateVisualInterface();
+
+    void deactivateVisualInterface();
 
 protected:
     /*
@@ -428,8 +433,6 @@ protected:
 
     LoggerStream info() const
     noexcept;
-
-    void writeTopology();
 
 private:
     NodeUUID &mNodeUUID;

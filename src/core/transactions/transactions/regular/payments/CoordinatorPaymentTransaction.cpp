@@ -147,6 +147,24 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
         currentTransactionUUID(),
         mCommand->contractorUUID());
 
+    if (mSubsystemsController->isWriteVisualResults()) {
+        stringstream s;
+        s << VisualResult::CoordinatorOnPayment << kTokensSeparator
+          << microsecondsSinceUnixEpoch() << kTokensSeparator
+          << currentTransactionUUID() << kTokensSeparator
+          << mCommand->contractorUUID() << kCommandsSeparator;
+        auto message = s.str();
+
+        try {
+            mVisualInterface->writeResult(
+                message.c_str(),
+                message.size());
+        } catch (IOError &e) {
+            error() << "CoordinatorPaymentTransaction::runPaymentInitialisationStage: "
+                            "Error occurred when visual result has accepted. Details: " << e.message();
+        }
+    }
+
     mStep = Stages::Coordinator_ReceiverResourceProcessing;
     return resultWaitForResourceTypes(
         {BaseResource::ResourceType::Paths},
@@ -188,27 +206,30 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
 
     debug() << "Collected paths count: " << mPathsStats.size();
 
-    // todo visualisation : add ifdef
-    stringstream s;
-    s << VisualResult::PaymentPaths << kTokensSeparator << mNodeUUID << kTokensSeparator
-      << mCommand->contractorUUID() << kTokensSeparator << mPathsStats.size();
-    for (const auto &identifierAndStats : mPathsStats) {
-        s << kTokensSeparator << identifierAndStats.second->path()->length();
-        for (const auto &nodeUUID : identifierAndStats.second->path()->nodes) {
-            s << kTokensSeparator << nodeUUID.stringUUID();
+    if (mSubsystemsController->isWriteVisualResults()) {
+        stringstream s;
+        s << VisualResult::PaymentPaths << kTokensSeparator
+          << microsecondsSinceUnixEpoch() << kTokensSeparator
+          << currentTransactionUUID() << kTokensSeparator
+          << mNodeUUID << kTokensSeparator
+          << mCommand->contractorUUID() << kTokensSeparator << mPathsStats.size();
+        for (const auto &identifierAndStats : mPathsStats) {
+            s << kTokensSeparator << identifierAndStats.second->path()->length();
+            for (const auto &nodeUUID : identifierAndStats.second->path()->nodes) {
+                s << kTokensSeparator << nodeUUID.stringUUID();
+            }
         }
-    }
-    s << kCommandsSeparator;
-    auto message = s.str();
+        s << kCommandsSeparator;
+        auto message = s.str();
 
-    try {
-        mVisualInterface->writeResult(
-            message.c_str(),
-            message.size());
-    } catch (IOError &e) {
-        throw RuntimeError(
-                "CoordinatorPaymentTransaction::runPathsResourceProcessingStage: "
-                    "Error occurred when visual result has accepted. Details: " + e.message());
+        try {
+            mVisualInterface->writeResult(
+                message.c_str(),
+                message.size());
+        } catch (IOError &e) {
+            error() << "CoordinatorPaymentTransaction::runPathsResourceProcessingStage: "
+                            "Error occurred when visual result has accepted. Details: " << e.message();
+        }
     }
 
     // TODO: Ensure paths shuffling
@@ -311,38 +332,41 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
 {
     debug() << "propagateVotesListAndWaitForVotingResult";
 
-    // todo visualisation : add ifdef
-    set<PathID> actualPathsIds;
-    for (const auto &nodeAndReservations : mReservations) {
-        for (const auto &pathIdAndReservation : nodeAndReservations.second) {
-            actualPathsIds.insert(pathIdAndReservation.first);
+    if (mSubsystemsController->isWriteVisualResults()) {
+        set <PathID> actualPathsIds;
+        for (const auto &nodeAndReservations : mReservations) {
+            for (const auto &pathIdAndReservation : nodeAndReservations.second) {
+                actualPathsIds.insert(pathIdAndReservation.first);
+            }
         }
-    }
-    stringstream s;
-    s << VisualResult::ActualPaymentPaths << kTokensSeparator << mNodeUUID << kTokensSeparator
-      << mCommand->contractorUUID() << kTokensSeparator << actualPathsIds.size();
-    for (const auto &identifier : actualPathsIds) {
-        const auto path = mPathsStats[identifier]->path();
-        s << kTokensSeparator << path->length();
-        for (const auto &nodeUUID : path->nodes) {
-            s << kTokensSeparator << nodeUUID.stringUUID();
+        stringstream s;
+        s << VisualResult::ActualPaymentPaths << kTokensSeparator
+          << microsecondsSinceUnixEpoch() << kTokensSeparator
+          << currentTransactionUUID() << kTokensSeparator
+          << mNodeUUID << kTokensSeparator
+          << mCommand->contractorUUID() << kTokensSeparator << actualPathsIds.size();
+        for (const auto &identifier : actualPathsIds) {
+            const auto path = mPathsStats[identifier]->path();
+            s << kTokensSeparator << path->length();
+            for (const auto &nodeUUID : path->nodes) {
+                s << kTokensSeparator << nodeUUID.stringUUID();
+            }
         }
-    }
-    s << kCommandsSeparator;
-    auto message = s.str();
+        s << kCommandsSeparator;
+        auto message = s.str();
 
-    try {
-        mVisualInterface->writeResult(
+        try {
+            mVisualInterface->writeResult(
                 message.c_str(),
                 message.size());
-    } catch (IOError &e) {
-        throw RuntimeError(
-                "CoordinatorPaymentTransaction::propagateVotesListAndWaitForVotingResult: "
-                        "Error occurred when visual result has accepted. Details: " + e.message());
+        } catch (IOError &e) {
+            error() << "CoordinatorPaymentTransaction::propagateVotesListAndWaitForVotingResult: "
+                            "Error occurred when visual result has accepted. Details: " << e.message();
+        }
     }
 
     // todo : visualisation remove me
-    return resultProtocolError();
+    return reject("test");
 
     const auto kCurrentNodeUUID = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();

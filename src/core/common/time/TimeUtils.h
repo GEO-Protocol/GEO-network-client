@@ -46,4 +46,9 @@ inline DateTime dateTimeFromGEOEpochTimestamp(
     return t;
 }
 
+inline GEOEpochTimestamp microsecondsSinceUnixEpoch() {
+    Duration duration = utc_now() - DateTime(boost::gregorian::date(1970,1,1));
+    return duration.total_microseconds();
+}
+
 #endif //GEO_NETWORK_CLIENT_TIME_UTILS_H

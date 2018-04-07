@@ -13,6 +13,7 @@
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 #include "../../../interface/visual_interface/interface/VisualInterface.h"
+#include "../../../interface/visual_interface/visual/VisualResult.h"
 
 
 /**
