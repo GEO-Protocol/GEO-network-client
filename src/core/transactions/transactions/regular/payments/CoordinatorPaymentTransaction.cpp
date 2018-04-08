@@ -365,9 +365,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
         }
     }
 
-    // todo : visualisation remove me
-    return reject("test");
-
     const auto kCurrentNodeUUID = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
