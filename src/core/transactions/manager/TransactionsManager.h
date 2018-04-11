@@ -11,6 +11,8 @@
 #include "../../io/storage/StorageHandler.h"
 #include "../../logger/Logger.h"
 #include "../../subsystems_controller/SubsystemsController.h"
+#include "../../interface/visual_interface/interface/VisualInterface.h"
+#include "../../interface/visual_interface/visual/VisualResult.h"
 
 /*
  * Interface commands
@@ -144,6 +146,10 @@ public:
     // Resources transactions handlers
     void attachResourceToTransaction(
         BaseResource::Shared resource);
+
+    void activateVisualInterface();
+
+    void deactivateVisualInterface();
 
     /*
      * Find paths transactions
@@ -455,6 +461,7 @@ private:
     Logger &mLog;
 
     SubsystemsController *mSubsystemsController;
+    unique_ptr<VisualInterface> mVisualInterface;
 
     unique_ptr<TransactionsScheduler> mScheduler;
     unique_ptr<EquivalentsCyclesSubsystemsRouter> mEquivalentsCyclesSubsystemsRouter;

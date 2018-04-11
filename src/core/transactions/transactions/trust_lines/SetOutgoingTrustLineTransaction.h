@@ -11,6 +11,8 @@
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
+#include "../../../interface/visual_interface/interface/VisualInterface.h"
+#include "../../../interface/visual_interface/visual/VisualResult.h"
 
 
 /**
@@ -40,6 +42,7 @@ public:
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
+        VisualInterface *visualInterface,
         bool iAmGateway,
         Logger &logger)
         noexcept;
@@ -69,6 +72,7 @@ protected:
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
     SubsystemsController *mSubsystemsController;
+    VisualInterface *mVisualInterface;
     bool mIAmGateway;
 };
 

@@ -284,7 +284,6 @@ int Core::initSubsystemsController()
         mLog->logException("Core", e);
         return -1;
     }
-
 }
 
 void Core::connectCommandsInterfaceSignals ()
@@ -361,6 +360,11 @@ void Core::onCommandReceivedSlot (
         auto subsystemsInfluenceCommand = static_pointer_cast<SubsystemsInfluenceCommand>(command);
         mSubsystemsController->setFlags(
             subsystemsInfluenceCommand->flags());
+        if (mSubsystemsController->isWriteVisualResults()) {
+            mTransactionsManager->activateVisualInterface();
+        } else {
+            mTransactionsManager->deactivateVisualInterface();
+        }
 #ifdef TESTS
         mSubsystemsController->setForbiddenNodeUUID(
             subsystemsInfluenceCommand->forbiddenNodeUUID());

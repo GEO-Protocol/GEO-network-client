@@ -9,6 +9,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
+    VisualInterface *visualInterface,
     bool iAmGateway,
     Logger &logger)
     noexcept :
@@ -24,6 +25,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController),
+    mVisualInterface(visualInterface),
     mIAmGateway(iAmGateway)
 {}
 
@@ -123,6 +125,43 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
                 mTransactionUUID,
                 mCommand->contractorUUID(),
                 mCommand->amount());
+        }
+
+        if (mSubsystemsController->isWriteVisualResults()) {
+            if (kOperationResult == TrustLinesManager::TrustLineOperationResult::Opened) {
+                stringstream s;
+                s << VisualResult::OutgoingTrustLineOpen << kTokensSeparator
+                  << microsecondsSinceUnixEpoch() << kTokensSeparator
+                  << currentTransactionUUID() << kTokensSeparator
+                  << mCommand->contractorUUID() << kCommandsSeparator;
+                auto message = s.str();
+
+                try {
+                    mVisualInterface->writeResult(
+                        message.c_str(),
+                        message.size());
+                } catch (IOError &e) {
+                    error() << "SetOutgoingTrustLineTransaction: "
+                                    "Error occurred when visual result has accepted. Details: " << e.message();
+                }
+            }
+            if (kOperationResult == TrustLinesManager::TrustLineOperationResult::Closed) {
+                stringstream s;
+                s << VisualResult::OutgoingTrustLineClose << kTokensSeparator
+                  << microsecondsSinceUnixEpoch() << kTokensSeparator
+                  << currentTransactionUUID() << kTokensSeparator
+                  << mCommand->contractorUUID() << kCommandsSeparator;
+                auto message = s.str();
+
+                try {
+                    mVisualInterface->writeResult(
+                        message.c_str(),
+                        message.size());
+                } catch (IOError &e) {
+                    error() << "SetOutgoingTrustLineTransaction: "
+                                    "Error occurred when visual result has accepted. Details: " << e.message();
+                }
+            }
         }
 
         return resultOK();

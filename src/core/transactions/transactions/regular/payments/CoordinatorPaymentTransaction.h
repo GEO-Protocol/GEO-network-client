@@ -9,6 +9,8 @@
 #include "../../../../resources/manager/ResourcesManager.h"
 #include "../../../../paths/PathsManager.h"
 #include "../../../../resources/resources/PathsResource.h"
+#include "../../../../interface/visual_interface/interface/VisualInterface.h"
+#include "../../../../interface/visual_interface/visual/VisualResult.h"
 
 #include "../../../../io/storage/record/payment/PaymentRecord.h"
 
@@ -43,7 +45,8 @@ public:
         ResourcesManager *resourcesManager,
         PathsManager *pathsManager,
         Logger &log,
-        SubsystemsController *subsystemsController)
+        SubsystemsController *subsystemsController,
+        VisualInterface *visualInterface)
         noexcept;
 
     CoordinatorPaymentTransaction(
@@ -370,5 +373,7 @@ protected:
 
     // count failed attempts to connect with Receiver
     uint8_t mCountReceiverInaccessible;
+
+    VisualInterface *mVisualInterface;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H

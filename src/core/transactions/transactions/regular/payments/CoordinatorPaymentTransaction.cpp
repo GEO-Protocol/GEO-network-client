@@ -10,7 +10,8 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     ResourcesManager *resourcesManager,
     PathsManager *pathsManager,
     Logger &log,
-    SubsystemsController *subsystemsController)
+    SubsystemsController *subsystemsController,
+    VisualInterface *visualInterface)
     noexcept :
 
     BasePaymentTransaction(
@@ -30,7 +31,8 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     mDirectPathIsAlreadyProcessed(false),
     mCountReceiverInaccessible(0),
     mPreviousInaccessibleNodesCount(0),
-    mPreviousRejectedTrustLinesCount(0)
+    mPreviousRejectedTrustLinesCount(0),
+    mVisualInterface(visualInterface)
 {
     mStep = Stages::Coordinator_Initialisation;
 }
@@ -145,6 +147,24 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
         mCommand->contractorUUID(),
         mEquivalent);
 
+    if (mSubsystemsController->isWriteVisualResults()) {
+        stringstream s;
+        s << VisualResult::CoordinatorOnPayment << kTokensSeparator
+          << microsecondsSinceUnixEpoch() << kTokensSeparator
+          << currentTransactionUUID() << kTokensSeparator
+          << mCommand->contractorUUID() << kCommandsSeparator;
+        auto message = s.str();
+
+        try {
+            mVisualInterface->writeResult(
+                message.c_str(),
+                message.size());
+        } catch (IOError &e) {
+            error() << "CoordinatorPaymentTransaction::runPaymentInitialisationStage: "
+                            "Error occurred when visual result has accepted. Details: " << e.message();
+        }
+    }
+
     mStep = Stages::Coordinator_ReceiverResourceProcessing;
     return resultWaitForResourceTypes(
         {BaseResource::ResourceType::Paths},
@@ -185,6 +205,32 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
         return resultNoPathsError();
 
     debug() << "Collected paths count: " << mPathsStats.size();
+
+    if (mSubsystemsController->isWriteVisualResults()) {
+        stringstream s;
+        s << VisualResult::PaymentPaths << kTokensSeparator
+          << microsecondsSinceUnixEpoch() << kTokensSeparator
+          << currentTransactionUUID() << kTokensSeparator
+          << mNodeUUID << kTokensSeparator
+          << mCommand->contractorUUID() << kTokensSeparator << mPathsStats.size();
+        for (const auto &identifierAndStats : mPathsStats) {
+            s << kTokensSeparator << identifierAndStats.second->path()->length();
+            for (const auto &nodeUUID : identifierAndStats.second->path()->nodes) {
+                s << kTokensSeparator << nodeUUID.stringUUID();
+            }
+        }
+        s << kCommandsSeparator;
+        auto message = s.str();
+
+        try {
+            mVisualInterface->writeResult(
+                message.c_str(),
+                message.size());
+        } catch (IOError &e) {
+            error() << "CoordinatorPaymentTransaction::runPathsResourceProcessingStage: "
+                            "Error occurred when visual result has accepted. Details: " << e.message();
+        }
+    }
 
     // TODO: Ensure paths shuffling
 
@@ -286,6 +332,40 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
 TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVotingResult()
 {
     debug() << "propagateVotesListAndWaitForVotingResult";
+
+    if (mSubsystemsController->isWriteVisualResults()) {
+        set <PathID> actualPathsIds;
+        for (const auto &nodeAndReservations : mReservations) {
+            for (const auto &pathIdAndReservation : nodeAndReservations.second) {
+                actualPathsIds.insert(pathIdAndReservation.first);
+            }
+        }
+        stringstream s;
+        s << VisualResult::ActualPaymentPaths << kTokensSeparator
+          << microsecondsSinceUnixEpoch() << kTokensSeparator
+          << currentTransactionUUID() << kTokensSeparator
+          << mNodeUUID << kTokensSeparator
+          << mCommand->contractorUUID() << kTokensSeparator << actualPathsIds.size();
+        for (const auto &identifier : actualPathsIds) {
+            const auto path = mPathsStats[identifier]->path();
+            s << kTokensSeparator << path->length();
+            for (const auto &nodeUUID : path->nodes) {
+                s << kTokensSeparator << nodeUUID.stringUUID();
+            }
+        }
+        s << kCommandsSeparator;
+        auto message = s.str();
+
+        try {
+            mVisualInterface->writeResult(
+                message.c_str(),
+                message.size());
+        } catch (IOError &e) {
+            error() << "CoordinatorPaymentTransaction::propagateVotesListAndWaitForVotingResult: "
+                            "Error occurred when visual result has accepted. Details: " << e.message();
+        }
+    }
+
     const auto kCurrentNodeUUID = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 

@@ -62,6 +62,8 @@ TransactionsManager::TransactionsManager(
         throw RuntimeError(e.what());
     }
 
+    mVisualInterface = nullptr;
+
     // todo: send current trust line amount to te contractors
 }
 
@@ -496,6 +498,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
                 mEquivalentsSubsystemsRouter->topologyCacheManager(command->equivalent()),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
                 mSubsystemsController,
+                mVisualInterface.get(),
                 mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
                 mLog),
             true,
@@ -550,6 +553,8 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
                 mStorageHandler,
                 mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
+                mSubsystemsController,
+                mVisualInterface.get(),
                 mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
                 mLog),
             true,
@@ -581,6 +586,8 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
                 mStorageHandler,
                 mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
+                mSubsystemsController,
+                mVisualInterface.get(),
                 mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
                 mLog),
             true,
@@ -892,7 +899,8 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mResourcesManager,
             mEquivalentsSubsystemsRouter->pathsManager(command->equivalent()),
             mLog,
-            mSubsystemsController);
+            mSubsystemsController,
+            mVisualInterface.get());
         subscribeForBuildCyclesThreeNodesTransaction(
             transaction->mBuildCycleThreeNodesSignal);
         prepareAndSchedule(transaction, true, false, true);
@@ -914,7 +922,8 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
             mLog,
-            mSubsystemsController);
+            mSubsystemsController,
+            mVisualInterface.get());
         subscribeForBuildCyclesThreeNodesTransaction(
             transaction->mBuildCycleThreeNodesSignal);
         prepareAndSchedule(transaction, false, false, true);
@@ -2008,4 +2017,24 @@ LoggerStream TransactionsManager::info() const
     noexcept
 {
     return mLog.info(logHeader());
+}
+
+void TransactionsManager::activateVisualInterface()
+{
+    if (mVisualInterface == nullptr) {
+        mVisualInterface = make_unique<VisualInterface>(mLog);
+        info() << "Visual interface activated";
+    } else {
+        warning() << "Visual interface already activated";
+    }
+}
+
+void TransactionsManager::deactivateVisualInterface()
+{
+    if (mVisualInterface != nullptr) {
+        mVisualInterface = nullptr;
+        info() << "Visual interface deactivated";
+    } else {
+        warning() << "Visual interface already deactivated";
+    }
 }

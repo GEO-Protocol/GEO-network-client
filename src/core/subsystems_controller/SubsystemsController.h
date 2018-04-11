@@ -30,6 +30,8 @@ public:
 
     bool isRunTrustLineTransactions() const;
 
+    bool isWriteVisualResults() const;
+
     void turnOffNetwork();
 
     void turnOnNetwork();
@@ -125,6 +127,7 @@ private:
     bool mIsRunCycleClosingTransactions;
     bool mIsRunPaymentTransactions;
     bool mIsRunTrustLineTransactions;
+    bool mIsWriteVisualResults;
 
     bool mForbidSendMessageToReceiverOnReservationStage;
     bool mForbidSendMessageToCoordinatorOnReservationStage;

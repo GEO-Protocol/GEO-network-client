@@ -2,6 +2,8 @@
 #define GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
 
 #include "base/BasePaymentTransaction.h"
+#include "../../../../interface/visual_interface/interface/VisualInterface.h"
+#include "../../../../interface/visual_interface/visual/VisualResult.h"
 
 class ReceiverPaymentTransaction:
     public BasePaymentTransaction {
@@ -19,7 +21,8 @@ public:
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         Logger &log,
-        SubsystemsController *subsystemsController);
+        SubsystemsController *subsystemsController,
+        VisualInterface *visualInterface);
 
     ReceiverPaymentTransaction(
         BytesShared buffer,
@@ -110,6 +113,8 @@ protected:
 
     // this field indicates that transaction should be rejected on voting stage
     bool mTransactionShouldBeRejected;
+
+    VisualInterface *mVisualInterface;
 };
 
 

@@ -11,6 +11,9 @@
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../network/messages/gateway_notification/GatewayNotificationOneEquivalentMessage.h"
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
+#include "../../../subsystems_controller/SubsystemsController.h"
+#include "../../../interface/visual_interface/interface/VisualInterface.h"
+#include "../../../interface/visual_interface/visual/VisualResult.h"
 
 
 /**
@@ -39,6 +42,8 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        SubsystemsController *subsystemsController,
+        VisualInterface *visualInterface,
         bool iAmGateway,
         Logger &logger)
         noexcept;
@@ -50,6 +55,8 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *maxFlowCalculationCacheManager,
         MaxFlowCacheManager *maxFlowCalculationNodeCacheManager,
+        SubsystemsController *subsystemsController,
+        VisualInterface *visualInterface,
         bool iAmGateway,
         Logger &logger)
     noexcept;
@@ -74,6 +81,8 @@ protected:
     StorageHandler *mStorageHandler;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
+    SubsystemsController *mSubsystemsController;
+    VisualInterface *mVisualInterface;
     bool mIAmGateway;
     bool mSenderIsGateway;
 };
