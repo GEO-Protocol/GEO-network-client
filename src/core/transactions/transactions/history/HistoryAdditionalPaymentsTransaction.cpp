@@ -52,7 +52,7 @@ TransactionResult::SharedConst HistoryAdditionalPaymentsTransaction::resultOk(
 
         // Formatting operation type
         const auto kOperationType = kRecord->paymentOperationType();
-        string formattedOperationType = "";
+        string formattedOperationType;
         if (kOperationType == PaymentRecord::CycleCloserType) {
             formattedOperationType = "cycle_closer";
 

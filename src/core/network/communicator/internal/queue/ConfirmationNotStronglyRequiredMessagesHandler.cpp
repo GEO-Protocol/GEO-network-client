@@ -30,9 +30,12 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryEnqueueMessage(
         mQueues[queueKey] = newQueue;
     }
 
-    mQueues[queueKey]->enqueue(
+    if (!mQueues[queueKey]->enqueue(
         static_pointer_cast<MaxFlowCalculationConfirmationMessage>(message),
-        mCurrentConfirmationID);
+        mCurrentConfirmationID)) {
+        warning() << "tryEnqueueMessage: can't enqueue message "
+                  << message->typeID() << " with confirmation id " << mCurrentConfirmationID;
+    }
     mCurrentConfirmationID++;
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR

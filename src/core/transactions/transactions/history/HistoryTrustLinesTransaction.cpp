@@ -47,7 +47,7 @@ TransactionResult::SharedConst HistoryTrustLinesTransaction::resultOk(
 
         // Formatting operation type
         const auto kOperationType = kRecord->trustLineOperationType();
-        string formattedOperationType = "";
+        string formattedOperationType;
         if (kOperationType == TrustLineRecord::Opening) {
             formattedOperationType = "opening";
 

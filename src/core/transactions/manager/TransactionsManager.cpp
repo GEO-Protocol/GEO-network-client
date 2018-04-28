@@ -1795,6 +1795,7 @@ void TransactionsManager::onCommandResultReady(
         if (result->identifier() == HistoryPaymentsCommand::identifier() or
                 result->identifier() == HistoryTrustLinesCommand::identifier() or
                 result->identifier() == HistoryWithContractorCommand::identifier() or
+                result->identifier() == HistoryAdditionalPaymentsCommand::identifier() or
                 result->identifier() == GetTrustLinesCommand::identifier()) {
             auto shortMessage = result->serializeShort();
             info() << "CommandResultReady: " << shortMessage;

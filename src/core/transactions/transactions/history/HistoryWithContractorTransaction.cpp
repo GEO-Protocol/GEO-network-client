@@ -42,7 +42,7 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
         // Formatting operation date time to the Unix timestamp
         const auto kUnixTimestampMicrosec = (kRecord->timestamp() - kUnixEpoch).total_microseconds();
 
-        string formattedRecordType = "";
+        string formattedRecordType;
         if (kRecord->isPaymentRecord()) {
             formattedRecordType = "payment";
             auto paymentRecord = static_pointer_cast<PaymentRecord>(kRecord);

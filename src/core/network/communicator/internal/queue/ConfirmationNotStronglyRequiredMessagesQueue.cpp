@@ -20,6 +20,9 @@ bool ConfirmationNotStronglyRequiredMessagesQueue::enqueue(
     switch (message->typeID()) {
         case Message::MaxFlow_ResultMaxFlowCalculation:
         case Message::MaxFlow_ResultMaxFlowCalculationFromGateway: {
+            if (mMessages.count(confirmationID) != 0) {
+                return false;
+            }
             mMessages[message->confirmationID()] = message;
             return true;
         }

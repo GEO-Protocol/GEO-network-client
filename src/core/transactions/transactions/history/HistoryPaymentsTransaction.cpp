@@ -61,7 +61,7 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::resultOk(
 
         // Formatting operation type
         const auto kOperationType = kRecord->paymentOperationType();
-        string formattedOperationType = "";
+        string formattedOperationType;
         if (kOperationType == PaymentRecord::IncomingPaymentType) {
             formattedOperationType = "incoming";
 
