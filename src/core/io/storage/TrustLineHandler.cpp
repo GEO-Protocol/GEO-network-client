@@ -29,20 +29,6 @@ TrustLineHandler::TrustLineHandler(
                           "Run query; sqlite error: " + to_string(rc));
     }
 
-    query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
-            + "_contractor_idx on " + mTableName + "(contractor);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::creating index for Contractor: "
-                          "Bad query; sqlite error: " + to_string(rc));
-    }
-    rc = sqlite3_step(stmt);
-    if (rc == SQLITE_DONE) {
-    } else {
-        throw IOError("TrustLineHandler::creating index for Contractor: "
-                          "Run query; sqlite error: " + to_string(rc));
-    }
-
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
             + "_equivalent_idx on " + mTableName + "(equivalent);";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
@@ -54,6 +40,20 @@ TrustLineHandler::TrustLineHandler(
     if (rc == SQLITE_DONE) {
     } else {
         throw IOError("TrustLineHandler::creating index for Equivalent: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+
+    query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
+            + "_contractor_equivalent_idx on " + mTableName + "(contractor, equivalent);";
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::creating unique index for Contractor and Equivalent: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_DONE) {
+    } else {
+        throw IOError("TrustLineHandler::creating unique index for Contractor and Equivalent: "
                           "Run query; sqlite error: " + to_string(rc));
     }
 
@@ -243,7 +243,7 @@ vector<SerializedEquivalent> TrustLineHandler::equivalents()
 
     vector<SerializedEquivalent> result;
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        SerializedEquivalent equivalent = (SerializedEquivalent)sqlite3_column_int(stmt, 4);
+        SerializedEquivalent equivalent = (SerializedEquivalent)sqlite3_column_int(stmt, 0);
         result.push_back(equivalent);
     }
     sqlite3_reset(stmt);

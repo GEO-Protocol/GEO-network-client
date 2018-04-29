@@ -191,13 +191,17 @@ void ConfirmationRequiredMessagesHandler::addMessageToStorage(
     TransactionMessage::Shared message)
 {
     auto bufferAndSize = message->serializeToBytes();
-    ioTransactionUnique->communicatorMessagesQueueHandler()->saveRecord(
-        contractorUUID,
-        message->equivalent(),
-        message->transactionUUID(),
-        message->typeID(),
-        bufferAndSize.first,
-        bufferAndSize.second);
+    try {
+        ioTransactionUnique->communicatorMessagesQueueHandler()->saveRecord(
+            contractorUUID,
+            message->equivalent(),
+            message->transactionUUID(),
+            message->typeID(),
+            bufferAndSize.first,
+            bufferAndSize.second);
+    } catch (IOError &e) {
+        warning() << "Can't save message to storage. Details: " << e.message();
+    }
 }
 
 void ConfirmationRequiredMessagesHandler::removeMessageFromStorage(
@@ -205,23 +209,30 @@ void ConfirmationRequiredMessagesHandler::removeMessageFromStorage(
     const SerializedEquivalent equivalent,
     Message::SerializedType messageType)
 {
-    ioTransactionUnique->communicatorMessagesQueueHandler()->deleteRecord(
-        contractorUUID,
-        equivalent,
-        messageType);
+    try {
+        ioTransactionUnique->communicatorMessagesQueueHandler()->deleteRecord(
+            contractorUUID,
+            equivalent,
+            messageType);
+    } catch (IOError &e) {
+        warning() << "Can't remove message from storage. Details: " << e.message();
+    }
 }
 
 void ConfirmationRequiredMessagesHandler::deserializeMessages()
 {
     vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> messages;
-    {
+    try {
         auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
         messages = ioTransaction->communicatorMessagesQueueHandler()->allMessages();
+    } catch (IOError &e) {
+        warning() << "Can't read serialized messages from storage. Details: " << e.message();
+        return;
     }
     if (messages.empty()) {
         return;
     }
-    this->warning() << "Serialized messages count: " << messages.size();
+    info() << "Serialized messages count: " << messages.size();
     for (auto &message : messages) {
         NodeUUID contractorUUID = NodeUUID::empty();
         BytesShared messageBody;
