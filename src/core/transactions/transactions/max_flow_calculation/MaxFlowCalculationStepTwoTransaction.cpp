@@ -95,7 +95,7 @@ TransactionResult::SharedConst MaxFlowCalculationStepTwoTransaction::processColl
             mTopologyTrustLineManager,
             mTopologyCacheManager,
             mMaxFlowCacheManager,
-            mMaxFlowCalculationStep++,
+            mMaxFlowCalculationStep + 1,
             mLog);
         launchSubsidiaryTransaction(kTransaction);
     }
@@ -229,7 +229,7 @@ TransactionResult::SharedConst MaxFlowCalculationStepTwoTransaction::resultOk(
     if (finalMaxFlows) {
         ss << kFinalStep << kTokensSeparator << maxFlows.size();
     } else {
-        ss << mMaxFlowCalculationStep << kTokensSeparator << maxFlows.size();
+        ss << to_string(mMaxFlowCalculationStep) << kTokensSeparator << maxFlows.size();
     }
     for (const auto &nodeUUIDAndMaxFlow : maxFlows) {
         ss << kTokensSeparator << nodeUUIDAndMaxFlow.first << kTokensSeparator;

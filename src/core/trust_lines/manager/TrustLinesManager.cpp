@@ -329,8 +329,8 @@ AmountReservation::ConstShared TrustLinesManager::reserveIncomingAmount(
 AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
     const NodeUUID &contractor,
     const AmountReservation::ConstShared reservation,
-    const TrustLineAmount &newAmount) {
-
+    const TrustLineAmount &newAmount)
+{
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(newAmount > TrustLineAmount(0));
 #endif
@@ -593,7 +593,8 @@ vector<NodeUUID> TrustLinesManager::firstLevelNonGatewayNeighborsWithIncomingFlo
     return result;
 }
 
-vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlows() const {
+vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlows() const
+{
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
@@ -606,7 +607,8 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFl
     return result;
 }
 
-vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlows() const {
+vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlows() const
+{
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
@@ -637,7 +639,8 @@ pair<NodeUUID, ConstSharedTrustLineAmount> TrustLinesManager::outgoingFlow(
             contractorUUID));
 }
 
-vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlowsFromNonGateways() const {
+vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlowsFromNonGateways() const
+{
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         if (nodeUUIDAndTrustLine.second->isContractorGateway()) {
@@ -653,7 +656,8 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFl
     return result;
 }
 
-vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlowsToGateways() const {
+vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlowsToGateways() const
+{
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         if (!nodeUUIDAndTrustLine.second->isContractorGateway()) {
@@ -680,8 +684,8 @@ vector<NodeUUID> TrustLinesManager::gateways() const
     return result;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighbors() const {
-
+vector<NodeUUID> TrustLinesManager::firstLevelNeighbors() const
+{
     vector<NodeUUID> result;
     result.reserve(mTrustLines.size());
     for (auto &nodeUUIDAndTrustLine : mTrustLines) {
@@ -742,7 +746,8 @@ const bool TrustLinesManager::isNeighbor(
     return mTrustLines.count(node) == 1;
 }
 
-vector<NodeUUID> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxFlow) {
+vector<NodeUUID> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxFlow)
+{
     vector<NodeUUID> Nodes;
     TrustLineBalance zerobalance = 0;
     TrustLineBalance stepbalance;
@@ -765,7 +770,8 @@ vector<NodeUUID> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance
     return Nodes;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() const {
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() const
+{
     vector<NodeUUID> Nodes;
     TrustLineBalance zerobalance = 0;
     TrustLineBalance stepbalance;
@@ -777,7 +783,8 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() con
     return Nodes;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNegativeBalance() const {
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNegativeBalance() const
+{
     // todo change vector to set
     vector<NodeUUID> Nodes;
     TrustLineBalance zerobalance = 0;
@@ -790,7 +797,8 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNegativeBalance() con
     return Nodes;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNoneZeroBalance() const {
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNoneZeroBalance() const
+{
     vector<NodeUUID> Nodes;
     TrustLineBalance zerobalance = 0;
     TrustLineBalance stepbalance;

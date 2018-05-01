@@ -6,6 +6,7 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     SetIncomingTrustLineMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    TopologyTrustLinesManager *topologyTrustLinesManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
@@ -23,6 +24,7 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     mMessage(message),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
+    mTopologyTrustLinesManager(topologyTrustLinesManager),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController),
@@ -36,8 +38,9 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     SetIncomingTrustLineFromGatewayMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    TopologyCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyTrustLinesManager *topologyTrustLinesManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
     VisualInterface *visualInterface,
     bool iAmGateway,
@@ -53,8 +56,9 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     mMessage(message),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mTopologyCacheManager(maxFlowCalculationCacheManager),
-    mMaxFlowCacheManager(maxFlowCalculationNodeCacheManager),
+    mTopologyTrustLinesManager(topologyTrustLinesManager),
+    mTopologyCacheManager(topologyCacheManager),
+    mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController),
     mVisualInterface(visualInterface),
     mIAmGateway(iAmGateway),
@@ -148,6 +152,12 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::Closed: {
             populateHistory(ioTransaction, TrustLineRecord::Rejecting);
+            // remove this TL from Topology TrustLines Manager
+            mTopologyTrustLinesManager->addTrustLine(
+                make_shared<TopologyTrustLine>(
+                    mNodeUUID,
+                    kContractor,
+                    make_shared<const TrustLineAmount>(0)));
             mTopologyCacheManager->resetInitiatorCache();
             mMaxFlowCacheManager->clearCashes();
             info() << "Incoming trust line from the node " << kContractor

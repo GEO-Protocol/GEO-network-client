@@ -139,8 +139,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     // than total operation amount. In case if so - there is no reason to begin the operation:
     // current node would not be able to pay such an amount.
     const auto kTotalOutgoingPossibilities = *(mTrustLines->totalOutgoingAmount());
-    if (kTotalOutgoingPossibilities < mCommand->amount())
+    if (kTotalOutgoingPossibilities < mCommand->amount()) {
+        warning() << "Total outgoing possibilities (" << kTotalOutgoingPossibilities << ") less then operation amount";
         return resultInsufficientFundsError();
+    }
 
     mResourcesManager->requestPaths(
         currentTransactionUUID(),

@@ -4,6 +4,7 @@
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../io/storage/StorageHandler.h"
+#include "../../../topology/manager/TopologyTrustLinesManager.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
@@ -40,6 +41,7 @@ public:
         SetIncomingTrustLineMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        TopologyTrustLinesManager *topologyTrustLinesManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
@@ -53,8 +55,9 @@ public:
         SetIncomingTrustLineFromGatewayMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        TopologyCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyTrustLinesManager *topologyTrustLinesManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
         VisualInterface *visualInterface,
         bool iAmGateway,
@@ -79,6 +82,7 @@ protected:
     SetIncomingTrustLineMessage::Shared mMessage;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
+    TopologyTrustLinesManager *mTopologyTrustLinesManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
     SubsystemsController *mSubsystemsController;

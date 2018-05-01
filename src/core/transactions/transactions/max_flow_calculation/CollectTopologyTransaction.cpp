@@ -30,15 +30,15 @@ TransactionResult::SharedConst CollectTopologyTransaction::run()
         return resultDone();
     }
     sendMessagesToContractors();
+    for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
+        auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
+        mTopologyTrustLineManager->addTrustLine(
+            make_shared<TopologyTrustLine>(
+                mNodeUUID,
+                nodeUUIDAndOutgoingFlow.first,
+                trustLineAmountShared));
+    }
     if (!mTopologyCacheManager->isInitiatorCached()) {
-        for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
-            auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
-            mTopologyTrustLineManager->addTrustLine(
-                make_shared<TopologyTrustLine>(
-                    mNodeUUID,
-                    nodeUUIDAndOutgoingFlow.first,
-                    trustLineAmountShared));
-        }
         sendMessagesOnFirstLevel();
         mTopologyCacheManager->setInitiatorCache();
     }

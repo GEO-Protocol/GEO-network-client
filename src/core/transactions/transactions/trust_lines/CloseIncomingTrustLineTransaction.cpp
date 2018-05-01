@@ -5,6 +5,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     CloseIncomingTrustLineCommand::Shared command,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    TopologyTrustLinesManager *topologyTrustLinesManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
@@ -19,6 +20,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     mCommand(command),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
+    mTopologyTrustLinesManager(topologyTrustLinesManager),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController)
@@ -51,6 +53,12 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
             kContractor);
 
         populateHistory(ioTransaction, TrustLineRecord::ClosingIncoming);
+        // remove this TL from Topology TrustLines Manager
+        mTopologyTrustLinesManager->addTrustLine(
+            make_shared<TopologyTrustLine>(
+                mNodeUUID,
+                kContractor,
+                make_shared<const TrustLineAmount>(0)));
         mTopologyCacheManager->resetInitiatorCache();
         mMaxFlowCacheManager->clearCashes();
         info() << "Incoming trust line from the node " << kContractor

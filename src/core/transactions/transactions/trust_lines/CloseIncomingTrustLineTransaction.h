@@ -6,6 +6,7 @@
 #include "../../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
 #include "../../../network/messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 #include "../../../io/storage/StorageHandler.h"
+#include "../../../topology/manager/TopologyTrustLinesManager.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
@@ -21,6 +22,7 @@ public:
         CloseIncomingTrustLineCommand::Shared command,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        TopologyTrustLinesManager *topologyTrustLinesManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
@@ -49,6 +51,7 @@ protected:
     CloseIncomingTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
+    TopologyTrustLinesManager *mTopologyTrustLinesManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
     SubsystemsController *mSubsystemsController;

@@ -103,9 +103,9 @@ bool EquivalentsSubsystemsRouter::iAmGateway(
     const SerializedEquivalent equivalent) const
 {
     if (mIAmGateways.count(equivalent) == 0) {
-        throw ValueError(
+        throw NotFoundError(
                 "EquivalentsSubsystemsRouter::iAmGateway: "
-                        "wrong equivalent " + to_string(equivalent));
+                    "wrong equivalent " + to_string(equivalent));
     }
     return mIAmGateways.at(equivalent);
 }
@@ -114,8 +114,8 @@ TrustLinesManager* EquivalentsSubsystemsRouter::trustLinesManager(
     const SerializedEquivalent equivalent) const
 {
     if (mTrustLinesManagers.count(equivalent) == 0) {
-        throw ValueError(
-                "EquivalentsSubsystemsRouter::routingTableManager: "
+        throw NotFoundError(
+                "EquivalentsSubsystemsRouter::trustLinesManager: "
                     "wrong equivalent " + to_string(equivalent));
     }
     return mTrustLinesManagers.at(equivalent).get();
@@ -125,7 +125,7 @@ TopologyTrustLinesManager* EquivalentsSubsystemsRouter::topologyTrustLineManager
     const SerializedEquivalent equivalent) const
 {
     if (mTopologyTrustLinesManagers.count(equivalent) == 0) {
-        throw ValueError(
+        throw NotFoundError(
                 "EquivalentsSubsystemsRouter::topologyTrustLineManager: "
                     "wrong equivalent " + to_string(equivalent));
     }
@@ -136,7 +136,7 @@ TopologyCacheManager* EquivalentsSubsystemsRouter::topologyCacheManager(
     const SerializedEquivalent equivalent) const
 {
     if (mTopologyCacheManagers.count(equivalent) == 0) {
-        throw ValueError(
+        throw NotFoundError(
                 "EquivalentsSubsystemsRouter::topologyCacheManager: "
                     "wrong equivalent " + to_string(equivalent));
     }
@@ -147,7 +147,7 @@ MaxFlowCacheManager* EquivalentsSubsystemsRouter::maxFlowCacheManager(
     const SerializedEquivalent equivalent) const
 {
     if (mMaxFlowCacheManagers.count(equivalent) == 0) {
-        throw ValueError(
+        throw NotFoundError(
                 "EquivalentsSubsystemsRouter::maxFlowCacheManager: "
                     "wrong equivalent " + to_string(equivalent));
     }
@@ -158,7 +158,7 @@ PathsManager* EquivalentsSubsystemsRouter::pathsManager(
     const SerializedEquivalent equivalent) const
 {
     if (mPathsManagers.count(equivalent) == 0) {
-        throw ValueError(
+        throw NotFoundError(
                 "EquivalentsSubsystemsRouter::pathsManager: "
                     "wrong equivalent " + to_string(equivalent));
     }
@@ -170,7 +170,7 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
 {
     if (mTrustLinesManagers.count(equivalent) != 0) {
         throw ValueError(
-                "EquivalentsCyclesSubsystemsRouter::initNewEquivalent: "
+                "EquivalentsSubsystemsRouter::initNewEquivalent: "
                     "try init equivalent " + to_string(equivalent) + " which is already exists");
     }
 

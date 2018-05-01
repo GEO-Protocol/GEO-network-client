@@ -520,6 +520,7 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
                 command,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
                 mStorageHandler,
+                mEquivalentsSubsystemsRouter->topologyTrustLineManager(command->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyCacheManager(command->equivalent()),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
                 mSubsystemsController,
@@ -551,6 +552,7 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
                 message,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mStorageHandler,
+                mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
                 mSubsystemsController,
@@ -584,6 +586,7 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
                 message,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mStorageHandler,
+                mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
                 mSubsystemsController,
@@ -1380,6 +1383,14 @@ void TransactionsManager::launchGetTrustLinesTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for GetFirstLevelContractorsBalancesTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
+
+        // todo : discuss if this code need here
+        auto message = command->UUID().stringUUID() + kTokensSeparator +
+            to_string(604) + kCommandsSeparator;
+
+        mResultsInterface->writeResult(
+            message.c_str(),
+            message.size());
     }
 
 }
