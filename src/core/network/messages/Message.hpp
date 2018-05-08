@@ -99,6 +99,8 @@ public:
         GatewayNotification = 700,
         GatewayNotificationOneEquivalent = 701,
 
+        NoEquivalent = 800,
+
         /*
          * DEBUG
          */

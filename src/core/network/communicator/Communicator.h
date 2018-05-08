@@ -76,6 +76,9 @@ protected:
     static string logHeader()
     noexcept;
 
+    LoggerStream info() const
+    noexcept;
+
     LoggerStream error() const
     noexcept;
 

@@ -59,7 +59,7 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
     ioTransactionUnique = nullptr;
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-    debug() << "Message of type " << message->typeID() << " for equivalent " message->equivalent()
+    debug() << "Message of type " << message->typeID() << " for equivalent " << message->equivalent()
             << " enqueued for confirmation receiving.";
 #endif
 
@@ -317,7 +317,7 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessageWithoutConnectingSign
     ioTransactionUnique = nullptr;
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-    debug() << "Message of type " << message->typeID() << " for equivalent " message->equivalent()
+    debug() << "Message of type " << message->typeID() << " for equivalent " << message->equivalent()
             << " enqueued for confirmation receiving.";
 #endif
 }

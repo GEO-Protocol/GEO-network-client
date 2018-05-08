@@ -6,7 +6,7 @@ RoutingTableResponseTransaction::RoutingTableResponseTransaction(
     TrustLinesManager *manager,
     Logger &logger):
     BaseTransaction(
-        BaseTransaction::TransactionType::RoutingTableResponceTransactionType,
+        BaseTransaction::TransactionType::RoutingTableResponseTransactionType,
         nodeUUID,
         message->equivalent(),
         logger),

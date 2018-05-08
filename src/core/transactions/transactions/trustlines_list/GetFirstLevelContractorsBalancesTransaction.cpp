@@ -15,15 +15,17 @@ GetFirstLevelContractorsBalancesTransaction::GetFirstLevelContractorsBalancesTra
     mTrustLinesManager(manager)
 {}
 
-GetTrustLinesCommand::Shared GetFirstLevelContractorsBalancesTransaction::command() const {
+GetTrustLinesCommand::Shared GetFirstLevelContractorsBalancesTransaction::command() const
+{
     return mCommand;
 }
 
-TransactionResult::SharedConst GetFirstLevelContractorsBalancesTransaction::run() {
+TransactionResult::SharedConst GetFirstLevelContractorsBalancesTransaction::run()
+{
     const auto kNeighborsCount = mTrustLinesManager->trustLines().size();
     stringstream ss;
     ss << to_string(kNeighborsCount);
-    for (const auto kNodeUUIDAndTrustline: mTrustLinesManager->trustLines()) {
+    for (const auto &kNodeUUIDAndTrustline: mTrustLinesManager->trustLines()) {
         ss << kTokensSeparator;
         ss << kNodeUUIDAndTrustline.first;
         ss << kTokensSeparator;

@@ -6,7 +6,9 @@ set(SOURCE_FILES
         HistoryTrustLinesTransaction.h
         HistoryTrustLinesTransaction.cpp
         HistoryWithContractorTransaction.h
-        HistoryWithContractorTransaction.cpp HistoryAdditionalPaymentsTransaction.h HistoryAdditionalPaymentsTransaction.cpp)
+        HistoryWithContractorTransaction.cpp
+        HistoryAdditionalPaymentsTransaction.h
+        HistoryAdditionalPaymentsTransaction.cpp)
 
 add_library(transactions__history ${SOURCE_FILES})
 

@@ -17,6 +17,7 @@ add_subdirectory(transactions/routing_table)
 add_subdirectory(transactions/blacklist)
 add_subdirectory(transactions/transaction)
 add_subdirectory(transactions/gateway_notification)
+add_subdirectory(transactions/no_equivalent)
 
 set(SOURCE_FILES
         manager/TransactionsManager.h
@@ -42,6 +43,7 @@ target_link_libraries(transactions
         transactions__black_list
         transactions__transaction
         transactions__gateway_notification
+        transactions__no_equivalent
 
         common
         exceptions

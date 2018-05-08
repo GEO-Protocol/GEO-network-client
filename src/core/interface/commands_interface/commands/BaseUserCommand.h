@@ -63,6 +63,9 @@ public:
     CommandResult::SharedConst responseForbiddenRunTransaction() const
         noexcept;
 
+    CommandResult::SharedConst responseEquivalentIsAbsent() const
+        noexcept;
+
 protected:
     CommandResult::SharedConst makeResult(
         const uint16_t code) const;

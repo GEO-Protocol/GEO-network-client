@@ -387,7 +387,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
          Message::Payments_FinalPathConfiguration,
          Message::Payments_FinalAmountsConfiguration,
          Message::Payments_ReservationsInRelationToNode,
-         Message::Payments_TTLProlongationResponse},
+         Message::Payments_TTLProlongationResponse,
+         Message::NoEquivalent},
         maxNetworkDelay(2));
 }
 
@@ -410,6 +411,29 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             return resultDone();
         }
         mStep = Stages::IntermediateNode_ReservationProlongation;
+        return resultWaitForMessageTypes(
+            {Message::Payments_FinalAmountsConfiguration,
+             Message::Payments_ReservationsInRelationToNode,
+             Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
+            maxNetworkDelay((kMaxPathLength - 2) * 4));
+    }
+
+    if (contextIsValid(Message::NoEquivalent, false)) {
+        warning() << "Neighbor hasn't TLs on requested equivalent. Rolled back.";
+        sendMessage<CoordinatorReservationResponseMessage>(
+            mCoordinator,
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            mLastProcessedPath,
+            ResponseMessage::Rejected);
+        rollBack(mLastProcessedPath);
+        // if no reservations close transaction
+        if (mReservations.empty()) {
+            debug() << "There are no reservations. Transaction closed.";
+            return resultDone();
+        }
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,
              Message::Payments_ReservationsInRelationToNode,

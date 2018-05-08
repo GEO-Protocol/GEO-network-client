@@ -15,11 +15,13 @@ noexcept:
     mTrustLinesManager(manager)
 {}
 
-GetTrustLineCommand::Shared GetFirstLevelContractorBalanceTransaction::command() const {
+GetTrustLineCommand::Shared GetFirstLevelContractorBalanceTransaction::command() const
+{
     return mCommand;
 }
 
-TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::run() {
+TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::run()
+{
     stringstream ss;
     auto contractorUUID = mCommand->contractorUUID();
     if (!mTrustLinesManager->isNeighbor(contractorUUID)) {

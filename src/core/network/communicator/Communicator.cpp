@@ -252,6 +252,12 @@ noexcept
     return "[Communicator]";
 }
 
+LoggerStream Communicator::info() const
+noexcept
+{
+    return mLog.info(logHeader());
+}
+
 LoggerStream Communicator::error() const
 noexcept
 {

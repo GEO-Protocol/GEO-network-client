@@ -27,6 +27,10 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::run()
                 neighbor);
         }
     }
+    // if current node is not gateway in any equivalent
+    if (gatewaysEquivalents.empty()) {
+        return resultDone();
+    }
     for (const auto &neighbor : allNeighbors) {
         sendMessage<GatewayNotificationMessage>(
             neighbor,

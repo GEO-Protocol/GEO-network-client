@@ -123,7 +123,7 @@ public:
 
         //RoutingTable
         RoutingTableInitTransactionType = 900,
-        RoutingTableResponceTransactionType = 901,
+        RoutingTableResponseTransactionType = 901,
 
         //BlackList
         AddNodeToBlackListTransactionType = 1000,
@@ -138,6 +138,9 @@ public:
         GatewayNotificationSenderType = 1200,
         GatewayNotificationReceiverType = 1201,
         GatewayNotificationOneEquivalentReceiverType = 1202,
+
+        //No equivalent
+        NoEquivalentType = 1300
     };
 
 public:

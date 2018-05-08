@@ -507,6 +507,14 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for SetOutgoingTrustLineTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
     }
 }
 
@@ -531,6 +539,14 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CloseIncomingTrustLineTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
     }
 }
 
@@ -673,6 +689,14 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for InitiateMaxFlowCalculationTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
     }
 }
 
@@ -701,6 +725,14 @@ void TransactionsManager::launchMaxFlowCalculationFullyTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for MaxFlowCalculationFullyTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
     }
 }
 
@@ -910,6 +942,14 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CoordinatorPaymentTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
     }
 }
 
@@ -933,6 +973,14 @@ void TransactionsManager::launchReceiverPaymentTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for ReceiverPaymentTransaction "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                message,
+                mLog),
+            false,
+            false,
+            true);
     }
 }
 
@@ -957,6 +1005,34 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for IntermediateNodePaymentTransaction "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                message,
+                mLog),
+            false,
+            false,
+            true);
+    }
+}
+
+void TransactionsManager::launchVotesResponsePaymentsTransaction(
+        VotesStatusRequestMessage::Shared message)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<VotesStatusResponsePaymentTransaction>(
+                mNodeUUID,
+                message,
+                mStorageHandler,
+                mScheduler->isTransactionInProcess(
+                    message->transactionUUID()),
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -1011,26 +1087,14 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CycleCloserIntermediateNodeTransaction "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
-    }
-}
-
-void TransactionsManager::launchVotesResponsePaymentsTransaction(
-    VotesStatusRequestMessage::Shared message)
-{
-    try {
         prepareAndSchedule(
-            make_shared<VotesStatusResponsePaymentTransaction>(
+            make_shared<NoEquivalentTransaction>(
                 mNodeUUID,
                 message,
-                mStorageHandler,
-                mScheduler->isTransactionInProcess(
-                    message->transactionUUID()),
                 mLog),
             false,
             false,
             true);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
     }
 }
 
@@ -1255,6 +1319,14 @@ void TransactionsManager::launchTotalBalancesTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for TotalBalancesTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
     }
 }
 
@@ -1265,6 +1337,20 @@ void TransactionsManager::launchTotalBalancesTransaction(
 void TransactionsManager::launchHistoryPaymentsTransaction(
     HistoryPaymentsCommand::Shared command)
 {
+    try {
+        mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for launchHistoryPaymentsTransaction "
+                "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
+    }
     try {
         prepareAndSchedule(
             make_shared<HistoryPaymentsTransaction>(
@@ -1283,6 +1369,20 @@ void TransactionsManager::launchHistoryPaymentsTransaction(
 void TransactionsManager::launchAdditionalHistoryPaymentsTransaction(
     HistoryAdditionalPaymentsCommand::Shared command)
 {
+    try {
+        mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for launchAdditionalHistoryPaymentsTransaction "
+                "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
+    }
     try {
         prepareAndSchedule(
             make_shared<HistoryAdditionalPaymentsTransaction>(
@@ -1307,6 +1407,20 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(
     HistoryTrustLinesCommand::Shared command)
 {
     try {
+        mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for launchHistoryTrustLinesTransaction "
+                "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
+    }
+    try {
         prepareAndSchedule(
             make_shared<HistoryTrustLinesTransaction>(
                 mNodeUUID,
@@ -1328,6 +1442,20 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(
 void TransactionsManager::launchHistoryWithContractorTransaction(
     HistoryWithContractorCommand::Shared command)
 {
+    try {
+        mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for launchHistoryWithContractorTransaction "
+                "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
+    }
     try {
         prepareAndSchedule(
             make_shared<HistoryWithContractorTransaction>(
@@ -1356,11 +1484,17 @@ void TransactionsManager::launchGetFirstLevelContractorsTransaction(
             true,
             false,
             false);
-    } catch (ValueError &e){
-        throw ValueError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for GetFirstLevelContractorsTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
     }
 }
 
@@ -1378,19 +1512,17 @@ void TransactionsManager::launchGetTrustLinesTransaction(
             true,
             false,
             false);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for GetFirstLevelContractorsBalancesTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
-
-        // todo : discuss if this code need here
-        auto message = command->UUID().stringUUID() + kTokensSeparator +
-            to_string(604) + kCommandsSeparator;
-
-        mResultsInterface->writeResult(
-            message.c_str(),
-            message.size());
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
     }
 
 }
@@ -1408,11 +1540,17 @@ void TransactionsManager::launchGetTrustLineTransaction(
             true,
             false,
             false);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for GetFirstLevelContractorBalanceTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
     }
 }
 
@@ -1429,8 +1567,6 @@ void TransactionsManager::launchRoutingTableResponseTransaction(
             false,
             false,
             true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for RoutingTableResponseTransaction "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
@@ -1451,8 +1587,6 @@ void TransactionsManager::launchRoutingTableRequestTransaction(
             false,
             false,
             true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for RoutingTableInitTransaction "
                 "with equivalent " << equivalent << " Details are: " << e.what();
@@ -1606,6 +1740,14 @@ void TransactionsManager::launchGatewayNotificationOneEquivalentReceiverTransact
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for launchGatewayNotificationOneEquivalentReceiverTransaction "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                message,
+                mLog),
+            false,
+            false,
+            true);
     }
 }
 

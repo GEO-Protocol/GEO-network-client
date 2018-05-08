@@ -368,7 +368,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     clearContext();
     mStep = Stages::IntermediateNode_NextNeighborResponseProcessing;
     return resultWaitForMessageTypes(
-        {Message::Payments_IntermediateNodeCycleReservationResponse},
+        {Message::Payments_IntermediateNodeCycleReservationResponse,
+         Message::NoEquivalent},
         maxNetworkDelay(2));
 }
 
@@ -414,13 +415,25 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     clearContext();
     mStep = Stages::IntermediateNode_NextNeighborResponseProcessing;
     return resultWaitForMessageTypes(
-        {Message::Payments_IntermediateNodeCycleReservationResponse},
+        {Message::Payments_IntermediateNodeCycleReservationResponse,
+         Message::NoEquivalent},
         maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNeighborResponseProcessingStage()
 {
     debug() << "runNextNeighborResponseProcessingStage";
+    if (contextIsValid(Message::NoEquivalent, false)) {
+        warning() << "Neighbour hasn't TLs on requested equivalent. Canceling.";
+        rollBack();
+        sendMessage<CoordinatorCycleReservationResponseMessage>(
+            mCoordinator,
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            ResponseCycleMessage::Rejected);
+        return resultDone();
+    }
     if (! contextIsValid(Message::Payments_IntermediateNodeCycleReservationResponse)) {
         warning() << "No valid amount reservation response received. Rolled back.";
         rollBack();

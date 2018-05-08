@@ -113,6 +113,8 @@
 #include "../transactions/gateway_notification/GatewayNotificationReceiverTransaction.h"
 #include "../transactions/gateway_notification/GatewayNotificationOneEquivalentReceiverTransaction.h"
 
+#include "../transactions/no_equivalent/NoEquivalentTransaction.h"
+
 #include <boost/signals2.hpp>
 
 #include <string>
