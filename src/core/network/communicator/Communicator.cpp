@@ -164,7 +164,8 @@ void Communicator::onMessageReceived(
     Message::Shared message)
 {
     // these messages contain parts of topology and after theirs receiving we should send confirmation
-    if (message->typeID() == 405 || message->typeID() == 406) {
+    if (message->typeID() == Message::MaxFlow_ResultMaxFlowCalculation ||
+            message->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
         const auto kResultMaxFlowCalculationMessage =
                 static_pointer_cast<MaxFlowCalculationConfirmationMessage>(message);
         sendMessage(

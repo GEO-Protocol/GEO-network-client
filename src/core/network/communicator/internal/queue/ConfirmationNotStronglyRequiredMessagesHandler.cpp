@@ -58,8 +58,10 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryProcessConfirmation(
         confirmationMessage->equivalent(),
         confirmationMessage->senderUUID);
     if (mQueues.count(queueKey) == 0) {
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         warning() << "tryProcessConfirmation: no queue is present for contractor "
                   << queueKey.second << " on equivalent " << queueKey.first;
+#endif
         return;
     }
 
@@ -77,7 +79,9 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryProcessConfirmation(
             mQueues.erase(queueKey);
         }
     } else {
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         warning() << "tryProcessConfirmation: can't process";
+#endif
     }
 }
 
