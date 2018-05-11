@@ -62,6 +62,8 @@ public:
         vector<Message::MessageType> &&requiredMessagesTypes,
         uint32_t noLongerThanMilliseconds) const;
 
+    TransactionResult::Shared resultAwakeAsFastAsPossible() const;
+
 public:
     virtual ~BaseTransaction() = default;
 

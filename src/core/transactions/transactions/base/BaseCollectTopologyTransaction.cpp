@@ -54,6 +54,8 @@ TransactionResult::SharedConst BaseCollectTopologyTransaction::run()
         case Stages::ProcessCollectingTopology: {
             return processCollectingTopology();
         }
+        case Stages::CustomLogic:
+            return applyCustomLogic();
         default:
             throw ValueError(logHeader() + "::run: "
                                  "wrong value of mStep");

@@ -43,13 +43,16 @@ public:
 protected:
     enum Stages {
         SendRequestForCollectingTopology = 1,
-        ProcessCollectingTopology
+        ProcessCollectingTopology = 2,
+        CustomLogic = 3
     };
 
 protected:
     virtual TransactionResult::SharedConst sendRequestForCollectingTopology() = 0;
 
     virtual TransactionResult::SharedConst processCollectingTopology() = 0;
+
+    virtual TransactionResult::SharedConst applyCustomLogic(){};
 
     void fillTopology();
 

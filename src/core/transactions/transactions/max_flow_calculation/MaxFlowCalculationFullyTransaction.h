@@ -33,6 +33,8 @@ private:
 
     TransactionResult::SharedConst processCollectingTopology();
 
+    TransactionResult::SharedConst applyCustomLogic();
+
     TrustLineAmount calculateMaxFlow(
         const NodeUUID &contractorUUID);
 
@@ -65,6 +67,8 @@ private:
     NodeUUID mCurrentContractor;
     size_t mCountProcessCollectingTopologyRun;
     TopologyTrustLinesManager::TrustLineWithPtrHashSet mFirstLevelTopology;
+    vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
+    size_t mCurrentGlobalContractorIdx;
 };
 
 

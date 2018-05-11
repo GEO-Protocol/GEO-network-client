@@ -42,10 +42,9 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::sendRequestFo
     }
     // Check if Node does not have outgoing FlowAmount;
     if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().empty()){
-        vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
         maxFlows.reserve(mCommand->contractors().size());
         for (const auto &contractorUUID : mCommand->contractors()) {
-            maxFlows.push_back(
+            maxFlows.emplace_back(
                 make_pair(
                     contractorUUID,
                     TrustLineAmount(0)));
@@ -83,21 +82,33 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::processCollec
         return resultAwakeAfterMilliseconds(
             kWaitMillisecondsForCalculatingMaxFlowAgain);
     }
-    vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
     maxFlows.reserve(mCommand->contractors().size());
     mFirstLevelTopology =
             mTopologyTrustLineManager->trustLinePtrsSet(mNodeUUID);
-    auto startTime = utc_now();
-    for (const auto &contractorUUID : mCommand->contractors()) {
-        maxFlows.push_back(
-            make_pair(
-                contractorUUID,
-                calculateMaxFlow(
-                    contractorUUID)));
+    mCurrentGlobalContractorIdx = 0;
+    mStep = CustomLogic;
+    return applyCustomLogic();
+}
+
+TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::applyCustomLogic()
+{
+    if (mCurrentGlobalContractorIdx >= mCommand->contractors().size()) {
+        error() << "Illegal current contractor idx: " << mCurrentGlobalContractorIdx;
+        mTopologyTrustLineManager->setPreventDeleting(false);
+        return resultOk(maxFlows);
     }
-    info() << "all contractors calculating time: " << (utc_now() - startTime);
-    mTopologyTrustLineManager->setPreventDeleting(false);
-    return resultOk(maxFlows);
+    const auto contractorUUID = mCommand->contractors().at(mCurrentGlobalContractorIdx);
+    maxFlows.emplace_back(
+        make_pair(
+            contractorUUID,
+            calculateMaxFlow(
+                contractorUUID)));
+    if (maxFlows.size() >= mCommand->contractors().size()) {
+        mTopologyTrustLineManager->setPreventDeleting(false);
+        return resultOk(maxFlows);
+    }
+    mCurrentGlobalContractorIdx++;
+    return resultAwakeAsFastAsPossible();
 }
 
 // this method used the same logic as PathsManager::reBuildPaths

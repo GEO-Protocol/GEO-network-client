@@ -127,6 +127,12 @@ TransactionResult::Shared BaseTransaction::resultWaitForMessageTypesAndAwakeAfte
             noLongerThanMilliseconds));
 }
 
+TransactionResult::Shared BaseTransaction::resultAwakeAsFastAsPossible() const
+{
+    return make_shared<TransactionResult>(
+        TransactionState::awakeAsFastAsPossible());
+}
+
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const
 {
     return mType;
