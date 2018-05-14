@@ -49,8 +49,6 @@ TransactionsManager::TransactionsManager(
         mEquivalentsCyclesSubsystemsRouter->buildSixNodesCyclesSignal);
     subscribeForTryCloseNextCycleSignal(
         mScheduler->cycleCloserTransactionWasFinishedSignal);
-    subscribeForUpdatingRoutingTable(
-        mEquivalentsCyclesSubsystemsRouter->updateRoutingTableSignal);
     subscribeForGatewayNotificationSignal(
         mEquivalentsSubsystemsRouter->gatewayNotificationSignal);
 
@@ -452,17 +450,7 @@ void TransactionsManager::processMessage(
             static_pointer_cast<ConfirmationMessage>(message));
 
     /*
-     * RoutingTable
-    */
-    } else if (message->typeID() == Message::RoutingTableRequest) {
-        launchRoutingTableResponseTransaction(
-            static_pointer_cast<RoutingTableRequestMessage>(message));
-
-    } else if (message->typeID() == Message::RoutingTableResponse) {
-        mScheduler->tryAttachMessageToRoutingTableTransaction(message);
-
-    /*
-     * Gateway notification
+     * Gateway notification & RoutingTable
      */
     } else if (message->typeID() == Message::GatewayNotification) {
         launchGatewayNotificationReceiverTransaction(
@@ -472,6 +460,12 @@ void TransactionsManager::processMessage(
         launchGatewayNotificationOneEquivalentReceiverTransaction(
             static_pointer_cast<GatewayNotificationOneEquivalentMessage>(message));
 
+    } else if (message->typeID() == Message::RoutingTableResponse) {
+        mScheduler->tryAttachMessageToRoutingTableTransaction(message);
+
+    /*
+     * Attaching to existing transactions
+     */
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
     }
@@ -1554,45 +1548,6 @@ void TransactionsManager::launchGetTrustLineTransaction(
     }
 }
 
-void TransactionsManager::launchRoutingTableResponseTransaction(
-    RoutingTableRequestMessage::Shared message)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<RoutingTableResponseTransaction>(
-                mNodeUUID,
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mLog),
-            false,
-            false,
-            true);
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for RoutingTableResponseTransaction "
-                "with equivalent " << message->equivalent() << " Details are: " << e.what();
-    }
-}
-
-void TransactionsManager::launchRoutingTableRequestTransaction(
-    const SerializedEquivalent equivalent)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<RoutingTableInitTransaction>(
-                mNodeUUID,
-                equivalent,
-                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
-                mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent),
-                mLog),
-            false,
-            false,
-            true);
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for RoutingTableInitTransaction "
-                "with equivalent " << equivalent << " Details are: " << e.what();
-    }
-}
-
 void TransactionsManager::launchAddNodeToBlackListTransaction(
     AddNodeToBlackListCommand::Shared command)
 {
@@ -1693,6 +1648,7 @@ void TransactionsManager::launchGatewayNotificationSenderTransaction()
             make_shared<GatewayNotificationSenderTransaction>(
                 mNodeUUID,
                 mEquivalentsSubsystemsRouter,
+                mEquivalentsCyclesSubsystemsRouter.get(),
                 mLog),
             false,
             false,
@@ -1904,16 +1860,6 @@ void TransactionsManager::subscribeForProcessingConfirmationMessage(
             _1));
 }
 
-void TransactionsManager::subscribeForUpdatingRoutingTable(
-    EquivalentsCyclesSubsystemsRouter::UpdateRoutingTableSignal &signal)
-{
-    signal.connect(
-        boost::bind(
-            &TransactionsManager::onUpdatingRoutingTableSlot,
-            this,
-            _1));
-}
-
 void TransactionsManager::subscribeForGatewayNotificationSignal(
     EquivalentsSubsystemsRouter::GatewayNotificationSignal &signal)
 {
@@ -2031,15 +1977,10 @@ void TransactionsManager::onTryCloseNextCycleSlot(
 void TransactionsManager::onProcessConfirmationMessageSlot(
     ConfirmationMessage::Shared confirmationMessage)
 {
+    info() << "onProcessConfirmationMessageSlot from " << confirmationMessage->senderUUID
+           << " on equivalent " << confirmationMessage->equivalent();
     ProcessConfirmationMessageSignal(
         confirmationMessage);
-}
-
-void TransactionsManager::onUpdatingRoutingTableSlot(
-    const SerializedEquivalent equivalent)
-{
-    launchRoutingTableRequestTransaction(
-        equivalent);
 }
 
 void TransactionsManager::onGatewayNotificationSlot()

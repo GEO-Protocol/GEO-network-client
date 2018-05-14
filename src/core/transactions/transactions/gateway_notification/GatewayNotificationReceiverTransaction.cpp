@@ -43,6 +43,12 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
             warning() << "Attempt to set contractor " << mMessage->senderUUID << " as gateway failed. "
                       << "IO transaction can't be completed. "
                       << "Details are: " << e.what();
+            sendMessage<ConfirmationMessage>(
+                mMessage->senderUUID,
+                mEquivalent,
+                mNodeUUID,
+                mMessage->transactionUUID(),
+                ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
             return resultDone();
         }
     }
@@ -58,13 +64,36 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
         return resultDone();
     }
 
-    debug() << "Send confirmation to node " << mMessage->senderUUID;
-    sendMessage<ConfirmationMessage>(
+    vector<pair<SerializedEquivalent, set<NodeUUID>>> neighborsByEquivalents;
+    for (const auto &equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
+        auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+        if (trustLinesManager->trustLineIsPresent(mMessage->senderUUID)) {
+            neighborsByEquivalents.emplace_back(
+                make_pair(
+                    equivalent,
+                    getNeighborsForEquivalent(equivalent)));
+        }
+    }
+    debug() << "Send routing tables to node " << mMessage->senderUUID;
+    sendMessage<RoutingTableResponseMessage>(
         mMessage->senderUUID,
-        mEquivalent,
-        currentNodeUUID(),
-        mMessage->transactionUUID());
+        mNodeUUID,
+        currentTransactionUUID(),
+        neighborsByEquivalents);
     return resultDone();
+}
+
+set<NodeUUID> GatewayNotificationReceiverTransaction::getNeighborsForEquivalent(
+    const SerializedEquivalent equivalent) const
+{
+    auto neighbors = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->firstLevelNeighbors();
+    set<NodeUUID> result;
+    for(auto &node:neighbors){
+        if(node == mMessage->senderUUID)
+            continue;
+        result.insert(node);
+    }
+    return result;
 }
 
 const string GatewayNotificationReceiverTransaction::logHeader() const

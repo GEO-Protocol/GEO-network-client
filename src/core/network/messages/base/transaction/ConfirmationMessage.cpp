@@ -25,7 +25,6 @@ ConfirmationMessage::ConfirmationMessage(
 }
 
 const Message::MessageType ConfirmationMessage::typeID() const
-    noexcept
 {
     return Message::System_Confirmation;
 }
@@ -62,4 +61,14 @@ pair<BytesShared, size_t> ConfirmationMessage::serializeToBytes() const
     return make_pair(
         dataBytesShared,
         bytesCount);
+}
+
+const size_t ConfirmationMessage::kOffsetToInheritedBytes() const
+    noexcept
+{
+    static const auto kOffset =
+        TransactionMessage::kOffsetToInheritedBytes()
+        + sizeof(SerializedOperationState);
+
+    return kOffset;
 }

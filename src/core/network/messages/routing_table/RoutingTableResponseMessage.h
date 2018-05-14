@@ -1,32 +1,34 @@
 #ifndef GEO_NETWORK_CLIENT_ROUTINGTABLERESPONCEMESSAGE_H
 #define GEO_NETWORK_CLIENT_ROUTINGTABLERESPONCEMESSAGE_H
 
-#include "../SenderMessage.h"
+#include "../base/transaction/ConfirmationMessage.h"
+#include <vector>
 #include <set>
 
 class RoutingTableResponseMessage :
-    public SenderMessage {
+    public ConfirmationMessage {
 
 public:
     typedef shared_ptr<RoutingTableResponseMessage> Shared;
 
 public:
     RoutingTableResponseMessage(
-        const SerializedEquivalent equivalent,
         const NodeUUID &sender,
-        set<NodeUUID> neighbors);
+        const TransactionUUID &transactionUUID,
+        vector<pair<SerializedEquivalent, set<NodeUUID>>> neighbors);
 
     RoutingTableResponseMessage(
         BytesShared buffer);
 
     const MessageType typeID() const;
 
-    pair<BytesShared, size_t> serializeToBytes() const;
+    pair<BytesShared, size_t> serializeToBytes() const
+        throw (bad_alloc);
 
-    set<NodeUUID> neighbors() const;
+    vector<pair<SerializedEquivalent, set<NodeUUID>>> neighborsByEquivalents() const;
 
 protected:
-    set<NodeUUID> mNeighbors;
+    vector<pair<SerializedEquivalent, set<NodeUUID>>> mNeighbors;
 };
 
 #endif //GEO_NETWORK_CLIENT_ROUTINGTABLERESPONCEMESSAGE_H

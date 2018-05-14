@@ -45,7 +45,6 @@
 #include "../../network/messages/cycles/FourNodes/CyclesFourNodesNegativeBalanceRequestMessage.h"
 #include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
 #include "../../network/messages/payments/VotesStatusRequestMessage.hpp"
-#include "../../network/messages/routing_table/RoutingTableRequestMessage.h"
 
 #include "../../resources/manager/ResourcesManager.h"
 #include "../../resources/resources/BaseResource.h"
@@ -95,9 +94,6 @@
 #include "../transactions/trustlines_list/GetFirstLevelContractorsTransaction.h"
 #include "../transactions/trustlines_list/GetFirstLevelContractorsBalancesTransaction.h"
 #include "../transactions/trustlines_list/GetFirstLevelContractorBalanceTransaction.h"
-
-#include "../transactions/routing_table/RoutingTableInitTransaction.h"
-#include "../transactions/routing_table/RoutingTableResponseTransaction.h"
 
 #include "../transactions/blacklist/AddNodeToBlackListTransaction.h"
 #include "../transactions/blacklist/CheckIfNodeInBlackListTransaction.h"
@@ -309,15 +305,6 @@ protected: // Transactions
         GetTrustLineCommand::Shared command);
 
     /*
-     * RoutingTable
-     */
-    void launchRoutingTableResponseTransaction(
-        RoutingTableRequestMessage::Shared message);
-
-    void launchRoutingTableRequestTransaction(
-        const SerializedEquivalent equivalent);
-
-    /*
      * BlackList
      */
     void launchAddNodeToBlackListTransaction(
@@ -384,9 +371,6 @@ protected:
     void subscribeForProcessingConfirmationMessage(
         BaseTransaction::ProcessConfirmationMessageSignal &signal);
 
-    void subscribeForUpdatingRoutingTable(
-        EquivalentsCyclesSubsystemsRouter::UpdateRoutingTableSignal &signal);
-
     void subscribeForGatewayNotificationSignal(
         EquivalentsSubsystemsRouter::GatewayNotificationSignal &signal);
 
@@ -427,9 +411,6 @@ protected:
 
     void onProcessConfirmationMessageSlot(
         ConfirmationMessage::Shared confirmationMessage);
-
-    void onUpdatingRoutingTableSlot(
-        const SerializedEquivalent equivalent);
 
     void onGatewayNotificationSlot();
 

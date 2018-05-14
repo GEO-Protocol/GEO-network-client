@@ -87,7 +87,7 @@ const size_t ConfirmationRequiredMessagesQueue::size() const
 void ConfirmationRequiredMessagesQueue::resetInternalTimeout()
     noexcept
 {
-    mNextTimeoutSeconds = 2;
+    mNextTimeoutSeconds = 4;
 }
 
 void ConfirmationRequiredMessagesQueue::updateTrustLineNotificationInTheQueue(

@@ -40,7 +40,7 @@ private:
     const string logHeader() const;
 
 private:
-    static const uint16_t kRunNotificationSec = 120;
+    static const uint32_t kUpdatingTimerPeriodSeconds = 60 * 60 * 24 * 3;
 
 private:
     as::io_service &mIOService;

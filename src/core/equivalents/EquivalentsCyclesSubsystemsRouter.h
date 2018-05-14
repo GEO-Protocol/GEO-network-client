@@ -19,7 +19,6 @@ public:
     typedef signals::signal<void(
             const SerializedEquivalent equivalent,
             Path::ConstShared cycle)> CloseCycleSignal;
-    typedef signals::signal<void(const SerializedEquivalent equivalent)> UpdateRoutingTableSignal;
 
 public:
     EquivalentsCyclesSubsystemsRouter(
@@ -39,14 +38,14 @@ public:
     void initNewEquivalent(
         const SerializedEquivalent equivalent);
 
+    void clearRoutingTables();
+
 public:
     mutable CloseCycleSignal closeCycleSignal;
 
     mutable BuildSixNodesCyclesSignal buildSixNodesCyclesSignal;
 
     mutable BuildFiveNodesCyclesSignal buildFiveNodesCyclesSignal;
-
-    mutable UpdateRoutingTableSignal updateRoutingTableSignal;
 
 protected:
     string logHeader() const;
@@ -71,9 +70,6 @@ private:
     void subscribeForClosingCycles(
         CyclesManager::CloseCycleSignal &signal);
 
-    void subscribeForRoutingTablesUpdating(
-        RoutingTableManager::UpdateRoutingTableSignal &signal);
-
     void onBuildCycleFiveNodesSlot(
         const SerializedEquivalent equivalent);
 
@@ -83,9 +79,6 @@ private:
     void onCloseCycleSlot(
         const SerializedEquivalent equivalent,
         Path::ConstShared cycle);
-
-    void onUpdateRoutingTableSlot(
-        const SerializedEquivalent equivalent);
 
 private:
     NodeUUID mNodeUUID;

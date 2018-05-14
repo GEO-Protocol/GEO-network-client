@@ -3,6 +3,7 @@
 GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
     const NodeUUID &nodeUUID,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
+    EquivalentsCyclesSubsystemsRouter *equivalentsCyclesSubsystemsRouter,
     Logger &logger) :
 
     BaseTransaction(
@@ -10,34 +11,116 @@ GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
         nodeUUID,
         0,
         logger),
-    mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter)
+    mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
+    mEquivalentsCyclesSubsystemsRouter(equivalentsCyclesSubsystemsRouter)
 {}
 
 TransactionResult::SharedConst GatewayNotificationSenderTransaction::run()
 {
-    set<NodeUUID> allNeighbors;
-    vector<SerializedEquivalent> gatewaysEquivalents;
+    debug() << "run: stage: " << mStep;
+    switch (mStep) {
+        case Stages::GatewayNotificationStage:
+            return sendGatewayNotification();
+
+        case Stages::UpdateRoutingTableStage:
+            return processRoutingTablesResponse();
+
+        default:
+            error() << "invalid transaction step " << mStep;
+            return resultDone();
+    }
+}
+
+TransactionResult::SharedConst GatewayNotificationSenderTransaction::sendGatewayNotification()
+{
     for (const auto &equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
         if (mEquivalentsSubsystemsRouter->iAmGateway(equivalent)) {
-            gatewaysEquivalents.push_back(
+            mGatewaysEquivalents.push_back(
                 equivalent);
         }
         for (const auto &neighbor : mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->firstLevelNeighbors()) {
-            allNeighbors.insert(
+            allNeighborsRequestShouldBeSend.insert(
                 neighbor);
         }
     }
-    // if current node is not gateway in any equivalent
-    if (gatewaysEquivalents.empty()) {
-        return resultDone();
-    }
-    for (const auto &neighbor : allNeighbors) {
+    uint16_t cntRequestedNeighbors = 0;
+    for (const auto &neighbor : allNeighborsRequestShouldBeSend) {
+        info() << "Send Gateway notification to node " << neighbor;
         sendMessage<GatewayNotificationMessage>(
             neighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
-            gatewaysEquivalents);
+            mGatewaysEquivalents);
+        allNeighborsRequestAlreadySent.insert(neighbor);
+        cntRequestedNeighbors++;
+        if (cntRequestedNeighbors >= kCountNeighborsPerOneStep) {
+            break;
+        }
     }
+    mEquivalentsCyclesSubsystemsRouter->clearRoutingTables();
+    mPreviousStepStarted = utc_now();
+    mStep = UpdateRoutingTableStage;
+    return resultAwakeAfterMilliseconds(
+        kCollectingRoutingTablesMilliseconds);
+}
+
+TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRoutingTablesResponse()
+{
+    while (!mContext.empty()) {
+        if (mContext.at(0)->typeID() == Message::RoutingTableResponse) {
+            const auto kMessage = popNextMessage<RoutingTableResponseMessage>();
+            for (const auto &equivalentAndNeighbors : kMessage->neighborsByEquivalents()) {
+                allNeighborsResponseReceive.insert(kMessage->senderUUID);
+                try {
+                    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(
+                            equivalentAndNeighbors.first);
+                    auto routingTablesManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(
+                            equivalentAndNeighbors.first);
+                    if(!trustLinesManager->isNeighbor(kMessage->senderUUID)){
+                        warning() << "Node " << kMessage->senderUUID << " is not a neighbor";
+                        continue;
+                    }
+                    routingTablesManager->updateMapAddSeveralNeighbors(
+                        kMessage->senderUUID,
+                        equivalentAndNeighbors.second);
+                } catch (NotFoundError &e) {
+                    warning() << "There is no subsystems for equivalent " << equivalentAndNeighbors.first;
+                    continue;
+                }
+            }
+        } else {
+            warning() << "Invalid message type in context during processRoutingTablesResponse " << mContext.at(0)->typeID();
+            mContext.pop_front();
+        }
+    }
+    if (allNeighborsResponseReceive.size() < allNeighborsRequestAlreadySent.size()) {
+        info() << "Not all nodes send response";
+        return resultAwakeAfterMilliseconds(
+            kCollectingRoutingTablesMilliseconds);
+    }
+
+    if (allNeighborsResponseReceive.size() < allNeighborsRequestShouldBeSend.size()) {
+        uint16_t cntRequestedNeighbors = 0;
+        for (const auto &neighbor : allNeighborsRequestShouldBeSend) {
+            if (allNeighborsRequestAlreadySent.count(neighbor) != 0) {
+                continue;
+            }
+            sendMessage<GatewayNotificationMessage>(
+                neighbor,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                mGatewaysEquivalents);
+            allNeighborsRequestAlreadySent.insert(neighbor);
+            cntRequestedNeighbors++;
+            if (cntRequestedNeighbors >= kCountNeighborsPerOneStep) {
+                break;
+            }
+        }
+        return resultAwakeAfterMilliseconds(
+            kCollectingRoutingTablesMilliseconds);
+    }
+
+    info() << "All data processed";
     return resultDone();
 }
 

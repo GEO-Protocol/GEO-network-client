@@ -27,16 +27,19 @@ public:
     ConfirmationMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const
-        noexcept;
+    const MessageType typeID() const;
 
     const OperationState state() const;
 
+    pair<BytesShared, size_t> serializeToBytes() const
+        throw (bad_alloc);
+
+protected:
+    const size_t kOffsetToInheritedBytes() const
+        noexcept;
+
 private:
     typedef byte SerializedOperationState;
-
-    pair<BytesShared, size_t> serializeToBytes() const
-    throw (bad_alloc);
 
 private:
     OperationState mState;

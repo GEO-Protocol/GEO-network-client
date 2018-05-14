@@ -9,10 +9,13 @@ NotifyThatIAmIsGatewayDelayedTask::NotifyThatIAmIsGatewayDelayedTask(
 {
     mNotificationTimer = make_unique<as::steady_timer>(
         mIOService);
-
+    int timeStarted = 120 + rand() % (60);
+#ifdef TESTS
+    timeStarted = 10;
+#endif
     mNotificationTimer->expires_from_now(
         chrono::seconds(
-            kRunNotificationSec));
+            timeStarted));
     mNotificationTimer->async_wait(
         boost::bind(
             &NotifyThatIAmIsGatewayDelayedTask::runSignalNotify,
@@ -27,6 +30,15 @@ void NotifyThatIAmIsGatewayDelayedTask::runSignalNotify(
         warning() << errorCode.message().c_str();
     }
     info() << "run gateway notification signal";
+    mNotificationTimer->cancel();
+    mNotificationTimer->expires_from_now(
+        std::chrono::seconds(
+            kUpdatingTimerPeriodSeconds));
+    mNotificationTimer->async_wait(
+        boost::bind(
+            &NotifyThatIAmIsGatewayDelayedTask::runSignalNotify,
+            this,
+            as::placeholders::error));
     gatewayNotificationSignal();
 }
 

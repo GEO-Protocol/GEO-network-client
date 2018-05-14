@@ -6,6 +6,7 @@
 #include "../../../io/storage/StorageHandler.h"
 #include "../../../network/messages/gateway_notification/GatewayNotificationMessage.h"
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
+#include "../../../network/messages/routing_table/RoutingTableResponseMessage.h"
 
 class GatewayNotificationReceiverTransaction : public BaseTransaction {
 
@@ -24,6 +25,10 @@ public:
 
 protected:
     const string logHeader() const;
+
+private:
+    set<NodeUUID> getNeighborsForEquivalent(
+        const SerializedEquivalent equivalent) const;
 
 private:
     GatewayNotificationMessage::Shared mMessage;

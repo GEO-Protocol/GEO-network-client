@@ -47,7 +47,6 @@
 #include "../../../messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
 #include "../../../messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
 
-#include "../../../messages/routing_table/RoutingTableRequestMessage.h"
 #include "../../../messages/routing_table/RoutingTableResponseMessage.h"
 
 #include "../../../messages/gateway_notification/GatewayNotificationMessage.h"

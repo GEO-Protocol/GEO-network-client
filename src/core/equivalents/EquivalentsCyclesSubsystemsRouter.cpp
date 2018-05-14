@@ -33,7 +33,6 @@ EquivalentsCyclesSubsystemsRouter::EquivalentsCyclesSubsystemsRouter(
                 equivalent,
                 make_unique<RoutingTableManager>(
                     equivalent,
-                    mIOService,
                     mLogger)));
         info() << "Routing Table Manager is successfully initialized";
     }
@@ -95,11 +94,17 @@ void EquivalentsCyclesSubsystemsRouter::initNewEquivalent(
             equivalent,
             make_unique<RoutingTableManager>(
                 equivalent,
-                mIOService,
                 mLogger)));
-    subscribeForRoutingTablesUpdating(
-        mRoutingTablesManagers[equivalent]->updateRoutingTableSignal);
     info() << "Routing Table Manager is successfully initialized";
+}
+
+void EquivalentsCyclesSubsystemsRouter::clearRoutingTables()
+{
+    info() << "clearRoutingTables";
+    for (const auto &routingTablesManager : mRoutingTablesManagers) {
+        info() << "clearRoutingTables for " << routingTablesManager.first;
+        routingTablesManager.second->clearMap();
+    }
 }
 
 void EquivalentsCyclesSubsystemsRouter::connectSignalsToSlots()
@@ -111,11 +116,6 @@ void EquivalentsCyclesSubsystemsRouter::connectSignalsToSlots()
             cyclesManager.second->buildSixNodesCyclesSignal);
         subscribeForClosingCycles(
             cyclesManager.second->closeCycleSignal);
-    }
-
-    for (const auto &routingTablesManager : mRoutingTablesManagers) {
-        subscribeForRoutingTablesUpdating(
-            routingTablesManager.second->updateRoutingTableSignal);
     }
 }
 
@@ -150,16 +150,6 @@ void EquivalentsCyclesSubsystemsRouter::subscribeForClosingCycles(
             _2));
 }
 
-void EquivalentsCyclesSubsystemsRouter::subscribeForRoutingTablesUpdating(
-    RoutingTableManager::UpdateRoutingTableSignal &signal)
-{
-    signal.connect(
-        boost::bind(
-            &EquivalentsCyclesSubsystemsRouter::onUpdateRoutingTableSlot,
-            this,
-            _1));
-}
-
 void EquivalentsCyclesSubsystemsRouter::onBuildCycleFiveNodesSlot(
     const SerializedEquivalent equivalent)
 {
@@ -179,12 +169,6 @@ void EquivalentsCyclesSubsystemsRouter::onCloseCycleSlot(
     closeCycleSignal(
         equivalent,
         cycle);
-}
-
-void EquivalentsCyclesSubsystemsRouter::onUpdateRoutingTableSlot(
-    const SerializedEquivalent equivalent)
-{
-    updateRoutingTableSignal(equivalent);
 }
 
 string EquivalentsCyclesSubsystemsRouter::logHeader() const

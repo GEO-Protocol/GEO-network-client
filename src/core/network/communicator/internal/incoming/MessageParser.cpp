@@ -161,21 +161,16 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
             return messageCollected<MaxFlowCalculationConfirmationMessage>(buffer);
 
         /*
-         * RoutingTables
-         */
-        case Message::RoutingTableRequest:
-            return messageCollected<RoutingTableRequestMessage>(buffer);
-        case Message::RoutingTableResponse:
-            return messageCollected<RoutingTableResponseMessage>(buffer);
-
-        /*
-         * Gateway notification Messages
+         * Gateway notification & RoutingTables
          */
         case Message::GatewayNotification:
             return messageCollected<GatewayNotificationMessage>(buffer);
 
         case Message::GatewayNotificationOneEquivalent:
             return messageCollected<GatewayNotificationOneEquivalentMessage>(buffer);
+
+        case Message::RoutingTableResponse:
+            return messageCollected<RoutingTableResponseMessage>(buffer);
 
 #ifdef DEBUG
         /*

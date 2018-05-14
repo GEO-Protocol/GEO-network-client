@@ -88,16 +88,15 @@ public:
          */
 
         /*
-         * Routing table
+         * Empty slot with codes 600-699
          */
-        RoutingTableRequest = 600,
-        RoutingTableResponse = 601,
 
         /*
-         * Gateway notification
+         * Gateway notification & Routing tables
          */
         GatewayNotification = 700,
         GatewayNotificationOneEquivalent = 701,
+        RoutingTableResponse = 702,
 
         NoEquivalent = 800,
 

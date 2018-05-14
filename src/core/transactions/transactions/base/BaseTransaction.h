@@ -102,7 +102,6 @@ public:
         MaxFlowCalculationSourceSndLevelTransactionType = 406,
         MaxFlowCalculationTargetSndLevelTransactionType = 407,
         ReceiveResultMaxFlowCalculationTransactionType = 408,
-        MaxFlowCalculationCacheUpdateTransactionType = 409,
         MaxFlowCalculationStepTwoTransactionType = 410,
         MaxFlowCalculationFullyTransactionType = 411,
 
@@ -123,15 +122,12 @@ public:
         // FindPath
         FindPathByMaxFlowTransactionType = 800,
 
-        //RoutingTable
-        RoutingTableInitTransactionType = 900,
-        RoutingTableResponseTransactionType = 901,
+        // empty slot from 900 to 999
 
         //BlackList
         AddNodeToBlackListTransactionType = 1000,
         CheckIfNodeInBlackListTransactionType = 1001,
         RemoveNodeFromBlackListTransactionType = 1002,
-        GetBlackListTransactionType = 1003,
 
         // Transactions
         TransactionByCommandUUIDType = 1100,

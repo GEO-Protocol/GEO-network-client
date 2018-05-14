@@ -458,9 +458,8 @@ void TransactionsScheduler::tryAttachMessageToRoutingTableTransaction(
         // Routing table updating TA should be run only once per 3 days,
         // so, theoretically, only one runned transaction may exist at once,
         // and message may be attached to first found transaction.
-        if (transactionAndState.first->transactionType() == BaseTransaction::RoutingTableInitTransactionType
-            and message->typeID() == Message::RoutingTableResponse
-            and message->equivalent() == transactionAndState.first->equivalent()) {
+        if (transactionAndState.first->transactionType() == BaseTransaction::GatewayNotificationSenderType
+            and message->typeID() == Message::RoutingTableResponse) {
             transactionAndState.first->pushContext(message);
             return;
         }
