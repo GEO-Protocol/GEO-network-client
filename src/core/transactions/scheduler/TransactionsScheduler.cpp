@@ -1,6 +1,5 @@
 ﻿#include "TransactionsScheduler.h"
 
-
 TransactionsScheduler::TransactionsScheduler(
     as::io_service &IOService,
     Logger &logger) :
@@ -39,11 +38,11 @@ void TransactionsScheduler::run()
 void TransactionsScheduler::scheduleTransaction(
     BaseTransaction::Shared transaction)
 {
-    for ( auto it = mTransactions->begin(); it != mTransactions->end(); it++ ){
-        if (transaction->currentTransactionUUID() == it->first->currentTransactionUUID()) {
+    for (const auto &transactionAndState : *mTransactions){
+        if (transaction->currentTransactionUUID() == transactionAndState.first->currentTransactionUUID()) {
             warning() << "scheduleTransaction: Duplicate TransactionUUID. Already exists. "
                       << "Current TA type: " << transaction->transactionType()
-                      << ". Conflicted TA type:" << it->first->transactionType();
+                      << ". Conflicted TA type:" << transactionAndState.first->transactionType();
             throw ConflictError("Duplicate Transaction UUID");
         }
     }
@@ -105,7 +104,6 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
     throw NotFoundError(
         "TransactionsScheduler::tryAttachMessageToTransaction: "
             "invalid/unexpected message/response received " + to_string(message->typeID()));
-
 }
 
 void TransactionsScheduler::tryAttachResourceToTransaction(
@@ -154,7 +152,7 @@ void TransactionsScheduler::launchTransaction(
         // it must not be thrown up,
         // to not to break transactions processing flow.
         auto result = transaction->run();
-        if (result.get() == nullptr) {
+        if (result == nullptr) {
             throw ValueError(
                 "TransactionsScheduler::launchTransaction: "
                 "transaction->run() returned nullptr result.");
@@ -176,7 +174,6 @@ void TransactionsScheduler::launchTransaction(
     }
 }
 
-
 void TransactionsScheduler::handleTransactionResult(
     BaseTransaction::Shared transaction,
     TransactionResult::SharedConst result)
@@ -195,8 +192,14 @@ void TransactionsScheduler::handleTransactionResult(
                 result->state());
             break;
         }
+        case TransactionResult::ResultType::HybridType: {
+            processCommandResultAndTransactionState(
+                transaction,
+                result->commandResult(),
+                result->state());
+            break;
+        }
     }
-
 }
 
 void TransactionsScheduler::processCommandResult(
@@ -234,6 +237,17 @@ void TransactionsScheduler::processTransactionState(
     }
 }
 
+void TransactionsScheduler::processCommandResultAndTransactionState(
+    BaseTransaction::Shared transaction,
+    CommandResult::SharedConst result,
+    TransactionState::SharedConst state)
+{
+    commandResultIsReadySignal(result);
+    processTransactionState(
+        transaction,
+        state);
+}
+
 void TransactionsScheduler::forgetTransaction(
     BaseTransaction::Shared transaction)
 {
@@ -255,8 +269,8 @@ void TransactionsScheduler::forgetTransaction(
     mTransactions->erase(transaction);
 }
 
-void TransactionsScheduler::adjustAwakeningToNextTransaction() {
-
+void TransactionsScheduler::adjustAwakeningToNextTransaction()
+{
     try {
         asyncWaitUntil(
             transactionWithMinimalAwakeningTimestamp().second);

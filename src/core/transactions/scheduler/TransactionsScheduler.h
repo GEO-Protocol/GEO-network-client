@@ -124,6 +124,11 @@ private:
         BaseTransaction::Shared transaction,
         TransactionState::SharedConst state);
 
+    void processCommandResultAndTransactionState(
+        BaseTransaction::Shared transaction,
+        CommandResult::SharedConst result,
+        TransactionState::SharedConst state);
+
     void forgetTransaction(
         BaseTransaction::Shared transaction);
 

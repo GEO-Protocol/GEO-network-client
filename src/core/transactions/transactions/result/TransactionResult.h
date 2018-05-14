@@ -19,6 +19,7 @@ public:
     enum ResultType {
         CommandResultType = 1,
         TransactionStateType = 2,
+        HybridType = 3,
     };
 
 public:
@@ -26,6 +27,9 @@ public:
 
     TransactionResult(
         TransactionState::SharedConst transactionState);
+
+    TransactionResult(
+        CommandResult::SharedConst commandResult);
 
     void setCommandResult(
         CommandResult::SharedConst commandResult);
