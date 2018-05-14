@@ -40,31 +40,6 @@ public:
     typedef signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
 
 public:
-    // TODO: add other states shortcuts here
-    TransactionResult::Shared resultDone () const;
-
-    TransactionResult::Shared resultFlushAndContinue() const;
-
-    TransactionResult::Shared resultWaitForMessageTypes(
-        vector<Message::MessageType> &&requiredMessagesTypes,
-        uint32_t noLongerThanMilliseconds) const;
-
-    TransactionResult::Shared resultWaitForResourceTypes(
-        vector<BaseResource::ResourceType> &&requiredResourcesType,
-        uint32_t noLongerThanMilliseconds) const;
-
-    TransactionResult::Shared resultAwakeAfterMilliseconds(
-        uint32_t responseWaitTime) const ;
-
-    TransactionResult::Shared resultContinuePreviousState() const;
-
-    TransactionResult::Shared resultWaitForMessageTypesAndAwakeAfterMilliseconds(
-        vector<Message::MessageType> &&requiredMessagesTypes,
-        uint32_t noLongerThanMilliseconds) const;
-
-    TransactionResult::Shared resultAwakeAsFastAsPossible() const;
-
-public:
     virtual ~BaseTransaction() = default;
 
     enum TransactionType {
@@ -73,7 +48,6 @@ public:
         CloseIncomingTrustLineTransaction = 102,
         CloseOutgoingTrustLineTransaction = 103,
         RejectOutgoingTrustLineTransaction = 104,
-
 
         // Cycles
         Cycles_ThreeNodesInitTransaction = 200,
@@ -251,7 +225,31 @@ protected:
     virtual void deserializeFromBytes(
         BytesShared buffer);
 
-    TransactionResult::SharedConst transactionResultFromCommand(
+    // TODO: add other states shortcuts here
+    TransactionResult::Shared resultDone () const;
+
+    TransactionResult::Shared resultFlushAndContinue() const;
+
+    TransactionResult::Shared resultWaitForMessageTypes(
+        vector<Message::MessageType> &&requiredMessagesTypes,
+        uint32_t noLongerThanMilliseconds) const;
+
+    TransactionResult::Shared resultWaitForResourceTypes(
+        vector<BaseResource::ResourceType> &&requiredResourcesType,
+        uint32_t noLongerThanMilliseconds) const;
+
+    TransactionResult::Shared resultAwakeAfterMilliseconds(
+        uint32_t responseWaitTime) const ;
+
+    TransactionResult::Shared resultContinuePreviousState() const;
+
+    TransactionResult::Shared resultWaitForMessageTypesAndAwakeAfterMilliseconds(
+        vector<Message::MessageType> &&requiredMessagesTypes,
+        uint32_t noLongerThanMilliseconds) const;
+
+    TransactionResult::Shared resultAwakeAsFastAsPossible() const;
+
+    TransactionResult::Shared transactionResultFromCommand(
         CommandResult::SharedConst result) const;
 
     virtual const string logHeader() const = 0;

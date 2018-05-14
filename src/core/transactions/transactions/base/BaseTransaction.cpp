@@ -133,6 +133,12 @@ TransactionResult::Shared BaseTransaction::resultAwakeAsFastAsPossible() const
         TransactionState::awakeAsFastAsPossible());
 }
 
+TransactionResult::Shared BaseTransaction::transactionResultFromCommand(
+    CommandResult::SharedConst result) const
+{
+    return make_shared<TransactionResult>(result);
+}
+
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const
 {
     return mType;
@@ -226,15 +232,6 @@ const size_t BaseTransaction::kOffsetToInheritedBytes()
                                  + TransactionUUID::kBytesSize
                                  + sizeof(SerializedStep);
     return offset;
-}
-
-TransactionResult::SharedConst BaseTransaction::transactionResultFromCommand(
-    CommandResult::SharedConst result) const
-{
-    // todo: refactor me
-    TransactionResult *transactionResult = new TransactionResult();
-    transactionResult->setCommandResult(result);
-    return TransactionResult::SharedConst(transactionResult);
 }
 
 LoggerStream BaseTransaction::info() const

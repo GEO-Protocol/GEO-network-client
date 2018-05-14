@@ -9,6 +9,12 @@ TransactionResult::TransactionResult(
     setTransactionState(transactionState);
 }
 
+TransactionResult::TransactionResult(
+    CommandResult::SharedConst commandResult)
+{
+    setCommandResult(commandResult);
+}
+
 void TransactionResult::setCommandResult(
     CommandResult::SharedConst commandResult)
 {
@@ -33,7 +39,11 @@ TransactionState::SharedConst TransactionResult::state() const
 
 TransactionResult::ResultType TransactionResult::resultType() const
 {
-    if (mCommandResult != nullptr) {
+    if (mCommandResult != nullptr && mTransactionState != nullptr) {
+        return ResultType::HybridType;
+    }
+
+    else if (mCommandResult != nullptr) {
         return ResultType::CommandResultType;
     }
 
