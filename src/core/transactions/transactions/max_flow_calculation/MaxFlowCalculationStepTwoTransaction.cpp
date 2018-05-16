@@ -81,12 +81,12 @@ TransactionResult::SharedConst MaxFlowCalculationStepTwoTransaction::applyCustom
     auto nodeCache = mMaxFlowCacheManager->cacheByNode(contractorUUID);
     // todo : implement separated logic when !nodeCache->isFlowFinal()
     if (nodeCache != nullptr && nodeCache->isFlowFinal()) {
-        mMaxFlows.emplace_back(
+        mMaxFlows.push_back(
             make_pair(
                 contractorUUID,
                 nodeCache->currentFlow()));
     } else {
-        mMaxFlows.emplace_back(
+        mMaxFlows.push_back(
             make_pair(
                 contractorUUID,
                 calculateMaxFlow(
@@ -141,10 +141,19 @@ TrustLineAmount MaxFlowCalculationStepTwoTransaction::calculateMaxFlow(
 
     mTopologyTrustLineManager->resetAllUsedAmounts();
     info() << "max flow calculating time: " << utc_now() - startTime;
-    mMaxFlowCacheManager->updateCache(
-        mCurrentContractor,
-        mCurrentMaxFlow,
-        true);
+    auto nodeCache = mMaxFlowCacheManager->cacheByNode(mCurrentContractor);
+    if (nodeCache != nullptr) {
+        mMaxFlowCacheManager->updateCache(
+            mCurrentContractor,
+            mCurrentMaxFlow,
+            true);
+    } else {
+        mMaxFlowCacheManager->addCache(
+            mCurrentContractor,
+            make_shared<MaxFlowCache>(
+                mCurrentMaxFlow,
+                true));
+    }
     return mCurrentMaxFlow;
 }
 

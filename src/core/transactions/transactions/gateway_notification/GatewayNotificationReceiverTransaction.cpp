@@ -68,7 +68,7 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
     for (const auto &equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
         if (trustLinesManager->trustLineIsPresent(mMessage->senderUUID)) {
-            neighborsByEquivalents.emplace_back(
+            neighborsByEquivalents.push_back(
                 make_pair(
                     equivalent,
                     getNeighborsForEquivalent(equivalent)));

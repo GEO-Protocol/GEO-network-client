@@ -478,9 +478,8 @@ void TransactionsScheduler::tryAttachMessageToRoutingTableTransaction(
             return;
         }
     }
-    throw NotFoundError(
-            "TransactionsScheduler::tryAttachMessageToRoutingTableTransaction: "
-                "can't find appropriate transaction");
+    warning() << "TransactionsScheduler::tryAttachMessageToRoutingTableTransaction: "
+            "can't find appropriate transaction";
 }
 
 const BaseTransaction::Shared TransactionsScheduler::paymentTransactionByCommandUUID(

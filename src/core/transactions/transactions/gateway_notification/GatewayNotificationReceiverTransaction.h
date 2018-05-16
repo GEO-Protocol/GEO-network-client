@@ -4,9 +4,9 @@
 #include "../base/BaseTransaction.h"
 #include "../../../equivalents/EquivalentsSubsystemsRouter.h"
 #include "../../../io/storage/StorageHandler.h"
-#include "../../../network/messages/gateway_notification/GatewayNotificationMessage.h"
+#include "../../../network/messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
-#include "../../../network/messages/routing_table/RoutingTableResponseMessage.h"
+#include "../../../network/messages/gateway_notification_and_routing_tables/RoutingTableResponseMessage.h"
 
 class GatewayNotificationReceiverTransaction : public BaseTransaction {
 

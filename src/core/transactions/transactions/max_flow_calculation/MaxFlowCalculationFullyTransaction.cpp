@@ -44,7 +44,7 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::sendRequestFo
     if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().empty()){
         maxFlows.reserve(mCommand->contractors().size());
         for (const auto &contractorUUID : mCommand->contractors()) {
-            maxFlows.emplace_back(
+            maxFlows.push_back(
                 make_pair(
                     contractorUUID,
                     TrustLineAmount(0)));
@@ -98,7 +98,7 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::applyCustomLo
         return resultOk(maxFlows);
     }
     const auto contractorUUID = mCommand->contractors().at(mCurrentGlobalContractorIdx);
-    maxFlows.emplace_back(
+    maxFlows.push_back(
         make_pair(
             contractorUUID,
             calculateMaxFlow(

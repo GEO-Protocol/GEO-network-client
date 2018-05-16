@@ -4,8 +4,8 @@
 #include "../base/BaseTransaction.h"
 #include "../../../equivalents/EquivalentsSubsystemsRouter.h"
 #include "../../../equivalents/EquivalentsCyclesSubsystemsRouter.h"
-#include "../../../network/messages/gateway_notification/GatewayNotificationMessage.h"
-#include "../../../network/messages/routing_table/RoutingTableResponseMessage.h"
+#include "../../../network/messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
+#include "../../../network/messages/gateway_notification_and_routing_tables/RoutingTableResponseMessage.h"
 
 #include <set>
 
@@ -37,9 +37,19 @@ protected:
     const string logHeader() const;
 
 private:
-    static const uint32_t kCollectingRoutingTablesMilliseconds = 5000;
-    static const uint16_t kCountNeighborsPerOneStep = 10;
-    static const uint32_t kSecondsBetweenSteps = 30;
+    static const uint32_t kCollectingRoutingTablesMilliseconds = 6000;
+    static const uint16_t kCountNeighborsPerOneStep = 15;
+    static const uint32_t kHoursBetweenSteps = 0;
+    static const uint32_t kMinutesBetweenSteps = 1;
+    static const uint32_t kSecondsBetweenSteps = 0;
+
+    static Duration& kMaxDurationBetweenSteps() {
+        static auto duration = Duration(
+            kHoursBetweenSteps,
+            kMinutesBetweenSteps,
+            kSecondsBetweenSteps);
+        return duration;
+    }
 
 private:
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;

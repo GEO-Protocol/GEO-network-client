@@ -6,8 +6,8 @@
 #include "../../../messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
-#include "../../../messages/gateway_notification/GatewayNotificationMessage.h"
-#include "../../../messages/gateway_notification/GatewayNotificationOneEquivalentMessage.h"
+#include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
+#include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationOneEquivalentMessage.h"
 
 #include <boost/signals2.hpp>
 

@@ -4,7 +4,7 @@
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../io/storage/StorageHandler.h"
-#include "../../../network/messages/gateway_notification/GatewayNotificationOneEquivalentMessage.h"
+#include "../../../network/messages/gateway_notification_and_routing_tables/GatewayNotificationOneEquivalentMessage.h"
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
 
 class GatewayNotificationOneEquivalentReceiverTransaction :

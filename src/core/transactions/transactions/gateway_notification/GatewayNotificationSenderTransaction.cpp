@@ -95,8 +95,10 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
     }
     if (allNeighborsResponseReceive.size() < allNeighborsRequestAlreadySent.size()) {
         info() << "Not all nodes send response";
-        return resultAwakeAfterMilliseconds(
-            kCollectingRoutingTablesMilliseconds);
+        if (utc_now() - mPreviousStepStarted < kMaxDurationBetweenSteps()) {
+            return resultAwakeAfterMilliseconds(
+                kCollectingRoutingTablesMilliseconds);
+        }
     }
 
     if (allNeighborsResponseReceive.size() < allNeighborsRequestShouldBeSend.size()) {
@@ -105,6 +107,7 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
             if (allNeighborsRequestAlreadySent.count(neighbor) != 0) {
                 continue;
             }
+            info() << "Send Gateway notification to node " << neighbor;
             sendMessage<GatewayNotificationMessage>(
                 neighbor,
                 currentNodeUUID(),
@@ -116,6 +119,7 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
                 break;
             }
         }
+        mPreviousStepStarted = utc_now();
         return resultAwakeAfterMilliseconds(
             kCollectingRoutingTablesMilliseconds);
     }

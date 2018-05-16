@@ -86,12 +86,12 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
         info() << "Paths Manager is successfully initialized";
     }
 
-    mNotifyThatIAmIsGatewayDelayedTask = make_unique<NotifyThatIAmIsGatewayDelayedTask>(
+    mGatewayNotificationAndRoutingTablesDelayedTask = make_unique<GatewayNotificationAndRoutingTablesDelayedTask>(
         mIOService,
         mLogger);
     subscribeForGatewayNotification(
-        mNotifyThatIAmIsGatewayDelayedTask->gatewayNotificationSignal);
-    info() << "Gateway Notification Delayed Task is successfully initialized";
+        mGatewayNotificationAndRoutingTablesDelayedTask->gatewayNotificationSignal);
+    info() << "Gateway Notification and Routing Tables Delayed Task is successfully initialized";
 }
 
 vector<SerializedEquivalent> EquivalentsSubsystemsRouter::equivalents() const
@@ -239,7 +239,7 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
 }
 
 void EquivalentsSubsystemsRouter::subscribeForGatewayNotification(
-    NotifyThatIAmIsGatewayDelayedTask::GatewayNotificationSignal &signal)
+    GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationSignal &signal)
 {
     signal.connect(
         boost::bind(

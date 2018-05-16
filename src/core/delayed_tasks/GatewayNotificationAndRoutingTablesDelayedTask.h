@@ -1,5 +1,5 @@
-#ifndef GEO_NETWORK_CLIENT_NOTIFYTHATIAMISGATEWAYDELAYEDTASK_H
-#define GEO_NETWORK_CLIENT_NOTIFYTHATIAMISGATEWAYDELAYEDTASK_H
+#ifndef GEO_NETWORK_CLIENT_GATEWAYNOTIFICATIONANDROUTINGTABLESDELAYEDTASK_H
+#define GEO_NETWORK_CLIENT_GATEWAYNOTIFICATIONANDROUTINGTABLESDELAYEDTASK_H
 
 #include "../common/time/TimeUtils.h"
 #include "../logger/Logger.h"
@@ -14,13 +14,13 @@ using namespace std;
 namespace as = boost::asio;
 namespace signals = boost::signals2;
 
-class NotifyThatIAmIsGatewayDelayedTask {
+class GatewayNotificationAndRoutingTablesDelayedTask {
 
 public:
     typedef signals::signal<void()> GatewayNotificationSignal;
 
 public:
-    NotifyThatIAmIsGatewayDelayedTask(
+    GatewayNotificationAndRoutingTablesDelayedTask(
         as::io_service &mIOService,
         Logger &logger);
 
@@ -40,7 +40,7 @@ private:
     const string logHeader() const;
 
 private:
-    static const uint32_t kUpdatingTimerPeriodSeconds = 60 * 60 * 24 * 3;
+    static const uint32_t kUpdatingTimerPeriodSeconds = 60 * 60 * 24 * 2;
 
 private:
     as::io_service &mIOService;
@@ -49,4 +49,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_NOTIFYTHATIAMISGATEWAYDELAYEDTASK_H
+#endif //GEO_NETWORK_CLIENT_GATEWAYNOTIFICATIONANDROUTINGTABLESDELAYEDTASK_H

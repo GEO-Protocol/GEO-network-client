@@ -7,8 +7,7 @@ add_subdirectory(trust_lines)
 add_subdirectory(payments)
 add_subdirectory(cycles)
 add_subdirectory(max_flow_calculation)
-add_subdirectory(routing_table)
-add_subdirectory(gateway_notification)
+add_subdirectory(gateway_notification_and_routing_tables)
 add_subdirectory(no_equivalent)
 
 
@@ -33,6 +32,5 @@ target_link_libraries(network__messages
         messages__payments
         messages__cycles
         messages__max_flow_calculation
-        messages__routing_table
-        messages__gateway_notification
+        messages__gateway_notification_and_routing_tables
         messages__no_equivalent)

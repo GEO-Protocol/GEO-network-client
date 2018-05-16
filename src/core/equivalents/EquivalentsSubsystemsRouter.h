@@ -7,7 +7,7 @@
 #include "../delayed_tasks/TopologyCacheUpdateDelayedTask.h"
 #include "../topology/cashe/MaxFlowCacheManager.h"
 #include "../paths/PathsManager.h"
-#include "../delayed_tasks/NotifyThatIAmIsGatewayDelayedTask.h"
+#include "../delayed_tasks/GatewayNotificationAndRoutingTablesDelayedTask.h"
 
 #include <map>
 
@@ -70,7 +70,7 @@ protected:
 
 private:
     void subscribeForGatewayNotification(
-        NotifyThatIAmIsGatewayDelayedTask::GatewayNotificationSignal &signal);
+        GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationSignal &signal);
 
     void onGatewayNotificationSlot();
 
@@ -87,7 +87,7 @@ private:
     map<SerializedEquivalent, unique_ptr<TopologyCacheUpdateDelayedTask>> mTopologyCacheUpdateDelayedTasks;
     map<SerializedEquivalent, unique_ptr<MaxFlowCacheManager>> mMaxFlowCacheManagers;
     map<SerializedEquivalent, unique_ptr<PathsManager>> mPathsManagers;
-    unique_ptr<NotifyThatIAmIsGatewayDelayedTask> mNotifyThatIAmIsGatewayDelayedTask;
+    unique_ptr<GatewayNotificationAndRoutingTablesDelayedTask> mGatewayNotificationAndRoutingTablesDelayedTask;
 };
 
 

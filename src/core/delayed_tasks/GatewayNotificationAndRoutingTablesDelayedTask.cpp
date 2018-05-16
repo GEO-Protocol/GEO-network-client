@@ -1,6 +1,6 @@
-#include "NotifyThatIAmIsGatewayDelayedTask.h"
+#include "GatewayNotificationAndRoutingTablesDelayedTask.h"
 
-NotifyThatIAmIsGatewayDelayedTask::NotifyThatIAmIsGatewayDelayedTask(
+GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationAndRoutingTablesDelayedTask(
     as::io_service &ioService,
     Logger &logger):
 
@@ -9,7 +9,9 @@ NotifyThatIAmIsGatewayDelayedTask::NotifyThatIAmIsGatewayDelayedTask(
 {
     mNotificationTimer = make_unique<as::steady_timer>(
         mIOService);
-    int timeStarted = 120 + rand() % (60);
+    // todo : rand() used for concurrent start of all nodes or some part of nodes (data center)
+    // on decentralize network it is not necessary
+    int timeStarted = 120 + rand() % (240);
 #ifdef TESTS
     timeStarted = 10;
 #endif
@@ -18,12 +20,12 @@ NotifyThatIAmIsGatewayDelayedTask::NotifyThatIAmIsGatewayDelayedTask(
             timeStarted));
     mNotificationTimer->async_wait(
         boost::bind(
-            &NotifyThatIAmIsGatewayDelayedTask::runSignalNotify,
+            &GatewayNotificationAndRoutingTablesDelayedTask::runSignalNotify,
             this,
             as::placeholders::error));
 }
 
-void NotifyThatIAmIsGatewayDelayedTask::runSignalNotify(
+void GatewayNotificationAndRoutingTablesDelayedTask::runSignalNotify(
     const boost::system::error_code &errorCode)
 {
     if (errorCode) {
@@ -33,33 +35,33 @@ void NotifyThatIAmIsGatewayDelayedTask::runSignalNotify(
     mNotificationTimer->cancel();
     mNotificationTimer->expires_from_now(
         std::chrono::seconds(
-            kUpdatingTimerPeriodSeconds));
+            kUpdatingTimerPeriodSeconds + rand() % (60 * 60 * 24)));
     mNotificationTimer->async_wait(
         boost::bind(
-            &NotifyThatIAmIsGatewayDelayedTask::runSignalNotify,
+            &GatewayNotificationAndRoutingTablesDelayedTask::runSignalNotify,
             this,
             as::placeholders::error));
     gatewayNotificationSignal();
 }
 
-LoggerStream NotifyThatIAmIsGatewayDelayedTask::debug() const
+LoggerStream GatewayNotificationAndRoutingTablesDelayedTask::debug() const
 {
     return mLog.debug(logHeader());
 }
 
-LoggerStream NotifyThatIAmIsGatewayDelayedTask::info() const
+LoggerStream GatewayNotificationAndRoutingTablesDelayedTask::info() const
 {
     return mLog.info(logHeader());
 }
 
-LoggerStream NotifyThatIAmIsGatewayDelayedTask::warning() const
+LoggerStream GatewayNotificationAndRoutingTablesDelayedTask::warning() const
 {
     return mLog.warning(logHeader());
 }
 
-const string NotifyThatIAmIsGatewayDelayedTask::logHeader() const
+const string GatewayNotificationAndRoutingTablesDelayedTask::logHeader() const
 {
     stringstream s;
-    s << "[NotifyThatIAmIsGatewayDelayedTask]";
+    s << "[GatewayNotificationAndRoutingTablesDelayedTask]";
     return s.str();
 }

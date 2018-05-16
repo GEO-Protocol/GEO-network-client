@@ -4,8 +4,8 @@ set(SOURCE_FILES
         TopologyCacheUpdateDelayedTask.h
         TopologyCacheUpdateDelayedTask.cpp
 
-        NotifyThatIAmIsGatewayDelayedTask.h
-        NotifyThatIAmIsGatewayDelayedTask.cpp)
+        GatewayNotificationAndRoutingTablesDelayedTask.h
+        GatewayNotificationAndRoutingTablesDelayedTask.cpp)
 
 add_library(delayed_tasks
         ${SOURCE_FILES})

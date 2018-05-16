@@ -47,10 +47,9 @@
 #include "../../../messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
 #include "../../../messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
 
-#include "../../../messages/routing_table/RoutingTableResponseMessage.h"
-
-#include "../../../messages/gateway_notification/GatewayNotificationMessage.h"
-#include "../../../messages/gateway_notification/GatewayNotificationOneEquivalentMessage.h"
+#include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
+#include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationOneEquivalentMessage.h"
+#include "../../../messages/gateway_notification_and_routing_tables/RoutingTableResponseMessage.h"
 
 #ifdef DEBUG
 #include "../../../messages/debug/DebugMessage.h"

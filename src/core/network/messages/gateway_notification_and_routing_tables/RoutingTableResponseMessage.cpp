@@ -33,7 +33,7 @@ RoutingTableResponseMessage::RoutingTableResponseMessage(
             bytesBufferOffset += NodeUUID::kBytesSize;
             neighbors.insert(nodeUUID);
         }
-        mNeighbors.emplace_back(
+        mNeighbors.push_back(
             make_pair(
                 equivalentTmp,
                 neighbors));
