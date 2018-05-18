@@ -112,7 +112,6 @@ TransactionResult::SharedConst MaxFlowCalculationStepTwoTransaction::applyCustom
             mMaxFlows);
     }
     mCurrentGlobalContractorIdx++;
-    mTimeStarted = utc_now();
     return resultAwakeAsFastAsPossible();
 }
 
