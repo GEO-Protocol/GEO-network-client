@@ -178,7 +178,7 @@ const bool TransactionState::mustBeRescheduled() const
 {
     return
         (mAwakeningTimestamp != numeric_limits<GEOEpochTimestamp>::max()) ||
-        (acceptedMessagesTypes().size() > 0);
+        (!acceptedMessagesTypes().empty());
 }
 
 const bool TransactionState::mustExit() const

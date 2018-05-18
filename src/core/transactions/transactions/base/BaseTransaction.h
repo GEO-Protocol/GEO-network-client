@@ -126,6 +126,8 @@ public:
 
     const int currentStep() const;
 
+    const DateTime timeStarted() const;
+
     void recreateTransactionUUID();
 
     void pushContext(
@@ -272,6 +274,7 @@ protected:
     deque<BaseResource::Shared> mResources;
     SerializedStep mStep = 1;
     uint8_t mVotesRecoveryStep = 0;
+    DateTime mTimeStarted;
 
     Logger &mLog;
 };

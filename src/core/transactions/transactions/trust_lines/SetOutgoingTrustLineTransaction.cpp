@@ -99,7 +99,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
             // but this transaction might be launched only by the user,
             // so, in case if new amount is the same - then user knows it,
             // and new history record must be written too.
-            populateHistory(ioTransaction, TrustLineRecord::Updating);
+            populateHistory(ioTransaction, TrustLineRecord::Setting);
             info() << "Outgoing trust line to the node " << kContractor
                    << " successfully set to " << mCommand->amount();
             break;

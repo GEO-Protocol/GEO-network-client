@@ -316,6 +316,33 @@ pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transact
             "there are no any delayed transactions.");
 }
 
+BaseTransaction::Shared TransactionsScheduler::getEarlierTransaction(
+    BaseTransaction::TransactionType transactionType)
+{
+    auto nextTransactionAndState = mTransactions->begin();
+    if (mTransactions->size() > 1) {
+        for (auto it=(mTransactions->begin()++); it != mTransactions->end(); ++it){
+            if (it->second == nullptr) {
+                // Transaction has no state, and, as a result, doesn't have timeout set.
+                // Therefore, it can't be considered for awakening by the timeout.
+                continue;
+            }
+            if (it->first->transactionType() != transactionType) {
+                continue;
+            }
+
+            if (microsecondsSinceGEOEpoch(utc_now()) >= it->second->awakeningTimestamp()) {
+                it->second = TransactionState::awakeAsFastAsPossible();
+            }
+            if (it->first->timeStarted() < nextTransactionAndState->first->timeStarted()){
+                nextTransactionAndState = it;
+            }
+        }
+    }
+
+    return nextTransactionAndState->first;
+}
+
 void TransactionsScheduler::asyncWaitUntil(
     GEOEpochTimestamp nextAwakeningTimestamp)
 {
@@ -376,8 +403,15 @@ void TransactionsScheduler::handleAwakening(
     try {
         auto transactionAndDelay = transactionWithMinimalAwakeningTimestamp();
         if (microsecondsSinceGEOEpoch(utc_now()) >= transactionAndDelay.second) {
-            launchTransaction(transactionAndDelay.first);
-            errorsCount = 0;
+            if (transactionAndDelay.first->transactionType() != BaseTransaction::MaxFlowCalculationStepTwoTransactionType) {
+                launchTransaction(transactionAndDelay.first);
+                errorsCount = 0;
+            } else {
+                auto transaction = getEarlierTransaction(
+                    BaseTransaction::MaxFlowCalculationStepTwoTransactionType);
+                launchTransaction(transaction);
+                errorsCount = 0;
+            }
         }
 
         adjustAwakeningToNextTransaction();

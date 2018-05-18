@@ -136,6 +136,9 @@ private:
 
     pair<BaseTransaction::Shared, GEOEpochTimestamp> transactionWithMinimalAwakeningTimestamp() const;
 
+    BaseTransaction::Shared getEarlierTransaction(
+        BaseTransaction::TransactionType transactionType);
+
     void asyncWaitUntil(
         GEOEpochTimestamp nextAwakeningTimestamp);
 
