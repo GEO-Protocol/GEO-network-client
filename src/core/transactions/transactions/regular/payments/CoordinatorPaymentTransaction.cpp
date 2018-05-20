@@ -249,7 +249,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
     return resultWaitForMessageTypes(
         {Message::Payments_ReceiverInitPaymentResponse,
          Message::NoEquivalent},
-        kMaxMessageTransferLagMSec);
+        maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResponseProcessingStage ()

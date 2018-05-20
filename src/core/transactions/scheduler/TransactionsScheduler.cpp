@@ -316,6 +316,40 @@ pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transact
             "there are no any delayed transactions.");
 }
 
+// This method used for finding earlier creating transaction of given type.
+// Used for MaxFlowCalculationStepTwoTransaction for finishing those TA which was earlier started
+// and find only TA which on stage of calculating max flow (mStep = 3)
+BaseTransaction::Shared TransactionsScheduler::getEarlierTransaction(
+    BaseTransaction::Shared transaction)
+{
+    auto earlierTransaction = transaction;
+    if (mTransactions->size() > 1) {
+        for (auto it=(mTransactions->begin()++); it != mTransactions->end(); ++it){
+            if (it->second == nullptr) {
+                // Transaction has no state, and, as a result, doesn't have timeout set.
+                // Therefore, it can't be considered for awakening by the timeout.
+                continue;
+            }
+            if (it->first->transactionType() != transaction->transactionType()) {
+                continue;
+            }
+
+            if (it->first->currentStep() != 3) {
+                continue;
+            }
+
+            if (microsecondsSinceGEOEpoch(utc_now()) >= it->second->awakeningTimestamp()) {
+                it->second = TransactionState::awakeAsFastAsPossible();
+            }
+            if (it->first->timeStarted() < earlierTransaction->timeStarted()){
+                earlierTransaction = it->first;
+            }
+        }
+    }
+
+    return earlierTransaction;
+}
+
 void TransactionsScheduler::asyncWaitUntil(
     GEOEpochTimestamp nextAwakeningTimestamp)
 {
@@ -376,8 +410,16 @@ void TransactionsScheduler::handleAwakening(
     try {
         auto transactionAndDelay = transactionWithMinimalAwakeningTimestamp();
         if (microsecondsSinceGEOEpoch(utc_now()) >= transactionAndDelay.second) {
-            launchTransaction(transactionAndDelay.first);
-            errorsCount = 0;
+            if (transactionAndDelay.first->transactionType() !=
+                    BaseTransaction::MaxFlowCalculationStepTwoTransactionType) {
+                launchTransaction(transactionAndDelay.first);
+                errorsCount = 0;
+            } else {
+                auto transaction = getEarlierTransaction(
+                    transactionAndDelay.first);
+                launchTransaction(transaction);
+                errorsCount = 0;
+            }
         }
 
         adjustAwakeningToNextTransaction();

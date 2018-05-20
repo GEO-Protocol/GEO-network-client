@@ -23,7 +23,9 @@ MaxFlowCalculationStepTwoTransaction::MaxFlowCalculationStepTwoTransaction(
         logger),
     mCommand(command),
     mMaxFlowCalculationStep(maxFlowCalculationStep)
-{}
+{
+    mTimeStarted = utc_now();
+}
 
 InitiateMaxFlowCalculationCommand::Shared MaxFlowCalculationStepTwoTransaction::command() const
 {

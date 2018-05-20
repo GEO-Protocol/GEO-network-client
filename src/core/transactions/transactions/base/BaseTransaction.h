@@ -274,6 +274,7 @@ protected:
     deque<BaseResource::Shared> mResources;
     SerializedStep mStep = 1;
     uint8_t mVotesRecoveryStep = 0;
+    DateTime mTimeStarted;
 
     Logger &mLog;
 };

@@ -159,6 +159,11 @@ const SerializedEquivalent BaseTransaction::equivalent() const
     return mEquivalent;
 }
 
+const DateTime BaseTransaction::timeStarted() const
+{
+    return mTimeStarted;
+}
+
 void BaseTransaction::pushContext(
     Message::Shared message)
 {
