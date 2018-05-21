@@ -236,6 +236,8 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
                  mTopologyTrustLinesManagers[equivalent].get(),
                  mLogger)));
     info() << "Paths Manager is successfully initialized";
+
+    mEquivalents.push_back(equivalent);
 }
 
 void EquivalentsSubsystemsRouter::subscribeForGatewayNotification(

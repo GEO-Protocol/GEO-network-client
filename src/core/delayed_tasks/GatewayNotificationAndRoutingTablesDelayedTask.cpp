@@ -36,6 +36,10 @@ void GatewayNotificationAndRoutingTablesDelayedTask::runSignalNotify(
     mNotificationTimer->expires_from_now(
         std::chrono::seconds(
             kUpdatingTimerPeriodSeconds + rand() % (60 * 60 * 24)));
+#ifdef TESTS
+    mNotificationTimer->expires_from_now(
+        std::chrono::seconds(15));
+#endif
     mNotificationTimer->async_wait(
         boost::bind(
             &GatewayNotificationAndRoutingTablesDelayedTask::runSignalNotify,
