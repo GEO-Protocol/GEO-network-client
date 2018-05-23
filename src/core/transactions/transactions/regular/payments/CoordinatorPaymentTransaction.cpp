@@ -806,9 +806,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         return tryProcessNextPath();
     }
 
-
     auto message = popNextMessage<IntermediateNodeReservationResponseMessage>();
     // todo: check message sender
+
+    if (message->pathID() != mCurrentAmountReservingPathIdentifier) {
+        warning() << "Neighbor " << message->senderUUID << " send response on wrong path " << message->pathID()
+                  << " . Continue previous state";
+        return resultContinuePreviousState();
+    }
 
     if (message->state() == IntermediateNodeReservationResponseMessage::Closed) {
         warning() << "Neighbor node doesn't approved reservation request";
@@ -875,6 +880,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
     }
 
     auto message = popNextMessage<CoordinatorReservationResponseMessage>();
+
+    if (message->pathID() != mCurrentAmountReservingPathIdentifier) {
+        warning() << "Neighbor " << message->senderUUID << " send response on wrong path " << message->pathID()
+                  << " . Continue previous state";
+        return resultContinuePreviousState();
+    }
 
     if (message->state() == CoordinatorReservationResponseMessage::Closed) {
         return reject("Desynchronization in reservation with Receiver occurred. Transaction closed.");
@@ -1081,7 +1092,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
     }
 
     const auto message = popNextMessage<CoordinatorReservationResponseMessage>();
-    auto path = currentAmountReservationPathStats();
+    if (message->pathID() != mCurrentAmountReservingPathIdentifier) {
+        warning() << "Neighbor " << message->senderUUID << " send response on wrong path " << message->pathID()
+                  << " . Continue previous state";
+        return resultContinuePreviousState();
+    }
 
     if (message->state() == CoordinatorReservationResponseMessage::Closed) {
         return reject("Desynchronization in reservation with Receiver occurred. Transaction closed.");
@@ -1126,6 +1141,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
      * R - remote node;
      */
 
+    auto path = currentAmountReservationPathStats();
     const auto R_UUIDAndPos = path->currentIntermediateNodeAndPos();
     const auto R_PathPosition = R_UUIDAndPos.second;
 

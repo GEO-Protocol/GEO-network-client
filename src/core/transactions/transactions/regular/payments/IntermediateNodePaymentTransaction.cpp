@@ -457,6 +457,12 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     mSubsystemsController->testTerminateProcessOnNextNeighborResponseProcessingStage();
 #endif
 
+    if (kMessage->pathID() != mLastProcessedPath) {
+        warning() << "Neighbor " << kContractor << " send response on wrong path " << kMessage->pathID()
+                  << " . Continue previous state";
+        return resultContinuePreviousState();
+    }
+
     if (kMessage->state() == IntermediateNodeReservationResponseMessage::Closed) {
         // Receiver reject reservation and Coordinator should close transaction
         sendMessage<CoordinatorReservationResponseMessage>(
