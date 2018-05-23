@@ -1344,6 +1344,7 @@ void TransactionsManager::launchHistoryPaymentsTransaction(
             false,
             false,
             false);
+        return;
     }
     try {
         prepareAndSchedule(
@@ -1376,6 +1377,7 @@ void TransactionsManager::launchAdditionalHistoryPaymentsTransaction(
             false,
             false,
             false);
+        return;
     }
     try {
         prepareAndSchedule(
@@ -1413,6 +1415,7 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(
             false,
             false,
             false);
+        return;
     }
     try {
         prepareAndSchedule(
@@ -1449,6 +1452,7 @@ void TransactionsManager::launchHistoryWithContractorTransaction(
             false,
             false,
             false);
+        return;
     }
     try {
         prepareAndSchedule(

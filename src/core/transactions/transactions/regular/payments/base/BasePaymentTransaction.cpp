@@ -103,33 +103,29 @@ BasePaymentTransaction::BasePaymentTransaction(
         participantsVotesMessageBytes);
 
     // mReservations count
-    uint64_t reservationsCount;
+    SerializedRecordsCount reservationsCount;
     memcpy(
         &reservationsCount,
         buffer.get() + bytesBufferOffset,
-        sizeof(uint64_t));
-    bytesBufferOffset += sizeof(uint64_t);
+        sizeof(SerializedRecordsCount));
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
 
     // Map values
     for(auto i=1; i<=reservationsCount; i++){
         // Map Key NodeUUID
-        NodeUUID stepNodeUUID;
-        memcpy(
-            &stepNodeUUID.data,
-            buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
+        NodeUUID stepNodeUUID(buffer.get() + bytesBufferOffset);
         bytesBufferOffset += NodeUUID::kBytesSize;
 
         // Map values vector
-        uint64_t stepReservationVectorSize;
+        SerializedRecordsCount stepReservationVectorSize;
         memcpy(
             &stepReservationVectorSize,
             buffer.get() + bytesBufferOffset,
-            sizeof(uint64_t));
-        bytesBufferOffset += sizeof(uint64_t);
+            sizeof(SerializedRecordsCount));
+        bytesBufferOffset += sizeof(SerializedRecordsCount);
 
         vector<pair<PathID, AmountReservation::ConstShared>> stepVector;
-        for(auto j=1; j<=stepReservationVectorSize; j++){
+        for(auto j=1; j<=stepReservationVectorSize; j++) {
 
             // PathID
             PathID stepPathID;
@@ -148,11 +144,7 @@ BasePaymentTransaction::BasePaymentTransaction(
             bytesBufferOffset += kTrustLineAmountBytesCount;
 
             // Transaction UUID
-            TransactionUUID stepTransactionUUID;
-            memcpy(
-                &stepTransactionUUID.data,
-                buffer.get() + bytesBufferOffset,
-                TransactionUUID::kBytesSize);
+            TransactionUUID stepTransactionUUID(buffer.get() + bytesBufferOffset);
             bytesBufferOffset += TransactionUUID::kBytesSize;
 
             // Direction
@@ -1210,12 +1202,12 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
     dataBytesOffset += kBufferAndSizeParticipantsVotesMessage.second;
 
     // Reservation Part
-    const auto kmReservationSize = mReservations.size();
+    SerializedRecordsCount kmReservationSize = (SerializedRecordsCount)mReservations.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &kmReservationSize,
-        sizeof(uint64_t));
-    dataBytesOffset += sizeof(uint64_t);
+        sizeof(SerializedRecordsCount));
+    dataBytesOffset += sizeof(SerializedRecordsCount);
 
     for(auto it=mReservations.begin(); it!=mReservations.end(); it++){
         // Map key (NodeUUID)
@@ -1226,12 +1218,12 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
         dataBytesOffset += NodeUUID::kBytesSize;
 
         // Size of map value vector
-        const auto kReservationsValueSize = it->second.size();
+        SerializedRecordsCount kReservationsValueSize = (SerializedRecordsCount)it->second.size();
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &kReservationsValueSize,
-            sizeof(uint64_t));
-        dataBytesOffset += sizeof(uint64_t);
+            sizeof(SerializedRecordsCount));
+        dataBytesOffset += sizeof(SerializedRecordsCount);
 
         for(const auto &kReservationValues: it->second){
             // PathID
@@ -1280,10 +1272,10 @@ size_t BasePaymentTransaction::reservationsSizeInBytes() const {
                                 TransactionUUID::kBytesSize + // Reservation Transaction UUID
                                                               // Reservation Direction
                                 sizeof(AmountReservation::SerializedReservationDirectionSize)) * it->second.size() +
-                                sizeof(uint64_t); // Vector Size
+                                sizeof(SerializedRecordsCount); // Vector Size
 
     }
-    reservationSizeInBytes += sizeof(uint64_t); // map Size
+    reservationSizeInBytes += sizeof(SerializedRecordsCount); // map Size
     return reservationSizeInBytes;
 }
 

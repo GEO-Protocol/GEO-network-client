@@ -203,8 +203,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
     }
 
     // If there is no one path to the receiver - transaction can't proceed.
-    if (mPathsStats.empty())
+    if (mPathsStats.empty()) {
+        warning() << "There are no paths";
         return resultNoPathsError();
+    }
 
     debug() << "Collected paths count: " << mPathsStats.size();
 
