@@ -12,12 +12,12 @@ GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
         0,
         logger),
     mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
-    mEquivalentsCyclesSubsystemsRouter(equivalentsCyclesSubsystemsRouter)
+    mEquivalentsCyclesSubsystemsRouter(equivalentsCyclesSubsystemsRouter),
+    mTransactionStarted(utc_now())
 {}
 
 TransactionResult::SharedConst GatewayNotificationSenderTransaction::run()
 {
-    debug() << "run: stage: " << mStep;
     switch (mStep) {
         case Stages::GatewayNotificationStage:
             return sendGatewayNotification();
@@ -93,8 +93,13 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
             mContext.pop_front();
         }
     }
+
+    if (utc_now() - mTransactionStarted > kMaxTransactionDuration()) {
+        warning() << "Not all nodes send response, but time is out.";
+        return resultDone();
+    }
+
     if (allNeighborsResponseReceive.size() < allNeighborsRequestAlreadySent.size()) {
-        info() << "Not all nodes send response";
         if (utc_now() - mPreviousStepStarted < kMaxDurationBetweenSteps()) {
             return resultAwakeAfterMilliseconds(
                 kCollectingRoutingTablesMilliseconds);
@@ -102,6 +107,7 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
     }
 
     if (allNeighborsResponseReceive.size() < allNeighborsRequestShouldBeSend.size()) {
+        info() << "Not all nodes send response";
         uint16_t cntRequestedNeighbors = 0;
         for (const auto &neighbor : allNeighborsRequestShouldBeSend) {
             if (allNeighborsRequestAlreadySent.count(neighbor) != 0) {

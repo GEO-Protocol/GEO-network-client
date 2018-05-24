@@ -42,12 +42,23 @@ private:
     static const uint32_t kHoursBetweenSteps = 0;
     static const uint32_t kMinutesBetweenSteps = 1;
     static const uint32_t kSecondsBetweenSteps = 0;
+    static const uint32_t kHoursMax = 2;
+    static const uint32_t kMinutesMax = 0;
+    static const uint32_t kSecondsMax = 0;
 
     static Duration& kMaxDurationBetweenSteps() {
         static auto duration = Duration(
             kHoursBetweenSteps,
             kMinutesBetweenSteps,
             kSecondsBetweenSteps);
+        return duration;
+    }
+
+    static Duration& kMaxTransactionDuration() {
+        static auto duration = Duration(
+            kHoursMax,
+            kMinutesMax,
+            kSecondsMax);
         return duration;
     }
 
@@ -58,6 +69,7 @@ private:
     set<NodeUUID> allNeighborsRequestAlreadySent;
     set<NodeUUID> allNeighborsResponseReceive;
     vector<SerializedEquivalent> mGatewaysEquivalents;
+    DateTime mTransactionStarted;
     DateTime mPreviousStepStarted;
 };
 
