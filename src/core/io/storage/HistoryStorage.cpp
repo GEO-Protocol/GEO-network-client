@@ -1267,13 +1267,3 @@ const string HistoryStorage::logHeader() const
     s << "[HistoryStorage]";
     return s.str();
 }
-
-const string HistoryStorage::mainTableName() const
-{
-    return mMainTableName;
-}
-
-const string HistoryStorage::additionalTableName() const
-{
-    return mAdditionalTableName;
-}

@@ -201,7 +201,3 @@ const string TransactionsHandler::logHeader() const
     s << "[TransactionsHandler]";
     return s.str();
 }
-
-const string TransactionsHandler::tableName() const {
-    return mTableName;
-}

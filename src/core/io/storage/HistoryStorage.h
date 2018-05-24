@@ -82,9 +82,6 @@ public:
     bool whetherOperationWasConducted(
         const TransactionUUID &transactionUUID);
 
-    const string mainTableName() const;
-    const string additionalTableName() const;
-
 private:
     void savePaymentMainOutgoingRecord(
         PaymentRecord::Shared record,

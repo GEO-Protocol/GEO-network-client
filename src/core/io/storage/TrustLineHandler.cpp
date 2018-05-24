@@ -267,7 +267,3 @@ const string TrustLineHandler::logHeader() const
     s << "[TrustLineHandler]";
     return s.str();
 }
-
-const string &TrustLineHandler::tableName() const {
-    return mTableName;
-}

@@ -7,6 +7,8 @@
 #include "TransactionsHandler.h"
 #include "HistoryStorage.h"
 #include "BlackListHandler.h"
+#include "OwnKeysHandler.h"
+#include "ContractorKeysHandler.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
 #include "IOTransaction.h"
@@ -52,6 +54,9 @@ private:
     const string kHistoryAdditionalTableName = "history_additional";
     const string kBlackListTableName = "blacklist";
 
+    const string kOwnKeysTableName = "own_keys";
+    const string kContractorKeysTableName = "contractor_keys";
+
 private:
     static sqlite3 *mDBConnection;
 
@@ -62,6 +67,8 @@ private:
     TransactionsHandler mTransactionHandler;
     HistoryStorage mHistoryStorage;
     BlackListHandler mBlackListHandler;
+    OwnKeysHandler mOwnKeysHandler;
+    ContractorKeysHandler mContractorKeysHandler;
     string mDirectory;
     string mDataBaseName;
 };

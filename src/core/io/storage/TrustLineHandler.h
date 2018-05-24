@@ -33,8 +33,6 @@ public:
 
     vector<SerializedEquivalent> equivalents();
 
-    const string &tableName() const;
-
 private:
     LoggerStream info() const;
 

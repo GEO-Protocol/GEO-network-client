@@ -14,6 +14,8 @@ StorageHandler::StorageHandler(
     mTransactionHandler(connection(dataBaseName, directory), kTransactionTableName, logger),
     mHistoryStorage(connection(dataBaseName, directory), kHistoryMainTableName, kHistoryAdditionalTableName, logger),
     mBlackListHandler(connection(dataBaseName, directory), kBlackListTableName, logger),
+    mOwnKeysHandler(connection(dataBaseName, directory), kOwnKeysTableName, logger),
+    mContractorKeysHandler(connection(dataBaseName, directory), kContractorKeysTableName, logger),
     mLog(logger)
 {
     sqlite3_config(SQLITE_CONFIG_SINGLETHREAD);
