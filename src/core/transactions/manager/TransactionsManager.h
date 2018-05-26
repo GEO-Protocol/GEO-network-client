@@ -108,6 +108,7 @@
 #include "../transactions/gateway_notification/GatewayNotificationSenderTransaction.h"
 #include "../transactions/gateway_notification/GatewayNotificationReceiverTransaction.h"
 #include "../transactions/gateway_notification/GatewayNotificationOneEquivalentReceiverTransaction.h"
+#include "../transactions/gateway_notification/RoutingTableUpdatingTransaction.h"
 
 #include "../transactions/no_equivalent/NoEquivalentTransaction.h"
 
@@ -335,6 +336,9 @@ protected: // Transactions
 
     void launchGatewayNotificationOneEquivalentReceiverTransaction(
         GatewayNotificationOneEquivalentMessage::Shared message);
+
+    void launchRoutingTableUpdatingTransaction(
+        RoutingTableResponseMessage::Shared message);
 
 protected:
     // Signals connection to manager's slots

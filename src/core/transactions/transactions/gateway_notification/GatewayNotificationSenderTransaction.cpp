@@ -77,7 +77,8 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
                     auto routingTablesManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(
                             equivalentAndNeighbors.first);
                     if(!trustLinesManager->isNeighbor(kMessage->senderUUID)){
-                        warning() << "Node " << kMessage->senderUUID << " is not a neighbor";
+                        warning() << "Node " << kMessage->senderUUID << " is not a neighbor on equivalent "
+                                  << equivalentAndNeighbors.first;
                         continue;
                     }
                     routingTablesManager->updateMapAddSeveralNeighbors(
@@ -94,11 +95,6 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
         }
     }
 
-    if (utc_now() - mTransactionStarted > kMaxTransactionDuration()) {
-        warning() << "Not all nodes send response, but time is out.";
-        return resultDone();
-    }
-
     if (allNeighborsResponseReceive.size() < allNeighborsRequestAlreadySent.size()) {
         if (utc_now() - mPreviousStepStarted < kMaxDurationBetweenSteps()) {
             return resultAwakeAfterMilliseconds(
@@ -106,8 +102,8 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
         }
     }
 
-    if (allNeighborsResponseReceive.size() < allNeighborsRequestShouldBeSend.size()) {
-        info() << "Not all nodes send response";
+    mPreviousStepStarted = utc_now();
+    if (allNeighborsRequestAlreadySent.size() < allNeighborsRequestShouldBeSend.size()) {
         uint16_t cntRequestedNeighbors = 0;
         for (const auto &neighbor : allNeighborsRequestShouldBeSend) {
             if (allNeighborsRequestAlreadySent.count(neighbor) != 0) {
@@ -125,7 +121,17 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
                 break;
             }
         }
-        mPreviousStepStarted = utc_now();
+        return resultAwakeAfterMilliseconds(
+            kCollectingRoutingTablesMilliseconds);
+    }
+
+    if (utc_now() - mTransactionStarted > kMaxTransactionDuration()) {
+        warning() << "Not all nodes send response, but time is out.";
+        return resultDone();
+    }
+
+    if (allNeighborsResponseReceive.size() < allNeighborsRequestShouldBeSend.size()) {
+        info() << "Not all nodes send response";
         return resultAwakeAfterMilliseconds(
             kCollectingRoutingTablesMilliseconds);
     }

@@ -110,6 +110,7 @@ public:
         GatewayNotificationSenderType = 1200,
         GatewayNotificationReceiverType = 1201,
         GatewayNotificationOneEquivalentReceiverType = 1202,
+        RoutingTableUpdatingType = 1203,
 
         //No equivalent
         NoEquivalentType = 1300
