@@ -22,6 +22,7 @@ namespace multiprecision = boost::multiprecision;
 typedef multiprecision::checked_uint256_t TrustLineAmount;
 typedef shared_ptr<TrustLineAmount> SharedTrustLineAmount;
 typedef shared_ptr<const TrustLineAmount> ConstSharedTrustLineAmount;
+typedef uint32_t TrustLineID;
 const size_t kTrustLineAmountBytesCount = 32;
 
 typedef multiprecision::int256_t TrustLineBalance;

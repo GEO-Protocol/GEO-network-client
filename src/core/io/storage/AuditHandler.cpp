@@ -1,6 +1,6 @@
-#include "ContractorKeysHandler.h"
+#include "AuditHandler.h"
 
-ContractorKeysHandler::ContractorKeysHandler(
+AuditHandler::AuditHandler(
     sqlite3 *dbConnection,
     const string &tableName,
     Logger &logger) :
@@ -11,36 +11,37 @@ ContractorKeysHandler::ContractorKeysHandler(
 {
     sqlite3_stmt *stmt;
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
-                   "(hash INTEGER PRIMARY KEY, "
+                   "(id INTEGER PRIMARY KEY, "
                    "trust_line_id INTEGER NOT NULL, "
-                   "public_key BLOB NOT NULL, "
-                   "public_key_bytes_count INT NOT NULL, "
-                   "number INTEGER NOT NULL, "
-                   "is_valid INTEGER NOT NULL DEFAULT 1, "
-                   "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id));";
+                   "our_sign_hash INTEGER NOT NULL, "
+                   "contractor_sign BLOB NOT NULL, "
+                   "contractor_sign_bytes_count INT NOT NULL, "
+                   "balance BLOB NOT NULL, "
+                   "outgoing_amount BLOB NOT NULL, "
+                   "incoming_amount BLOB NOT NULL);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("ContractorKeysHandler::creating table: "
+        throw IOError("AuditHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
-        throw IOError("ContractorKeysHandler::creating table: "
+        throw IOError("AuditHandler::creating table: "
                           "Run query; sqlite error: " + to_string(rc));
     }
 
 //    query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
-//            + "_hash_idx on " + mTableName + "(hash);";
+//            + "_id_idx on " + mTableName + "(id);";
 //    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
 //    if (rc != SQLITE_OK) {
-//        throw IOError("ContractorKeysHandler::creating  index for Hash: "
+//        throw IOError("AuditHandler::creating  index for ID: "
 //                          "Bad query; sqlite error: " + to_string(rc));
 //    }
 //    rc = sqlite3_step(stmt);
 //    if (rc == SQLITE_DONE) {
 //    } else {
-//        throw IOError("ContractorKeysHandler::creating index for Hash: "
+//        throw IOError("AuditHandler::creating index for ID: "
 //                          "Run query; sqlite error: " + to_string(rc));
 //    }
 
@@ -48,13 +49,13 @@ ContractorKeysHandler::ContractorKeysHandler(
 //            + "_trust_line_id_idx on " + mTableName + "(trust_line_id);";
 //    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
 //    if (rc != SQLITE_OK) {
-//        throw IOError("ContractorKeysHandler::creating  index for Trust Line ID: "
+//        throw IOError("AuditHandler::creating  index for Trust Line ID: "
 //                          "Bad query; sqlite error: " + to_string(rc));
 //    }
 //    rc = sqlite3_step(stmt);
 //    if (rc == SQLITE_DONE) {
 //    } else {
-//        throw IOError("ContractorKeysHandler::creating index for Trust Line ID: "
+//        throw IOError("AuditHandler::creating index for Trust Line ID: "
 //                          "Run query; sqlite error: " + to_string(rc));
 //    }
 
@@ -62,19 +63,19 @@ ContractorKeysHandler::ContractorKeysHandler(
     sqlite3_finalize(stmt);
 }
 
-LoggerStream ContractorKeysHandler::info() const
+LoggerStream AuditHandler::info() const
 {
     return mLog.info(logHeader());
 }
 
-LoggerStream ContractorKeysHandler::warning() const
+LoggerStream AuditHandler::warning() const
 {
     return mLog.warning(logHeader());
 }
 
-const string ContractorKeysHandler::logHeader() const
+const string AuditHandler::logHeader() const
 {
     stringstream s;
-    s << "[ContractorKeysHandler]";
+    s << "[AuditHandler]";
     return s.str();
 }

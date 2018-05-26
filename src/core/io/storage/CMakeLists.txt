@@ -34,7 +34,11 @@ set(SOURCE_FILES
         BlackListHandler.cpp
 
         OwnKeysHandler.h
-        OwnKeysHandler.cpp ContractorKeysHandler.cpp ContractorKeysHandler.h)
+        OwnKeysHandler.cpp
+        ContractorKeysHandler.h
+        ContractorKeysHandler.cpp
+        AuditHandler.h
+        AuditHandler.cpp record/crypto_keys/CryptoKeyRecord.cpp record/crypto_keys/CryptoKeyRecord.h)
 
 add_library(io__storage ${SOURCE_FILES})
 

@@ -9,6 +9,7 @@
 #include "BlackListHandler.h"
 #include "OwnKeysHandler.h"
 #include "ContractorKeysHandler.h"
+#include "AuditHandler.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
 #include "IOTransaction.h"
@@ -56,6 +57,9 @@ private:
 
     const string kOwnKeysTableName = "own_keys";
     const string kContractorKeysTableName = "contractor_keys";
+    const string kOutgoingReceiptTableName = "outgoing_receipt";
+    const string kIncomingReceiptTableName = "incoming_receipt";
+    const string kAuditTableName = "audit";
 
 private:
     static sqlite3 *mDBConnection;
@@ -69,6 +73,7 @@ private:
     BlackListHandler mBlackListHandler;
     OwnKeysHandler mOwnKeysHandler;
     ContractorKeysHandler mContractorKeysHandler;
+    AuditHandler mAuditHandler;
     string mDirectory;
     string mDataBaseName;
 };
