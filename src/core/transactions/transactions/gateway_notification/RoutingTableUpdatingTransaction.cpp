@@ -20,26 +20,26 @@ RoutingTableUpdatingTransaction::RoutingTableUpdatingTransaction(
 
 TransactionResult::SharedConst RoutingTableUpdatingTransaction::run()
 {
-    const auto kMessage = popNextMessage<RoutingTableResponseMessage>();
-    for (const auto &equivalentAndNeighbors : kMessage->neighborsByEquivalents()) {
+    for (const auto &equivalentAndNeighbors : mMessage->neighborsByEquivalents()) {
         try {
             auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(
                     equivalentAndNeighbors.first);
             auto routingTablesManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(
                     equivalentAndNeighbors.first);
-            if(!trustLinesManager->isNeighbor(kMessage->senderUUID)){
-                warning() << "Node " << kMessage->senderUUID << " is not a neighbor on equivalent "
+            if(!trustLinesManager->isNeighbor(mMessage->senderUUID)){
+                warning() << "Node " << mMessage->senderUUID << " is not a neighbor on equivalent "
                           << equivalentAndNeighbors.first;
                 continue;
             }
             routingTablesManager->updateMapAddSeveralNeighbors(
-                kMessage->senderUUID,
+                mMessage->senderUUID,
                 equivalentAndNeighbors.second);
         } catch (NotFoundError &e) {
             warning() << "There is no subsystems for equivalent " << equivalentAndNeighbors.first;
             continue;
         }
     }
+    return resultDone();
 }
 
 const string RoutingTableUpdatingTransaction::logHeader() const

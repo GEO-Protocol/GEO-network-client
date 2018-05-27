@@ -126,7 +126,11 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
     }
 
     if (utc_now() - mTransactionStarted > kMaxTransactionDuration()) {
-        warning() << "Not all nodes send response, but time is out.";
+        if (allNeighborsResponseReceive.size() < allNeighborsRequestShouldBeSend.size()) {
+            warning() << "Not all nodes send response, but time is out.";
+        } else {
+            info() << "All data processed after time limit";
+        }
         return resultDone();
     }
 
