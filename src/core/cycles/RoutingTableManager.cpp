@@ -23,7 +23,8 @@ set<NodeUUID> RoutingTableManager::secondLevelContractorsForNode(
     return mRoutingTable[contractorUUID];
 }
 
-void RoutingTableManager::clearMap() {
+void RoutingTableManager::clearMap()
+{
     mRoutingTable.clear();
 }
 

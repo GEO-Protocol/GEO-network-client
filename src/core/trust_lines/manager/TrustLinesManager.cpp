@@ -22,7 +22,7 @@ void TrustLinesManager::loadTrustLinesFromDisk()
 
     mTrustLines.reserve(kTrustLines.size());
 
-    for (auto const kTrustLine : kTrustLines) {
+    for (auto const &kTrustLine : kTrustLines) {
         if (kTrustLine->outgoingTrustAmount() == 0
                 and kTrustLine->incomingTrustAmount() == 0
                 and kTrustLine->balance() == 0) {
@@ -44,20 +44,6 @@ void TrustLinesManager::loadTrustLinesFromDisk()
                     kTrustLine));
         }
     }
-}
-
-const string TrustLinesManager::logHeader() const
-    noexcept
-{
-    stringstream s;
-    s << "[TrustLinesManager: " << mEquivalent << "] ";
-    return s.str();
-}
-
-LoggerStream TrustLinesManager::info() const
-    noexcept
-{
-    return mLogger.info(logHeader());
 }
 
 TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
@@ -631,7 +617,7 @@ pair<NodeUUID, ConstSharedTrustLineAmount> TrustLinesManager::incomingFlow(
 }
 
 pair<NodeUUID, ConstSharedTrustLineAmount> TrustLinesManager::outgoingFlow(
-        const NodeUUID &contractorUUID) const
+    const NodeUUID &contractorUUID) const
 {
     return make_pair(
         contractorUUID,
@@ -698,7 +684,7 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighbors() const
 ConstSharedTrustLineBalance TrustLinesManager::totalBalance() const
 {
     TrustLineBalance result = TrustLine::kZeroBalance();
-    for (const auto trustLine : mTrustLines) {
+    for (const auto &trustLine : mTrustLines) {
         result += trustLine.second->balance();
     }
     return make_shared<const TrustLineBalance>(result);
@@ -726,8 +712,8 @@ const TrustLine::ConstShared TrustLinesManager::trustLineReadOnly(
 
     } else {
         throw NotFoundError(
-            logHeader() + "::trustLineReadOnly: "
-            "Trust line to such an contractor does not exists.");
+            logHeader() + "::trustLineReadOnly: " + contractorUUID.stringUUID() +
+                    " Trust line to such an contractor does not exists.");
     }
 }
 
@@ -746,68 +732,65 @@ const bool TrustLinesManager::isNeighbor(
     return mTrustLines.count(node) == 1;
 }
 
-vector<NodeUUID> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxFlow)
+vector<NodeUUID> TrustLinesManager::getFirstLevelNodesForCycles(
+    TrustLineBalance maxFlow)
 {
-    vector<NodeUUID> Nodes;
-    TrustLineBalance zerobalance = 0;
-    TrustLineBalance stepbalance;
-    for (auto const& x : mTrustLines){
-        stepbalance = x.second->balance();
-        if (maxFlow == zerobalance) {
-            if (stepbalance != zerobalance) {
-                Nodes.push_back(x.first);
-                }
-        } else if(maxFlow < zerobalance){
-            if (stepbalance < zerobalance) {
-                Nodes.push_back(x.first);
+    vector<NodeUUID> nodes;
+    TrustLineBalance stepBalance;
+    for (auto const& nodeAndTrustLine : mTrustLines) {
+        stepBalance = nodeAndTrustLine.second->balance();
+        if (maxFlow == TrustLine::kZeroBalance()) {
+            if (stepBalance != TrustLine::kZeroBalance()) {
+                nodes.push_back(nodeAndTrustLine.first);
+            }
+        } else if(maxFlow < TrustLine::kZeroBalance()){
+            if (stepBalance < TrustLine::kZeroBalance()) {
+                nodes.push_back(nodeAndTrustLine.first);
             }
         } else {
-            if (stepbalance > zerobalance) {
-                Nodes.push_back(x.first);
+            if (stepBalance > TrustLine::kZeroBalance()) {
+                nodes.push_back(nodeAndTrustLine.first);
             }
         }
     }
-    return Nodes;
+    return nodes;
 }
 
 vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() const
 {
-    vector<NodeUUID> Nodes;
-    TrustLineBalance zerobalance = 0;
-    TrustLineBalance stepbalance;
+    vector<NodeUUID> nodes;
+    TrustLineBalance stepBalance;
     for (auto const& x : mTrustLines){
-        stepbalance = x.second->balance();
-        if (stepbalance > zerobalance)
-            Nodes.push_back(x.first);
+        stepBalance = x.second->balance();
+        if (stepBalance > TrustLine::kZeroBalance())
+            nodes.push_back(x.first);
         }
-    return Nodes;
+    return nodes;
 }
 
 vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNegativeBalance() const
 {
     // todo change vector to set
-    vector<NodeUUID> Nodes;
-    TrustLineBalance zerobalance = 0;
-    TrustLineBalance stepbalance;
-    for (const auto &x : mTrustLines){
-        stepbalance = x.second->balance();
-        if (stepbalance < zerobalance)
-            Nodes.push_back(x.first);
+    vector<NodeUUID> nodes;
+    TrustLineBalance stepBalance;
+    for (const auto &nodeAndTrustLine : mTrustLines){
+        stepBalance = nodeAndTrustLine.second->balance();
+        if (stepBalance < TrustLine::kZeroBalance())
+            nodes.push_back(nodeAndTrustLine.first);
     }
-    return Nodes;
+    return nodes;
 }
 
 vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNoneZeroBalance() const
 {
-    vector<NodeUUID> Nodes;
-    TrustLineBalance zerobalance = 0;
-    TrustLineBalance stepbalance;
-    for (auto const &x : mTrustLines) {
-        stepbalance = x.second->balance();
-        if (stepbalance != zerobalance)
-            Nodes.push_back(x.first);
+    vector<NodeUUID> nodes;
+    TrustLineBalance stepBalance;
+    for (auto const &nodeAndTrustLine : mTrustLines) {
+        stepBalance = nodeAndTrustLine.second->balance();
+        if (stepBalance != TrustLine::kZeroBalance())
+            nodes.push_back(nodeAndTrustLine.first);
     }
-    return Nodes;
+    return nodes;
 }
 
 void TrustLinesManager::useReservation(
@@ -842,7 +825,7 @@ void TrustLinesManager::useReservation(
 ConstSharedTrustLineAmount TrustLinesManager::totalOutgoingAmount () const
 {
     auto totalAmount = make_shared<TrustLineAmount>(0);
-    for (const auto kTrustLine : mTrustLines) {
+    for (const auto &kTrustLine : mTrustLines) {
         const auto kTLAmount = outgoingTrustAmountConsideringReservations(kTrustLine.first);
         *totalAmount += *(kTLAmount);
     }
@@ -850,10 +833,10 @@ ConstSharedTrustLineAmount TrustLinesManager::totalOutgoingAmount () const
     return totalAmount;
 }
 
-ConstSharedTrustLineAmount TrustLinesManager::totalIncomingAmount () const
+ConstSharedTrustLineAmount TrustLinesManager::totalIncomingAmount() const
 {
     auto totalAmount = make_shared<TrustLineAmount>(0);
-    for (const auto kTrustLine : mTrustLines) {
+    for (const auto &kTrustLine : mTrustLines) {
         const auto kTLAmount = incomingTrustAmountConsideringReservations(kTrustLine.first);
         *totalAmount += *(kTLAmount);
     }
@@ -877,12 +860,26 @@ vector<AmountReservation::ConstShared> TrustLinesManager::reservationsFromContra
         AmountReservation::ReservationDirection::Incoming);
 }
 
+const string TrustLinesManager::logHeader() const
+    noexcept
+{
+    stringstream s;
+    s << "[TrustLinesManager: " << mEquivalent << "] ";
+    return s.str();
+}
+
+LoggerStream TrustLinesManager::info() const
+    noexcept
+{
+    return mLogger.info(logHeader());
+}
+
 void TrustLinesManager::printRTs()
 {
     LoggerStream debug = mLogger.debug("TrustLinesManager::printRts");
     auto ioTransaction = mStorageHandler->beginTransaction();
     debug << "printRTs\tRT1 size: " << trustLines().size() << endl;
-    for (const auto itTrustLine : trustLines()) {
+    for (const auto &itTrustLine : trustLines()) {
         debug << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
                << itTrustLine.second->incomingTrustAmount() << " "
                << itTrustLine.second->outgoingTrustAmount() << " "
@@ -890,21 +887,21 @@ void TrustLinesManager::printRTs()
                << itTrustLine.second->isContractorGateway() << endl;
     }
     debug << "print payment incoming flows size: " << incomingFlows().size() << endl;
-    for (auto const itIncomingFlow : incomingFlows()) {
+    for (auto const &itIncomingFlow : incomingFlows()) {
         debug << itIncomingFlow.first << " " << *itIncomingFlow.second.get() << endl;
     }
     debug << "print payment outgoing flows size: " << outgoingFlows().size() << endl;
-    for (auto const itOutgoingFlow : outgoingFlows()) {
+    for (auto const &itOutgoingFlow : outgoingFlows()) {
         debug << itOutgoingFlow.first << " " << *itOutgoingFlow.second.get() << endl;
     }
     debug << "print cycle incoming flows size: " << incomingFlows().size() << endl;
-    for (auto const trLine : mTrustLines) {
+    for (auto const &trLine : mTrustLines) {
         auto const availableIncomingCycleAmounts = this->availableIncomingCycleAmounts(trLine.first);
         debug << trLine.first << " " << *(availableIncomingCycleAmounts.first)
               << " " << *(availableIncomingCycleAmounts.second) << endl;
     }
     debug << "print cycle outgoing flows size: " << outgoingFlows().size() << endl;
-    for (auto const trLine : mTrustLines) {
+    for (auto const &trLine : mTrustLines) {
         auto const availableOutgoingCycleAmounts = this->availableOutgoingCycleAmounts(trLine.first);
         debug << trLine.first << " " << *(availableOutgoingCycleAmounts.first)
               << " " << *(availableOutgoingCycleAmounts.second) << endl;

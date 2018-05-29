@@ -12,12 +12,12 @@ GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
         0,
         logger),
     mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
-    mEquivalentsCyclesSubsystemsRouter(equivalentsCyclesSubsystemsRouter)
+    mEquivalentsCyclesSubsystemsRouter(equivalentsCyclesSubsystemsRouter),
+    mTransactionStarted(utc_now())
 {}
 
 TransactionResult::SharedConst GatewayNotificationSenderTransaction::run()
 {
-    debug() << "run: stage: " << mStep;
     switch (mStep) {
         case Stages::GatewayNotificationStage:
             return sendGatewayNotification();
@@ -77,7 +77,8 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
                     auto routingTablesManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(
                             equivalentAndNeighbors.first);
                     if(!trustLinesManager->isNeighbor(kMessage->senderUUID)){
-                        warning() << "Node " << kMessage->senderUUID << " is not a neighbor";
+                        warning() << "Node " << kMessage->senderUUID << " is not a neighbor on equivalent "
+                                  << equivalentAndNeighbors.first;
                         continue;
                     }
                     routingTablesManager->updateMapAddSeveralNeighbors(
@@ -93,15 +94,16 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
             mContext.pop_front();
         }
     }
+
     if (allNeighborsResponseReceive.size() < allNeighborsRequestAlreadySent.size()) {
-        info() << "Not all nodes send response";
         if (utc_now() - mPreviousStepStarted < kMaxDurationBetweenSteps()) {
             return resultAwakeAfterMilliseconds(
                 kCollectingRoutingTablesMilliseconds);
         }
     }
 
-    if (allNeighborsResponseReceive.size() < allNeighborsRequestShouldBeSend.size()) {
+    mPreviousStepStarted = utc_now();
+    if (allNeighborsRequestAlreadySent.size() < allNeighborsRequestShouldBeSend.size()) {
         uint16_t cntRequestedNeighbors = 0;
         for (const auto &neighbor : allNeighborsRequestShouldBeSend) {
             if (allNeighborsRequestAlreadySent.count(neighbor) != 0) {
@@ -119,7 +121,21 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
                 break;
             }
         }
-        mPreviousStepStarted = utc_now();
+        return resultAwakeAfterMilliseconds(
+            kCollectingRoutingTablesMilliseconds);
+    }
+
+    if (utc_now() - mTransactionStarted > kMaxTransactionDuration()) {
+        if (allNeighborsResponseReceive.size() < allNeighborsRequestShouldBeSend.size()) {
+            warning() << "Not all nodes send response, but time is out.";
+        } else {
+            info() << "All data processed after time limit";
+        }
+        return resultDone();
+    }
+
+    if (allNeighborsResponseReceive.size() < allNeighborsRequestShouldBeSend.size()) {
+        info() << "Not all nodes send response";
         return resultAwakeAfterMilliseconds(
             kCollectingRoutingTablesMilliseconds);
     }

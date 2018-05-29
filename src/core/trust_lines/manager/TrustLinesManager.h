@@ -315,7 +315,7 @@ public:
     unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>>& trustLines();
 
     vector<NodeUUID> getFirstLevelNodesForCycles(
-            TrustLineBalance maxFlow);
+        TrustLineBalance maxFlow);
 
     // TODO remove after testing
     void printRTs();

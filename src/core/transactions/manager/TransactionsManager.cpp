@@ -461,7 +461,12 @@ void TransactionsManager::processMessage(
             static_pointer_cast<GatewayNotificationOneEquivalentMessage>(message));
 
     } else if (message->typeID() == Message::RoutingTableResponse) {
-        mScheduler->tryAttachMessageToRoutingTableTransaction(message);
+        try {
+            mScheduler->tryAttachMessageToRoutingTableTransaction(message);
+        } catch (NotFoundError &e) {
+            launchRoutingTableUpdatingTransaction(
+                static_pointer_cast<RoutingTableResponseMessage>(message));
+        }
 
     /*
      * Attaching to existing transactions
@@ -1708,6 +1713,25 @@ void TransactionsManager::launchGatewayNotificationOneEquivalentReceiverTransact
             false,
             false,
             true);
+    }
+}
+
+void TransactionsManager::launchRoutingTableUpdatingTransaction(
+    RoutingTableResponseMessage::Shared message)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<RoutingTableUpdatingTransaction>(
+                mNodeUUID,
+                message,
+                mEquivalentsSubsystemsRouter,
+                mEquivalentsCyclesSubsystemsRouter.get(),
+                mLog),
+            false,
+            false,
+            false);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
