@@ -24,17 +24,22 @@ public:
     typedef shared_ptr<const TrustLine> ConstShared;
 
 public:
+    enum TrustLineState {
+        Init = 1,
+        KeysPending = 2,
+        AuditPending = 3,
+        Active = 4,
+    };
+
+public:
     TrustLine(
         const NodeUUID &nodeUUID,
+        const TrustLineID trustLineID,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &nodeBalance,
-        bool isContractorGateway);
-
-    TrustLine(
-        const NodeUUID &nodeUUID,
-        const TrustLineAmount &incomingAmount,
-        const TrustLineAmount &outgoingAmount);
+        bool isContractorGateway,
+        TrustLineState state = Init);
 
     void setIncomingTrustAmount(
         const TrustLineAmount &amount);
@@ -55,6 +60,13 @@ public:
     const TrustLineAmount& outgoingTrustAmount() const;
 
     const TrustLineBalance& balance() const;
+
+    const TrustLineID trustLineID() const;
+
+    const TrustLineState state() const;
+
+    void setState(
+        TrustLineState newState);
 
     ConstSharedTrustLineAmount availableOutgoingAmount() const;
 
@@ -83,11 +95,12 @@ public:
 
 private:
     NodeUUID mContractorNodeUUID;
+    TrustLineID mID;
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;
     TrustLineBalance mBalance;
     bool mIsContractorGateway;
-
+    TrustLineState mState;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINE_H

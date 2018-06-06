@@ -7,6 +7,8 @@ IOTransaction::IOTransaction(
     PaymentOperationStateHandler *paymentOperationStorage,
     TransactionsHandler *transactionHandler,
     BlackListHandler *blackListHandler,
+    OwnKeysHandler *ownKeysHandler,
+    ContractorKeysHandler *contractorKeysHandler,
     Logger &logger) :
 
     mDBConnection(dbConnection),
@@ -15,6 +17,8 @@ IOTransaction::IOTransaction(
     mPaymentOperationStateHandler(paymentOperationStorage),
     mTransactionHandler(transactionHandler),
     mBlackListHandler(blackListHandler),
+    mOwnKeysHandler(ownKeysHandler),
+    mContractorKeysHandler(contractorKeysHandler),
     mIsTransactionBegin(true),
     mLog(logger)
 {
@@ -60,6 +64,24 @@ TransactionsHandler* IOTransaction::transactionHandler()
                           "transaction was rollback, it can't be use now");
     }
     return mTransactionHandler;
+}
+
+OwnKeysHandler* IOTransaction::ownKeysHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::ownKeysHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mOwnKeysHandler;
+}
+
+ContractorKeysHandler* IOTransaction::contractorKeysHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::contractorKeysHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mContractorKeysHandler;
 }
 
 void IOTransaction::commit()

@@ -68,8 +68,7 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
 TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 {
     const auto kContractor = mMessage->senderUUID;
-    info() << "sender: " << mMessage->senderUUID;
-    info() << "equivalent: " << mMessage->equivalent();
+    info() << "sender: " << mMessage->senderUUID << " equivalent: " << mMessage->equivalent();
 
     if (kContractor == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
@@ -256,6 +255,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
                 // return closed TL
                 auto trustLine = make_shared<TrustLine>(
                     mMessage->senderUUID,
+                    previousTL->trustLineID(),
                     previousTL->incomingTrustAmount(),
                     previousTL->outgoingTrustAmount(),
                     previousTL->balance(),

@@ -2,30 +2,22 @@
 
 TrustLine::TrustLine(
     const NodeUUID &nodeUUID,
+    const TrustLineID trustLineID,
     const TrustLineAmount &incomingAmount,
     const TrustLineAmount &outgoingAmount,
     const TrustLineBalance &nodeBalance,
-    bool isContractorGateway) :
+    bool isContractorGateway,
+    TrustLineState state) :
 
     mContractorNodeUUID(nodeUUID),
+    mID(trustLineID),
     mIncomingTrustAmount(incomingAmount),
     mOutgoingTrustAmount(outgoingAmount),
     mBalance(nodeBalance),
-    mIsContractorGateway(isContractorGateway)
+    mIsContractorGateway(isContractorGateway),
+    mState(state)
 {
     // todo zero amounts checking
-}
-
-TrustLine::TrustLine(
-    const NodeUUID &nodeUUID,
-    const TrustLineAmount &incomingAmount,
-    const TrustLineAmount &outgoingAmount):
-
-    mContractorNodeUUID(nodeUUID),
-    mIncomingTrustAmount(incomingAmount),
-    mOutgoingTrustAmount(outgoingAmount),
-    mBalance(0) {
-
 }
 
 /**
@@ -87,6 +79,22 @@ const TrustLineAmount &TrustLine::outgoingTrustAmount() const
 const TrustLineBalance &TrustLine::balance() const
 {
     return mBalance;
+}
+
+const TrustLineID TrustLine::trustLineID() const
+{
+    return mID;
+}
+
+const TrustLine::TrustLineState TrustLine::state() const
+{
+    return mState;
+}
+
+void TrustLine::setState(
+    TrustLine::TrustLineState newState)
+{
+    mState = newState;
 }
 
 /*!

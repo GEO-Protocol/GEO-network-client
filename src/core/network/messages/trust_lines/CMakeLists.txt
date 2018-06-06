@@ -8,10 +8,23 @@ set(SOURCE_FILES
         CloseOutgoingTrustLineMessage.cpp
 
         SetIncomingTrustLineFromGatewayMessage.h
-        SetIncomingTrustLineFromGatewayMessage.cpp)
+        SetIncomingTrustLineFromGatewayMessage.cpp
+
+        PublicKeyMessage.h
+        PublicKeyMessage.cpp
+
+        TrustLineConfirmationMessage.h
+        TrustLineConfirmationMessage.cpp
+
+        PublicKeyCRCConfirmation.h
+        PublicKeyCRCConfirmation.cpp
+
+        AuditMessage.h
+        AuditMessage.cpp)
 
 add_library(messages__trust_lines ${SOURCE_FILES})
 target_link_libraries(messages__trust_lines
         common
-        exceptions)
+        exceptions
+        crypto)
 

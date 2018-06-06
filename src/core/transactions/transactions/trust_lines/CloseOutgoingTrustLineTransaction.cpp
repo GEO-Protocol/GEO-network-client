@@ -77,6 +77,7 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
         // return closed TL
         auto trustLine = make_shared<TrustLine>(
             mMessage->senderUUID,
+            previousTL->trustLineID(),
             previousTL->incomingTrustAmount(),
             previousTL->outgoingTrustAmount(),
             previousTL->balance(),

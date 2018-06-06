@@ -38,9 +38,10 @@ set(SOURCE_FILES
         ContractorKeysHandler.h
         ContractorKeysHandler.cpp
         AuditHandler.h
-        AuditHandler.cpp record/crypto_keys/CryptoKeyRecord.cpp record/crypto_keys/CryptoKeyRecord.h)
+        AuditHandler.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 
 target_link_libraries(io__storage
-        libsqlite3)
+        libsqlite3
+        crypto)

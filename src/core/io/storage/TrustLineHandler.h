@@ -24,6 +24,10 @@ public:
         TrustLine::Shared trustLine,
         const SerializedEquivalent equivalent);
 
+    void updateTrustLine(
+        TrustLine::Shared trustLine,
+        const SerializedEquivalent equivalent);
+
     vector<TrustLine::Shared> allTrustLinesByEquivalent(
         const SerializedEquivalent equivalent);
 

@@ -139,6 +139,18 @@ TransactionResult::Shared BaseTransaction::transactionResultFromCommand(
     return make_shared<TransactionResult>(result);
 }
 
+TransactionResult::Shared BaseTransaction::transactionResultFromCommandAndWaitForMessageTypes(
+    CommandResult::SharedConst result,
+    vector<Message::MessageType> &&requiredMessagesTypes,
+    uint32_t noLongerThanMilliseconds) const
+{
+    return make_shared<TransactionResult>(
+        TransactionState::waitForMessageTypes(
+            move(requiredMessagesTypes),
+            noLongerThanMilliseconds),
+        result);
+}
+
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const
 {
     return mType;

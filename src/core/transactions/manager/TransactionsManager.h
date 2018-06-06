@@ -52,11 +52,15 @@
 /*
  * Transactions
  */
+#include "../transactions/trust_lines/OpenTrustLineTransaction.h"
+#include "../transactions/trust_lines/AcceptTrustLineTransaction.h"
 #include "../transactions/trust_lines/SetOutgoingTrustLineTransaction.h"
 #include "../transactions/trust_lines/SetIncomingTrustLineTransaction.h"
 #include "../transactions/trust_lines/CloseIncomingTrustLineTransaction.h"
 #include "../transactions/trust_lines/CloseOutgoingTrustLineTransaction.h"
 #include "../transactions/trust_lines/RejectOutgoingTrustLineTransaction.h"
+#include "../transactions/trust_lines/PublicKeysSharingTargetTransaction.h"
+#include "../transactions/trust_lines/InitialAuditTargetTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -191,6 +195,12 @@ protected: // Transactions
 
     void launchRejectOutgoingTrustLineTransaction(
         ConfirmationMessage::Shared message);
+
+    void launchPublicKeysSharingTargetTransaction(
+        PublicKeyMessage::Shared message);
+
+    void launchInitialAuditTargetTransaction(
+        AuditMessage::Shared message);
 
     /*
      * Max flow transactions

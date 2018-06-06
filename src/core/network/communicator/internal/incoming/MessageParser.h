@@ -8,6 +8,10 @@
 #include "../../../messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
+#include "../../../messages/trust_lines/TrustLineConfirmationMessage.h"
+#include "../../../messages/trust_lines/PublicKeyMessage.h"
+#include "../../../messages/trust_lines/PublicKeyCRCConfirmation.h"
+#include "../../../messages/trust_lines/AuditMessage.h"
 
 #include "../../../messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"

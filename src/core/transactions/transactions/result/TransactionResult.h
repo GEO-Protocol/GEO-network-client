@@ -31,6 +31,10 @@ public:
     TransactionResult(
         CommandResult::SharedConst commandResult);
 
+    TransactionResult(
+        TransactionState::SharedConst transactionState,
+        CommandResult::SharedConst commandResult);
+
     void setCommandResult(
         CommandResult::SharedConst commandResult);
 

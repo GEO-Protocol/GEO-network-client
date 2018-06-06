@@ -14,7 +14,25 @@ set(SOURCE_FILES
     CloseOutgoingTrustLineTransaction.cpp
 
     RejectOutgoingTrustLineTransaction.h
-    RejectOutgoingTrustLineTransaction.cpp)
+    RejectOutgoingTrustLineTransaction.cpp
+
+    OpenTrustLineTransaction.h
+    OpenTrustLineTransaction.cpp
+
+    AcceptTrustLineTransaction.h
+    AcceptTrustLineTransaction.cpp
+
+    PublicKeysSharingSourceTransaction.h
+    PublicKeysSharingSourceTransaction.cpp
+
+    PublicKeysSharingTargetTransaction.h
+    PublicKeysSharingTargetTransaction.cpp
+
+    InitialAuditSourceTransaction.h
+    InitialAuditSourceTransaction.cpp
+
+    InitialAuditTargetTransaction.h
+    InitialAuditTargetTransaction.cpp)
 
 add_library(transactions__trustlines ${SOURCE_FILES})
 target_link_libraries(transactions__trustlines

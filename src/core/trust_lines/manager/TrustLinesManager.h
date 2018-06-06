@@ -69,7 +69,7 @@ public:
      * @throws might throw exceptions of the closeOutgoing() method.
      */
     TrustLineOperationResult setOutgoing(
-        IOTransaction::Shared IOTransaction,
+        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount);
 
@@ -87,7 +87,7 @@ public:
      * @throws might throw exceptions of the closeIncoming() method.
      */
     TrustLineOperationResult setIncoming(
-        IOTransaction::Shared IOTransaction,
+        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount);
 
@@ -99,7 +99,7 @@ public:
      *         and it can't be removed at this moment.
      */
     void closeOutgoing(
-        IOTransaction::Shared IOTransaction,
+        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID);
 
     /**
@@ -110,7 +110,7 @@ public:
      *         and it can't be removed at this moment.
      */
     void closeIncoming(
-        IOTransaction::Shared IOTransaction,
+        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID);
 
     /**
@@ -119,9 +119,14 @@ public:
      * @throws NotFoundError in case if no trust line to this contractor is present.
      */
     void setContractorAsGateway(
-        IOTransaction::Shared IOTransaction,
+        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID,
         bool contractorIsGateway);
+
+    void setTrustLineState(
+        IOTransaction::Shared ioTransaction,
+        const NodeUUID &contractorUUID,
+        TrustLine::TrustLineState state);
 
     /**
      * @returns outgoing trust amount without considering present reservations.
@@ -136,7 +141,7 @@ public:
      *
      * @throws NotFoundError in case if no trust line from this contractor is present.
      */
-    const TrustLineAmount &incomingTrustAmountDespiteResevations(
+    const TrustLineAmount &incomingTrustAmountDespiteReservations(
         const NodeUUID &contractorUUID) const;
 
     /**
@@ -268,7 +273,7 @@ public:
         const NodeUUID &node) const;
 
     void removeTrustLine(
-        IOTransaction::Shared IOTransaction,
+        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID);
 
     bool isTrustLineEmpty(
@@ -322,7 +327,11 @@ public:
 
 protected:
     void saveToDisk(
-        IOTransaction::Shared IOTransaction,
+        IOTransaction::Shared ioTransaction,
+        TrustLine::Shared trustLine);
+
+    void updateTrustLine(
+        IOTransaction::Shared ioTransaction,
         TrustLine::Shared trustLine);
 
     /**
@@ -332,6 +341,8 @@ protected:
      * @throws IOError in case of storage read error.
      */
     void loadTrustLinesFromDisk();
+    
+    const TrustLineID nextFreeID() const;
 
 protected: // log shortcuts
     const string logHeader() const

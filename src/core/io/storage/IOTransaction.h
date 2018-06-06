@@ -8,6 +8,9 @@
 #include "TransactionsHandler.h"
 #include "BlackListHandler.h"
 
+#include "OwnKeysHandler.h"
+#include "ContractorKeysHandler.h"
+
 #include "../../../libs/sqlite3/sqlite3.h"
 
 class IOTransaction {
@@ -23,6 +26,8 @@ public:
         PaymentOperationStateHandler *paymentOperationStorage,
         TransactionsHandler *transactionHandler,
         BlackListHandler *blackListHandler,
+        OwnKeysHandler *ownKeysHandler,
+        ContractorKeysHandler *contractorKeysHandler,
         Logger &logger);
 
     ~IOTransaction();
@@ -36,6 +41,10 @@ public:
     TransactionsHandler *transactionHandler();
 
     BlackListHandler *blackListHandler();
+
+    OwnKeysHandler *ownKeysHandler();
+
+    ContractorKeysHandler *contractorKeysHandler();
 
     void rollback();
 
@@ -58,6 +67,10 @@ private:
     PaymentOperationStateHandler *mPaymentOperationStateHandler;
     TransactionsHandler *mTransactionHandler;
     BlackListHandler *mBlackListHandler;
+
+    OwnKeysHandler *mOwnKeysHandler;
+    ContractorKeysHandler *mContractorKeysHandler;
+
     bool mIsTransactionBegin;
     Logger &mLog;
 };

@@ -40,6 +40,18 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::TrustLines_CloseOutgoing:
             return messageCollected<CloseOutgoingTrustLineMessage>(buffer);
 
+        case Message::TrustLines_Confirmation:
+            return messageCollected<TrustLineConfirmationMessage>(buffer);
+
+        case Message::TrustLines_PublicKey:
+            return messageCollected<PublicKeyMessage>(buffer);
+
+        case Message::TrustLines_CRCConfirmation:
+            return messageCollected<PublicKeyCRCConfirmation>(buffer);
+
+        case Message::TrustLines_Audit:
+            return messageCollected<AuditMessage>(buffer);
+
 
         /*
          * Payment operations messages

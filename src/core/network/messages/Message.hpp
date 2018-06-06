@@ -30,6 +30,10 @@ public:
         TrustLines_SetIncoming = 100,
         TrustLines_CloseOutgoing = 101,
         TrustLines_SetIncomingFromGateway = 102,
+        TrustLines_Confirmation = 103,
+        TrustLines_PublicKey = 104,
+        TrustLines_CRCConfirmation = 105,
+        TrustLines_Audit = 106,
 
         /*
          * Payments messages

@@ -43,11 +43,17 @@ public:
     virtual ~BaseTransaction() = default;
 
     enum TransactionType {
-        SetOutgoingTrustLineTransaction = 100,
-        SetIncomingTrustLineTransaction = 101,
-        CloseIncomingTrustLineTransaction = 102,
-        CloseOutgoingTrustLineTransaction = 103,
-        RejectOutgoingTrustLineTransaction = 104,
+        OpenTrustLineTransaction = 100,
+        AcceptTrustLineTransaction = 101,
+        SetOutgoingTrustLineTransaction = 102,
+        SetIncomingTrustLineTransaction = 103,
+        CloseIncomingTrustLineTransaction = 104,
+        CloseOutgoingTrustLineTransaction = 105,
+        RejectOutgoingTrustLineTransaction = 106,
+        PublicKeysSharingSourceTransactionType = 107,
+        PublicKeysSharingTargetTransactionType = 108,
+        InitialAuditSourceTransactionType = 109,
+        InitialAuditTargetTransactionType = 110,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction = 200,
@@ -250,6 +256,11 @@ protected:
 
     TransactionResult::Shared transactionResultFromCommand(
         CommandResult::SharedConst result) const;
+
+    TransactionResult::Shared transactionResultFromCommandAndWaitForMessageTypes(
+        CommandResult::SharedConst result,
+        vector<Message::MessageType> &&requiredMessagesTypes,
+        uint32_t noLongerThanMilliseconds) const;
 
     virtual const string logHeader() const = 0;
     LoggerStream info() const;

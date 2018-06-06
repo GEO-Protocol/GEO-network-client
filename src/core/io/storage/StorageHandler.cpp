@@ -78,6 +78,8 @@ IOTransaction::Shared StorageHandler::beginTransaction()
         &mPaymentOperationStateHandler,
         &mTransactionHandler,
         &mBlackListHandler,
+        &mOwnKeysHandler,
+        &mContractorKeysHandler,
         mLog);
 }
 

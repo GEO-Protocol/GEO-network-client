@@ -196,6 +196,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
                 // return closed TL
                 auto trustLine = make_shared<TrustLine>(
                     mCommand->contractorUUID(),
+                    previousTL->trustLineID(),
                     previousTL->incomingTrustAmount(),
                     previousTL->outgoingTrustAmount(),
                     previousTL->balance(),
