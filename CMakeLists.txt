@@ -150,6 +150,7 @@ add_subdirectory(src/core/resources)
 add_subdirectory(src/core/cycles)
 add_subdirectory(src/core/subsystems_controller)
 add_subdirectory(src/core/equivalents)
+add_subdirectory(src/core/crypto)
 
 
 #
@@ -193,4 +194,5 @@ target_link_libraries(geo_network_client
         resources_manager
         cycles
         subsystems_controller
-        equivalents)
+        equivalents
+        crypto)
