@@ -49,6 +49,13 @@ public:
         size_t dataBytesCount,
         uint32_t keyNumber);
 
+    // return public key hash
+    uint32_t generateAndSaveKeyPairForPaymentTransaction(
+        const TransactionUUID &transactionUUID);
+
+    CryptoKey& paymentPublicKey(
+        uint32_t publicKeyHash);
+
 protected:
     string logHeader() const;
 

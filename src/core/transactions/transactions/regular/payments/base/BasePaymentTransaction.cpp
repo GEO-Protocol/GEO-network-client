@@ -22,8 +22,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
-    mParticipantsVotesMessage(nullptr),
-    mCoordinatorAlreadySentFinalAmountsConfiguration(false)
+    mParticipantsVotesMessage(nullptr)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -50,8 +49,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
-    mParticipantsVotesMessage(nullptr),
-    mCoordinatorAlreadySentFinalAmountsConfiguration(false)
+    mParticipantsVotesMessage(nullptr)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -1145,14 +1143,51 @@ bool BasePaymentTransaction::compareReservations(
     return true;
 }
 
-bool BasePaymentTransaction::checkAllNeighborsReservationsAppropriate()
+bool BasePaymentTransaction::checkAllNeighborsWithReservationsAreInFinalParticipantsList()
 {
     for (const auto &nodeAndReservations : mReservations) {
+        if (mPaymentNodesIds.find(nodeAndReservations.first) == mPaymentNodesIds.end()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool BasePaymentTransaction::checkAllPublicKeyHashesProperly()
+{
+    for (const auto &nodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
+        if (nodeUUIDAndPaymentNodeID.first == coordinatorUUID()) {
+            continue;
+        }
+        if (mParticipantsPublicKeysHashes.find(nodeUUIDAndPaymentNodeID.first) ==
+                mParticipantsPublicKeysHashes.end()) {
+            warning() << "Public key hash of " << nodeUUIDAndPaymentNodeID.first << " is absent";
+            return false;
+        }
+        if (mParticipantsPublicKeysHashes[nodeUUIDAndPaymentNodeID.first].first !=
+                nodeUUIDAndPaymentNodeID.second) {
+            warning() << "Invalid Payment node ID of " << nodeUUIDAndPaymentNodeID.first;
+            return false;
+        }
+    }
+}
+
+// todo change remote outgoing reservations on remote receipts
+bool BasePaymentTransaction::checkAllNeighborsReceiptsAppropriate()
+{
+    for (const auto &nodeAndReservations : mReservations) {
+        if (nodeAndReservations.second.begin()->second->direction() == AmountReservation::Outgoing) {
+            // we must check only Incoming reservations with remoute receipts
+            continue;
+        }
         if (mRemoteReservations.find(nodeAndReservations.first) == mRemoteReservations.end()) {
+            warning() << "There are no remote reservation from node " << nodeAndReservations.first;
             return false;
         }
         const auto remoteReservations = mRemoteReservations[nodeAndReservations.first];
         if (!compareReservations(nodeAndReservations.second, remoteReservations)) {
+            warning() << "Local incoming and remote outgoing reservations with node "
+                      << nodeAndReservations.first << " are different";
             return false;
         }
     }

@@ -44,6 +44,7 @@ typedef uint16_t SerializedResponseCode;
 typedef uint16_t PathID;
 typedef uint8_t SerializedPathLengthSize;
 typedef SerializedPathLengthSize SerializedPositionInPath;
+typedef uint16_t PaymentNodeID;
 
 typedef uint16_t ConfirmationID;
 

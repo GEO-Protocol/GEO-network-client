@@ -209,10 +209,6 @@ protected:
     TrustLineAmount mOutgoingAmount;
     TrustLineAmount mIncomingAmount;
 
-    // Contains flags if nodes confirmed final amounts configuration,
-    // before voting stage
-    unordered_map<NodeUUID, bool, boost::hash<boost::uuids::uuid>> mFinalAmountNodesConfirmation;
-
     // for resolving reservation conflicts
     CyclesManager *mCyclesManager;
 

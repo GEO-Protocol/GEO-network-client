@@ -62,6 +62,9 @@ public:
 
         Payments_ReservationsInRelationToNode = 219,
 
+        Payments_ParticipantsPublicKeys = 220,
+        Payments_ParticipantVote = 221,
+
         /*
          * Cycles
          */

@@ -113,6 +113,12 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::Payments_ReservationsInRelationToNode:
             return messageCollected<ReservationsInRelationToNodeMessage>(buffer);
 
+        case Message::Payments_ParticipantsPublicKeys:
+            return messageCollected<ParticipantsPublicKeysMessage>(buffer);
+
+        case Message::Payments_ParticipantVote:
+            return messageCollected<ParticipantVoteMessage>(buffer);
+
 
         /*
          * Cycles processing messages

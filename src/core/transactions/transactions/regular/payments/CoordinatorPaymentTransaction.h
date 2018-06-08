@@ -109,10 +109,6 @@ protected:
      */
     TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
 
-    TransactionResult::SharedConst runFinalAmountsParticipantConfirmation();
-
-    TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
-
     /**
      * reaction on receiving participants votes message with result of voting
      * on this stage node can commit transaction or reject it
@@ -150,6 +146,8 @@ protected:
      * and wait for this message with result of voting
      */
     TransactionResult::SharedConst propagateVotesListAndWaitForVotingResult();
+
+    TransactionResult::SharedConst propagateVotesListAndWaitForVotingResultNew();
 
     /**
      * add built path to mPathsStats for further processing on amount reservation stage
@@ -359,10 +357,6 @@ protected:
 
     // Contains all nodes final amount configuration on all transaction paths
     map<NodeUUID, vector<pair<PathID, ConstSharedTrustLineAmount>>> mNodesFinalAmountsConfiguration;
-
-    // Contains flags if nodes confirmed final amounts configuration,
-    // before voting stage
-    unordered_map<NodeUUID, bool, boost::hash<boost::uuids::uuid>> mFinalAmountNodesConfirmation;
 
     ResourcesManager *mResourcesManager;
     PathsManager *mPathsManager;

@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_FINALAMOUNTSCONFIGURATIONRESPONSEMESSAGE_H
 
 #include "../base/transaction/TransactionMessage.h"
+#include "../../../crypto/CryptoKey.h"
 
 class FinalAmountsConfigurationResponseMessage : public TransactionMessage {
 
@@ -22,11 +23,20 @@ public:
         const OperationState state);
 
     FinalAmountsConfigurationResponseMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+        const OperationState state,
+        const CryptoKey &publicKey);
+
+    FinalAmountsConfigurationResponseMessage(
         BytesShared buffer);
 
     const MessageType typeID() const;
 
     const OperationState state() const;
+
+    const CryptoKey& publicKey() const;
 
 protected:
     typedef byte SerializedOperationState;
@@ -36,6 +46,7 @@ protected:
 
 private:
     OperationState mState;
+    CryptoKey mPublicKey;
 };
 
 

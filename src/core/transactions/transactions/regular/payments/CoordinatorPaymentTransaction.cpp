@@ -335,8 +335,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
  * @brief CoordinatorPaymentTransaction::propagateVotesList
  * Collects all nodes from all paths into one votes list,
  * and propagates it to the next node in the votes list.
- * @param shouldSetUpDelay flag which tell us if need check on delay before sending,
- * has true value only on processRemoteNodeResponse stage
  */
 TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVotingResult()
 {
@@ -432,6 +430,79 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
         maxNetworkDelay(mParticipantsVotesMessage->participantsCount() + 1));
 }
 
+TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVotingResultNew()
+{
+    debug() << "propagateVotesListAndWaitForVotingResult";
+
+    if (mSubsystemsController->isWriteVisualResults()) {
+        set <PathID> actualPathsIds;
+        for (const auto &nodeAndReservations : mReservations) {
+            for (const auto &pathIdAndReservation : nodeAndReservations.second) {
+                actualPathsIds.insert(pathIdAndReservation.first);
+            }
+        }
+        stringstream s;
+        s << VisualResult::ActualPaymentPaths << kTokensSeparator
+          << microsecondsSinceUnixEpoch() << kTokensSeparator
+          << currentTransactionUUID() << kTokensSeparator
+          << mNodeUUID << kTokensSeparator
+          << mCommand->contractorUUID() << kTokensSeparator << actualPathsIds.size();
+        for (const auto &identifier : actualPathsIds) {
+            const auto path = mPathsStats[identifier]->path();
+            s << kTokensSeparator << path->length();
+            for (const auto &nodeUUID : path->nodes) {
+                s << kTokensSeparator << nodeUUID.stringUUID();
+            }
+        }
+        s << kCommandsSeparator;
+        auto message = s.str();
+
+        try {
+            mVisualInterface->writeResult(
+                message.c_str(),
+                message.size());
+        } catch (IOError &e) {
+            error() << "CoordinatorPaymentTransaction::propagateVotesListAndWaitForVotingResult: "
+                    "Error occurred when visual result has accepted. Details: " << e.message();
+        }
+    }
+
+    map<PaymentNodeID, CryptoKey> nodeIdsAndPublicKeys;
+    for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
+        nodeIdsAndPublicKeys.insert(
+            make_pair(
+                nodeAndPaymentID.second,
+                mParticipantsPublicKeys[nodeAndPaymentID.first]));
+    }
+
+    debug() << "Total participants included: " << nodeIdsAndPublicKeys.size();
+#ifdef DEBUG
+    debug() << "Participants order is the next:";
+    for (const auto &kNodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
+        debug() << kNodeUUIDAndPaymentNodeID.first << " " << kNodeUUIDAndPaymentNodeID.second;
+    }
+#endif
+
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
+#endif
+
+    // send message with all public keys to all participants and wait for voting results
+    for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
+        sendMessage<ParticipantsPublicKeysMessage>(
+            nodeAndPaymentID.first,
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            nodeIdsAndPublicKeys);
+    }
+
+    mStep = Stages::Common_VotesChecking;
+    return resultWaitForMessageTypes(
+        {Message::Payments_ParticipantVote,
+         Message::Payments_TTLProlongationRequest},
+        maxNetworkDelay(6));
+}
 
 void CoordinatorPaymentTransaction::initAmountsReservationOnNextPath()
 {
@@ -1272,8 +1343,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
 {
     debug() << "sendFinalAmountsConfigurationToAllParticipants";
 
-    mFinalAmountNodesConfirmation.clear();
-
     // check if reservation to contractor present
     const auto contractorNodeReservations = mReservations.find(mCommand->contractorUUID());
     if (contractorNodeReservations != mReservations.end()) {
@@ -1286,22 +1355,57 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     mSubsystemsController->testForbidSendMessageOnFinalAmountClarificationStage();
 #endif
 
+    PaymentNodeID coordinatorPaymentNodeID = 0;
+    mPaymentNodesIds.insert(
+        make_pair(
+            mNodeUUID,
+            coordinatorPaymentNodeID));
+    PaymentNodeID currentNodeID = 1;
     for (auto const &nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
-        debug() << "send final amount configuration to " << nodeAndFinalAmountsConfig.first;
-        sendMessage<FinalAmountsConfigurationMessage>(
-            nodeAndFinalAmountsConfig.first,
-            mEquivalent,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            nodeAndFinalAmountsConfig.second);
-        mFinalAmountNodesConfirmation.insert(
+        mPaymentNodesIds.insert(
             make_pair(
                 nodeAndFinalAmountsConfig.first,
-                false));
+                currentNodeID++));
+    }
+
+    mParticipantsPublicKeys.clear();
+    for (auto const &nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
+        // if coordinator has reservations with current node it also send them
+        if (mReservations.find(nodeAndFinalAmountsConfig.first) != mReservations.end()) {
+            info() << "send final amount configuration with reservations to " << nodeAndFinalAmountsConfig.first;
+            sendMessage<FinalAmountsConfigurationMessage>(
+                nodeAndFinalAmountsConfig.first,
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                nodeAndFinalAmountsConfig.second,
+                mPaymentNodesIds,
+                mReservations[nodeAndFinalAmountsConfig.first]);
+        } else {
+            info() << "send final amount configuration to " << nodeAndFinalAmountsConfig.first;
+            sendMessage<FinalAmountsConfigurationMessage>(
+                nodeAndFinalAmountsConfig.first,
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                nodeAndFinalAmountsConfig.second,
+                mPaymentNodesIds);
+        }
     }
 
     debug() << "Total count of all participants without coordinator is " << mNodesFinalAmountsConfiguration.size();
 
+    auto keyChain = KeyChain::makeKeyChain(
+        65000,
+        mLog);
+    auto publicKeyHash = keyChain.generateAndSaveKeyPairForPaymentTransaction(
+        currentTransactionUUID());
+    mParticipantsPublicKeysHashes.insert(
+        make_pair(
+            currentNodeUUID(),
+            make_pair(
+                coordinatorPaymentNodeID,
+                publicKeyHash)));
     // send reservations to first level nodes on transaction paths
     for (const auto &nodeAndReservations : mReservations) {
         sendMessage<ReservationsInRelationToNodeMessage>(
@@ -1309,17 +1413,16 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
             mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
-            nodeAndReservations.second);
+            nodeAndReservations.second,
+            coordinatorPaymentNodeID,
+            publicKeyHash);
     }
-    mAllNodesSentConfirmationOnFinalAmountsConfiguration = false;
-    mAllNeighborsSentFinalReservations = false;
 
     mStep = Coordinator_FinalAmountsConfigurationConfirmation;
     return resultWaitForMessageTypes(
         {Message::Payments_FinalAmountsConfigurationResponse,
-         Message::Payments_ReservationsInRelationToNode,
          Message::Payments_TTLProlongationRequest},
-        maxNetworkDelay(4));
+        maxNetworkDelay(6));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsConfigurationConfirmation()
@@ -1329,23 +1432,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsCon
         return runTTLTransactionResponse();
     }
 
-    if (contextIsValid(Message::Payments_ReservationsInRelationToNode, false)) {
-        return runFinalReservationsNeighborConfirmation();
+    if (!contextIsValid(Message::MessageType::Payments_FinalAmountsConfigurationResponse, false)) {
+        return reject("Some nodes didn't confirm final amount configuration. Transaction rejected.");
     }
 
-    if (contextIsValid(Message::MessageType::Payments_FinalAmountsConfigurationResponse, false)) {
-        return runFinalAmountsParticipantConfirmation();
-    }
-
-    return reject("Some nodes didn't confirm final amount configuration. Transaction rejected.");
-}
-
-TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsParticipantConfirmation()
-{
-    debug() << "runFinalAmountsParticipantConfirmation";
     auto kMessage = popNextMessage<FinalAmountsConfigurationResponseMessage>();
     debug() << "sender: " << kMessage->senderUUID;
-    if (mFinalAmountNodesConfirmation.find(kMessage->senderUUID) == mFinalAmountNodesConfirmation.end()) {
+    if (mPaymentNodesIds.find(kMessage->senderUUID) == mPaymentNodesIds.end()) {
         warning() << "Sender is not participant of this transaction";
         return resultContinuePreviousState();
     }
@@ -1353,74 +1446,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsPar
         return reject("Haven't reach consensus on reservation. Transaction rejected.");
     }
     debug() << "Node " << kMessage->senderUUID << " confirmed final amounts";
-    mFinalAmountNodesConfirmation[kMessage->senderUUID] = true;
-    for (const auto &nodeUUIDAndConfirmation : mFinalAmountNodesConfirmation) {
-        if (!nodeUUIDAndConfirmation.second) {
-            debug() << "Some nodes are still not confirmed final amounts. Waiting.";
-            if (mAllNeighborsSentFinalReservations) {
-                return resultWaitForMessageTypes(
-                    {Message::Payments_FinalAmountsConfigurationResponse,
-                     Message::Payments_TTLProlongationRequest},
-                    maxNetworkDelay(1));
-            } else {
-                return resultWaitForMessageTypes(
-                    {Message::Payments_FinalAmountsConfigurationResponse,
-                     Message::Payments_ReservationsInRelationToNode,
-                     Message::Payments_TTLProlongationRequest},
-                    maxNetworkDelay(1));
-            }
-        }
-    }
-    debug() << "All nodes confirmed final configuration.";
-    if (mAllNeighborsSentFinalReservations) {
-        debug() << "Begin processing participants votes.";
-        return propagateVotesListAndWaitForVotingResult();
-    } else {
-        return resultWaitForMessageTypes(
-            {Message::Payments_ReservationsInRelationToNode,
-             Message::Payments_TTLProlongationRequest},
-            maxNetworkDelay(1));
-    }
-}
-
-TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalReservationsNeighborConfirmation()
-{
-    debug() << "runFinalReservationsNeighborConfirmation";
-    auto kMessage = popNextMessage<ReservationsInRelationToNodeMessage>();
-    debug() << "sender: " << kMessage->senderUUID;
-
-    mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
-
-    if (mReservations.size() == mRemoteReservations.size()) {
-        info() << "All neighbors sent theirs reservations";
-
-        if (!checkAllNeighborsReservationsAppropriate()) {
-            return reject("Current node has different reservations with remote one. Rejected");
-        }
-        mAllNeighborsSentFinalReservations = true;
-        if (mAllNodesSentConfirmationOnFinalAmountsConfiguration) {
-            debug() << "Begin processing participants votes.";
-            return propagateVotesListAndWaitForVotingResult();
-        }
+    mParticipantsPublicKeys[kMessage->senderUUID] = kMessage->publicKey();
+    if (mParticipantsPublicKeys.size() < mPaymentNodesIds.size()) {
+        debug() << "Some nodes are still not confirmed final amounts. Waiting.";
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfigurationResponse,
              Message::Payments_TTLProlongationRequest},
-            maxNetworkDelay(1));
+            maxNetworkDelay(2));
     }
 
-    // not all neighbors sent theirs reservations
-    if (mAllNodesSentConfirmationOnFinalAmountsConfiguration) {
-        return resultWaitForMessageTypes(
-            {Message::Payments_ReservationsInRelationToNode,
-             Message::Payments_TTLProlongationRequest},
-            maxNetworkDelay(1));
-    } else {
-        return resultWaitForMessageTypes(
-            {Message::Payments_ReservationsInRelationToNode,
-             Message::Payments_FinalAmountsConfigurationResponse,
-             Message::Payments_TTLProlongationRequest},
-            maxNetworkDelay(1));
-    }
+    debug() << "All nodes confirmed final configuration. Begin processing participants votes.";
+    return propagateVotesListAndWaitForVotingResult();
 }
 
 PathStats* CoordinatorPaymentTransaction::currentAmountReservationPathStats()

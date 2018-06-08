@@ -16,12 +16,18 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        const vector<pair<PathID, AmountReservation::ConstShared>> &reservations);
+        const vector<pair<PathID, AmountReservation::ConstShared>> &reservations,
+        PaymentNodeID paymentNodeID,
+        uint32_t publicKeyHash);
 
     ReservationsInRelationToNodeMessage(
         BytesShared buffer);
 
     const vector<pair<PathID, AmountReservation::ConstShared>> &reservations() const;
+
+    const uint32_t publicKeyHash() const;
+
+    const PaymentNodeID paymentNodeID() const;
 
 protected:
     const MessageType typeID() const;
@@ -31,6 +37,8 @@ protected:
 
 private:
     vector<pair<PathID, AmountReservation::ConstShared>> mReservations;
+    uint32_t mPublicKeyHash;
+    PaymentNodeID mPaymentNodeID;
 };
 
 

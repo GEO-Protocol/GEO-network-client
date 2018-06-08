@@ -4,14 +4,18 @@ ReservationsInRelationToNodeMessage::ReservationsInRelationToNodeMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    const vector<pair<PathID, AmountReservation::ConstShared>> &reservations) :
+    const vector<pair<PathID, AmountReservation::ConstShared>> &reservations,
+    PaymentNodeID paymentNodeID,
+    uint32_t publicKeyHash) :
 
     TransactionMessage(
         equivalent,
         senderUUID,
         transactionUUID),
 
-    mReservations(reservations)
+    mReservations(reservations),
+    mPaymentNodeID(paymentNodeID),
+    mPublicKeyHash(publicKeyHash)
 {}
 
 ReservationsInRelationToNodeMessage::ReservationsInRelationToNodeMessage(
@@ -53,11 +57,32 @@ ReservationsInRelationToNodeMessage::ReservationsInRelationToNodeMessage(
                 *pathID,
                 amountReservation));
     }
+
+    memcpy(
+        &mPaymentNodeID,
+        bytesBufferOffset,
+        sizeof(PaymentNodeID));
+    bytesBufferOffset += sizeof(PaymentNodeID);
+
+    memcpy(
+        &mPublicKeyHash,
+        bytesBufferOffset,
+        sizeof(uint32_t));
 }
 
 const vector<pair<PathID, AmountReservation::ConstShared>>& ReservationsInRelationToNodeMessage::reservations() const
 {
     return mReservations;
+}
+
+const PaymentNodeID ReservationsInRelationToNodeMessage::paymentNodeID() const
+{
+    mPaymentNodeID;
+}
+
+const uint32_t ReservationsInRelationToNodeMessage::publicKeyHash() const
+{
+    return mPublicKeyHash;
 }
 
 pair<BytesShared, size_t> ReservationsInRelationToNodeMessage::serializeToBytes() const
@@ -68,7 +93,9 @@ pair<BytesShared, size_t> ReservationsInRelationToNodeMessage::serializeToBytes(
         + parentBytesAndCount.second
         + sizeof(SerializedRecordsCount)
         + mReservations.size() *
-          (sizeof(PathID) + kTrustLineAmountBytesCount + sizeof(AmountReservation::SerializedReservationDirectionSize));
+          (sizeof(PathID) + kTrustLineAmountBytesCount + sizeof(AmountReservation::SerializedReservationDirectionSize))
+        + sizeof(PaymentNodeID)
+        + sizeof(uint32_t);
 
     BytesShared buffer = tryMalloc(bytesCount);
 
@@ -108,6 +135,17 @@ pair<BytesShared, size_t> ReservationsInRelationToNodeMessage::serializeToBytes(
         bytesBufferOffset += sizeof(AmountReservation::SerializedReservationDirectionSize);
     }
     //----------------------------------------------------
+    mempcpy(
+        bytesBufferOffset,
+        &mPaymentNodeID,
+        sizeof(PaymentNodeID));
+    bytesBufferOffset += sizeof(PaymentNodeID);
+    //----------------------------------------------------
+    memcpy(
+        bytesBufferOffset,
+        &mPublicKeyHash,
+        sizeof(uint32_t));
+
     return make_pair(
         buffer,
         bytesCount);

@@ -113,6 +113,20 @@ tuple<bool, BytesShared, size_t> KeyChain::checkSignedData(
         dataBytesCount);
 }
 
+uint32_t KeyChain::generateAndSaveKeyPairForPaymentTransaction(
+    const TransactionUUID &transactionUUID)
+{
+    // todo : save key to storage
+    return 0;
+}
+
+CryptoKey& KeyChain::paymentPublicKey(
+    uint32_t publicKeyHash)
+{
+    CryptoKey result;
+    return result;
+}
+
 string KeyChain::logHeader() const
 {
     return "[KeyChain " + to_string(mTrustLineID) + "]";

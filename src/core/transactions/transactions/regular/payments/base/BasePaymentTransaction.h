@@ -12,6 +12,8 @@
 #include "../../../../../io/storage/StorageHandler.h"
 #include "../../../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../../../crypto/CryptoKey.h"
+#include "../../../../../crypto/KeyChain.h"
 
 #include "../../../../../network/messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../../../../../network/messages/payments/ReceiverInitPaymentResponseMessage.h"
@@ -32,6 +34,7 @@
 #include "../../../../../network/messages/payments/FinalAmountsConfigurationMessage.h"
 #include "../../../../../network/messages/payments/FinalAmountsConfigurationResponseMessage.h"
 #include "../../../../../network/messages/payments/ReservationsInRelationToNodeMessage.h"
+#include "../../../../../network/messages/payments/ParticipantsPublicKeysMessage.h"
 
 #include "PathStats.h"
 
@@ -388,7 +391,11 @@ protected:
         const vector<pair<PathID, AmountReservation::ConstShared>> &localReservations,
         const vector<pair<PathID, AmountReservation::ConstShared>> &remoteReservations);
 
-    bool checkAllNeighborsReservationsAppropriate();
+    bool checkAllNeighborsWithReservationsAreInFinalParticipantsList();
+
+    bool checkAllPublicKeyHashesProperly();
+
+    bool checkAllNeighborsReceiptsAppropriate();
 
     bool checkOldAndNewParticipants(
         ParticipantsVotesMessage::Shared newMessageWithVotes,
@@ -448,9 +455,12 @@ protected:
     // this amount used for saving in payment history
     TrustLineAmount mCommittedAmount;
 
-    bool mCoordinatorAlreadySentFinalAmountsConfiguration;
-    unordered_map<NodeUUID, bool, boost::hash<boost::uuids::uuid>> mFinalAmountNeighborsConfirmation;
     map<NodeUUID, vector<pair<PathID, AmountReservation::ConstShared>>> mRemoteReservations;
+
+    // ids of nodes inside payment transaction
+    map<NodeUUID, PaymentNodeID> mPaymentNodesIds;
+    map<NodeUUID, pair<PaymentNodeID, uint32_t>> mParticipantsPublicKeysHashes;
+    map<NodeUUID, CryptoKey> mParticipantsPublicKeys;
 
     // this fields are used by coordinators on final amount configuration clarification
     bool mAllNodesSentConfirmationOnFinalAmountsConfiguration;

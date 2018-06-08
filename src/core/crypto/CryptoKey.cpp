@@ -99,3 +99,8 @@ tuple<bool, BytesShared, size_t> CryptoKey::checkData(
     return make_tuple(true, rawData, rawDataSize);
 }
 
+size_t CryptoKey::serializedKeySize()
+{
+    // todo add default key size
+    return sizeof(size_t) + 4;
+}

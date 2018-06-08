@@ -39,6 +39,8 @@ public:
         BytesShared signedData,
         size_t signedDataSize);
 
+    static size_t serializedKeySize();
+
 private:
     byte* mKey;
     size_t mKeySize;

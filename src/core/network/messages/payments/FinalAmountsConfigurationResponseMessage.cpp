@@ -14,6 +14,21 @@ FinalAmountsConfigurationResponseMessage::FinalAmountsConfigurationResponseMessa
 {}
 
 FinalAmountsConfigurationResponseMessage::FinalAmountsConfigurationResponseMessage(
+    const SerializedEquivalent equivalent,
+    const NodeUUID& senderUUID,
+    const TransactionUUID& transactionUUID,
+    const OperationState state,
+    const CryptoKey& publicKey) :
+
+    TransactionMessage(
+        equivalent,
+        senderUUID,
+        transactionUUID),
+    mState(state),
+    mPublicKey(publicKey)
+{}
+
+FinalAmountsConfigurationResponseMessage::FinalAmountsConfigurationResponseMessage(
     BytesShared buffer):
 
     TransactionMessage(buffer)
@@ -22,11 +37,31 @@ FinalAmountsConfigurationResponseMessage::FinalAmountsConfigurationResponseMessa
     //----------------------------------------------------
     SerializedOperationState *state = new (buffer.get() + bytesBufferOffset) SerializedOperationState;
     mState = (OperationState) (*state);
+    if (mState == Accepted) {
+        bytesBufferOffset += sizeof(SerializedOperationState);
+        size_t publicKeySize;
+        memcpy(
+            &publicKeySize,
+            buffer.get() + bytesBufferOffset,
+            sizeof(size_t));
+        bytesBufferOffset += sizeof(size_t);
+
+        mPublicKey.deserialize(
+            publicKeySize,
+            buffer.get() + bytesBufferOffset);
+    } else {
+        mPublicKey = CryptoKey();
+    }
 }
 
 const FinalAmountsConfigurationResponseMessage::OperationState FinalAmountsConfigurationResponseMessage::state() const
 {
     return mState;
+}
+
+const CryptoKey& FinalAmountsConfigurationResponseMessage::publicKey() const
+{
+    return mPublicKey;
 }
 
 /**
@@ -57,6 +92,19 @@ pair<BytesShared, size_t> FinalAmountsConfigurationResponseMessage::serializeToB
         &state,
         sizeof(SerializedOperationState));
     //----------------------------------------------------
+    if (mState == Accepted) {
+        auto publicKeySize = mPublicKey.keySize();
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            &publicKeySize,
+            sizeof(size_t));
+        dataBytesOffset += sizeof(size_t);
+
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            mPublicKey.key(),
+            publicKeySize);
+    }
     return make_pair(
         dataBytesShared,
         bytesCount);

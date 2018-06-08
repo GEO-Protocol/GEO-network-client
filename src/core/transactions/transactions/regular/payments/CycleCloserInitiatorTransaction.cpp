@@ -694,13 +694,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
         sendFinalPathConfiguration(
             path->maxFlow());
 
-        for (const auto &node : path->path()->intermediateUUIDs()) {
-            mFinalAmountNodesConfirmation.insert(
-                make_pair(
-                    node,
-                    false));
-        }
-
         mAllNodesSentConfirmationOnFinalAmountsConfiguration = false;
         mAllNeighborsSentFinalReservations = false;
 
@@ -863,7 +856,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalAmountsP
     debug() << "runFinalAmountsParticipantConfirmation";
     auto kMessage = popNextMessage<FinalAmountsConfigurationResponseMessage>();
     debug() << "sender: " << kMessage->senderUUID;
-    if (mFinalAmountNodesConfirmation.find(kMessage->senderUUID) == mFinalAmountNodesConfirmation.end()) {
+    if (mPaymentNodesIds.find(kMessage->senderUUID) == mPaymentNodesIds.end()) {
         warning() << "Sender is not participant of this transaction";
         return resultContinuePreviousState();
     }
@@ -871,22 +864,22 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalAmountsP
         return reject("Haven't reach consensus on reservation. Transaction rejected.");
     }
     debug() << "Node " << kMessage->senderUUID << " confirmed final amounts";
-    mFinalAmountNodesConfirmation[kMessage->senderUUID] = true;
-    for (const auto &nodeUUIDAndConfirmation : mFinalAmountNodesConfirmation) {
-        if (!nodeUUIDAndConfirmation.second) {
-            debug() << "Some nodes are still not confirmed final amounts. Waiting.";
-            if (mAllNeighborsSentFinalReservations) {
-                return resultWaitForMessageTypes(
-                    {Message::Payments_FinalAmountsConfigurationResponse},
-                    maxNetworkDelay(1));
-            } else {
-                return resultWaitForMessageTypes(
-                    {Message::Payments_FinalAmountsConfigurationResponse,
-                     Message::Payments_ReservationsInRelationToNode},
-                    maxNetworkDelay(1));
-            }
+    mParticipantsPublicKeys[kMessage->senderUUID] = kMessage->publicKey();
+
+    if (mParticipantsPublicKeys.size() < mPaymentNodesIds.size()) {
+        debug() << "Some nodes are still not confirmed final amounts. Waiting.";
+        if (mAllNeighborsSentFinalReservations) {
+            return resultWaitForMessageTypes(
+                {Message::Payments_FinalAmountsConfigurationResponse},
+                maxNetworkDelay(1));
+        } else {
+            return resultWaitForMessageTypes(
+                {Message::Payments_FinalAmountsConfigurationResponse,
+                 Message::Payments_ReservationsInRelationToNode},
+                maxNetworkDelay(1));
         }
     }
+
     debug() << "All nodes confirmed final configuration.";
     if (mAllNeighborsSentFinalReservations) {
         debug() << "Begin processing participants votes.";
@@ -898,18 +891,25 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalAmountsP
     }
 }
 
+// todo customize this logic on CycleCloserInitiator
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalReservationsNeighborConfirmation()
 {
     debug() << "runFinalReservationsNeighborConfirmation";
     auto kMessage = popNextMessage<ReservationsInRelationToNodeMessage>();
     debug() << "sender: " << kMessage->senderUUID;
 
-    mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
+    mParticipantsPublicKeysHashes[kMessage->senderUUID] = make_pair(
+        kMessage->paymentNodeID(),
+        kMessage->publicKeyHash());
+    if (!kMessage->reservations().empty()) {
+        mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
+    }
 
-    if (mReservations.size() == mRemoteReservations.size()) {
+    // only one node may send reservations
+    if (!mRemoteReservations.empty()) {
         info() << "All neighbors sent theirs reservations";
 
-        if (!checkAllNeighborsReservationsAppropriate()) {
+        if (!checkAllNeighborsReceiptsAppropriate()) {
             return reject("Current node has different reservations with remote one. Rejected");
         }
         mAllNeighborsSentFinalReservations = true;
@@ -1025,25 +1025,67 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
     const TrustLineAmount &finalPathAmount)
 {
     debug() << "sendFinalPathConfiguration";
+    PaymentNodeID coordinatorPaymentNodeID = 0;
+    mPaymentNodesIds.insert(
+        make_pair(
+            mNodeUUID,
+            coordinatorPaymentNodeID));
+    PaymentNodeID currentNodeID = 1;
     for (const auto &intermediateNode : mPathStats->path()->intermediateUUIDs()) {
-        debug() << "send message with final path amount info for node " << intermediateNode;
-        sendMessage<FinalPathCycleConfigurationMessage>(
-            intermediateNode,
-            mEquivalent,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            finalPathAmount);
+        mPaymentNodesIds.insert(
+            make_pair(
+                intermediateNode,
+                currentNodeID++));
+    }
+    bool sendReservationToFirstIntermediateNode = true;
+    for (const auto &intermediateNode : mPathStats->path()->intermediateUUIDs()) {
+        if (sendReservationToFirstIntermediateNode) {
+            // we should send reservations to first intrmediate node
+            info() << "send message with final path amount info and reservations for node " << intermediateNode;
+            sendMessage<FinalPathCycleConfigurationMessage>(
+                intermediateNode,
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                finalPathAmount,
+                mPaymentNodesIds,
+                mReservations[intermediateNode]);
+            sendReservationToFirstIntermediateNode = false;
+        } else {
+            info() << "send message with final path amount info for node " << intermediateNode;
+            sendMessage<FinalPathCycleConfigurationMessage>(
+                intermediateNode,
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                finalPathAmount,
+                mPaymentNodesIds);
+        }
     }
 
     // send reservations to first level node and last level node on transaction paths
-    for (const auto &nodeAndReservations : mReservations) {
-        sendMessage<ReservationsInRelationToNodeMessage>(
-            nodeAndReservations.first,
-            mEquivalent,
+    auto keyChain = KeyChain::makeKeyChain(
+        65000,
+        mLog);
+    auto publicKeyHash = keyChain.generateAndSaveKeyPairForPaymentTransaction(
+        currentTransactionUUID());
+    mParticipantsPublicKeysHashes.insert(
+        make_pair(
             currentNodeUUID(),
-            currentTransactionUUID(),
-            nodeAndReservations.second);
-    }
+            make_pair(
+                coordinatorPaymentNodeID,
+                publicKeyHash)));
+
+    // send outgoing receipt to first intermediate node
+    auto firstIntermediateNode = *mPathStats->path()->intermediateUUIDs().begin();
+    sendMessage<ReservationsInRelationToNodeMessage>(
+        firstIntermediateNode,
+        mEquivalent,
+        currentNodeUUID(),
+        currentTransactionUUID(),
+        mReservations[firstIntermediateNode],
+        coordinatorPaymentNodeID,
+        publicKeyHash);
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::approve()

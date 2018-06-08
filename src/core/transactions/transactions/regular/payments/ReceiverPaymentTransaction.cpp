@@ -487,34 +487,65 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
 #endif
 
     debug() << "All reservations was updated";
-
-    mCoordinatorAlreadySentFinalAmountsConfiguration = true;
-    for (const auto &nodeAndReservations : mReservations) {
-        sendMessage<ReservationsInRelationToNodeMessage>(
-            nodeAndReservations.first,
+    mPaymentNodesIds = kMessage->paymentNodesIds();
+    // todo check if current node is present in mPaymentNodesIds
+    if (!checkAllNeighborsWithReservationsAreInFinalParticipantsList()) {
+        sendMessage<FinalAmountsConfigurationResponseMessage>(
+            kMessage->senderUUID,
             mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
-            nodeAndReservations.second);
+            FinalAmountsConfigurationResponseMessage::Rejected);
+        return reject("Node has reservation with participant, which not included in mPaymentNodesIds. Rejected");
     }
 
-    if (mReservations.size() == mRemoteReservations.size()) {
+    if (!kMessage->reservations().empty()) {
+        info() << "Coordinator also send reservations";
+        mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
+    }
+
+    auto keyChain = KeyChain::makeKeyChain(
+        65000,
+        mLog);
+    auto publicKeyHash = keyChain.generateAndSaveKeyPairForPaymentTransaction(
+        currentTransactionUUID());
+    mParticipantsPublicKeysHashes.insert(
+        make_pair(
+            currentNodeUUID(),
+            make_pair(
+                mPaymentNodesIds[mNodeUUID],
+                publicKeyHash)));
+
+    // send public key hash to all participants except coordinator
+    vector<pair<PathID, AmountReservation::ConstShared>> emptyReservations;
+    for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
+        if (nodeAndPaymentID.first != coordinatorUUID()) {
+            continue;
+        }
+        sendMessage<ReservationsInRelationToNodeMessage>(
+            nodeAndPaymentID.first,
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            emptyReservations,
+            mPaymentNodesIds[mNodeUUID],
+            publicKeyHash);
+    }
+
+    // coordinator don't send public key hash
+    if (mPaymentNodesIds.size() == mParticipantsPublicKeysHashes.size() + 1) {
         // all neighbors sent theirs reservations
-        if (checkAllNeighborsReservationsAppropriate()) {
+        if (!checkAllPublicKeyHashesProperly()) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
                 coordinatorUUID(),
                 mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
-                FinalAmountsConfigurationResponseMessage::Accepted);
-            info() << "Accepted final amounts configuration";
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            return reject("Public key hashes are not properly. Rejected");
+        }
 
-            mStep = Common_VotesChecking;
-            return resultWaitForMessageTypes(
-                {Message::Payments_ParticipantsVotes,
-                 Message::Payments_TTLProlongationResponse},
-                maxNetworkDelay(5)); // todo : need discuss this parameter (5)
-        } else {
+        if (!checkAllNeighborsReceiptsAppropriate()) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
                 coordinatorUUID(),
                 mEquivalent,
@@ -524,6 +555,22 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
             // todo : discuss if receiver can reject TA on this stage or should wait
             return reject("Current node has different reservations with remote one. Rejected");
         }
+
+        sendMessage<FinalAmountsConfigurationResponseMessage>(
+            coordinatorUUID(),
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            FinalAmountsConfigurationResponseMessage::Accepted,
+            keyChain.paymentPublicKey(
+                publicKeyHash));
+        info() << "Accepted final amounts configuration";
+
+        mStep = Common_VotesChecking;
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes,
+             Message::Payments_TTLProlongationResponse},
+            maxNetworkDelay(5)); // todo : need discuss this parameter (5)
     }
 
     return resultWaitForMessageTypes(
@@ -538,9 +585,15 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
     auto kMessage = popNextMessage<ReservationsInRelationToNodeMessage>();
     debug() << "sender: " << kMessage->senderUUID;
 
-    mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
+    mParticipantsPublicKeysHashes[kMessage->senderUUID] = make_pair(
+        kMessage->paymentNodeID(),
+        kMessage->publicKeyHash());
+    if (!kMessage->reservations().empty()) {
+        mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
+    }
 
-    if (!mCoordinatorAlreadySentFinalAmountsConfiguration) {
+    // if coordinator didn't sent final payment configuration yet
+    if (mPaymentNodesIds.empty()) {
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,
              Message::Payments_ReservationsInRelationToNode,
@@ -549,23 +602,20 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
     }
 
     // coordinator already sent final amounts configuration
-    if (mReservations.size() == mRemoteReservations.size()) {
+    // coordinator don't send public key hash
+    if (mPaymentNodesIds.size() == mParticipantsPublicKeysHashes.size() + 1) {
         // all neighbors sent theirs reservations
-        if (checkAllNeighborsReservationsAppropriate()) {
+        if (!checkAllPublicKeyHashesProperly()) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
                 coordinatorUUID(),
                 mEquivalent,
                 currentNodeUUID(),
                 currentTransactionUUID(),
-                FinalAmountsConfigurationResponseMessage::Accepted);
-            info() << "Accepted final amounts configuration";
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            return reject("Public key hashes are not properly. Rejected");
+        }
 
-            mStep = Common_VotesChecking;
-            return resultWaitForMessageTypes(
-                {Message::Payments_ParticipantsVotes,
-                 Message::Payments_TTLProlongationResponse},
-                maxNetworkDelay(5)); // todo : need discuss this parameter (5)
-        } else {
+        if (!checkAllNeighborsReceiptsAppropriate()) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
                 coordinatorUUID(),
                 mEquivalent,
@@ -575,6 +625,25 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
             // todo : discuss if receiver can reject TA on this stage or should wait
             return reject("Current node has different reservations with remote one. Rejected");
         }
+
+        auto keyChain = KeyChain::makeKeyChain(
+            65000,
+            mLog);
+        sendMessage<FinalAmountsConfigurationResponseMessage>(
+            coordinatorUUID(),
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            FinalAmountsConfigurationResponseMessage::Accepted,
+            keyChain.paymentPublicKey(
+                mParticipantsPublicKeysHashes[currentNodeUUID()].second));
+        info() << "Accepted final amounts configuration";
+
+        mStep = Common_VotesChecking;
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes,
+             Message::Payments_TTLProlongationResponse},
+            maxNetworkDelay(5)); // todo : need discuss this parameter (5)
     }
 
     // not all neighbors sent theirs reservations

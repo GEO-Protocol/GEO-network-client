@@ -201,16 +201,16 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
     dataBytesOffset += sizeof(SerializedRecordsCount);
 
     // Nodes UUIDs and votes
-    for (const auto &NodeUUIDAndVote : mVotes) {
+    for (const auto &nodeUUIDAndVote : mVotes) {
 
-        const auto kParticipantUUID = NodeUUIDAndVote.first;
+        const auto kParticipantUUID = nodeUUIDAndVote.first;
         memcpy(
             buffer.get() + dataBytesOffset,
             kParticipantUUID.data,
             NodeUUID::kBytesSize);
         dataBytesOffset += NodeUUID::kBytesSize;
 
-        const SerializedVote kVoteSerialized = NodeUUIDAndVote.second;
+        const SerializedVote kVoteSerialized = nodeUUIDAndVote.second;
         memcpy(
             buffer.get() + dataBytesOffset,
             &kVoteSerialized,
