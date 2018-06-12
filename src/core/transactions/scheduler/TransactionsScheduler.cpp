@@ -102,8 +102,10 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
         }
     }
     throw NotFoundError(
-        "TransactionsScheduler::tryAttachMessageToTransaction: "
-            "invalid/unexpected message/response received " + to_string(message->typeID()));
+        "TransactionsScheduler::tryAttachMessageToTransaction: " +
+            transactionMessage->transactionUUID().stringUUID() +
+            " invalid/unexpected message/response received " +
+            to_string(message->typeID()));
 }
 
 void TransactionsScheduler::tryAttachResourceToTransaction(

@@ -331,106 +331,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
     }
 }
 
-/**
- * @brief CoordinatorPaymentTransaction::propagateVotesList
- * Collects all nodes from all paths into one votes list,
- * and propagates it to the next node in the votes list.
- */
 TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVotingResult()
-{
-    debug() << "propagateVotesListAndWaitForVotingResult";
-
-    if (mSubsystemsController->isWriteVisualResults()) {
-        set <PathID> actualPathsIds;
-        for (const auto &nodeAndReservations : mReservations) {
-            for (const auto &pathIdAndReservation : nodeAndReservations.second) {
-                actualPathsIds.insert(pathIdAndReservation.first);
-            }
-        }
-        stringstream s;
-        s << VisualResult::ActualPaymentPaths << kTokensSeparator
-          << microsecondsSinceUnixEpoch() << kTokensSeparator
-          << currentTransactionUUID() << kTokensSeparator
-          << mNodeUUID << kTokensSeparator
-          << mCommand->contractorUUID() << kTokensSeparator << actualPathsIds.size();
-        for (const auto &identifier : actualPathsIds) {
-            const auto path = mPathsStats[identifier]->path();
-            s << kTokensSeparator << path->length();
-            for (const auto &nodeUUID : path->nodes) {
-                s << kTokensSeparator << nodeUUID.stringUUID();
-            }
-        }
-        s << kCommandsSeparator;
-        auto message = s.str();
-
-        try {
-            mVisualInterface->writeResult(
-                message.c_str(),
-                message.size());
-        } catch (IOError &e) {
-            error() << "CoordinatorPaymentTransaction::propagateVotesListAndWaitForVotingResult: "
-                            "Error occurred when visual result has accepted. Details: " << e.message();
-        }
-    }
-
-    const auto kCurrentNodeUUID = currentNodeUUID();
-    const auto kTransactionUUID = currentTransactionUUID();
-
-    // TODO: additional check if payment is correct
-
-    // Prevent simple transaction rolling back
-    // todo: make this atomic
-    mTransactionIsVoted = true;
-
-    mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
-        mEquivalent,
-        kCurrentNodeUUID,
-        kTransactionUUID,
-        kCurrentNodeUUID);
-
-    // Only coordinator may emit ParticipantsApprovingMessage into the network.
-    // It is supposed, that in case if it was emitted - than coordinator approved the transaction.
-    //
-    // TODO: [mvp] [cryptography] despite this, coordinator must sign the message,
-    // so the other nodes would be possible to know that this message was emitted by the coordinator.
-    // mNodesFinalAmountsConfiguration contains all nodes, which have actual reservations
-    for (auto const &nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
-        mParticipantsVotesMessage->addParticipant(
-            nodeAndFinalAmountsConfig.first);
-    }
-
-    debug() << "Total participants included: " << mParticipantsVotesMessage->participantsCount();
-#ifdef DEBUG
-    debug() << "Participants order is the next:";
-    for (const auto &kNodeUUIDAndVote : mParticipantsVotesMessage->votes()) {
-        debug() << kNodeUUIDAndVote.first;
-    }
-#endif
-
-#ifdef TESTS
-    mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
-#endif
-
-    // Begin message propagation
-    sendMessage(
-        mParticipantsVotesMessage->firstParticipant(),
-        mParticipantsVotesMessage);
-
-    debug() << "Votes message constructed and sent to the (" << mParticipantsVotesMessage->firstParticipant() << ")";
-
-#ifdef TESTS
-    mSubsystemsController->testThrowExceptionOnVoteStage();
-    mSubsystemsController->testTerminateProcessOnVoteStage();
-#endif
-
-    mStep = Stages::Common_VotesChecking;
-    return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes,
-        Message::Payments_TTLProlongationRequest},
-        maxNetworkDelay(mParticipantsVotesMessage->participantsCount() + 1));
-}
-
-TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVotingResultNew()
 {
     debug() << "propagateVotesListAndWaitForVotingResult";
 
@@ -467,15 +368,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
         }
     }
 
-    map<PaymentNodeID, CryptoKey> nodeIdsAndPublicKeys;
-    for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
-        nodeIdsAndPublicKeys.insert(
-            make_pair(
-                nodeAndPaymentID.second,
-                mParticipantsPublicKeys[nodeAndPaymentID.first]));
-    }
-
-    debug() << "Total participants included: " << nodeIdsAndPublicKeys.size();
+    debug() << "Total participants included: " << mParticipantsPublicKeys.size();
 #ifdef DEBUG
     debug() << "Participants order is the next:";
     for (const auto &kNodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
@@ -487,15 +380,36 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
 #endif
 
+    auto keyChain = KeyChain::makeKeyChain(
+        65000,
+        mLog);
+    const auto publicKey = keyChain.paymentPublicKey(
+        mParticipantsPublicKeysHashes[mNodeUUID].second);
+    mParticipantsPublicKeys.insert(
+        make_pair(
+            mPaymentNodesIds[mNodeUUID],
+            publicKey));
+
     // send message with all public keys to all participants and wait for voting results
     for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
+        if (nodeAndPaymentID.first == mNodeUUID) {
+            continue;
+        }
         sendMessage<ParticipantsPublicKeysMessage>(
             nodeAndPaymentID.first,
             mEquivalent,
             mNodeUUID,
             currentTransactionUUID(),
-            nodeIdsAndPublicKeys);
+            mParticipantsPublicKeys);
     }
+
+    // TODO: additional check if payment is correct
+
+    // Prevent simple transaction rolling back
+    // todo: make this atomic
+    mTransactionIsVoted = true;
+
+    mParticipantsSigns.clear();
 
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
@@ -1446,8 +1360,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsCon
         return reject("Haven't reach consensus on reservation. Transaction rejected.");
     }
     debug() << "Node " << kMessage->senderUUID << " confirmed final amounts";
-    mParticipantsPublicKeys[kMessage->senderUUID] = kMessage->publicKey();
-    if (mParticipantsPublicKeys.size() < mPaymentNodesIds.size()) {
+    mParticipantsPublicKeys[mPaymentNodesIds[kMessage->senderUUID]] = kMessage->publicKey();
+    info() << "received public key: " << (int)*kMessage->publicKey().key();
+    if (mParticipantsPublicKeys.size() + 1 < mPaymentNodesIds.size()) {
         debug() << "Some nodes are still not confirmed final amounts. Waiting.";
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfigurationResponse,
@@ -1582,8 +1497,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
     mSubsystemsController->testTerminateProcessOnCoordinatorAfterApproveBeforeSendMessage();
 #endif
 
-    propagateVotesMessageToAllParticipants(
-        mParticipantsVotesMessage);
+    for (const auto &nodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
+        sendMessage<ParticipantsVotesMessage>(
+            nodeUUIDAndPaymentNodeID.first,
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            mParticipantsSigns);
+    }
     return resultOK();
 }
 
@@ -1692,40 +1613,51 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
     mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif
 
-    if (! contextIsValid(Message::Payments_ParticipantsVotes)) {
-        return reject("Coordinator didn't receive message with votes");
+    if (! contextIsValid(Message::Payments_ParticipantVote)) {
+        return reject("Coordinator didn't receive all messages with votes");
     }
 
-    const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
-    debug () << "Participants votes message received.";
-
-    if (!checkOldAndNewParticipants(kMessage, false)) {
-        return reject("Participants votes message is invalid. Rolling back.");
+    const auto kMessage = popNextMessage<ParticipantVoteMessage>();
+    debug () << "Participant vote message received from " << kMessage->senderUUID;
+    auto participantSign = kMessage->sign();
+    auto keyChain = KeyChain::makeKeyChain(
+        65000,
+        mLog);
+    if (mPaymentNodesIds.find(kMessage->senderUUID) == mPaymentNodesIds.end()) {
+        warning() << "Sender is not participant of current transaction";
+        return resultContinuePreviousState();
     }
-
-    mParticipantsVotesMessage = kMessage;
-    if (mParticipantsVotesMessage->containsRejectVote()) {
-        return reject("Some participant node has been rejected the transaction. Rolling back.");
+    // todo if we store participants public keys on database, then we should use KeyChain,
+    // or we can check sign directly from mParticipantsPublicKeys
+    if (!keyChain.checkPaymentSignedData(
+            currentTransactionUUID(),
+            kMessage->senderUUID,
+            participantSign.first,
+            participantSign.second)) {
+        return reject("Participant sign is incorrect. Rolling back");
     }
+    info() << "Participant sign is incorrect";
+    mParticipantsSigns.insert(make_pair(
+        mPaymentNodesIds[kMessage->senderUUID],
+        participantSign.first));
 
-    if (mParticipantsVotesMessage->achievedConsensus()){
-        debug() << "Coordinator received achieved consensus message.";
-        if (!checkReservationsDirections()) {
-            return reject("Reservations on node are invalid");
-        }
-        mParticipantsVotesMessage->addParticipant(currentNodeUUID());
-        mParticipantsVotesMessage->approve(currentNodeUUID());
+    if (mParticipantsSigns.size() + 1 == mPaymentNodesIds.size()) {
+        info() << "all participants sign their data";
         return approve();
     }
 
-    return reject("Coordinator received message with some uncertain votes. Rolling back");
+    info() << "Not all participants send theirs signs";
+    return resultWaitForMessageTypes(
+        {Message::Payments_ParticipantVote,
+         Message::Payments_TTLProlongationRequest},
+        maxNetworkDelay(3));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionResponse()
 {
     debug() << "runTTLTransactionResponse";
     auto kMessage = popNextMessage<TTLProlongationRequestMessage>();
-    if (mParticipantsVotesMessage == nullptr) {
+    if (mPaymentNodesIds.empty()) {
         // reservation stage
         if (kMessage->senderUUID == mCommand->contractorUUID()) {
             sendMessage<TTLProlongationResponseMessage>(
@@ -1756,7 +1688,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
         }
     } else {
         // voting stage
-        if (mParticipantsVotesMessage->containsParticipant(kMessage->senderUUID)) {
+        if (mPaymentNodesIds.find(kMessage->senderUUID) != mPaymentNodesIds.end()) {
             sendMessage<TTLProlongationResponseMessage>(
                 kMessage->senderUUID,
                 mEquivalent,

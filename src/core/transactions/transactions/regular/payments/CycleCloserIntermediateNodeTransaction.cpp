@@ -569,6 +569,10 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
 #endif
 
     debug() << "All reservations were updated";
+    if (!checkReservationsDirections()) {
+        return reject("Reservations on node are invalid");
+    }
+    info() << "All reservations are correct";
 
     mPaymentNodesIds = kMessage->paymentNodesIds();
     // todo check if current node is present in mPaymentNodesIds
@@ -605,6 +609,9 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     vector<pair<PathID, AmountReservation::ConstShared>> emptyReservations;
     for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
         if (nodeAndPaymentID.first != mCoordinator) {
+            continue;
+        }
+        if (nodeAndPaymentID.first == mNodeUUID) {
             continue;
         }
         if (mReservations.find(nodeAndPaymentID.first) == mReservations.end()) {

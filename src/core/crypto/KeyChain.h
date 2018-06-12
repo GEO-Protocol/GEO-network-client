@@ -53,8 +53,18 @@ public:
     uint32_t generateAndSaveKeyPairForPaymentTransaction(
         const TransactionUUID &transactionUUID);
 
-    CryptoKey& paymentPublicKey(
+    CryptoKey paymentPublicKey(
         uint32_t publicKeyHash);
+
+    pair<BytesShared, size_t> signPaymentTransaction(
+        const TransactionUUID &transactionUUID,
+        uint32_t publicKeyHash);
+
+    bool checkPaymentSignedData(
+        const TransactionUUID &transactionUUID,
+        const NodeUUID participant,
+        BytesShared sign,
+        size_t signBytesCount);
 
 protected:
     string logHeader() const;

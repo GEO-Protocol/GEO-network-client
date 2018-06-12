@@ -16,9 +16,11 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
     mIsRequestedTransactionCurrentlyRunned(isRequestedTransactionCurrentlyRunned)
 {}
 
+// todo change this logik according to crypto changes
 TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
 {
     debug() << "run";
+    map<PaymentNodeID, BytesShared> emptySignMap;
     if (mIsRequestedTransactionCurrentlyRunned) {
         // if requested transaction didn't finish yet,
         // we send empty message, which means that requester should wait and ask again
@@ -26,7 +28,7 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
             mEquivalent,
             mNodeUUID,
             mRequest->transactionUUID(),
-            NodeUUID::empty());
+            emptySignMap);
         debug() << "send response with empty ParticipantsVotesMessage to " << mRequest->senderUUID;
         sendMessage(
             mRequest->senderUUID,
@@ -54,10 +56,7 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
             mEquivalent,
             mNodeUUID,
             mRequest->transactionUUID(),
-            mNodeUUID);
-        kResponse->addParticipant(currentNodeUUID());
-        kResponse->reject(currentNodeUUID());
-        kResponse->addParticipant(mRequest->senderUUID);
+            emptySignMap);
         debug() << "send reject response to " << mRequest->senderUUID;
         sendMessage(
             mRequest->senderUUID,

@@ -487,6 +487,11 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
 #endif
 
     debug() << "All reservations was updated";
+    if (!checkReservationsDirections()) {
+        return reject("Reservations on node are invalid");
+    }
+    info() << "All reservations directions are correct";
+
     mPaymentNodesIds = kMessage->paymentNodesIds();
     // todo check if current node is present in mPaymentNodesIds
     if (!checkAllNeighborsWithReservationsAreInFinalParticipantsList()) {
@@ -519,9 +524,13 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
     // send public key hash to all participants except coordinator
     vector<pair<PathID, AmountReservation::ConstShared>> emptyReservations;
     for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
-        if (nodeAndPaymentID.first != coordinatorUUID()) {
+        if (nodeAndPaymentID.first == coordinatorUUID()) {
             continue;
         }
+        if (nodeAndPaymentID.first == mNodeUUID) {
+            continue;
+        }
+        info() << "Send public key hash to " << nodeAndPaymentID.first;
         sendMessage<ReservationsInRelationToNodeMessage>(
             nodeAndPaymentID.first,
             mEquivalent,
@@ -534,6 +543,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
 
     // coordinator don't send public key hash
     if (mPaymentNodesIds.size() == mParticipantsPublicKeysHashes.size() + 1) {
+        info() << "All neighbors send theirs reservations";
         // all neighbors sent theirs reservations
         if (!checkAllPublicKeyHashesProperly()) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
@@ -544,6 +554,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
                 FinalAmountsConfigurationResponseMessage::Rejected);
             return reject("Public key hashes are not properly. Rejected");
         }
+        info() << "All public key hashes are properly";
 
         if (!checkAllNeighborsReceiptsAppropriate()) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
@@ -555,15 +566,17 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
             // todo : discuss if receiver can reject TA on this stage or should wait
             return reject("Current node has different reservations with remote one. Rejected");
         }
+        info() << "All neighbors receipts are properly";
 
+        const auto publicKey = keyChain.paymentPublicKey(
+            publicKeyHash);
         sendMessage<FinalAmountsConfigurationResponseMessage>(
             coordinatorUUID(),
             mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             FinalAmountsConfigurationResponseMessage::Accepted,
-            keyChain.paymentPublicKey(
-                publicKeyHash));
+            publicKey);
         info() << "Accepted final amounts configuration";
 
         mStep = Common_VotesChecking;
@@ -781,7 +794,8 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::IncomingPaymentType,
-            mParticipantsVotesMessage->coordinatorUUID(),
+            // todo : in recovery we don't have this message, need replace on something else
+            mMessage->senderUUID,
             mCommittedAmount,
             *mTrustLines->totalBalance().get()),
         mEquivalent);
@@ -798,7 +812,6 @@ bool ReceiverPaymentTransaction::checkReservationsDirections() const
             }
         }
     }
-    debug() << "All reservations directions are correct";
     return true;
 }
 

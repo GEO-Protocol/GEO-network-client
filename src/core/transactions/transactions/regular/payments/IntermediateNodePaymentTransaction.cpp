@@ -746,6 +746,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
 
     info() << "All reservations was updated";
 
+    if (!checkReservationsDirections()) {
+        return reject("Reservations on node are invalid");
+    }
+    info() << "All reservations are correct";
+
     mPaymentNodesIds = kMessage->paymentNodesIds();
     // todo check if current node is present in mPaymentNodesIds
     if (!checkAllNeighborsWithReservationsAreInFinalParticipantsList()) {
@@ -783,6 +788,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
         if (nodeAndPaymentID.first != mCoordinator) {
             continue;
         }
+
         if (mReservations.find(nodeAndPaymentID.first) == mReservations.end()) {
             sendMessage<ReservationsInRelationToNodeMessage>(
                 nodeAndPaymentID.first,
@@ -852,7 +858,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
 
         mStep = Common_VotesChecking;
         return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes,
+            {Message::Payments_ParticipantsPublicKeys,
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay(5)); // todo : need discuss this parameter (5)
     }
@@ -925,7 +931,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
 
         mStep = Common_VotesChecking;
         return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes,
+            {Message::Payments_ParticipantsPublicKeys,
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay(5)); // todo : need discuss this parameter (5)
     }
@@ -967,7 +973,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runClarificat
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheckingStageWithCoordinatorClarification()
 {
-    if (contextIsValid(Message::Payments_ParticipantsVotes, false)) {
+    if (contextIsValid(Message::Payments_ParticipantsPublicKeys, false)) {
         return runVotesCheckingStage();
     }
 
@@ -988,7 +994,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
         currentTransactionUUID());
     mStep = Stages::Common_ClarificationTransactionDuringVoting;
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes,
+        {Message::Payments_ParticipantsPublicKeys,
          Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(2));
 }

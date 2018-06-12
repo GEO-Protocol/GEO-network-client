@@ -120,11 +120,31 @@ uint32_t KeyChain::generateAndSaveKeyPairForPaymentTransaction(
     return 0;
 }
 
-CryptoKey& KeyChain::paymentPublicKey(
+CryptoKey KeyChain::paymentPublicKey(
     uint32_t publicKeyHash)
 {
-    CryptoKey result;
-    return result;
+    byte publicKeyValue = (byte)10;
+    auto publicKey = CryptoKey(&publicKeyValue, 1);
+    return publicKey;
+}
+
+pair<BytesShared, size_t> KeyChain::signPaymentTransaction(
+    const TransactionUUID &transactionUUID,
+    uint32_t publicKeyHash)
+{
+    BytesShared result = tryMalloc(4);
+    return make_pair(
+        result,
+        4);
+}
+
+bool KeyChain::checkPaymentSignedData(
+    const TransactionUUID &transactionUUID,
+    const NodeUUID participant,
+    BytesShared sign,
+    size_t signBytesCount)
+{
+    return true;
 }
 
 string KeyChain::logHeader() const

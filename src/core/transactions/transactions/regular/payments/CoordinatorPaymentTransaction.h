@@ -141,13 +141,7 @@ protected:
     TransactionResult::SharedConst resultUnexpectedError();
 
 protected:
-    /*
-     * build participants votes message and send it to first participant
-     * and wait for this message with result of voting
-     */
     TransactionResult::SharedConst propagateVotesListAndWaitForVotingResult();
-
-    TransactionResult::SharedConst propagateVotesListAndWaitForVotingResultNew();
 
     /**
      * add built path to mPathsStats for further processing on amount reservation stage

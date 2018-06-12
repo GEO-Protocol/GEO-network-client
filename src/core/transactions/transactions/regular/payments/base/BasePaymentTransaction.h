@@ -35,6 +35,7 @@
 #include "../../../../../network/messages/payments/FinalAmountsConfigurationResponseMessage.h"
 #include "../../../../../network/messages/payments/ReservationsInRelationToNodeMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsPublicKeysMessage.h"
+#include "../../../../../network/messages/payments/ParticipantVoteMessage.h"
 
 #include "PathStats.h"
 
@@ -160,11 +161,6 @@ protected:
     };
 
 protected:
-    // Stages handlers
-    /**
-     * reaction on receiving participants votes message firstly
-     * add own vote to message and send it to next participant
-     */
     virtual TransactionResult::SharedConst runVotesCheckingStage();
 
     /**
@@ -297,21 +293,6 @@ protected:
         bool showErrorMessage = true) const;
 
     /**
-     * check if current node approved specified message
-     * @param kMessage participants votes message on which is checked
-     * @return true if current node approved specified message
-     */
-    const bool positiveVoteIsPresent (
-        const ParticipantsVotesMessage::ConstShared kMessage) const;
-
-    /**
-     * propagate participants votes message to all participants
-     * @param kMessage message which will be propagated to all participants
-     */
-    void propagateVotesMessageToAllParticipants (
-        const ParticipantsVotesMessage::Shared kMessage) const;
-
-    /**
      * drop all reservations of current node on specified path
      * @param pathID id of path on which reservations will be dropped
      */
@@ -366,13 +347,6 @@ protected:
         AmountReservation::ReservationDirection reservationDirection) const;
 
     /**
-     * check if all neighbors which are involved in current transaction
-     * are present in participants votes message
-     * @return true if present
-     */
-    bool checkAllNeighborsPresence() const;
-
-    /**
      * save result of payment transaction on database, implements by all transactions in different ways
      * @param ioTransaction pointer on database transaction
      */
@@ -397,9 +371,9 @@ protected:
 
     bool checkAllNeighborsReceiptsAppropriate();
 
-    bool checkOldAndNewParticipants(
-        ParticipantsVotesMessage::Shared newMessageWithVotes,
-        bool checkCoordinatorPresence = true);
+    bool checkPublicKeysAppropriate();
+
+    bool checkSignsAppropriate();
 
 protected:
     // Specifies how long node must wait for the response from the remote node.
@@ -443,6 +417,8 @@ protected:
     // so the votes message must be saved for further processing.
     ParticipantsVotesMessage::Shared mParticipantsVotesMessage;
 
+    ParticipantsPublicKeysMessage::Shared mParticipantsPublicKeyMessage;
+
     map<NodeUUID, vector<pair<PathID, AmountReservation::ConstShared>>> mReservations;
 
     // Nodes which with current node will be trying to close cycle
@@ -460,7 +436,8 @@ protected:
     // ids of nodes inside payment transaction
     map<NodeUUID, PaymentNodeID> mPaymentNodesIds;
     map<NodeUUID, pair<PaymentNodeID, uint32_t>> mParticipantsPublicKeysHashes;
-    map<NodeUUID, CryptoKey> mParticipantsPublicKeys;
+    map<PaymentNodeID, CryptoKey> mParticipantsPublicKeys;
+    map<PaymentNodeID, BytesShared> mParticipantsSigns;
 
     // this fields are used by coordinators on final amount configuration clarification
     bool mAllNodesSentConfirmationOnFinalAmountsConfiguration;

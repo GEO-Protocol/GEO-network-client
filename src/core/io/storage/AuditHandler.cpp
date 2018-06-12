@@ -21,7 +21,7 @@ AuditHandler::AuditHandler(
                    "contractor_sign_bytes_count INT NOT NULL, "
                    "balance BLOB NOT NULL, "
                    "outgoing_amount BLOB NOT NULL, "
-                   "incoming_amount BLOB NOT NULL) "
+                   "incoming_amount BLOB NOT NULL, "
                    "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id) ON DELETE CASCADE ON UPDATE CASCADE);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {

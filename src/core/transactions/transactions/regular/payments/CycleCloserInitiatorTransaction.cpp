@@ -188,58 +188,43 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
             "unexpected behaviour occurred.");
 }
 
-/**
- * @brief CycleCloserInitiatorTransaction::propagateVotesList
- * Collects all nodes from all paths into one votes list,
- * and propagates it to the next node in the votes list.
- */
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesListAndWaitForVotingResult()
 {
     debug() << "propagateVotesListAndWaitForVotingResult";
-    const auto kCurrentNodeUUID = currentNodeUUID();
-    const auto kTransactionUUID = currentTransactionUUID();
 
     // TODO: additional check if payment is correct
 
     // Prevent simple transaction rolling back
     // todo: make this atomic
     mTransactionIsVoted = true;
-
-    mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
-        mEquivalent,
-        kCurrentNodeUUID,
-        kTransactionUUID,
-        kCurrentNodeUUID);
-
-    // If paths wasn't processed - exclude it (all it's nodes).
-    // Unprocessed paths may occur, because paths are loaded into the transaction in batch,
-    // some of them may be used, and some may be left unprocessed.
-    auto kPathStats = mPathStats.get();
-
-    for (const auto &nodeUUID : kPathStats->path()->nodes) {
-        // By the protocol, coordinator node must be excluded from the message.
-        // Only coordinator may emit ParticipantsApprovingMessage into the network.
-        // It is supposed, that in case if it was emitted - than coordinator approved the transaction.
-        //
-        // TODO: [mvp] [cryptography] despite this, coordinator must sign the message,
-        // so the other nodes would be possible to know that this message was emitted by the coordinator.
-        if (nodeUUID == kCurrentNodeUUID)
-            continue;
-
-        mParticipantsVotesMessage->addParticipant(nodeUUID);
-    }
+    mParticipantsSigns.clear();
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
 #endif
 
-    // Begin message propagation
-    sendMessage(
-        mParticipantsVotesMessage->firstParticipant(),
-        mParticipantsVotesMessage);
+    auto keyChain = KeyChain::makeKeyChain(
+        65000,
+        mLog);
+    const auto publicKey = keyChain.paymentPublicKey(
+        mParticipantsPublicKeysHashes[mNodeUUID].second);
+    mParticipantsPublicKeys.insert(
+        make_pair(
+            mPaymentNodesIds[mNodeUUID],
+            publicKey));
 
-    debug() << "Votes message constructed and sent to the ("
-            << mParticipantsVotesMessage->firstParticipant() << ")";
+    // send message with all public keys to all participants and wait for voting results
+    for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
+        if (nodeAndPaymentID.first == mNodeUUID) {
+            continue;
+        }
+        sendMessage<ParticipantsPublicKeysMessage>(
+            nodeAndPaymentID.first,
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            mParticipantsPublicKeys);
+    }
 
 #ifdef TESTS
     mSubsystemsController->testThrowExceptionOnVoteStage();
@@ -248,8 +233,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
 
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes},
-        maxNetworkDelay(5));
+        {Message::Payments_ParticipantVote},
+        maxNetworkDelay(6));
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::tryReserveNextIntermediateNodeAmount ()
@@ -864,9 +849,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalAmountsP
         return reject("Haven't reach consensus on reservation. Transaction rejected.");
     }
     debug() << "Node " << kMessage->senderUUID << " confirmed final amounts";
-    mParticipantsPublicKeys[kMessage->senderUUID] = kMessage->publicKey();
+    mParticipantsPublicKeys[mPaymentNodesIds[kMessage->senderUUID]] = kMessage->publicKey();
 
-    if (mParticipantsPublicKeys.size() < mPaymentNodesIds.size()) {
+    if (mParticipantsPublicKeys.size() + 1 < mPaymentNodesIds.size()) {
         debug() << "Some nodes are still not confirmed final amounts. Waiting.";
         if (mAllNeighborsSentFinalReservations) {
             return resultWaitForMessageTypes(
@@ -938,8 +923,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalReservat
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsistencyCheckingStage()
 {
     debug() << "runVotesConsistencyCheckingStage";
-    if (! contextIsValid(Message::Payments_ParticipantsVotes)) {
-        return reject("Coordinator didn't receive message with votes");
+    if (! contextIsValid(Message::Payments_ParticipantVote)) {
+        return reject("Coordinator didn't receive all messages with votes");
     }
 
 #ifdef TESTS
@@ -949,29 +934,41 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
     mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif
 
-    const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
-    debug () << "Participants votes message received.";
+    const auto kMessage = popNextMessage<ParticipantVoteMessage>();
+    debug () << "Participant vote message received from " << kMessage->senderUUID;
 
-    if (!checkOldAndNewParticipants(kMessage, false)) {
-        return reject("Participants votes message is invalid. Rolling back.");
+    auto participantSign = kMessage->sign();
+    auto keyChain = KeyChain::makeKeyChain(
+        65000,
+        mLog);
+    if (mPaymentNodesIds.find(kMessage->senderUUID) == mPaymentNodesIds.end()) {
+        warning() << "Sender is not participant of current transaction";
+        return resultContinuePreviousState();
     }
 
-    mParticipantsVotesMessage = kMessage;
-    if (mParticipantsVotesMessage->containsRejectVote()) {
-        return reject("Some participant node has been rejected the transaction. Rolling back.");
+    // todo if we store participants public keys on database, then we should use KeyChain,
+    // or we can check sign directly from mParticipantsPublicKeys
+    if (!keyChain.checkPaymentSignedData(
+            currentTransactionUUID(),
+            kMessage->senderUUID,
+            participantSign.first,
+            participantSign.second)) {
+        return reject("Participant sign is incorrect. Rolling back");
     }
+    info() << "Participant sign is incorrect";
+    mParticipantsSigns.insert(make_pair(
+        mPaymentNodesIds[kMessage->senderUUID],
+        participantSign.first));
 
-    if (mParticipantsVotesMessage->achievedConsensus()){
-        debug() << "Coordinator received achieved consensus message.";
-        if (!checkReservationsDirections()) {
-            return reject("Reservations on node are invalid");
-        }
-        mParticipantsVotesMessage->addParticipant(currentNodeUUID());
-        mParticipantsVotesMessage->approve(currentNodeUUID());
+    if (mParticipantsSigns.size() + 1 == mPaymentNodesIds.size()) {
+        info() << "all participants sign their data";
         return approve();
     }
 
-    return reject("Coordinator received message with some uncertain votes. Rolling back");
+    info() << "Not all participants send theirs signs";
+    return resultWaitForMessageTypes(
+        {Message::Payments_ParticipantVote},
+        maxNetworkDelay(3));
 }
 
 void CycleCloserInitiatorTransaction::checkPath(
@@ -1093,8 +1090,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::approve()
     mCommittedAmount = totalReservedAmount(
         AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
-    propagateVotesMessageToAllParticipants(
-        mParticipantsVotesMessage);
+    for (const auto &nodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
+        sendMessage<ParticipantsVotesMessage>(
+            nodeUUIDAndPaymentNodeID.first,
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            mParticipantsSigns);
+    }
     return resultDone();
 }
 

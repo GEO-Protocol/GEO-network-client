@@ -145,7 +145,7 @@ pair<BytesShared, size_t> FinalAmountsConfigurationMessage::serializeToBytes() c
             bytesBufferOffset,
             it.first.data,
             NodeUUID::kBytesSize);
-        bytesBufferOffset += sizeof(NodeUUID::kBytesSize);
+        bytesBufferOffset += NodeUUID::kBytesSize;
 
         memcpy(
             bytesBufferOffset,

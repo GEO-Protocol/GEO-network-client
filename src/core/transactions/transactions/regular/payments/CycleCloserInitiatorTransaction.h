@@ -148,10 +148,6 @@ protected:
      */
     TransactionResult::SharedConst processRemoteNodeResponse();
 
-    /*
-     * build participants votes message and send it to first participant
-     * and wait for this message with result of voting
-     */
     TransactionResult::SharedConst propagateVotesListAndWaitForVotingResult();
 
 protected:
