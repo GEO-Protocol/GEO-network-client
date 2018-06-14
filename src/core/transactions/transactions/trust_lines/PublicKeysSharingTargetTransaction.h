@@ -3,13 +3,16 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../crypto/KeyChain.h"
+#include "../../../crypto/keychain.h"
+#include "../../../crypto/lamportkeys.h"
 
 #include "../../../network/messages/trust_lines/PublicKeyMessage.h"
 #include "../../../network/messages/trust_lines/PublicKeyCRCConfirmation.h"
 
 #include "PublicKeysSharingSourceTransaction.h"
 #include "InitialAuditSourceTransaction.h"
+
+using namespace crypto;
 
 class PublicKeysSharingTargetTransaction : public BaseTransaction {
 
@@ -22,6 +25,7 @@ public:
         PublicKeyMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        Keystore *keystore,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -41,15 +45,14 @@ private:
     TransactionResult::SharedConst runReceiveNextKeyStage();
 
 private:
-    static const uint32_t kKeysCount = 5;
     static const uint32_t kWaitMillisecondsForResponse = 3000;
 
 protected:
     PublicKeyMessage::Shared mMessage;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
-    KeyChain mKeyChain;
-    uint32_t mReceivedKeysCount;
+    Keystore *mKeysStore;
+    KeysCount mReceivedKeysCount;
 };
 
 

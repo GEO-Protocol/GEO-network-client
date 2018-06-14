@@ -4,14 +4,12 @@ ParticipantVoteMessage::ParticipantVoteMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    size_t signBytesCount,
-    BytesShared sign) :
+    lamport::Signature::Shared sign) :
     TransactionMessage(
         equivalent,
         senderUUID,
         transactionUUID),
-    mSign(sign),
-    mSignBytesCount(signBytesCount)
+    mSign(sign)
 {}
 
 ParticipantVoteMessage::ParticipantVoteMessage(
@@ -20,16 +18,9 @@ ParticipantVoteMessage::ParticipantVoteMessage(
 {
     auto bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
-    memcpy(
-        &mSignBytesCount,
-        buffer.get() + bytesBufferOffset,
-        sizeof(size_t));
-    bytesBufferOffset += sizeof(size_t);
-
-    memcpy(
-        mSign.get(),
-        buffer.get() + bytesBufferOffset,
-        mSignBytesCount);
+    auto sign = make_shared<lamport::Signature>(
+        buffer.get() + bytesBufferOffset);
+    mSign = sign;
 }
 
 const Message::MessageType ParticipantVoteMessage::typeID() const
@@ -37,11 +28,9 @@ const Message::MessageType ParticipantVoteMessage::typeID() const
     return Message::Payments_ParticipantVote;
 }
 
-const pair<BytesShared, size_t> ParticipantVoteMessage::sign() const
+const lamport::Signature::Shared ParticipantVoteMessage::sign() const
 {
-    return make_pair(
-        mSign,
-        mSignBytesCount);
+    return mSign;
 }
 
 pair<BytesShared, size_t> ParticipantVoteMessage::serializeToBytes() const
@@ -51,8 +40,7 @@ pair<BytesShared, size_t> ParticipantVoteMessage::serializeToBytes() const
 
     const auto kBufferSize =
             parentBytesAndCount.second
-            + sizeof(size_t)
-            + mSignBytesCount;
+            + lamport::Signature::signatureSize();
 
     BytesShared buffer = tryMalloc(kBufferSize);
 
@@ -66,14 +54,8 @@ pair<BytesShared, size_t> ParticipantVoteMessage::serializeToBytes() const
 
     memcpy(
         buffer.get() + dataBytesOffset,
-        &mSignBytesCount,
-        sizeof(size_t));
-    dataBytesOffset += sizeof(size_t);
-
-    memcpy(
-        buffer.get() + dataBytesOffset,
-        mSign.get(),
-        mSignBytesCount);
+        mSign->data(),
+        lamport::Signature::signatureSize());
 
     return make_pair(
         buffer,

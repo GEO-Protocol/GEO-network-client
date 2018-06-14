@@ -2,6 +2,9 @@
 #define GEO_NETWORK_CLIENT_PARTICIPANTVOTEMESSAGE_H
 
 #include "../base/transaction/TransactionMessage.h"
+#include "../../../crypto/lamportscheme.h"
+
+using namespace crypto;
 
 class ParticipantVoteMessage : public TransactionMessage {
 
@@ -13,22 +16,20 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        size_t signBytesCount,
-        BytesShared sign);
+        lamport::Signature::Shared sign);
 
     ParticipantVoteMessage(
         BytesShared buffer);
 
     const MessageType typeID() const;
 
-    const pair<BytesShared, size_t> sign() const;
+    const lamport::Signature::Shared sign() const;
 
     pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
 private:
-    BytesShared mSign;
-    size_t mSignBytesCount;
+    lamport::Signature::Shared mSign;
 };
 
 

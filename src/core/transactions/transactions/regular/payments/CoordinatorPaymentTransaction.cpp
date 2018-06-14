@@ -9,6 +9,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     MaxFlowCacheManager *maxFlowCacheManager,
     ResourcesManager *resourcesManager,
     PathsManager *pathsManager,
+    Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController,
     VisualInterface *visualInterface)
@@ -22,6 +23,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        keystore,
         log,
         subsystemsController),
     mCommand(kCommand),
@@ -46,6 +48,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     MaxFlowCacheManager *maxFlowCacheManager,
     ResourcesManager *resourcesManager,
     PathsManager *pathsManager,
+    Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController)
     throw (bad_alloc) :
@@ -57,6 +60,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        keystore,
         log,
         subsystemsController),
     mResourcesManager(resourcesManager),
@@ -380,15 +384,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
 #endif
 
-    auto keyChain = KeyChain::makeKeyChain(
-        65000,
-        mLog);
-    const auto publicKey = keyChain.paymentPublicKey(
-        mParticipantsPublicKeysHashes[mNodeUUID].second);
     mParticipantsPublicKeys.insert(
         make_pair(
             mPaymentNodesIds[mNodeUUID],
-            publicKey));
+            mPublicKey));
 
     // send message with all public keys to all participants and wait for voting results
     for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
@@ -1309,17 +1308,18 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
 
     debug() << "Total count of all participants without coordinator is " << mNodesFinalAmountsConfiguration.size();
 
-    auto keyChain = KeyChain::makeKeyChain(
-        65000,
-        mLog);
-    auto publicKeyHash = keyChain.generateAndSaveKeyPairForPaymentTransaction(
-        currentTransactionUUID());
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
+        ioTransaction,
+        currentTransactionUUID(),
+        mNodeUUID);
     mParticipantsPublicKeysHashes.insert(
         make_pair(
             currentNodeUUID(),
             make_pair(
                 coordinatorPaymentNodeID,
-                publicKeyHash)));
+                mPublicKey->hash())));
     // send reservations to first level nodes on transaction paths
     for (const auto &nodeAndReservations : mReservations) {
         sendMessage<ReservationsInRelationToNodeMessage>(
@@ -1329,7 +1329,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
             currentTransactionUUID(),
             nodeAndReservations.second,
             coordinatorPaymentNodeID,
-            publicKeyHash);
+            mPublicKey->hash());
     }
 
     mStep = Coordinator_FinalAmountsConfigurationConfirmation;
@@ -1361,7 +1361,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsCon
     }
     debug() << "Node " << kMessage->senderUUID << " confirmed final amounts";
     mParticipantsPublicKeys[mPaymentNodesIds[kMessage->senderUUID]] = kMessage->publicKey();
-    info() << "received public key: " << (int)*kMessage->publicKey().key();
     if (mParticipantsPublicKeys.size() + 1 < mPaymentNodesIds.size()) {
         debug() << "Some nodes are still not confirmed final amounts. Waiting.";
         return resultWaitForMessageTypes(
@@ -1619,27 +1618,24 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
 
     const auto kMessage = popNextMessage<ParticipantVoteMessage>();
     debug () << "Participant vote message received from " << kMessage->senderUUID;
-    auto participantSign = kMessage->sign();
-    auto keyChain = KeyChain::makeKeyChain(
-        65000,
-        mLog);
     if (mPaymentNodesIds.find(kMessage->senderUUID) == mPaymentNodesIds.end()) {
         warning() << "Sender is not participant of current transaction";
         return resultContinuePreviousState();
     }
+    auto participantSign = kMessage->sign();
+    auto participantPublicKey = mParticipantsPublicKeys[mPaymentNodesIds[kMessage->senderUUID]];
+    // todo understand what data need for check
+    BytesShared someData;
     // todo if we store participants public keys on database, then we should use KeyChain,
     // or we can check sign directly from mParticipantsPublicKeys
-    if (!keyChain.checkPaymentSignedData(
-            currentTransactionUUID(),
-            kMessage->senderUUID,
-            participantSign.first,
-            participantSign.second)) {
+    if (!participantSign->check(someData.get(), 4, participantPublicKey)) {
         return reject("Participant sign is incorrect. Rolling back");
     }
     info() << "Participant sign is incorrect";
-    mParticipantsSigns.insert(make_pair(
-        mPaymentNodesIds[kMessage->senderUUID],
-        participantSign.first));
+    mParticipantsSigns.insert(
+        make_pair(
+            mPaymentNodesIds[kMessage->senderUUID],
+            participantSign));
 
     if (mParticipantsSigns.size() + 1 == mPaymentNodesIds.size()) {
         info() << "all participants sign their data";

@@ -5,6 +5,9 @@
 #include "../../../../io/storage/StorageHandler.h"
 #include "../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../../../network/messages/payments/ParticipantsVotesMessage.h"
+#include "../../../../crypto/lamportscheme.h"
+
+using namespace crypto;
 
 class VotesStatusResponsePaymentTransaction:
         public BaseTransaction{

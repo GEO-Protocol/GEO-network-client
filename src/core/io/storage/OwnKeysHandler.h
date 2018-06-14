@@ -4,10 +4,12 @@
 #include "../../logger/Logger.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/NotFoundError.h"
-#include "../../crypto/CryptoKey.h"
+#include "../../crypto/lamportkeys.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 #include <vector>
+
+using namespace crypto::lamport;
 
 class OwnKeysHandler {
 
@@ -19,21 +21,22 @@ public:
 
     void saveKey(
         const TrustLineID trustLineID,
-        const CryptoKey &publicKey,
-        const CryptoKey &privateKey,
-        uint32_t number);
+        const PublicKey::Shared publicKey,
+        const PrivateKey *privateKey,
+        const KeyNumber number);
 
-    pair<uint32_t, CryptoKey> nextAvailableKey(
+    pair<PrivateKey*, KeyNumber> nextAvailableKey(
         const TrustLineID trustLineID);
 
     void invalidKey(
         const TrustLineID trustLineID,
-        uint32_t number);
+        const KeyNumber number);
 
-    vector<pair<uint32_t, CryptoKey>> allAvailablePublicKeys(
-        const TrustLineID trustLineID);
+    const PublicKey::Shared getPublicKey(
+        const TrustLineID trustLineID,
+        const KeyNumber keyNumber);
 
-    uint32_t availableKeysCnt(
+    KeysCount availableKeysCnt(
         const TrustLineID trustLineID);
 
 private:

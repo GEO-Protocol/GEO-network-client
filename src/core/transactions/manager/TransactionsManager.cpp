@@ -11,6 +11,7 @@ TransactionsManager::TransactionsManager(
     ResourcesManager *resourcesManager,
     ResultsInterface *resultsInterface,
     StorageHandler *storageHandler,
+    Keystore *keystore,
     Logger &logger,
     SubsystemsController *subsystemsController) :
 
@@ -20,6 +21,7 @@ TransactionsManager::TransactionsManager(
         mResourcesManager(resourcesManager),
         mResultsInterface(resultsInterface),
         mStorageHandler(storageHandler),
+        mKeysStore(keystore),
         mLog(logger),
         mSubsystemsController(subsystemsController),
 
@@ -90,6 +92,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
                         mResourcesManager,
                         mEquivalentsSubsystemsRouter->pathsManager(*equivalent),
+                        mKeysStore,
                         mLog,
                         mSubsystemsController);
                     subscribeForBuildCyclesThreeNodesTransaction(
@@ -115,6 +118,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mStorageHandler,
                         mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
                         mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
+                        mKeysStore,
                         mLog,
                         mSubsystemsController);
                     subscribeForBuildCyclesThreeNodesTransaction(
@@ -142,6 +146,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mStorageHandler,
                         mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
                         mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
+                        mKeysStore,
                         mLog,
                         mSubsystemsController);
                     subscribeForBuildCyclesThreeNodesTransaction(
@@ -168,6 +173,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mStorageHandler,
                         mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
                         mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
+                        mKeysStore,
                         mLog,
                         mSubsystemsController);
                     prepareAndSchedule(
@@ -192,6 +198,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mStorageHandler,
                         mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
                         mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
+                        mKeysStore,
                         mLog,
                         mSubsystemsController);
                     prepareAndSchedule(
@@ -510,6 +517,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
             mStorageHandler,
             mSubsystemsController,
+            mKeysStore,
             mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
             mLog);
         subscribeForProcessingConfirmationMessage(
@@ -547,6 +555,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
                 mStorageHandler,
                 mSubsystemsController,
+                mKeysStore,
                 mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
                 mLog);
             subscribeForProcessingConfirmationMessage(
@@ -784,6 +793,7 @@ void TransactionsManager::launchPublicKeysSharingTargetTransaction(
                 message,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mStorageHandler,
+                mKeysStore,
                 mLog),
             true,
             true,
@@ -804,6 +814,7 @@ void TransactionsManager::launchInitialAuditTargetTransaction(
                 message,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mStorageHandler,
+                mKeysStore,
                 mLog),
             true,
             false,
@@ -1084,6 +1095,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
             mResourcesManager,
             mEquivalentsSubsystemsRouter->pathsManager(command->equivalent()),
+            mKeysStore,
             mLog,
             mSubsystemsController,
             mVisualInterface.get());
@@ -1115,6 +1127,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
+            mKeysStore,
             mLog,
             mSubsystemsController,
             mVisualInterface.get());
@@ -1146,6 +1159,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
+            mKeysStore,
             mLog,
             mSubsystemsController);
         subscribeForBuildCyclesThreeNodesTransaction(
@@ -1202,6 +1216,7 @@ void TransactionsManager::onCloseCycleTransaction(
                 mStorageHandler,
                 mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                mKeysStore,
                 mLog,
                 mSubsystemsController),
             true,
@@ -1228,6 +1243,7 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
                 mStorageHandler,
                 mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
+                mKeysStore,
                 mLog,
                 mSubsystemsController),
             false,

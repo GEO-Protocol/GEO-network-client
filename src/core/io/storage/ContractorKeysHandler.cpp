@@ -14,7 +14,6 @@ ContractorKeysHandler::ContractorKeysHandler(
                    " (hash INTEGER PRIMARY KEY, "
                    "trust_line_id INTEGER NOT NULL, "
                    "public_key BLOB NOT NULL, "
-                   "public_key_bytes_count INT NOT NULL, "
                    "number INTEGER NOT NULL, "
                    "is_valid INTEGER NOT NULL DEFAULT 1, "
                    "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id) ON DELETE CASCADE ON UPDATE CASCADE);";
@@ -64,19 +63,19 @@ ContractorKeysHandler::ContractorKeysHandler(
 
 void ContractorKeysHandler::saveKey(
     const TrustLineID trustLineID,
-    const CryptoKey &publicKey,
-    uint32_t number)
+    const PublicKey::Shared publicKey,
+    const KeyNumber number)
 {
     string query = "INSERT INTO " + mTableName +
-                   "(hash, trust_line_id, public_key, public_key_bytes_count, "
-                   "number) VALUES (?, ?, ?, ?, ?);";
+                   "(hash, trust_line_id, public_key, "
+                   "number) VALUES (?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::saveKey: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 1, publicKey.hash());
+    rc = sqlite3_bind_int(stmt, 1, publicKey->hash());
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::saveKey: "
                           "Bad binding of Hash; sqlite error: " + to_string(rc));
@@ -86,18 +85,13 @@ void ContractorKeysHandler::saveKey(
         throw IOError("ContractorKeysHandler::saveKey: "
                           "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 3, publicKey.key(),
-                       (int)publicKey.keySize(), SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 3, publicKey->data(),
+                       (int)publicKey->keySize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::saveKey: "
                           "Bad binding of Public Key; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 4, (int)publicKey.keySize());
-    if (rc != SQLITE_OK) {
-        throw IOError("ContractorKeysHandler::saveKey: "
-                          "Bad binding of Public Key Bytes Count; sqlite error: " + to_string(rc));
-    }
-    rc = sqlite3_bind_int(stmt, 5, number);
+    rc = sqlite3_bind_int(stmt, 4, number);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::saveKey: "
                           "Bad binding of Number; sqlite error: " + to_string(rc));
@@ -109,7 +103,7 @@ void ContractorKeysHandler::saveKey(
     sqlite3_finalize(stmt);
     if (rc == SQLITE_DONE) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "prepare inserting or replacing is completed successfully";
+        info() << "prepare inserting is completed successfully";
 #endif
     } else {
         throw IOError("ContractorKeysHandler::saveKey: "
@@ -117,10 +111,10 @@ void ContractorKeysHandler::saveKey(
     }
 }
 
-CryptoKey ContractorKeysHandler::keyByNumber(
-    uint32_t number)
+PublicKey::Shared ContractorKeysHandler::keyByNumber(
+    const KeyNumber number)
 {
-    string query = "SELECT public_key, public_key_bytes_count FROM " + mTableName + " WHERE number = ?;";
+    string query = "SELECT public_key FROM " + mTableName + " WHERE number = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -134,11 +128,7 @@ CryptoKey ContractorKeysHandler::keyByNumber(
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        auto keyBytesCount = (size_t)sqlite3_column_int(stmt, 1);
-        CryptoKey result;
-        result.deserialize(
-            keyBytesCount,
-            (byte*)sqlite3_column_blob(stmt, 0));
+        auto result = make_shared<PublicKey>((byte*)sqlite3_column_blob(stmt, 0));
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
         return result;
@@ -150,7 +140,7 @@ CryptoKey ContractorKeysHandler::keyByNumber(
     }
 }
 
-uint32_t ContractorKeysHandler::availableKeysCnt(
+KeysCount ContractorKeysHandler::availableKeysCnt(
     const TrustLineID trustLineID)
 {
     string queryCount = "SELECT count(*) FROM " + mTableName + " WHERE trust_line_id = ? AND is_valid = 1";
@@ -166,7 +156,7 @@ uint32_t ContractorKeysHandler::availableKeysCnt(
                           "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
     }
     sqlite3_step(stmt);
-    uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
+    auto rowCount = (KeysCount)sqlite3_column_int(stmt, 0);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return rowCount;

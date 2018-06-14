@@ -20,6 +20,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController,
         VisualInterface *visualInterface);
@@ -31,6 +32,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
 

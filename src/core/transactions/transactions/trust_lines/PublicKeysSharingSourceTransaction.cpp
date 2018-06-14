@@ -6,6 +6,7 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     const SerializedEquivalent equivalent,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    Keystore *keystore,
     Logger &logger) :
     BaseTransaction(
         BaseTransaction::PublicKeysSharingSourceTransactionType,
@@ -15,7 +16,7 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     mContractorUUID(contractorUUID),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mKeyChain(KeyChain::makeKeyChain(manager->trustLineReadOnly(contractorUUID)->trustLineID(), logger))
+    mKeysStore(keystore)
 {}
 
 TransactionResult::SharedConst PublicKeysSharingSourceTransaction::run()
@@ -36,31 +37,29 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::run()
 TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runInitialisationStage()
 {
     auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineReadOnly(mContractorUUID)->trustLineID());
     try {
-        mKeyChain.initGeneration(kKeysCount, ioTransaction);
+        keyChain.generateKeyPairsSet(ioTransaction);
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't generate public keys. Details: " << e.what();
         return resultDone();
     }
     info() << "All keys saved";
-    for (const auto &numberAndKey : mKeyChain.allAvailablePublicKeys(ioTransaction)) {
-        mPublicKeys.insert(
-            make_pair(
-                numberAndKey.first,
-                numberAndKey.second));
-    }
-    mCurrentKey = mPublicKeys.begin();
-    info() << "before sending";
+    mCurrentKeyNumber = 0;
+    // todo check on errors
+    mCurrentPublicKey = keyChain.publicKey(
+        ioTransaction,
+        mCurrentKeyNumber).first;
     sendMessage<PublicKeyMessage>(
         mContractorUUID,
         mEquivalent,
         mNodeUUID,
         currentTransactionUUID(),
-        mCurrentKey->first,
-        mCurrentKey->second);
-    info() << "Send key number: " << mCurrentKey->first << " key: " << (int)*mCurrentKey->second.key()
-           << " key size: " << mCurrentKey->second.keySize();
+        mCurrentKeyNumber,
+        mCurrentPublicKey);
+    info() << "Send key number: " << mCurrentKeyNumber;
     mStep = SendNextKey;
     return resultWaitForMessageTypes(
         {Message::TrustLines_CRCConfirmation},
@@ -74,16 +73,18 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runSendNextKe
         return resultDone();
     }
     auto message = popNextMessage<PublicKeyCRCConfirmation>();
-    if (message->number() != mCurrentKey->first || message->crcConfirmation() != mCurrentKey->second.crc()) {
+    if (message->number() != mCurrentKeyNumber || message->crcConfirmation() != mCurrentPublicKey->crc()) {
         warning() << "Number or CRC is incorrect";
         return resultDone();
     }
-    info() << "Key number: " << mCurrentKey->first << " key: " << (int)*mCurrentKey->second.key() << " confirmed";
-    mCurrentKey++;
-    if (mCurrentKey == mPublicKeys.end()) {
+    info() << "Key number: " << mCurrentKeyNumber << " confirmed";
+    mCurrentKeyNumber++;
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineReadOnly(mContractorUUID)->trustLineID());
+    if (mCurrentKeyNumber > TrustLineKeychain::kDefaultKeysSetSize) {
         info() << "all keys confirmed";
         auto ioTransaction = mStorageHandler->beginTransaction();
-        if (mKeyChain.isAllKeysReady(ioTransaction, kKeysCount)) {
+        if (keyChain.areKeysReady(ioTransaction)) {
             info() << "All Keys Ready";
             try {
                 mTrustLines->setTrustLineState(
@@ -102,14 +103,19 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runSendNextKe
         return resultDone();
     }
 
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    // todo check on errors
+    mCurrentPublicKey = keyChain.publicKey(
+        ioTransaction,
+        mCurrentKeyNumber).first;
     sendMessage<PublicKeyMessage>(
         mContractorUUID,
         mEquivalent,
         mNodeUUID,
         currentTransactionUUID(),
-        mCurrentKey->first,
-        mCurrentKey->second);
-    info() << "Send key number: " << mCurrentKey->first << " key: " << (int)*mCurrentKey->second.key();
+        mCurrentKeyNumber,
+        mCurrentPublicKey);
+    info() << "Send key number: " << mCurrentKeyNumber;
     return resultWaitForMessageTypes(
         {Message::TrustLines_CRCConfirmation},
         kWaitMillisecondsForResponse);

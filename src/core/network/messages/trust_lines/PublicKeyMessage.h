@@ -2,7 +2,9 @@
 #define GEO_NETWORK_CLIENT_PUBLICKEYMESSAGE_H
 
 #include "../base/transaction/TransactionMessage.h"
-#include "../../../crypto/CryptoKey.h"
+#include "../../../crypto/lamportkeys.h"
+
+using namespace crypto;
 
 class PublicKeyMessage : public TransactionMessage {
 
@@ -14,23 +16,23 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        uint32_t number,
-        const CryptoKey &publicKey);
+        const KeyNumber number,
+        const lamport::PublicKey::Shared publicKey);
 
     PublicKeyMessage(
         BytesShared buffer);
 
-    const uint32_t number() const;
+    const KeyNumber number() const;
 
-    const CryptoKey& publicKey() const;
+    const lamport::PublicKey::Shared publicKey() const;
 
     const MessageType typeID() const;
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
 private:
-    uint32_t mNumber;
-    CryptoKey mPublicKey;
+    KeyNumber mNumber;
+    lamport::PublicKey::Shared mPublicKey;
 };
 
 

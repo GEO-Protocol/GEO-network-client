@@ -5,10 +5,13 @@
 #include "../../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
+#include "../../../crypto/keychain.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "PublicKeysSharingSourceTransaction.h"
+
+using namespace crypto;
 
 class OpenTrustLineTransaction : public BaseTransaction {
 
@@ -22,6 +25,7 @@ public:
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         SubsystemsController *subsystemsController,
+        Keystore *keystore,
         bool iAmGateway,
         Logger &logger)
     noexcept;
@@ -63,6 +67,7 @@ protected:
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     SubsystemsController *mSubsystemsController;
+    Keystore *mKeysStore;
     bool mIAmGateway;
 };
 

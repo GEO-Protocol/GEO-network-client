@@ -4,7 +4,10 @@
 #include "../base/BaseTransaction.h"
 #include "../../../network/messages/trust_lines/AuditMessage.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../crypto/KeyChain.h"
+#include "../../../crypto/keychain.h"
+#include "../../../crypto/lamportkeys.h"
+
+using namespace crypto;
 
 class InitialAuditTargetTransaction : public BaseTransaction {
 
@@ -17,6 +20,7 @@ public:
         AuditMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        Keystore *keystore,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -34,7 +38,7 @@ protected:
     AuditMessage::Shared mMessage;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
-    KeyChain mKeyChain;
+    Keystore *mKeysStore;
 };
 
 

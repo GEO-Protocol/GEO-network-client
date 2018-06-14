@@ -4,7 +4,7 @@ ParticipantsPublicKeysMessage::ParticipantsPublicKeysMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    const map<PaymentNodeID, CryptoKey> &publicKeys):
+    const map<PaymentNodeID, lamport::PublicKey::Shared> &publicKeys):
     TransactionMessage(
         equivalent,
         senderUUID,
@@ -33,17 +33,9 @@ ParticipantsPublicKeysMessage::ParticipantsPublicKeysMessage(
             sizeof(PaymentNodeID));
         bytesBufferOffset += sizeof(PaymentNodeID);
 
-        size_t publicKeySize;
-        memcpy(
-            &publicKeySize,
-            buffer.get() + bytesBufferOffset,
-            sizeof(size_t));
-        bytesBufferOffset += sizeof(size_t);
-
-        CryptoKey publicKey(
-            buffer.get() + bytesBufferOffset,
-            publicKeySize);
-        bytesBufferOffset += publicKeySize;
+        auto publicKey = make_shared<lamport::PublicKey>(
+            buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += lamport::PublicKey::keySize();
 
         mPublicKeys.insert(
             make_pair(
@@ -57,7 +49,7 @@ const Message::MessageType ParticipantsPublicKeysMessage::typeID() const
     return Message::Payments_ParticipantsPublicKeys;
 }
 
-const map<PaymentNodeID, CryptoKey>& ParticipantsPublicKeysMessage::publicKeys() const
+const map<PaymentNodeID, lamport::PublicKey::Shared>& ParticipantsPublicKeysMessage::publicKeys() const
 {
     return mPublicKeys;
 }
@@ -71,7 +63,7 @@ pair<BytesShared, size_t> ParticipantsPublicKeysMessage::serializeToBytes() cons
             parentBytesAndCount.second
             + sizeof(SerializedRecordsCount)
             + mPublicKeys.size()
-              * (sizeof(PaymentNodeID) * CryptoKey::serializedKeySize());
+              * (sizeof(PaymentNodeID) + lamport::PublicKey::keySize());
 
     BytesShared buffer = tryMalloc(kBufferSize);
 
@@ -99,18 +91,11 @@ pair<BytesShared, size_t> ParticipantsPublicKeysMessage::serializeToBytes() cons
             sizeof(PaymentNodeID));
         dataBytesOffset += sizeof(PaymentNodeID);
 
-        auto publicKeySize = nodeIDAndPublicKey.second.keySize();
         memcpy(
             buffer.get() + dataBytesOffset,
-            &publicKeySize,
-            sizeof(size_t));
-        dataBytesOffset += sizeof(size_t);
-
-        memcpy(
-            buffer.get() + dataBytesOffset,
-            nodeIDAndPublicKey.second.key(),
-            publicKeySize);
-        dataBytesOffset += publicKeySize;
+            nodeIDAndPublicKey.second->data(),
+            lamport::PublicKey::keySize());
+        dataBytesOffset += lamport::PublicKey::keySize();
     }
 
     return make_pair(

@@ -8,6 +8,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -20,6 +21,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
+    mKeysStore(keystore),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
@@ -34,6 +36,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -47,6 +50,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
+    mKeysStore(keystore),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
@@ -59,6 +63,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -70,6 +75,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
+    mKeysStore(keystore),
     mSubsystemsController(subsystemsController)
 {
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
@@ -244,12 +250,14 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         debug() << "Transaction saved";
     }
 
-    auto keyChain = KeyChain::makeKeyChain(
-        65000,
-        mLog);
-    auto signedTransaction = keyChain.signPaymentTransaction(
+    // todo understand what data need for sign
+    BytesShared someData;
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto signedTransaction = mKeysStore->signPaymentTransaction(
+        ioTransaction,
         currentTransactionUUID(),
-        mParticipantsPublicKeysHashes[mNodeUUID].second);
+        someData,
+        4);
     debug() << "Voted +";
 
 #ifdef TESTS
@@ -272,8 +280,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         mEquivalent,
         mNodeUUID,
         currentTransactionUUID(),
-        signedTransaction.second,
-        signedTransaction.first);
+        signedTransaction);
 
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},
@@ -315,11 +322,9 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
     PaymentNodeID coordinatorID = 0;
     auto coordinatorSign = mParticipantsSigns[coordinatorID];
     auto coordinatorPublicKey = mParticipantsPublicKeys[coordinatorID];
-    bool isSignCorrect;
-    BytesShared checkedData;
-    size_t checkedDataSize;
-    std::tie(isSignCorrect, checkedData, checkedDataSize) = coordinatorPublicKey.checkData(coordinatorSign, 4);
-    if (!isSignCorrect) {
+    // todo understand what data need for check
+    BytesShared someData;
+    if (!coordinatorSign->check(someData.get(), 4, coordinatorPublicKey)) {
         reject("Final coordinator sign is wrong");
     }
     for (const auto &nodeUUIDAndPaymentNodeID : mParticipantsPublicKeysHashes) {
@@ -329,8 +334,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
         }
         auto participantPublicKey = mParticipantsPublicKeys[nodeUUIDAndPaymentNodeID.second.first];
         auto participantSign = mParticipantsSigns[nodeUUIDAndPaymentNodeID.second.first];
-        std::tie(isSignCorrect, checkedData, checkedDataSize) = coordinatorPublicKey.checkData(coordinatorSign, 4);
-        if (!isSignCorrect) {
+        if (!participantSign->check(someData.get(), 4, participantPublicKey)) {
             warning() << "Final node " << nodeUUIDAndPaymentNodeID.first.stringUUID() << " sign is wrong";
             return reject("Consensus not achieved.");
         }
@@ -1044,7 +1048,7 @@ bool BasePaymentTransaction::checkPublicKeysAppropriate()
             return false;
         }
         auto publicKey = mParticipantsPublicKeys[nodeAndPublicKeyHash.second.first];
-        if (publicKey.hash() != nodeAndPublicKeyHash.second.second) {
+        if (publicKey->hash() != nodeAndPublicKeyHash.second.second) {
             warning() << "there are different public key hashes for node " << nodeAndPublicKeyHash.first
                       << " [" << nodeAndPublicKeyHash.second.first << "]";
             return false;

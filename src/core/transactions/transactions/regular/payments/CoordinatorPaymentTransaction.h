@@ -44,6 +44,7 @@ public:
         MaxFlowCacheManager *maxFlowCacheManager,
         ResourcesManager *resourcesManager,
         PathsManager *pathsManager,
+        Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController,
         VisualInterface *visualInterface)
@@ -58,6 +59,7 @@ public:
         MaxFlowCacheManager *maxFlowCacheManager,
         ResourcesManager *resourcesManager,
         PathsManager *pathsManager,
+        Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController)
         throw (bad_alloc);

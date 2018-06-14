@@ -13,13 +13,13 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        uint32_t number,
+        KeyNumber number,
         uint64_t crcConfirmation);
 
     PublicKeyCRCConfirmation(
         BytesShared buffer);
 
-    const uint32_t number() const;
+    const KeyNumber number() const;
 
     const uint64_t crcConfirmation() const;
 
@@ -29,7 +29,7 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
 private:
-    uint32_t mNumber;
+    KeyNumber mNumber;
     uint64_t mCrcConfirmation;
 };
 

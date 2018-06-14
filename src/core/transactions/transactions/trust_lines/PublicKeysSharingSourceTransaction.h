@@ -3,10 +3,13 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../crypto/KeyChain.h"
+#include "../../../crypto/keychain.h"
+#include "../../../crypto/lamportkeys.h"
 
 #include "../../../network/messages/trust_lines/PublicKeyMessage.h"
 #include "../../../network/messages/trust_lines/PublicKeyCRCConfirmation.h"
+
+using namespace crypto;
 
 class PublicKeysSharingSourceTransaction : public BaseTransaction {
 
@@ -20,6 +23,7 @@ public:
         const SerializedEquivalent equivalent,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        Keystore *keystore,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -46,9 +50,9 @@ protected:
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
-    KeyChain mKeyChain;
-    map<uint32_t, CryptoKey> mPublicKeys;
-    map<uint32_t, CryptoKey>::iterator mCurrentKey;
+    Keystore *mKeysStore;
+    KeyNumber mCurrentKeyNumber;
+    lamport::PublicKey::Shared mCurrentPublicKey;
 };
 
 

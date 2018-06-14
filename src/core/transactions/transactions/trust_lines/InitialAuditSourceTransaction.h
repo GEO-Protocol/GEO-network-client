@@ -3,9 +3,12 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../crypto/KeyChain.h"
+#include "../../../crypto/keychain.h"
+#include "../../../crypto/lamportkeys.h"
 
 #include "../../../network/messages/trust_lines/AuditMessage.h"
+
+using namespace crypto;
 
 class InitialAuditSourceTransaction : public BaseTransaction {
 
@@ -19,6 +22,7 @@ public:
         const SerializedEquivalent equivalent,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        Keystore *keystore,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -49,11 +53,7 @@ protected:
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
-    KeyChain mKeyChain;
-
-    BytesShared ownSignedData;
-    size_t ownSignedDataSize;
-    uint32_t ownKeyNumber;
+    Keystore *mKeysStore;
 };
 
 

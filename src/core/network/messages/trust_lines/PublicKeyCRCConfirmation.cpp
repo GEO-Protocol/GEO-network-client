@@ -4,7 +4,7 @@ PublicKeyCRCConfirmation::PublicKeyCRCConfirmation(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    uint32_t number,
+    KeyNumber number,
     uint64_t crcConfirmation):
     TransactionMessage(
         equivalent,
@@ -23,8 +23,8 @@ PublicKeyCRCConfirmation::PublicKeyCRCConfirmation(
     memcpy(
         &mNumber,
         buffer.get() + bytesBufferOffset,
-        sizeof(uint32_t));
-    bytesBufferOffset += sizeof(uint32_t);
+        sizeof(KeyNumber));
+    bytesBufferOffset += sizeof(KeyNumber);
 
     memcpy(
         &mCrcConfirmation,
@@ -38,7 +38,7 @@ const Message::MessageType PublicKeyCRCConfirmation::typeID() const
     return Message::TrustLines_CRCConfirmation;
 }
 
-const uint32_t PublicKeyCRCConfirmation::number() const
+const KeyNumber PublicKeyCRCConfirmation::number() const
 {
     return mNumber;
 }
@@ -53,7 +53,7 @@ pair<BytesShared, size_t> PublicKeyCRCConfirmation::serializeToBytes() const
     const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     const auto kBufferSize =
             parentBytesAndCount.second
-            + sizeof(uint32_t)
+            + sizeof(KeyNumber)
             + sizeof(uint64_t);
     BytesShared buffer = tryMalloc(kBufferSize);
 
@@ -68,8 +68,8 @@ pair<BytesShared, size_t> PublicKeyCRCConfirmation::serializeToBytes() const
     memcpy(
         buffer.get() + dataBytesOffset,
         &mNumber,
-        sizeof(uint32_t));
-    dataBytesOffset += sizeof(uint32_t);
+        sizeof(KeyNumber));
+    dataBytesOffset += sizeof(KeyNumber);
 
     memcpy(
         buffer.get() + dataBytesOffset,

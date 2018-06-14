@@ -13,6 +13,7 @@
 #include "../../subsystems_controller/SubsystemsController.h"
 #include "../../interface/visual_interface/interface/VisualInterface.h"
 #include "../../interface/visual_interface/visual/VisualResult.h"
+#include "../../crypto/keychain.h"
 
 /*
  * Interface commands
@@ -121,6 +122,7 @@
 #include <string>
 
 using namespace std;
+using namespace crypto;
 namespace signals = boost::signals2;
 
 
@@ -137,6 +139,7 @@ public:
         ResourcesManager *ResourcesManager,
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
+        Keystore *keystore,
         Logger &logger,
         SubsystemsController *subsystemsController);
 
@@ -455,6 +458,7 @@ private:
     ResourcesManager *mResourcesManager;
     ResultsInterface *mResultsInterface;
     StorageHandler *mStorageHandler;
+    Keystore *mKeysStore;
     Logger &mLog;
 
     SubsystemsController *mSubsystemsController;

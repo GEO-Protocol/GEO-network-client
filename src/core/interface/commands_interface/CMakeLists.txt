@@ -58,7 +58,10 @@ set(SOURCE_FILES
         commands/blacklist/CheckIfNodeInBlackListCommand.cpp
 
         commands/transactions/PaymentTransactionByCommandUUIDCommand.h
-        commands/transactions/PaymentTransactionByCommandUUIDCommand.cpp commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.cpp commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h)
+        commands/transactions/PaymentTransactionByCommandUUIDCommand.cpp
+
+        commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h
+        commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

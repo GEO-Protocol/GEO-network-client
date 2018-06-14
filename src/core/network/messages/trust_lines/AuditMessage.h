@@ -2,6 +2,9 @@
 #define GEO_NETWORK_CLIENT_AUDITMESSAGE_H
 
 #include "../base/transaction/TransactionMessage.h"
+#include "../../../crypto/lamportscheme.h"
+
+using namespace crypto;
 
 class AuditMessage : public TransactionMessage {
 
@@ -13,18 +16,15 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        const uint32_t keyNumber,
-        const size_t signedDataSize,
-        BytesShared signedData);
+        const KeyNumber keyNumber,
+        const lamport::Signature::Shared signedData);
 
     AuditMessage(
         BytesShared buffer);
 
-    BytesShared signedData() const;
+    const lamport::Signature::Shared signedData() const;
 
-    const size_t signedDataSize() const;
-
-    const uint32_t keyNumber() const;
+    const KeyNumber keyNumber() const;
 
     const MessageType typeID() const;
 
@@ -32,8 +32,7 @@ public:
 
 private:
     uint32_t mKeyNumber;
-    BytesShared mSignedData;
-    size_t mSignedDataSize;
+    lamport::Signature::Shared mSignedData;
 };
 
 

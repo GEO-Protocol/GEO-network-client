@@ -9,6 +9,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController)
 noexcept :
@@ -21,6 +22,7 @@ noexcept :
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        keystore,
         log,
         subsystemsController),
     mCyclesManager(cyclesManager)
@@ -37,6 +39,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController)
 throw (bad_alloc) :
@@ -48,6 +51,7 @@ throw (bad_alloc) :
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        keystore,
         log,
         subsystemsController),
     mCyclesManager(cyclesManager)
@@ -203,15 +207,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
     mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
 #endif
 
-    auto keyChain = KeyChain::makeKeyChain(
-        65000,
-        mLog);
-    const auto publicKey = keyChain.paymentPublicKey(
-        mParticipantsPublicKeysHashes[mNodeUUID].second);
     mParticipantsPublicKeys.insert(
         make_pair(
             mPaymentNodesIds[mNodeUUID],
-            publicKey));
+            mPublicKey));
 
     // send message with all public keys to all participants and wait for voting results
     for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
@@ -937,28 +936,24 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
     const auto kMessage = popNextMessage<ParticipantVoteMessage>();
     debug () << "Participant vote message received from " << kMessage->senderUUID;
 
-    auto participantSign = kMessage->sign();
-    auto keyChain = KeyChain::makeKeyChain(
-        65000,
-        mLog);
     if (mPaymentNodesIds.find(kMessage->senderUUID) == mPaymentNodesIds.end()) {
         warning() << "Sender is not participant of current transaction";
         return resultContinuePreviousState();
     }
 
+    auto participantSign = kMessage->sign();
+    auto participantPublicKey = mParticipantsPublicKeys[mPaymentNodesIds[kMessage->senderUUID]];
+    // todo understand what data need for check
+    BytesShared someData;
     // todo if we store participants public keys on database, then we should use KeyChain,
     // or we can check sign directly from mParticipantsPublicKeys
-    if (!keyChain.checkPaymentSignedData(
-            currentTransactionUUID(),
-            kMessage->senderUUID,
-            participantSign.first,
-            participantSign.second)) {
+    if (!participantSign->check(someData.get(), 4, participantPublicKey)) {
         return reject("Participant sign is incorrect. Rolling back");
     }
     info() << "Participant sign is incorrect";
     mParticipantsSigns.insert(make_pair(
         mPaymentNodesIds[kMessage->senderUUID],
-        participantSign.first));
+        participantSign));
 
     if (mParticipantsSigns.size() + 1 == mPaymentNodesIds.size()) {
         info() << "all participants sign their data";
@@ -1061,17 +1056,17 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
     }
 
     // send reservations to first level node and last level node on transaction paths
-    auto keyChain = KeyChain::makeKeyChain(
-        65000,
-        mLog);
-    auto publicKeyHash = keyChain.generateAndSaveKeyPairForPaymentTransaction(
-        currentTransactionUUID());
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
+        ioTransaction,
+        currentTransactionUUID(),
+        mNodeUUID);
     mParticipantsPublicKeysHashes.insert(
         make_pair(
             currentNodeUUID(),
             make_pair(
                 coordinatorPaymentNodeID,
-                publicKeyHash)));
+                mPublicKey->hash())));
 
     // send outgoing receipt to first intermediate node
     auto firstIntermediateNode = *mPathStats->path()->intermediateUUIDs().begin();
@@ -1082,7 +1077,7 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
         currentTransactionUUID(),
         mReservations[firstIntermediateNode],
         coordinatorPaymentNodeID,
-        publicKeyHash);
+        mPublicKey->hash());
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::approve()

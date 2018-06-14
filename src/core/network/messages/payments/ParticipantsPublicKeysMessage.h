@@ -2,9 +2,11 @@
 #define GEO_NETWORK_CLIENT_PARTICIPANTSPUBLICKEYSMESSAGE_H
 
 #include "../base/transaction/TransactionMessage.h"
-#include "../../../crypto/CryptoKey.h"
+#include "../../../crypto/lamportkeys.h"
 
 #include <map>
+
+using namespace crypto;
 
 class ParticipantsPublicKeysMessage : public TransactionMessage {
 
@@ -16,7 +18,7 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        const map<PaymentNodeID, CryptoKey>& publicKeys);
+        const map<PaymentNodeID, lamport::PublicKey::Shared>& publicKeys);
 
     ParticipantsPublicKeysMessage(
             BytesShared buffer);
@@ -26,10 +28,10 @@ public:
     pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
-    const map<PaymentNodeID, CryptoKey>& publicKeys() const;
+    const map<PaymentNodeID, lamport::PublicKey::Shared>& publicKeys() const;
 
 private:
-    map<PaymentNodeID, CryptoKey> mPublicKeys;
+    map<PaymentNodeID, lamport::PublicKey::Shared> mPublicKeys;
 };
 
 

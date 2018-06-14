@@ -8,6 +8,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -20,6 +21,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        keystore,
         log,
         subsystemsController),
     mMessage(message)
@@ -35,6 +37,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -45,6 +48,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        keystore,
         log,
         subsystemsController)
 {}
@@ -768,17 +772,17 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
         mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
     }
 
-    auto keyChain = KeyChain::makeKeyChain(
-        65000,
-        mLog);
-    auto publicKeyHash = keyChain.generateAndSaveKeyPairForPaymentTransaction(
-        currentTransactionUUID());
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
+        ioTransaction,
+        currentTransactionUUID(),
+        mNodeUUID);
     mParticipantsPublicKeysHashes.insert(
         make_pair(
             currentNodeUUID(),
             make_pair(
                 mPaymentNodesIds[mNodeUUID],
-                publicKeyHash)));
+                mPublicKey->hash())));
 
     // send messages to all participants except coordinator:
     // to nodes with outgoing reservations - outgoing receipts and public key hash;
@@ -797,7 +801,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
                 currentTransactionUUID(),
                 emptyReservations,
                 mPaymentNodesIds[mNodeUUID],
-                publicKeyHash);
+                mPublicKey->hash());
             continue;
         }
         auto nodeReservations = mReservations[nodeAndPaymentID.first];
@@ -809,7 +813,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
                 currentTransactionUUID(),
                 nodeReservations,
                 mPaymentNodesIds[mNodeUUID],
-                publicKeyHash);
+                mPublicKey->hash());
         } else {
             sendMessage<ReservationsInRelationToNodeMessage>(
                 nodeAndPaymentID.first,
@@ -818,7 +822,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
                 currentTransactionUUID(),
                 emptyReservations,
                 mPaymentNodesIds[mNodeUUID],
-                publicKeyHash);
+                mPublicKey->hash());
         }
     }
 
@@ -851,8 +855,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
             currentNodeUUID(),
             currentTransactionUUID(),
             FinalAmountsConfigurationResponseMessage::Accepted,
-            keyChain.paymentPublicKey(
-                publicKeyHash));
+            mPublicKey);
 
         info() << "Accepted final amounts configuration";
 
@@ -915,17 +918,13 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
             return reject("Current node has different reservations with remote one. Rejected");
         }
 
-        auto keyChain = KeyChain::makeKeyChain(
-            65000,
-            mLog);
         sendMessage<FinalAmountsConfigurationResponseMessage>(
             mCoordinator,
             mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             FinalAmountsConfigurationResponseMessage::Accepted,
-            keyChain.paymentPublicKey(
-                mParticipantsPublicKeysHashes[currentNodeUUID()].second));
+            mPublicKey);
 
         info() << "Accepted final amounts configuration";
 

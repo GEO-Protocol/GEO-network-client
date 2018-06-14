@@ -4,7 +4,7 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
-    map<PaymentNodeID, BytesShared> &participantsSigns) :
+    map<PaymentNodeID, lamport::Signature::Shared> &participantsSigns) :
 
     TransactionMessage(
         equivalent,
@@ -30,17 +30,14 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
         auto *paymentNodeID = new (buffer.get() + bytesBufferOffset) PaymentNodeID;
         bytesBufferOffset += sizeof(PaymentNodeID);
 
-        BytesShared sign = tryMalloc(4);
-        memcpy(
-            sign.get(),
-            buffer.get() + bytesBufferOffset,
-            4);
+        auto sign = make_shared<lamport::Signature>(
+            buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += lamport::Signature::signatureSize();
 
         mParticipantsSigns.insert(
             make_pair(
                 *paymentNodeID,
                 sign));
-        bytesBufferOffset += 4;
     }
 }
 
@@ -59,14 +56,14 @@ const Message::MessageType ParticipantsVotesMessage::typeID() const
  *
  *  { Participant record
  *      4B - Participant 1 PaymntID,
- *      56B  - Participant 1 vote (true/false),
+ *      16KB  - Participant 1 signature,
  *  }
  *
  *  ...
  *
  *  { Participant record
  *      4B - Participant N UUID
- *      56B  - Participant N vote (true/false)
+ *      16KB  - Participant N signature
  *  }
  *
  *
@@ -82,7 +79,8 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
     const auto kBufferSize =
         parentBytesAndCount.second
         + sizeof(SerializedRecordsCount)
-        + kTotalParticipantsCount * (sizeof(PaymentNodeID), 4);
+        + kTotalParticipantsCount
+          * (sizeof(PaymentNodeID), lamport::Signature::signatureSize());
 
     BytesShared buffer = tryMalloc(kBufferSize);
 
@@ -101,7 +99,7 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
         sizeof(SerializedRecordsCount));
     dataBytesOffset += sizeof(SerializedRecordsCount);
 
-    // Nodes UUIDs and votes
+    // Payment Node IDs and signatures
     for (const auto &paymentNodeIDAndVote : mParticipantsSigns) {
 
         const auto kParticipantPaymentID = paymentNodeIDAndVote.first;
@@ -113,9 +111,9 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
 
         memcpy(
             buffer.get() + dataBytesOffset,
-            paymentNodeIDAndVote.second.get(),
-            4);
-        dataBytesOffset += 4;
+            paymentNodeIDAndVote.second->data(),
+            lamport::Signature::signatureSize());
+        dataBytesOffset += lamport::Signature::signatureSize();
     }
 
     return make_pair(
@@ -123,7 +121,7 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
         kBufferSize);
 }
 
-const map<PaymentNodeID, BytesShared>& ParticipantsVotesMessage::participantsSigns() const
+const map<PaymentNodeID, lamport::Signature::Shared>& ParticipantsVotesMessage::participantsSigns() const
 {
     return mParticipantsSigns;
 }

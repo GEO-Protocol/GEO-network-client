@@ -3,12 +3,11 @@
 
 
 #include "../base/transaction/TransactionMessage.h"
+#include "../../../crypto/lamportscheme.h"
 
-#include "../../../common/exceptions/NotFoundError.h"
-#include "../../../common/exceptions/OverflowError.h"
-
-#include <boost/container/flat_map.hpp>
 #include <map>
+
+using namespace crypto;
 
 /**
  * This message is used to achieve consensus between transaction participants.
@@ -27,19 +26,19 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        map<PaymentNodeID, BytesShared> &participantsSigns);
+        map<PaymentNodeID, lamport::Signature::Shared> &participantsSigns);
 
     ParticipantsVotesMessage(
         BytesShared buffer);
 
     const MessageType typeID() const;
 
-    const map<PaymentNodeID, BytesShared>& participantsSigns() const;
+    const map<PaymentNodeID, lamport::Signature::Shared>& participantsSigns() const;
 
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
 private:
-    map<PaymentNodeID, BytesShared> mParticipantsSigns;
+    map<PaymentNodeID, lamport::Signature::Shared> mParticipantsSigns;
 };
 #endif //GEO_NETWORK_CLIENT_PARTICIPANTSAPPROVINGMESSAGE_H

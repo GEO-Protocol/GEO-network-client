@@ -1,8 +1,8 @@
-#ifndef GEO_NETWORK_CLIENT_CONTRACTORKEYSHANDLER_H
-#define GEO_NETWORK_CLIENT_CONTRACTORKEYSHANDLER_H
+#ifndef GEO_NETWORK_CLIENT_PAYMENTKEYSHANDLER_H
+#define GEO_NETWORK_CLIENT_PAYMENTKEYSHANDLER_H
 
+#include "../../transactions/transactions/base/TransactionUUID.h"
 #include "../../logger/Logger.h"
-#include "../../common/memory/MemoryUtils.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../crypto/lamportkeys.h"
@@ -11,24 +11,22 @@
 
 using namespace crypto::lamport;
 
-class ContractorKeysHandler {
+class PaymentKeysHandler {
 
 public:
-    ContractorKeysHandler(
+    PaymentKeysHandler(
         sqlite3 *dbConnection,
         const string &tableName,
         Logger &logger);
 
-    void saveKey(
-        const TrustLineID trustLineID,
+    void saveOwnKey(
+        const TransactionUUID &transactionUUID,
+        const NodeUUID &ownNodeUUID,
         const PublicKey::Shared publicKey,
-        const KeyNumber number);
+        const PrivateKey *privateKey);
 
-    PublicKey::Shared keyByNumber(
-        const KeyNumber number);
-
-    KeysCount availableKeysCnt(
-        const TrustLineID trustLineID);
+    PrivateKey* getOwnPrivateKey(
+        const TransactionUUID &transactionUUID);
 
 private:
     LoggerStream info() const;
@@ -44,4 +42,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_CONTRACTORKEYSHANDLER_H
+#endif //GEO_NETWORK_CLIENT_PAYMENTKEYSHANDLER_H

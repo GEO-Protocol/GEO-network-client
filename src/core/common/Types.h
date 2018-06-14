@@ -23,6 +23,8 @@ typedef multiprecision::checked_uint256_t TrustLineAmount;
 typedef shared_ptr<TrustLineAmount> SharedTrustLineAmount;
 typedef shared_ptr<const TrustLineAmount> ConstSharedTrustLineAmount;
 typedef uint32_t TrustLineID;
+typedef uint32_t KeyNumber;
+typedef uint32_t KeysCount;
 const size_t kTrustLineAmountBytesCount = 32;
 
 typedef multiprecision::int256_t TrustLineBalance;

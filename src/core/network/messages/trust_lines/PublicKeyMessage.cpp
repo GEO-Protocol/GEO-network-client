@@ -4,8 +4,8 @@ PublicKeyMessage::PublicKeyMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    uint32_t number,
-    const CryptoKey &publicKey):
+    const KeyNumber number,
+    const lamport::PublicKey::Shared publicKey):
     TransactionMessage(
         equivalent,
         senderUUID,
@@ -24,18 +24,12 @@ PublicKeyMessage::PublicKeyMessage(
     memcpy(
         &mNumber,
         buffer.get() + bytesBufferOffset,
-        sizeof(uint32_t));
-    bytesBufferOffset += sizeof(uint32_t);
-    size_t publicKeySize;
-    memcpy(
-        &publicKeySize,
-        buffer.get() + bytesBufferOffset,
-        sizeof(size_t));
-    bytesBufferOffset += sizeof(size_t);
+        sizeof(KeyNumber));
+    bytesBufferOffset += sizeof(KeyNumber);
 
-    mPublicKey.deserialize(
-        publicKeySize,
+    auto publicKey = make_shared<lamport::PublicKey>(
         buffer.get() + bytesBufferOffset);
+    mPublicKey = publicKey;
 }
 
 const Message::MessageType PublicKeyMessage::typeID() const
@@ -43,12 +37,12 @@ const Message::MessageType PublicKeyMessage::typeID() const
     return Message::TrustLines_PublicKey;
 }
 
-const uint32_t PublicKeyMessage::number() const
+const KeyNumber PublicKeyMessage::number() const
 {
     return mNumber;
 }
 
-const CryptoKey& PublicKeyMessage::publicKey() const
+const lamport::PublicKey::Shared PublicKeyMessage::publicKey() const
 {
     return mPublicKey;
 }
@@ -58,9 +52,8 @@ pair<BytesShared, size_t> PublicKeyMessage::serializeToBytes() const
     const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     const auto kBufferSize =
             parentBytesAndCount.second
-            + sizeof(uint32_t)
-            + sizeof(size_t)
-            + mPublicKey.keySize();
+            + sizeof(KeyNumber)
+            + mPublicKey->keySize();
     BytesShared buffer = tryMalloc(kBufferSize);
 
     size_t dataBytesOffset = 0;
@@ -74,20 +67,13 @@ pair<BytesShared, size_t> PublicKeyMessage::serializeToBytes() const
     memcpy(
         buffer.get() + dataBytesOffset,
         &mNumber,
-        sizeof(uint32_t));
-    dataBytesOffset += sizeof(uint32_t);
-
-    auto publicKeySize = mPublicKey.keySize();
-    memcpy(
-        buffer.get() + dataBytesOffset,
-        &publicKeySize,
-        sizeof(size_t));
-    dataBytesOffset += sizeof(size_t);
+        sizeof(KeyNumber));
+    dataBytesOffset += sizeof(KeyNumber);
 
     memcpy(
         buffer.get() + dataBytesOffset,
-        mPublicKey.key(),
-        publicKeySize);
+        mPublicKey->data(),
+        mPublicKey->keySize());
 
     return make_pair(
         buffer,

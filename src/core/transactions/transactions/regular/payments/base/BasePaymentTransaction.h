@@ -12,8 +12,9 @@
 #include "../../../../../io/storage/StorageHandler.h"
 #include "../../../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../../../topology/cashe/MaxFlowCacheManager.h"
-#include "../../../../../crypto/CryptoKey.h"
-#include "../../../../../crypto/KeyChain.h"
+#include "../../../../../crypto/keychain.h"
+#include "../../../../../crypto/lamportkeys.h"
+#include "../../../../../crypto/lamportscheme.h"
 
 #include "../../../../../network/messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../../../../../network/messages/payments/ReceiverInitPaymentResponseMessage.h"
@@ -43,6 +44,7 @@
 
 #include <unordered_set>
 
+using namespace crypto;
 namespace signals = boost::signals2;
 
 class BasePaymentTransaction:
@@ -70,6 +72,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -82,6 +85,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -92,6 +96,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -404,6 +409,7 @@ protected:
     StorageHandler *mStorageHandler;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
+    Keystore *mKeysStore;
 
     // If true - votes check stage has been processed and transaction has been approved.
     // In this case transaction can't be simply rolled back.
@@ -436,12 +442,14 @@ protected:
     // ids of nodes inside payment transaction
     map<NodeUUID, PaymentNodeID> mPaymentNodesIds;
     map<NodeUUID, pair<PaymentNodeID, uint32_t>> mParticipantsPublicKeysHashes;
-    map<PaymentNodeID, CryptoKey> mParticipantsPublicKeys;
-    map<PaymentNodeID, BytesShared> mParticipantsSigns;
+    map<PaymentNodeID, lamport::PublicKey::Shared> mParticipantsPublicKeys;
+    map<PaymentNodeID, lamport::Signature::Shared> mParticipantsSigns;
 
     // this fields are used by coordinators on final amount configuration clarification
     bool mAllNodesSentConfirmationOnFinalAmountsConfiguration;
     bool mAllNeighborsSentFinalReservations;
+
+    lamport::PublicKey::Shared mPublicKey;
 
 protected:
     SubsystemsController *mSubsystemsController;

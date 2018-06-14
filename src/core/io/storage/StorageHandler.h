@@ -10,6 +10,7 @@
 #include "OwnKeysHandler.h"
 #include "ContractorKeysHandler.h"
 #include "AuditHandler.h"
+#include "PaymentKeysHandler.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
 #include "IOTransaction.h"
@@ -60,6 +61,7 @@ private:
     const string kOutgoingReceiptTableName = "outgoing_receipt";
     const string kIncomingReceiptTableName = "incoming_receipt";
     const string kAuditTableName = "audit";
+    const string kPaymentKeysTableName = "payment_keys";
 
 private:
     static sqlite3 *mDBConnection;
@@ -74,6 +76,7 @@ private:
     OwnKeysHandler mOwnKeysHandler;
     ContractorKeysHandler mContractorKeysHandler;
     AuditHandler mAuditHandler;
+    PaymentKeysHandler mPaymentKeysHandler;
     string mDirectory;
     string mDataBaseName;
 };

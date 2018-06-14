@@ -18,7 +18,7 @@ FinalAmountsConfigurationResponseMessage::FinalAmountsConfigurationResponseMessa
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const OperationState state,
-    const CryptoKey& publicKey) :
+    const lamport::PublicKey::Shared publicKey) :
 
     TransactionMessage(
         equivalent,
@@ -35,22 +35,13 @@ FinalAmountsConfigurationResponseMessage::FinalAmountsConfigurationResponseMessa
 {
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
-    SerializedOperationState *state = new (buffer.get() + bytesBufferOffset) SerializedOperationState;
+    auto *state = new (buffer.get() + bytesBufferOffset) SerializedOperationState;
     mState = (OperationState) (*state);
     if (mState == Accepted) {
         bytesBufferOffset += sizeof(SerializedOperationState);
-        size_t publicKeySize;
-        memcpy(
-            &publicKeySize,
-            buffer.get() + bytesBufferOffset,
-            sizeof(size_t));
-        bytesBufferOffset += sizeof(size_t);
-
-        mPublicKey.deserialize(
-            publicKeySize,
+        auto publicKey = make_shared<lamport::PublicKey>(
             buffer.get() + bytesBufferOffset);
-    } else {
-        mPublicKey = CryptoKey();
+        mPublicKey = publicKey;
     }
 }
 
@@ -59,7 +50,7 @@ const FinalAmountsConfigurationResponseMessage::OperationState FinalAmountsConfi
     return mState;
 }
 
-const CryptoKey& FinalAmountsConfigurationResponseMessage::publicKey() const
+const lamport::PublicKey::Shared FinalAmountsConfigurationResponseMessage::publicKey() const
 {
     return mPublicKey;
 }
@@ -93,17 +84,10 @@ pair<BytesShared, size_t> FinalAmountsConfigurationResponseMessage::serializeToB
         sizeof(SerializedOperationState));
     //----------------------------------------------------
     if (mState == Accepted) {
-        auto publicKeySize = mPublicKey.keySize();
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            &publicKeySize,
-            sizeof(size_t));
-        dataBytesOffset += sizeof(size_t);
-
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            mPublicKey.key(),
-            publicKeySize);
+            mPublicKey->data(),
+            lamport::PublicKey::keySize());
     }
     return make_pair(
         dataBytesShared,

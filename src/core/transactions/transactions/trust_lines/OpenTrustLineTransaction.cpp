@@ -6,6 +6,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     SubsystemsController *subsystemsController,
+    Keystore *keystore,
     bool iAmGateway,
     Logger &logger)
     noexcept :
@@ -19,6 +20,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mSubsystemsController(subsystemsController),
+    mKeysStore(keystore),
     mIAmGateway(iAmGateway)
 {}
 
@@ -156,6 +158,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
         mEquivalent,
         mTrustLines,
         mStorageHandler,
+        mKeysStore,
         mLog);
     launchSubsidiaryTransaction(kTransaction);
     return resultDone();

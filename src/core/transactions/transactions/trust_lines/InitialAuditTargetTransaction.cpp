@@ -5,6 +5,7 @@ InitialAuditTargetTransaction::InitialAuditTargetTransaction(
     AuditMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    Keystore *keystore,
     Logger &logger):
     BaseTransaction(
         BaseTransaction::InitialAuditTargetTransactionType,
@@ -15,30 +16,37 @@ InitialAuditTargetTransaction::InitialAuditTargetTransaction(
     mMessage(message),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mKeyChain(KeyChain::makeKeyChain(
-        manager->trustLineReadOnly(message->senderUUID)->trustLineID(),
-        logger))
+    mKeysStore(keystore)
 {}
 
 TransactionResult::SharedConst InitialAuditTargetTransaction::run()
 {
     info() << "run";
     auto ioTransaction = mStorageHandler->beginTransaction();
-    bool isDataCorrect;
-    BytesShared rowAuditData;
-    size_t rowAuditDataBytesCount;
-    std::tie(isDataCorrect, rowAuditData, rowAuditDataBytesCount) = mKeyChain.checkSignedData(
-        ioTransaction,
-        mMessage->signedData(),
-        mMessage->signedDataSize(),
-        mMessage->keyNumber());
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineReadOnly(mMessage->senderUUID)->trustLineID());
+//    bool isDataCorrect;
+//    BytesShared rowAuditData;
+//    size_t rowAuditDataBytesCount;
+//    std::tie(isDataCorrect, rowAuditData, rowAuditDataBytesCount) = mKeyChain.checkSignedData(
+//        ioTransaction,
+//        mMessage->signedData(),
+//        mMessage->signedDataSize(),
+//        mMessage->keyNumber());
 
-    if (!isDataCorrect) {
+    // todo understand what data need for check
+    BytesShared someData;
+    if (!keyChain.checkSign(
+            ioTransaction,
+            someData,
+            4,
+            mMessage->signedData(),
+            mMessage->keyNumber())) {
         warning() << "Contractor didn't sign message correct";
         return resultDone();
     }
     info() << "Sign is correct";
-    if (!deserializeAuditDataAndCheck(rowAuditData)) {
+    if (!deserializeAuditDataAndCheck(someData)) {
         warning() << "Contractor sign wrong data";
         return resultDone();
     }
@@ -57,10 +65,7 @@ TransactionResult::SharedConst InitialAuditTargetTransaction::run()
     info() << "All data saved. Now TL is ready for using";
 
     auto serializedAuditData = serializeAuditData();
-    BytesShared ownSignedData;
-    size_t ownSignedDataSize;
-    uint32_t ownKeyNumber;
-    std::tie(ownSignedData, ownSignedDataSize, ownKeyNumber) = mKeyChain.signData(
+    auto signatureAndKeyNumber = keyChain.sign(
         ioTransaction,
         serializedAuditData.first,
         serializedAuditData.second);
@@ -70,10 +75,9 @@ TransactionResult::SharedConst InitialAuditTargetTransaction::run()
         mEquivalent,
         mNodeUUID,
         currentTransactionUUID(),
-        ownKeyNumber,
-        ownSignedDataSize,
-        ownSignedData);
-    info() << "Send audit message signed by key " << ownKeyNumber;
+        signatureAndKeyNumber.second,
+        signatureAndKeyNumber.first);
+    info() << "Send audit message signed by key " << signatureAndKeyNumber.second;
     return resultDone();
 }
 

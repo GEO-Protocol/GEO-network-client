@@ -5,6 +5,7 @@ PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
     PublicKeyMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    Keystore *keystore,
     Logger &logger) :
     BaseTransaction(
         BaseTransaction::PublicKeysSharingTargetTransactionType,
@@ -15,9 +16,7 @@ PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
     mMessage(message),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mKeyChain(KeyChain::makeKeyChain(
-        manager->trustLineReadOnly(message->senderUUID)->trustLineID(),
-        logger))
+    mKeysStore(keystore)
 {}
 
 TransactionResult::SharedConst PublicKeysSharingTargetTransaction::run()
@@ -37,14 +36,16 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::run()
 
 TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runInitialisationStage()
 {
-    info() << "Receive key number: " << mMessage->number() << " key: " << (int)*mMessage->publicKey().key();
+    info() << "Receive key number: " << mMessage->number();
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
         mTrustLines->setTrustLineState(
             ioTransaction,
             mMessage->senderUUID,
             TrustLine::KeysPending);
-        mKeyChain.saveContractorPublicKey(
+        auto keyChain = mKeysStore->keychain(
+            mTrustLines->trustLineReadOnly(mMessage->senderUUID)->trustLineID());
+        keyChain.setContractorPublicKey(
             ioTransaction,
             mMessage->number(),
             mMessage->publicKey());
@@ -57,14 +58,14 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runInitialisa
         error() << "Can't update TL state or store contractor public key. Details " << e.what();
         return resultDone();
     }
-    info() << "Key saved, send crc confirmation " << mMessage->publicKey().crc();
+    info() << "Key saved, send crc confirmation " << mMessage->publicKey()->crc();
     sendMessage<PublicKeyCRCConfirmation>(
         mMessage->senderUUID,
         mMessage->equivalent(),
         mNodeUUID,
         mMessage->transactionUUID(),
         mMessage->number(),
-        mMessage->publicKey().crc());
+        mMessage->publicKey()->crc());
     mReceivedKeysCount = 1;
     mStep = ReceiveNextKey;
     return resultWaitForMessageTypes(
@@ -79,11 +80,17 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
         return resultDone();
     }
     auto message = popNextMessage<PublicKeyMessage>();
-    info() << "Receive key number: " << message->number() << " key: " << (int)*message->publicKey().key();
+    if (message->senderUUID != mMessage->senderUUID) {
+        warning() << "Receive message from different sender: " << message->senderUUID;
+        return resultDone();
+    }
+    info() << "Receive key number: " << message->number();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineReadOnly(message->senderUUID)->trustLineID());
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
         try {
-            mKeyChain.saveContractorPublicKey(
+            keyChain.setContractorPublicKey(
                 ioTransaction,
                 message->number(),
                 message->publicKey());
@@ -93,19 +100,19 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
             return resultDone();
         }
     }
-    info() << "Key saved, send crc confirmation " << message->publicKey().crc();
+    info() << "Key saved, send crc confirmation " << message->publicKey()->crc();
     sendMessage<PublicKeyCRCConfirmation>(
         message->senderUUID,
         message->equivalent(),
         mNodeUUID,
         message->transactionUUID(),
         message->number(),
-        message->publicKey().crc());
+        message->publicKey()->crc());
     mReceivedKeysCount++;
-    if (mReceivedKeysCount >= kKeysCount) {
+    if (mReceivedKeysCount >= TrustLineKeychain::kDefaultKeysSetSize) {
         info() << "All keys received";
         auto ioTransaction = mStorageHandler->beginTransaction();
-        if (mKeyChain.isAllKeysReady(ioTransaction, kKeysCount)) {
+        if (keyChain.areKeysReady(ioTransaction)) {
             info() << "All Keys Ready";
             try {
                 mTrustLines->setTrustLineState(
@@ -124,6 +131,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
                 mEquivalent,
                 mTrustLines,
                 mStorageHandler,
+                mKeysStore,
                 mLog);
             launchSubsidiaryTransaction(transaction);
         } else {
@@ -134,6 +142,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
                 mEquivalent,
                 mTrustLines,
                 mStorageHandler,
+                mKeysStore,
                 mLog);
             launchSubsidiaryTransaction(transaction);
         }

@@ -1,0 +1,224 @@
+#include "keychain.h"
+
+
+namespace crypto {
+
+
+Encryptor::Encryptor(
+    memory::SecureSegment &key)
+    noexcept:
+
+    mKey(key)
+{}
+
+
+pair<BytesShared, size_t> Encryptor::encrypt(
+    byte *data,
+    size_t len)
+{
+    mKey.unlockAndInitGuard();
+    // ...
+}
+
+pair<BytesShared, size_t> Encryptor::decrypt(
+    byte *data,
+    size_t len)
+{
+    mKey.unlockAndInitGuard();
+    // ...
+}
+
+
+Keystore::Keystore(
+    //todo memory::SecureSegment &memoryKey
+    Logger &logger)
+    noexcept:
+
+    //todo mEncryptor(Encryptor(memoryKey))
+    mLogger(logger)
+{}
+
+int Keystore::init()
+{
+//    return sodium_init();
+    return 0;
+}
+
+TrustLineKeychain Keystore::keychain(
+    const TrustLineID trustLineID) const
+{
+    return TrustLineKeychain(
+            trustLineID,
+            //todo mEncryptor,
+            mLogger);
+}
+
+lamport::PublicKey::Shared Keystore::generateAndSaveKeyPairForPaymentTransaction(
+    IOTransaction::Shared ioTransaction,
+    const TransactionUUID &transactionUUID,
+    const NodeUUID &nodeUUID)
+{
+    lamport::PrivateKey pKey;
+    auto pubKey = pKey.derivePublicKey();
+    ioTransaction->paymentKeysHandler()->saveOwnKey(
+        transactionUUID,
+        nodeUUID,
+        pubKey,
+        &pKey);
+    return pubKey;
+}
+
+lamport::Signature::Shared Keystore::signPaymentTransaction(
+    IOTransaction::Shared ioTransaction,
+    const TransactionUUID &transactionUUID,
+    BytesShared dataForSign,
+    size_t dataForSignBytesCount)
+{
+    auto privateKey = ioTransaction->paymentKeysHandler()->getOwnPrivateKey(
+        transactionUUID);
+    return make_shared<Signature>(
+        dataForSign.get(),
+        dataForSignBytesCount,
+        privateKey);
+}
+
+TrustLineKeychain::TrustLineKeychain(
+    const TrustLineID trustLineID,
+    // todo Encryptor encryptor,
+    Logger &logger)
+    noexcept:
+
+    mTrustLineID(trustLineID),
+    //todo mEncryptor(encryptor),
+    mLogger(logger)
+{}
+
+void TrustLineKeychain::generateKeyPairsSet(
+    IOTransaction::Shared ioTransaction,
+    KeysCount keyPairsCount)
+{
+    keyNumberGuard(keyPairsCount);
+    for (KeyNumber idx = 0; idx < keyPairsCount; idx++) {
+        lamport::PrivateKey pKey;
+        auto pubKey = pKey.derivePublicKey();
+        ioTransaction->ownKeysHandler()->saveKey(
+            mTrustLineID,
+            pubKey,
+            &pKey,
+            idx);
+    }
+}
+
+pair<lamport::PublicKey::Shared, bool> TrustLineKeychain::publicKey(
+    IOTransaction::Shared ioTransaction,
+    const KeyNumber number) const
+{
+    keyNumberGuard(number);
+
+    auto publicKey = ioTransaction->ownKeysHandler()->getPublicKey(
+        mTrustLineID,
+        number);
+    return make_pair(
+        publicKey,
+        true);
+}
+
+void TrustLineKeychain::setContractorPublicKey(
+    IOTransaction::Shared ioTransaction,
+    KeyNumber number,
+    const lamport::PublicKey::Shared key)
+{
+    keyNumberGuard(number);
+
+    // ...
+    // todo: throw ConsistencyError in case if contractor already has key in this position.
+    ioTransaction->contractorKeysHandler()->saveKey(
+        mTrustLineID,
+        key,
+        number);
+}
+
+bool TrustLineKeychain::areKeysReady(
+    IOTransaction::Shared ioTransaction,
+    KeysCount count) noexcept
+{
+    keyNumberGuard(count);
+
+    if (ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID) != count) {
+//        info() << "There are no all own keys: "
+//               << ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID);
+        return false;
+    }
+    if (ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID) != count) {
+//        info() << "There are no all contractor keys: "
+//               << ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID);
+        return false;
+    }
+    return true;
+}
+
+pair<lamport::Signature::Shared, KeyNumber> TrustLineKeychain::sign(
+    IOTransaction::Shared ioTransaction,
+    BytesShared data,
+    const std::size_t size)
+{
+    dataGuard(data, size);
+
+    // todo: throw KeyError if no key is available;
+
+    auto privateKeyAndNumber = ioTransaction->ownKeysHandler()->nextAvailableKey(mTrustLineID);
+
+    auto signature = make_shared<lamport::Signature>(
+        data.get(),
+        size,
+        privateKeyAndNumber.first);
+    // todo: read PKey
+    // todo: decrypt it.
+    // todo: read sign
+    // todo: !! store cutted private key back and mark it as used.
+    return make_pair(
+        signature,
+        privateKeyAndNumber.second);
+}
+
+bool TrustLineKeychain::checkSign(
+    IOTransaction::Shared ioTransaction,
+    BytesShared data,
+    const size_t size,
+    const lamport::Signature::Shared signature,
+    const KeyNumber keyNumber)
+{
+    dataGuard(data, size);
+    keyNumberGuard(keyNumber);
+
+    auto contractorPublicKey = ioTransaction->contractorKeysHandler()->keyByNumber(keyNumber);
+    return signature->check(
+        data.get(),
+        size,
+        contractorPublicKey);
+}
+
+void TrustLineKeychain::keyNumberGuard(
+    const KeyNumber &number) const
+{
+    if (number == 0 || number > kMaxKeysSetSize) {
+        // todo: throw ValueError;
+    }
+}
+
+void TrustLineKeychain::dataGuard(
+    const BytesShared data,
+    const size_t size) const
+{
+
+    if (data == nullptr) {
+        // todo: throw ValueError;
+    }
+
+    if (size == 0) {
+        // todo: throw ValueError;
+    }
+}
+
+
+}

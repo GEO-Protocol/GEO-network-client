@@ -8,6 +8,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController,
     VisualInterface *visualInterface) :
@@ -21,6 +22,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        keystore,
         log,
         subsystemsController),
     mMessage(message),
@@ -37,6 +39,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -47,6 +50,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        keystore,
         log,
         subsystemsController)
 {}
@@ -509,17 +513,17 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
         mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
     }
 
-    auto keyChain = KeyChain::makeKeyChain(
-        65000,
-        mLog);
-    auto publicKeyHash = keyChain.generateAndSaveKeyPairForPaymentTransaction(
-        currentTransactionUUID());
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
+        ioTransaction,
+        currentTransactionUUID(),
+        mNodeUUID);
     mParticipantsPublicKeysHashes.insert(
         make_pair(
             currentNodeUUID(),
             make_pair(
                 mPaymentNodesIds[mNodeUUID],
-                publicKeyHash)));
+                mPublicKey->hash())));
 
     // send public key hash to all participants except coordinator
     vector<pair<PathID, AmountReservation::ConstShared>> emptyReservations;
@@ -538,7 +542,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
             currentTransactionUUID(),
             emptyReservations,
             mPaymentNodesIds[mNodeUUID],
-            publicKeyHash);
+            mPublicKey->hash());
     }
 
     // coordinator don't send public key hash
@@ -568,15 +572,13 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
         }
         info() << "All neighbors receipts are properly";
 
-        const auto publicKey = keyChain.paymentPublicKey(
-            publicKeyHash);
         sendMessage<FinalAmountsConfigurationResponseMessage>(
             coordinatorUUID(),
             mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             FinalAmountsConfigurationResponseMessage::Accepted,
-            publicKey);
+            mPublicKey);
         info() << "Accepted final amounts configuration";
 
         mStep = Common_VotesChecking;
@@ -639,17 +641,13 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
             return reject("Current node has different reservations with remote one. Rejected");
         }
 
-        auto keyChain = KeyChain::makeKeyChain(
-            65000,
-            mLog);
         sendMessage<FinalAmountsConfigurationResponseMessage>(
             coordinatorUUID(),
             mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
             FinalAmountsConfigurationResponseMessage::Accepted,
-            keyChain.paymentPublicKey(
-                mParticipantsPublicKeysHashes[currentNodeUUID()].second));
+            mPublicKey);
         info() << "Accepted final amounts configuration";
 
         mStep = Common_VotesChecking;

@@ -17,6 +17,7 @@ StorageHandler::StorageHandler(
     mOwnKeysHandler(connection(dataBaseName, directory), kOwnKeysTableName, logger),
     mContractorKeysHandler(connection(dataBaseName, directory), kContractorKeysTableName, logger),
     mAuditHandler(connection(dataBaseName, directory), kAuditTableName, logger),
+    mPaymentKeysHandler(connection(dataBaseName, directory), kPaymentKeysTableName, logger),
     mLog(logger)
 {
     sqlite3_config(SQLITE_CONFIG_SINGLETHREAD);
@@ -80,6 +81,7 @@ IOTransaction::Shared StorageHandler::beginTransaction()
         &mBlackListHandler,
         &mOwnKeysHandler,
         &mContractorKeysHandler,
+        &mPaymentKeysHandler,
         mLog);
 }
 

@@ -114,6 +114,11 @@ int Core::initSubsystems()
         return initCode;
     }
 
+    initCode = initKeysStore();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initTransactionsManager();
     if (initCode != 0) {
         return initCode;
@@ -232,6 +237,7 @@ int Core::initTransactionsManager()
             mResourcesManager.get(),
             mResultsInterface.get(),
             mStorageHandler.get(),
+            mKeysStore.get(),
             *mLog,
             mSubsystemsController.get());
         info() << "Transactions handler is successfully initialised";
@@ -279,6 +285,20 @@ int Core::initSubsystemsController()
         mSubsystemsController = make_unique<SubsystemsController>(
             *mLog);
         info() << "Subsystems controller is successfully initialized";
+        return 0;
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initKeysStore()
+{
+    try {
+        mKeysStore = make_unique<Keystore>(
+            *mLog);
+        mKeysStore->init();
+        info() << "Keys store is successfully initialized";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);

@@ -13,6 +13,7 @@
 #include "transactions/manager/TransactionsManager.h"
 #include "io/storage/StorageHandler.h"
 #include "equivalents/EquivalentsSubsystemsRouter.h"
+#include "crypto/keychain.h"
 
 #include "logger/Logger.h"
 
@@ -22,11 +23,12 @@
 
 #include "subsystems_controller/SubsystemsController.h"
 
-
+#include <sodium.h>
 #include <sys/prctl.h>
 
 
 using namespace std;
+using namespace crypto;
 
 namespace as = boost::asio;
 namespace signals = boost::signals2;
@@ -66,6 +68,8 @@ private:
     int initStorageHandler();
 
     int initSubsystemsController();
+
+    int initKeysStore();
 
     void connectCommunicatorSignals();
 
@@ -138,6 +142,7 @@ protected:
     unique_ptr<StorageHandler> mStorageHandler;
     unique_ptr<SubsystemsController> mSubsystemsController;
     unique_ptr<EquivalentsSubsystemsRouter> mEquivalentsSubsystemsRouter;
+    unique_ptr<Keystore> mKeysStore;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

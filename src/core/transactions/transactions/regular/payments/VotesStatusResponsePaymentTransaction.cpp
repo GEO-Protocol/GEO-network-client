@@ -20,7 +20,7 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
 TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
 {
     debug() << "run";
-    map<PaymentNodeID, BytesShared> emptySignMap;
+    map<PaymentNodeID, lamport::Signature::Shared> emptySignMap;
     if (mIsRequestedTransactionCurrentlyRunned) {
         // if requested transaction didn't finish yet,
         // we send empty message, which means that requester should wait and ask again

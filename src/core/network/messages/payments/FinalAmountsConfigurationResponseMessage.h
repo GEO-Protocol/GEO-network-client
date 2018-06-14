@@ -2,7 +2,9 @@
 #define GEO_NETWORK_CLIENT_FINALAMOUNTSCONFIGURATIONRESPONSEMESSAGE_H
 
 #include "../base/transaction/TransactionMessage.h"
-#include "../../../crypto/CryptoKey.h"
+#include "../../../crypto/lamportkeys.h"
+
+using namespace crypto;
 
 class FinalAmountsConfigurationResponseMessage : public TransactionMessage {
 
@@ -27,7 +29,7 @@ public:
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const OperationState state,
-        const CryptoKey &publicKey);
+        const lamport::PublicKey::Shared publicKey);
 
     FinalAmountsConfigurationResponseMessage(
         BytesShared buffer);
@@ -36,7 +38,7 @@ public:
 
     const OperationState state() const;
 
-    const CryptoKey& publicKey() const;
+    const lamport::PublicKey::Shared publicKey() const;
 
 protected:
     typedef byte SerializedOperationState;
@@ -46,7 +48,7 @@ protected:
 
 private:
     OperationState mState;
-    CryptoKey mPublicKey;
+    lamport::PublicKey::Shared mPublicKey;
 };
 
 
