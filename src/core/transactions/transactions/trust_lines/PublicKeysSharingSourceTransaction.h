@@ -43,7 +43,6 @@ private:
     TransactionResult::SharedConst runSendNextKeyStage();
 
 private:
-    static const uint32_t kKeysCount = 5;
     static const uint32_t kWaitMillisecondsForResponse = 3000;
 
 protected:

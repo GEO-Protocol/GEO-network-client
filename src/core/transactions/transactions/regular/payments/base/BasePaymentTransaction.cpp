@@ -213,6 +213,8 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
     debug() << "Votes message received";
 
+    // todo : check if received own public key is the same as local
+
     if (!checkPublicKeysAppropriate()) {
         return reject("Public keys are not appropriate. Reject.");
     }
@@ -1012,26 +1014,19 @@ bool BasePaymentTransaction::checkAllPublicKeyHashesProperly()
     }
 }
 
-// todo change remote outgoing reservations on remote receipts
-bool BasePaymentTransaction::checkAllNeighborsReceiptsAppropriate()
+const TrustLineAmount BasePaymentTransaction::totalReservedIncomingAmountToNode(
+    const NodeUUID &nodeUUID)
 {
-    for (const auto &nodeAndReservations : mReservations) {
-        if (nodeAndReservations.second.begin()->second->direction() == AmountReservation::Outgoing) {
-            // we must check only Incoming reservations with remoute receipts
-            continue;
-        }
-        if (mRemoteReservations.find(nodeAndReservations.first) == mRemoteReservations.end()) {
-            warning() << "There are no remote reservation from node " << nodeAndReservations.first;
-            return false;
-        }
-        const auto remoteReservations = mRemoteReservations[nodeAndReservations.first];
-        if (!compareReservations(nodeAndReservations.second, remoteReservations)) {
-            warning() << "Local incoming and remote outgoing reservations with node "
-                      << nodeAndReservations.first << " are different";
-            return false;
+    auto result = TrustLine::kZeroAmount();
+    if (mReservations.find(nodeUUID) == mReservations.end()) {
+        return result;
+    }
+    for (const auto &pathIDAndReservation : mReservations[nodeUUID]) {
+        if (pathIDAndReservation.second->direction() == AmountReservation::Incoming) {
+            result += pathIDAndReservation.second->amount();
         }
     }
-    return true;
+    return result;
 }
 
 bool BasePaymentTransaction::checkPublicKeysAppropriate()

@@ -66,17 +66,17 @@ set(SOURCE_FILES
     FinalAmountsConfigurationResponseMessage.h
     FinalAmountsConfigurationResponseMessage.cpp
 
-        TTLProlongationResponseMessage.h
+    TTLProlongationResponseMessage.h
     TTLProlongationResponseMessage.cpp
-
-    ReservationsInRelationToNodeMessage.h
-    ReservationsInRelationToNodeMessage.cpp
 
     ParticipantsPublicKeysMessage.h
     ParticipantsPublicKeysMessage.cpp
 
     ParticipantVoteMessage.h
-    ParticipantVoteMessage.cpp)
+    ParticipantVoteMessage.cpp
+
+    TransactionPublicKeyHashMessage.h
+    TransactionPublicKeyHashMessage.cpp)
 
 add_library(messages__payments ${SOURCE_FILES})
 target_link_libraries(messages__payments

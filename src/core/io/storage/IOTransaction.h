@@ -10,6 +10,9 @@
 
 #include "OwnKeysHandler.h"
 #include "ContractorKeysHandler.h"
+#include "AuditHandler.h"
+#include "IncomingPaymentReceiptHandler.h"
+#include "OutgoingPaymentReceiptHandler.h"
 #include "PaymentKeysHandler.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
@@ -29,6 +32,9 @@ public:
         BlackListHandler *blackListHandler,
         OwnKeysHandler *ownKeysHandler,
         ContractorKeysHandler *contractorKeysHandler,
+        AuditHandler *auditHandler,
+        IncomingPaymentReceiptHandler *incomingPaymentReceiptHandler,
+        OutgoingPaymentReceiptHandler *outgoingPaymentReceiptHandler,
         PaymentKeysHandler *paymentKeysHandler,
         Logger &logger);
 
@@ -47,6 +53,12 @@ public:
     OwnKeysHandler *ownKeysHandler();
 
     ContractorKeysHandler *contractorKeysHandler();
+
+    AuditHandler *auditHandler();
+
+    IncomingPaymentReceiptHandler *incomingPaymentReceiptHandler();
+
+    OutgoingPaymentReceiptHandler *outgoingPaymentReceiptHandler();
 
     PaymentKeysHandler *paymentKeysHandler();
 
@@ -74,6 +86,9 @@ private:
 
     OwnKeysHandler *mOwnKeysHandler;
     ContractorKeysHandler *mContractorKeysHandler;
+    AuditHandler *mAuditHandler;
+    IncomingPaymentReceiptHandler *mIncomingPaymentReceiptHandler;
+    OutgoingPaymentReceiptHandler *mOutgoingPaymentReceiptHandler;
     PaymentKeysHandler *mPaymentKeysHandler;
 
     bool mIsTransactionBegin;

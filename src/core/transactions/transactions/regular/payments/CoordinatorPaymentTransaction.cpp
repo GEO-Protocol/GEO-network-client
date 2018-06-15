@@ -384,6 +384,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
 #endif
 
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
+        ioTransaction,
+        currentTransactionUUID(),
+        mNodeUUID);
     mParticipantsPublicKeys.insert(
         make_pair(
             mPaymentNodesIds[mNodeUUID],
@@ -1283,9 +1288,24 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
 
     mParticipantsPublicKeys.clear();
     for (auto const &nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
-        // if coordinator has reservations with current node it also send them
+        // if coordinator has reservations with current node it also send receipt
         if (mReservations.find(nodeAndFinalAmountsConfig.first) != mReservations.end()) {
-            info() << "send final amount configuration with reservations to " << nodeAndFinalAmountsConfig.first;
+            auto keyChain = mKeysStore->keychain(
+                mTrustLines->trustLineReadOnly(nodeAndFinalAmountsConfig.first)->trustLineID());
+            auto outgoingReservedAmount = TrustLine::kZeroAmount();
+            for (const auto &pathIDAndReservation : mReservations[nodeAndFinalAmountsConfig.first]) {
+                // todo check if all reservations is outgoing
+                outgoingReservedAmount += pathIDAndReservation.second->amount();
+            }
+            // todo understand what data should be signed (outgoingReservedAmount)
+            BytesShared someData;
+            auto ioTransaction = mStorageHandler->beginTransaction();
+            auto signatureAndKeyNumber = keyChain.sign(
+                ioTransaction,
+                someData,
+                4);
+            info() << "send final amount configuration to " << nodeAndFinalAmountsConfig.first
+                   << " with receipt " << outgoingReservedAmount;
             sendMessage<FinalAmountsConfigurationMessage>(
                 nodeAndFinalAmountsConfig.first,
                 mEquivalent,
@@ -1293,7 +1313,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
                 currentTransactionUUID(),
                 nodeAndFinalAmountsConfig.second,
                 mPaymentNodesIds,
-                mReservations[nodeAndFinalAmountsConfig.first]);
+                outgoingReservedAmount,
+                signatureAndKeyNumber.second,
+                signatureAndKeyNumber.first);
         } else {
             info() << "send final amount configuration to " << nodeAndFinalAmountsConfig.first;
             sendMessage<FinalAmountsConfigurationMessage>(
@@ -1307,30 +1329,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     }
 
     debug() << "Total count of all participants without coordinator is " << mNodesFinalAmountsConfiguration.size();
-
-
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    auto mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
-        ioTransaction,
-        currentTransactionUUID(),
-        mNodeUUID);
-    mParticipantsPublicKeysHashes.insert(
-        make_pair(
-            currentNodeUUID(),
-            make_pair(
-                coordinatorPaymentNodeID,
-                mPublicKey->hash())));
-    // send reservations to first level nodes on transaction paths
-    for (const auto &nodeAndReservations : mReservations) {
-        sendMessage<ReservationsInRelationToNodeMessage>(
-            nodeAndReservations.first,
-            mEquivalent,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            nodeAndReservations.second,
-            coordinatorPaymentNodeID,
-            mPublicKey->hash());
-    }
 
     mStep = Coordinator_FinalAmountsConfigurationConfirmation;
     return resultWaitForMessageTypes(

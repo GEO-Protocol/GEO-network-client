@@ -7,7 +7,6 @@
 #include "../../crypto/lamportkeys.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
-#include <vector>
 
 using namespace crypto::lamport;
 
@@ -33,6 +32,10 @@ public:
         const KeyNumber number);
 
     const PublicKey::Shared getPublicKey(
+        const TrustLineID trustLineID,
+        const KeyNumber keyNumber);
+
+    const uint32_t getPublicKeyHash(
         const TrustLineID trustLineID,
         const KeyNumber keyNumber);
 

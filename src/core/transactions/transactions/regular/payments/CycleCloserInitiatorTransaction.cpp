@@ -207,6 +207,11 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
     mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
 #endif
 
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
+        ioTransaction,
+        currentTransactionUUID(),
+        mNodeUUID);
     mParticipantsPublicKeys.insert(
         make_pair(
             mPaymentNodesIds[mNodeUUID],
@@ -879,23 +884,51 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalAmountsP
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalReservationsNeighborConfirmation()
 {
     debug() << "runFinalReservationsNeighborConfirmation";
-    auto kMessage = popNextMessage<ReservationsInRelationToNodeMessage>();
+    auto kMessage = popNextMessage<TransactionPublicKeyHashMessage>();
     debug() << "sender: " << kMessage->senderUUID;
 
     mParticipantsPublicKeysHashes[kMessage->senderUUID] = make_pair(
         kMessage->paymentNodeID(),
-        kMessage->publicKeyHash());
-    if (!kMessage->reservations().empty()) {
-        mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
+        kMessage->transactionPublicKeyHash());
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (kMessage->isReceiptContains()) {
+        auto participantTotalIncomingReservationAmount = totalReservedIncomingAmountToNode(
+            kMessage->senderUUID);
+        info() << "Sender also send receipt " << kMessage->amount();
+        if (participantTotalIncomingReservationAmount != kMessage->amount()) {
+            warning() << "Local reserved incoming amount: " << participantTotalIncomingReservationAmount;
+            return reject("Sender send invalid receipt amount. Rejected");
+        }
+
+        auto keyChain = mKeysStore->keychain(
+            mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
+        // todo understand what data should be for check signature
+        BytesShared someData;
+        if (!keyChain.checkSign(
+            ioTransaction,
+            someData,
+            4,
+            kMessage->signature(),
+            kMessage->publicKeyNumber())) {
+            return reject("Sender send invalid receipt signature. Rejected");
+        }
+        mNeighborsIncomingReceipts.insert(
+            make_pair(
+                kMessage->senderUUID,
+                make_pair(
+                    kMessage->signature(),
+                    kMessage->publicKeyNumber())));
+        info() << "Sender's receipt is valid";
+    } else {
+        // coordinator should receive only 1 message from last intermediate node
+        // and this message should contain receipt
+        return reject("Sender send message without receipt. Rejected");
     }
 
     // only one node may send reservations
-    if (!mRemoteReservations.empty()) {
+    if (!mNeighborsIncomingReceipts.empty()) {
         info() << "All neighbors sent theirs reservations";
-
-        if (!checkAllNeighborsReceiptsAppropriate()) {
-            return reject("Current node has different reservations with remote one. Rejected");
-        }
         mAllNeighborsSentFinalReservations = true;
         if (mAllNodesSentConfirmationOnFinalAmountsConfiguration) {
             debug() << "Begin processing participants votes.";
@@ -1032,8 +1065,19 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
     bool sendReservationToFirstIntermediateNode = true;
     for (const auto &intermediateNode : mPathStats->path()->intermediateUUIDs()) {
         if (sendReservationToFirstIntermediateNode) {
-            // we should send reservations to first intrmediate node
-            info() << "send message with final path amount info and reservations for node " << intermediateNode;
+            // we should send receipt to first intermediate node
+            auto keyChain = mKeysStore->keychain(
+                mTrustLines->trustLineReadOnly(intermediateNode)->trustLineID());
+            // coordinator should have one outgoing reservation to first intermediate node
+            // todo understand what data should be signed (outgoingReservedAmount)
+            BytesShared someData;
+            auto ioTransaction = mStorageHandler->beginTransaction();
+            auto signatureAndKeyNumber = keyChain.sign(
+                ioTransaction,
+                someData,
+                4);
+            info() << "send message with final path amount info for node "
+                   << intermediateNode << " with receipt";
             sendMessage<FinalPathCycleConfigurationMessage>(
                 intermediateNode,
                 mEquivalent,
@@ -1041,7 +1085,8 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
                 currentTransactionUUID(),
                 finalPathAmount,
                 mPaymentNodesIds,
-                mReservations[intermediateNode]);
+                signatureAndKeyNumber.second,
+                signatureAndKeyNumber.first);
             sendReservationToFirstIntermediateNode = false;
         } else {
             info() << "send message with final path amount info for node " << intermediateNode;
@@ -1054,30 +1099,6 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
                 mPaymentNodesIds);
         }
     }
-
-    // send reservations to first level node and last level node on transaction paths
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    auto mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
-        ioTransaction,
-        currentTransactionUUID(),
-        mNodeUUID);
-    mParticipantsPublicKeysHashes.insert(
-        make_pair(
-            currentNodeUUID(),
-            make_pair(
-                coordinatorPaymentNodeID,
-                mPublicKey->hash())));
-
-    // send outgoing receipt to first intermediate node
-    auto firstIntermediateNode = *mPathStats->path()->intermediateUUIDs().begin();
-    sendMessage<ReservationsInRelationToNodeMessage>(
-        firstIntermediateNode,
-        mEquivalent,
-        currentNodeUUID(),
-        currentTransactionUUID(),
-        mReservations[firstIntermediateNode],
-        coordinatorPaymentNodeID,
-        mPublicKey->hash());
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::approve()

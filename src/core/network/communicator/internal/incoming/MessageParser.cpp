@@ -110,8 +110,8 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::Payments_VotesStatusRequest:
             return messageCollected<VotesStatusRequestMessage>(buffer);
 
-        case Message::Payments_ReservationsInRelationToNode:
-            return messageCollected<ReservationsInRelationToNodeMessage>(buffer);
+        case Message::Payments_TransactionPublicKeyHash:
+            return messageCollected<TransactionPublicKeyHashMessage>(buffer);
 
         case Message::Payments_ParticipantsPublicKeys:
             return messageCollected<ParticipantsPublicKeysMessage>(buffer);

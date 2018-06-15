@@ -25,6 +25,11 @@ public:
         const KeyNumber number);
 
     PublicKey::Shared keyByNumber(
+        const TrustLineID trustLineID,
+        const KeyNumber number);
+
+    uint32_t keyHashByNumber(
+        const TrustLineID trustLineID,
         const KeyNumber number);
 
     KeysCount availableKeysCnt(

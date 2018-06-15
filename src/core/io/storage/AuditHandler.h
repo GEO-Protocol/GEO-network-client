@@ -5,8 +5,11 @@
 #include "../../common/Types.h"
 #include "../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../common/exceptions/IOError.h"
+#include "../../crypto/lamportscheme.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
+
+using namespace crypto;
 
 class AuditHandler {
 
@@ -17,14 +20,12 @@ public:
         Logger &logger);
 
     void saveAudit(
-        uint32_t id,
-        uint32_t TrustLineID,
+        AuditNumber number,
+        TrustLineID TrustLineID,
         uint32_t ownKeyHash,
-        BytesShared ownSign,
-        size_t ownSignBytesCount,
+        lamport::Signature::Shared ownSign,
         uint32_t contractorKeyHash,
-        BytesShared contractorSign,
-        size_t contractorSignBytesCount,
+        lamport::Signature::Shared contractorSign,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);

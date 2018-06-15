@@ -112,16 +112,22 @@ void ContractorKeysHandler::saveKey(
 }
 
 PublicKey::Shared ContractorKeysHandler::keyByNumber(
+    const TrustLineID trustLineID,
     const KeyNumber number)
 {
-    string query = "SELECT public_key FROM " + mTableName + " WHERE number = ?;";
+    string query = "SELECT public_key FROM " + mTableName + " WHERE trust_line_id = ? AND number = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::keyByNumber: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 1, number);
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::keyByNumber: "
+                          "Bad binding of trustLineID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 2, number);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::keyByNumber: "
                           "Bad binding of Number; sqlite error: " + to_string(rc));
@@ -137,6 +143,41 @@ PublicKey::Shared ContractorKeysHandler::keyByNumber(
         sqlite3_finalize(stmt);
         throw NotFoundError("ContractorKeysHandler::keyByNumber: "
                             "There are now records with requested number");
+    }
+}
+
+uint32_t ContractorKeysHandler::keyHashByNumber(
+    const TrustLineID trustLineID,
+    const KeyNumber number)
+{
+    string query = "SELECT hash FROM " + mTableName + " WHERE trust_line_id = ? AND number = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::keyHashByNumber: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::keyHashByNumber: "
+                          "Bad binding of trustLineID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 2, number);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::keyHashByNumber: "
+                          "Bad binding of Number; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        auto result = (uint32_t)sqlite3_column_int(stmt, 0);
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        return result;
+    } else {
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        throw NotFoundError("ContractorKeysHandler::keyHashByNumber: "
+                                "There are now records with requested number");
     }
 }
 

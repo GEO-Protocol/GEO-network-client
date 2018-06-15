@@ -10,6 +10,8 @@
 #include "OwnKeysHandler.h"
 #include "ContractorKeysHandler.h"
 #include "AuditHandler.h"
+#include "IncomingPaymentReceiptHandler.h"
+#include "OutgoingPaymentReceiptHandler.h"
 #include "PaymentKeysHandler.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
@@ -76,6 +78,8 @@ private:
     OwnKeysHandler mOwnKeysHandler;
     ContractorKeysHandler mContractorKeysHandler;
     AuditHandler mAuditHandler;
+    IncomingPaymentReceiptHandler mIncomingPaymentReceiptHandler;
+    OutgoingPaymentReceiptHandler mOutgoingPaymentReceiptHandler;
     PaymentKeysHandler mPaymentKeysHandler;
     string mDirectory;
     string mDataBaseName;

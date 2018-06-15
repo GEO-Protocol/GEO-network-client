@@ -191,11 +191,43 @@ bool TrustLineKeychain::checkSign(
     dataGuard(data, size);
     keyNumberGuard(keyNumber);
 
-    auto contractorPublicKey = ioTransaction->contractorKeysHandler()->keyByNumber(keyNumber);
+    auto contractorPublicKey = ioTransaction->contractorKeysHandler()->keyByNumber(
+        mTrustLineID,
+        keyNumber);
     return signature->check(
         data.get(),
         size,
         contractorPublicKey);
+}
+
+void TrustLineKeychain::saveAudit(
+    IOTransaction::Shared ioTransaction,
+    const AuditNumber auditNumber,
+    const KeyNumber ownKeyNumber,
+    const lamport::Signature::Shared ownSignature,
+    const KeyNumber contractorKeyNumber,
+    const lamport::Signature::Shared contractorSignature,
+    const TrustLineAmount &incomingAmount,
+    const TrustLineAmount &outgoingAmount,
+    const TrustLineBalance &balance)
+{
+    auto ownKeyHash = ioTransaction->ownKeysHandler()->getPublicKeyHash(
+        mTrustLineID,
+        ownKeyNumber);
+    auto contractorKeyHash = ioTransaction->contractorKeysHandler()->keyHashByNumber(
+        mTrustLineID,
+        contractorKeyNumber);
+
+    ioTransaction->auditHandler()->saveAudit(
+        auditNumber,
+        mTrustLineID,
+        ownKeyHash,
+        ownSignature,
+        contractorKeyHash,
+        contractorSignature,
+        incomingAmount,
+        outgoingAmount,
+        balance);
 }
 
 void TrustLineKeychain::keyNumberGuard(

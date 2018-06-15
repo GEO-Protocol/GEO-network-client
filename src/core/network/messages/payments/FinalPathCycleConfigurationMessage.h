@@ -2,8 +2,10 @@
 #define GEO_NETWORK_CLIENT_FINALPATHCYCLECONFIGURATIONMESSAGE_H
 
 #include "base/RequestCycleMessage.h"
-#include "../../../payments/reservations/AmountReservation.h"
+#include "../../../crypto/lamportscheme.h"
 #include <map>
+
+using namespace crypto;
 
 class FinalPathCycleConfigurationMessage :
     public RequestCycleMessage {
@@ -25,7 +27,8 @@ public:
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount,
         const map<NodeUUID, PaymentNodeID> &paymentNodesIds,
-        const vector<pair<PathID, AmountReservation::ConstShared>> &reservations);
+        const KeyNumber publicKeyNumber,
+        const lamport::Signature::Shared signature);
 
     FinalPathCycleConfigurationMessage(
         BytesShared buffer);
@@ -34,7 +37,11 @@ public:
 
     const map<NodeUUID, PaymentNodeID>& paymentNodesIds() const;
 
-    const vector<pair<PathID, AmountReservation::ConstShared>> &reservations() const;
+    bool isReceiptContains() const;
+
+    const KeyNumber publicKeyNumber() const;
+
+    const lamport::Signature::Shared signature() const;
 
 protected:
     virtual pair<BytesShared, size_t> serializeToBytes() const
@@ -42,7 +49,9 @@ protected:
 
 private:
     map<NodeUUID, PaymentNodeID> mPaymentNodesIds;
-    vector<pair<PathID, AmountReservation::ConstShared>> mReservations;
+    bool mIsReceiptContains;
+    KeyNumber mPublicKeyNumber;
+    lamport::Signature::Shared mSignature;
 };
 
 

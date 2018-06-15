@@ -64,6 +64,7 @@ public:
 
         Payments_ParticipantsPublicKeys = 220,
         Payments_ParticipantVote = 221,
+        Payments_TransactionPublicKeyHash = 222,
 
         /*
          * Cycles

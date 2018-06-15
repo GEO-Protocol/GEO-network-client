@@ -12,7 +12,8 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
         senderUUID,
         transactionUUID,
         finalAmountsConfig),
-    mPaymentNodesIds(paymentNodesIds)
+    mPaymentNodesIds(paymentNodesIds),
+    mIsReceiptContains(false)
 {}
 
 FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
@@ -21,7 +22,9 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     const TransactionUUID &transactionUUID,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
     const map<NodeUUID, PaymentNodeID> &paymentNodesIds,
-    const vector<pair<PathID, AmountReservation::ConstShared>> &reservations) :
+    const TrustLineAmount &amount,
+    const KeyNumber publicKeyNumber,
+    const lamport::Signature::Shared signature) :
 
     RequestMessageWithReservations(
         equivalent,
@@ -29,7 +32,10 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
         transactionUUID,
         finalAmountsConfig),
     mPaymentNodesIds(paymentNodesIds),
-    mReservations(reservations)
+    mIsReceiptContains(true),
+    mAmount(amount),
+    mPublicKeyNumber(publicKeyNumber),
+    mSignature(signature)
 {}
 
 FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
@@ -55,37 +61,28 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
                 *paymentNodeID));
     }
     //----------------------------------------------------
-    auto *reservationsCount = new (bytesBufferOffset) SerializedRecordsCount;
-    bytesBufferOffset += sizeof(SerializedRecordsCount);
-    //-----------------------------------------------------
-    mReservations.reserve(*reservationsCount);
-    for (SerializedRecordNumber idx = 0; idx < *reservationsCount; idx++) {
-
-        // PathID
-        auto *pathID = new (bytesBufferOffset) PathID;
-        bytesBufferOffset += sizeof(PathID);
-
-        // Amount
-        vector<byte> bufferTrustLineAmount(
+    memcpy(
+        &mIsReceiptContains,
+        bytesBufferOffset,
+        sizeof(byte));
+    //----------------------------------------------------
+    if (mIsReceiptContains) {
+        bytesBufferOffset += sizeof(byte);
+        vector<byte> amountBytes(
             bytesBufferOffset,
             bytesBufferOffset + kTrustLineAmountBytesCount);
+        mAmount = bytesToTrustLineAmount(amountBytes);
         bytesBufferOffset += kTrustLineAmountBytesCount;
-        TrustLineAmount reservationAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
 
-        // Direction
-        auto *direction =
-                new (bytesBufferOffset)AmountReservation::SerializedReservationDirectionSize;
-        bytesBufferOffset += sizeof(AmountReservation::SerializedReservationDirectionSize);
-        auto reservationEnumDirection = static_cast<AmountReservation::ReservationDirection>(*direction);
+        memcpy(
+            &mPublicKeyNumber,
+            bytesBufferOffset,
+            sizeof(KeyNumber));
+        bytesBufferOffset += sizeof(KeyNumber);
 
-        auto amountReservation = make_shared<AmountReservation>(
-            NodeUUID::empty(),
-            reservationAmount,
-            reservationEnumDirection);
-        mReservations.push_back(
-            make_pair(
-                *pathID,
-                amountReservation));
+        auto signature = make_shared<lamport::Signature>(
+            bytesBufferOffset);
+        mSignature = signature;
     }
 }
 
@@ -99,9 +96,24 @@ const map<NodeUUID, PaymentNodeID>& FinalAmountsConfigurationMessage::paymentNod
     return mPaymentNodesIds;
 }
 
-const vector<pair<PathID, AmountReservation::ConstShared>>& FinalAmountsConfigurationMessage::reservations() const
+bool FinalAmountsConfigurationMessage::isReceiptContains() const
 {
-    return mReservations;
+    return mIsReceiptContains;
+}
+
+const TrustLineAmount& FinalAmountsConfigurationMessage::amount() const
+{
+    return mAmount;
+}
+
+const KeyNumber FinalAmountsConfigurationMessage::publicKeyNumber() const
+{
+    return mPublicKeyNumber;
+}
+
+const lamport::Signature::Shared FinalAmountsConfigurationMessage::signature() const
+{
+    return mSignature;
 }
 
 /*!
@@ -112,16 +124,17 @@ pair<BytesShared, size_t> FinalAmountsConfigurationMessage::serializeToBytes() c
     throw (bad_alloc)
 {
     auto parentBytesAndCount = RequestMessageWithReservations::serializeToBytes();
-    size_t bytesCount =
-            + parentBytesAndCount.second
+    size_t bytesCount = parentBytesAndCount.second
             + sizeof(SerializedRecordsCount)
             + mPaymentNodesIds.size() *
                 (NodeUUID::kBytesSize + sizeof(PaymentNodeID))
-            + sizeof(SerializedRecordsCount)
-            + mReservations.size() *
-                (sizeof(PathID)
-                 + kTrustLineAmountBytesCount
-                 + sizeof(AmountReservation::SerializedReservationDirectionSize));
+            + sizeof(byte);
+    if (mIsReceiptContains) {
+        bytesCount +=
+                kTrustLineAmountBytesCount
+                + sizeof(KeyNumber)
+                + lamport::Signature::signatureSize();
+    }
 
     BytesShared buffer = tryMalloc(bytesCount);
 
@@ -154,33 +167,30 @@ pair<BytesShared, size_t> FinalAmountsConfigurationMessage::serializeToBytes() c
         bytesBufferOffset += sizeof(PaymentNodeID);
     }
     //----------------------------------------------------
-    auto reservationsCount = (SerializedRecordsCount)mReservations.size();
     memcpy(
         bytesBufferOffset,
-        &reservationsCount,
-        sizeof(SerializedRecordsCount));
-    bytesBufferOffset += sizeof(SerializedRecordsCount);
+        &mIsReceiptContains,
+        sizeof(byte));
     //----------------------------------------------------
-    for (auto const &it : mReservations) {
-        memcpy(
-            bytesBufferOffset,
-            &it.first,
-            sizeof(PathID));
-        bytesBufferOffset += sizeof(PathID);
-
-        vector<byte> serializedAmount = trustLineAmountToBytes(it.second->amount());
+    if (mIsReceiptContains) {
+        bytesBufferOffset += sizeof(byte);
+        auto serializedAmount = trustLineAmountToBytes(mAmount);
         memcpy(
             bytesBufferOffset,
             serializedAmount.data(),
             kTrustLineAmountBytesCount);
         bytesBufferOffset += kTrustLineAmountBytesCount;
 
-        const auto kDirection = it.second->direction();
         memcpy(
             bytesBufferOffset,
-            &kDirection,
-            sizeof(AmountReservation::SerializedReservationDirectionSize));
-        bytesBufferOffset += sizeof(AmountReservation::SerializedReservationDirectionSize);
+            &mPublicKeyNumber,
+            sizeof(KeyNumber));
+        bytesBufferOffset += sizeof(KeyNumber);
+
+        memcpy(
+            bytesBufferOffset,
+            mSignature->data(),
+            mSignature->signatureSize());
     }
     //----------------------------------------------------
     return make_pair(

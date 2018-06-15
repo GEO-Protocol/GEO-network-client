@@ -40,7 +40,11 @@ set(SOURCE_FILES
         AuditHandler.h
         AuditHandler.cpp
         PaymentKeysHandler.h
-        PaymentKeysHandler.cpp)
+        PaymentKeysHandler.cpp
+        IncomingPaymentReceiptHandler.h
+        IncomingPaymentReceiptHandler.cpp
+        OutgoingPaymentReceiptHandler.h
+        OutgoingPaymentReceiptHandler.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

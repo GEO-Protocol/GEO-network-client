@@ -12,7 +12,8 @@ FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
         senderUUID,
         transactionUUID,
         amount),
-    mPaymentNodesIds(paymentNodesIds)
+    mPaymentNodesIds(paymentNodesIds),
+    mIsReceiptContains(false)
 {}
 
 FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
@@ -21,7 +22,8 @@ FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount,
     const map<NodeUUID, PaymentNodeID> &paymentNodesIds,
-    const vector<pair<PathID, AmountReservation::ConstShared>> &reservations) :
+    const KeyNumber publicKeyNumber,
+    const lamport::Signature::Shared signature) :
 
     RequestCycleMessage(
         equivalent,
@@ -29,7 +31,9 @@ FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
         transactionUUID,
         amount),
     mPaymentNodesIds(paymentNodesIds),
-    mReservations(reservations)
+    mIsReceiptContains(true),
+    mPublicKeyNumber(publicKeyNumber),
+    mSignature(signature)
 {}
 
 FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
@@ -56,38 +60,22 @@ RequestCycleMessage(buffer)
                 *paymentNodeID));
     }
     //----------------------------------------------------
-    auto *reservationsCount = new (bytesBufferOffset) SerializedRecordsCount;
-    bytesBufferOffset += sizeof(SerializedRecordsCount);
-    //-----------------------------------------------------
-    mReservations.reserve(*reservationsCount);
-    for (SerializedRecordNumber idx = 0; idx < *reservationsCount; idx++) {
-
-        // PathID
-        auto *pathID = new (bytesBufferOffset) PathID;
-        bytesBufferOffset += sizeof(PathID);
-
-        // Amount
-        vector<byte> bufferTrustLineAmount(
+    memcpy(
+        &mIsReceiptContains,
+        bytesBufferOffset,
+        sizeof(byte));
+    //----------------------------------------------------
+    if (mIsReceiptContains) {
+        bytesBufferOffset += sizeof(byte);
+        memcpy(
+            &mPublicKeyNumber,
             bytesBufferOffset,
-            bytesBufferOffset + kTrustLineAmountBytesCount);
-        bytesBufferOffset += kTrustLineAmountBytesCount;
-        TrustLineAmount reservationAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
+            sizeof(KeyNumber));
+        bytesBufferOffset += sizeof(KeyNumber);
 
-        // Direction
-        auto *direction =
-                new (bytesBufferOffset)AmountReservation::SerializedReservationDirectionSize;
-        bytesBufferOffset += sizeof(AmountReservation::SerializedReservationDirectionSize);
-        auto reservationEnumDirection = static_cast<AmountReservation::ReservationDirection>(*direction);
-
-        auto amountReservation = make_shared<AmountReservation>(
-            NodeUUID::empty(),
-            reservationAmount,
-            reservationEnumDirection);
-
-        mReservations.push_back(
-            make_pair(
-                *pathID,
-                amountReservation));
+        auto signature = make_shared<lamport::Signature>(
+            bytesBufferOffset);
+        mSignature = signature;
     }
 }
 
@@ -101,9 +89,14 @@ const map<NodeUUID, PaymentNodeID>& FinalPathCycleConfigurationMessage::paymentN
     return mPaymentNodesIds;
 }
 
-const vector<pair<PathID, AmountReservation::ConstShared>>& FinalPathCycleConfigurationMessage::reservations() const
+const KeyNumber FinalPathCycleConfigurationMessage::publicKeyNumber() const
 {
-    return mReservations;
+    return mPublicKeyNumber;
+}
+
+const lamport::Signature::Shared FinalPathCycleConfigurationMessage::signature() const
+{
+    return mSignature;
 }
 
 /*!
@@ -114,11 +107,15 @@ pair<BytesShared, size_t> FinalPathCycleConfigurationMessage::serializeToBytes()
     throw(bad_alloc)
 {
     auto parentBytesAndCount = RequestCycleMessage::serializeToBytes();
-    size_t bytesCount =
-            + parentBytesAndCount.second
+    size_t bytesCount = parentBytesAndCount.second
             + sizeof(SerializedRecordsCount)
             + mPaymentNodesIds.size() *
-              (NodeUUID::kBytesSize + sizeof(PaymentNodeID));
+              (NodeUUID::kBytesSize + sizeof(PaymentNodeID))
+            + sizeof(byte);
+    if (mIsReceiptContains) {
+        bytesCount += sizeof(KeyNumber)
+                + lamport::Signature::signatureSize();
+    }
 
     BytesShared buffer = tryMalloc(bytesCount);
     auto initialOffset = buffer.get();
@@ -150,33 +147,23 @@ pair<BytesShared, size_t> FinalPathCycleConfigurationMessage::serializeToBytes()
         bytesBufferOffset += sizeof(PaymentNodeID);
     }
     //----------------------------------------------------
-    auto reservationsCount = (SerializedRecordsCount)mReservations.size();
     memcpy(
         bytesBufferOffset,
-        &reservationsCount,
-        sizeof(SerializedRecordsCount));
-    bytesBufferOffset += sizeof(SerializedRecordsCount);
+        &mIsReceiptContains,
+        sizeof(byte));
     //----------------------------------------------------
-    for (auto const &it : mReservations) {
+    if (mIsReceiptContains) {
+        bytesBufferOffset += sizeof(byte);
         memcpy(
             bytesBufferOffset,
-            &it.first,
-            sizeof(PathID));
-        bytesBufferOffset += sizeof(PathID);
+            &mPublicKeyNumber,
+            sizeof(KeyNumber));
+        bytesBufferOffset += sizeof(KeyNumber);
 
-        vector<byte> serializedAmount = trustLineAmountToBytes(it.second->amount());
         memcpy(
             bytesBufferOffset,
-            serializedAmount.data(),
-            kTrustLineAmountBytesCount);
-        bytesBufferOffset += kTrustLineAmountBytesCount;
-
-        const auto kDirection = it.second->direction();
-        memcpy(
-            bytesBufferOffset,
-            &kDirection,
-            sizeof(AmountReservation::SerializedReservationDirectionSize));
-        bytesBufferOffset += sizeof(AmountReservation::SerializedReservationDirectionSize);
+            mSignature->data(),
+            mSignature->signatureSize());
     }
     //----------------------------------------------------
     return make_pair(

@@ -9,6 +9,9 @@ IOTransaction::IOTransaction(
     BlackListHandler *blackListHandler,
     OwnKeysHandler *ownKeysHandler,
     ContractorKeysHandler *contractorKeysHandler,
+    AuditHandler *auditHandler,
+    IncomingPaymentReceiptHandler *incomingPaymentReceiptHandler,
+    OutgoingPaymentReceiptHandler *outgoingPaymentReceiptHandler,
     PaymentKeysHandler *paymentKeysHandler,
     Logger &logger) :
 
@@ -20,6 +23,9 @@ IOTransaction::IOTransaction(
     mBlackListHandler(blackListHandler),
     mOwnKeysHandler(ownKeysHandler),
     mContractorKeysHandler(contractorKeysHandler),
+    mAuditHandler(auditHandler),
+    mIncomingPaymentReceiptHandler(incomingPaymentReceiptHandler),
+    mOutgoingPaymentReceiptHandler(outgoingPaymentReceiptHandler),
     mPaymentKeysHandler(paymentKeysHandler),
     mIsTransactionBegin(true),
     mLog(logger)
@@ -84,6 +90,33 @@ ContractorKeysHandler* IOTransaction::contractorKeysHandler()
                           "transaction was rollback, it can't be use now");
     }
     return mContractorKeysHandler;
+}
+
+AuditHandler* IOTransaction::auditHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::auditHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mAuditHandler;
+}
+
+IncomingPaymentReceiptHandler* IOTransaction::incomingPaymentReceiptHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::incomingPaymentReceiptHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mIncomingPaymentReceiptHandler;
+}
+
+OutgoingPaymentReceiptHandler* IOTransaction::outgoingPaymentReceiptHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::outgoingPaymentReceiptHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mOutgoingPaymentReceiptHandler;
 }
 
 PaymentKeysHandler* IOTransaction::paymentKeysHandler()

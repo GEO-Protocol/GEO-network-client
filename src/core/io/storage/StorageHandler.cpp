@@ -17,6 +17,8 @@ StorageHandler::StorageHandler(
     mOwnKeysHandler(connection(dataBaseName, directory), kOwnKeysTableName, logger),
     mContractorKeysHandler(connection(dataBaseName, directory), kContractorKeysTableName, logger),
     mAuditHandler(connection(dataBaseName, directory), kAuditTableName, logger),
+    mIncomingPaymentReceiptHandler(connection(dataBaseName, directory), kIncomingReceiptTableName, logger),
+    mOutgoingPaymentReceiptHandler(connection(dataBaseName, directory), kOutgoingReceiptTableName, logger),
     mPaymentKeysHandler(connection(dataBaseName, directory), kPaymentKeysTableName, logger),
     mLog(logger)
 {
@@ -81,6 +83,9 @@ IOTransaction::Shared StorageHandler::beginTransaction()
         &mBlackListHandler,
         &mOwnKeysHandler,
         &mContractorKeysHandler,
+        &mAuditHandler,
+        &mIncomingPaymentReceiptHandler,
+        &mOutgoingPaymentReceiptHandler,
         &mPaymentKeysHandler,
         mLog);
 }

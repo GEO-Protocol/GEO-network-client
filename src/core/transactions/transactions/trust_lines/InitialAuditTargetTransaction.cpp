@@ -78,6 +78,20 @@ TransactionResult::SharedConst InitialAuditTargetTransaction::run()
         signatureAndKeyNumber.second,
         signatureAndKeyNumber.first);
     info() << "Send audit message signed by key " << signatureAndKeyNumber.second;
+
+    AuditNumber initialAuditNumber = 0;
+    keyChain.saveAudit(
+        ioTransaction,
+        initialAuditNumber,
+        signatureAndKeyNumber.second,
+        signatureAndKeyNumber.first,
+        mMessage->keyNumber(),
+        mMessage->signedData(),
+        mTrustLines->incomingTrustAmountDespiteReservations(
+            mMessage->senderUUID),
+        mTrustLines->outgoingTrustAmountDespiteReservations(
+            mMessage->senderUUID),
+        mTrustLines->balance(mMessage->senderUUID));
     return resultDone();
 }
 

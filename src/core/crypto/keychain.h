@@ -220,6 +220,17 @@ public:
         const lamport::Signature::Shared signature,
         const KeyNumber keyNumber);
 
+    void saveAudit(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber,
+        const KeyNumber ownKeyNumber,
+        const lamport::Signature::Shared ownSignature,
+        const KeyNumber contractorKeyNumber,
+        const lamport::Signature::Shared contractorSignature,
+        const TrustLineAmount &incomingAmount,
+        const TrustLineAmount &outgoingAmount,
+        const TrustLineBalance &balance);
+
 protected:
     /**
      * @brief checks "number" for it's range.

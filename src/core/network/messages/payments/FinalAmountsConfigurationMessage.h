@@ -2,8 +2,10 @@
 #define GEO_NETWORK_CLIENT_FINALAMOUNTSCONFIGURATIONMESSAGE_H
 
 #include "base/RequestMessageWithReservations.h"
-#include "../../../payments/reservations/AmountReservation.h"
+#include "../../../crypto/lamportscheme.h"
 #include <map>
+
+using namespace crypto;
 
 class FinalAmountsConfigurationMessage : public RequestMessageWithReservations {
 
@@ -18,14 +20,16 @@ public:
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
         const map<NodeUUID, PaymentNodeID> &paymentNodesIds);
 
-    // if coordinator has reservation with current node it also send them
+    // if coordinator has reservation with current node it also send receipt
     FinalAmountsConfigurationMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
         const map<NodeUUID, PaymentNodeID> &paymentNodesIds,
-        const vector<pair<PathID, AmountReservation::ConstShared>> &reservations);
+        const TrustLineAmount &amount,
+        const KeyNumber publicKeyNumber,
+        const lamport::Signature::Shared signature);
 
     FinalAmountsConfigurationMessage(
         BytesShared buffer);
@@ -34,7 +38,13 @@ public:
 
     const map<NodeUUID, PaymentNodeID> &paymentNodesIds() const;
 
-    const vector<pair<PathID, AmountReservation::ConstShared>> &reservations() const;
+    bool isReceiptContains() const;
+
+    const TrustLineAmount& amount() const;
+
+    const KeyNumber publicKeyNumber() const;
+
+    const lamport::Signature::Shared signature() const;
 
 protected:
     pair<BytesShared, size_t> serializeToBytes() const
@@ -42,7 +52,10 @@ protected:
 
 private:
     map<NodeUUID, PaymentNodeID> mPaymentNodesIds;
-    vector<pair<PathID, AmountReservation::ConstShared>> mReservations;
+    bool mIsReceiptContains;
+    TrustLineAmount mAmount;
+    KeyNumber mPublicKeyNumber;
+    lamport::Signature::Shared mSignature;
 };
 
 

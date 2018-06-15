@@ -54,6 +54,7 @@ protected:
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
+    pair<lamport::Signature::Shared, KeyNumber> mOwnSignatureAndKeyNumber;
 };
 
 

@@ -508,12 +508,63 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
         return reject("Node has reservation with participant, which not included in mPaymentNodesIds. Rejected");
     }
 
-    if (!kMessage->reservations().empty()) {
-        info() << "Coordinator also send reservations";
-        mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
-    }
+    auto coordinatorTotalIncomingReservationAmount = totalReservedIncomingAmountToNode(
+        kMessage->senderUUID);
 
     auto ioTransaction = mStorageHandler->beginTransaction();
+    if (kMessage->isReceiptContains()) {
+        info() << "Coordinator also send receipt " << kMessage->amount();
+
+        if (coordinatorTotalIncomingReservationAmount != kMessage->amount()) {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
+                kMessage->senderUUID,
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            warning() << "Receipt amount: " << kMessage->amount()
+                      << ". Local incoming amount: " << coordinatorTotalIncomingReservationAmount;
+            return reject("Coordinator send invalid receipt amount. Rejected");
+        }
+
+        auto keyChain = mKeysStore->keychain(
+            mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
+        // todo understand what data should be for check signature
+        BytesShared someData;
+        if (!keyChain.checkSign(
+            ioTransaction,
+            someData,
+            4,
+            kMessage->signature(),
+            kMessage->publicKeyNumber())) {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
+                kMessage->senderUUID,
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            return reject("Coordinator send invalid receipt signature. Rejected");
+        }
+        mNeighborsIncomingReceipts.insert(
+            make_pair(
+                kMessage->senderUUID,
+                make_pair(
+                    kMessage->signature(),
+                    kMessage->publicKeyNumber())));
+        info() << "Coordinator's receipt is valid";
+    } else {
+        if (coordinatorTotalIncomingReservationAmount != TrustLine::kZeroAmount()) {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
+                kMessage->senderUUID,
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            warning() << "Receipt amount: 0. Local incoming amount: " << coordinatorTotalIncomingReservationAmount;
+            return reject("Coordinator send invalid receipt amount. Rejected");
+        }
+    }
+
     mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
         ioTransaction,
         currentTransactionUUID(),
@@ -526,7 +577,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
                 mPublicKey->hash())));
 
     // send public key hash to all participants except coordinator
-    vector<pair<PathID, AmountReservation::ConstShared>> emptyReservations;
     for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
         if (nodeAndPaymentID.first == coordinatorUUID()) {
             continue;
@@ -535,12 +585,11 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
             continue;
         }
         info() << "Send public key hash to " << nodeAndPaymentID.first;
-        sendMessage<ReservationsInRelationToNodeMessage>(
+        sendMessage<TransactionPublicKeyHashMessage>(
             nodeAndPaymentID.first,
             mEquivalent,
             currentNodeUUID(),
             currentTransactionUUID(),
-            emptyReservations,
             mPaymentNodesIds[mNodeUUID],
             mPublicKey->hash());
     }
@@ -559,18 +608,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
             return reject("Public key hashes are not properly. Rejected");
         }
         info() << "All public key hashes are properly";
-
-        if (!checkAllNeighborsReceiptsAppropriate()) {
-            sendMessage<FinalAmountsConfigurationResponseMessage>(
-                coordinatorUUID(),
-                mEquivalent,
-                currentNodeUUID(),
-                currentTransactionUUID(),
-                FinalAmountsConfigurationResponseMessage::Rejected);
-            // todo : discuss if receiver can reject TA on this stage or should wait
-            return reject("Current node has different reservations with remote one. Rejected");
-        }
-        info() << "All neighbors receipts are properly";
 
         sendMessage<FinalAmountsConfigurationResponseMessage>(
             coordinatorUUID(),
@@ -597,14 +634,67 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
 TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsNeighborConfirmation()
 {
     debug() << "runFinalReservationsNeighborConfirmation";
-    auto kMessage = popNextMessage<ReservationsInRelationToNodeMessage>();
+    auto kMessage = popNextMessage<TransactionPublicKeyHashMessage>();
     debug() << "sender: " << kMessage->senderUUID;
 
     mParticipantsPublicKeysHashes[kMessage->senderUUID] = make_pair(
         kMessage->paymentNodeID(),
-        kMessage->publicKeyHash());
-    if (!kMessage->reservations().empty()) {
-        mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
+        kMessage->transactionPublicKeyHash());
+
+    auto participantTotalIncomingReservationAmount = totalReservedIncomingAmountToNode(
+        kMessage->senderUUID);
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (kMessage->isReceiptContains()) {
+        info() << "Sender also send receipt " << kMessage->amount();
+        if (participantTotalIncomingReservationAmount != kMessage->amount()) {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
+                kMessage->senderUUID,
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            warning() << "Local reserved incoming amount: " << participantTotalIncomingReservationAmount;
+            return reject("Sender send invalid receipt amount. Rejected");
+        }
+
+        auto keyChain = mKeysStore->keychain(
+            mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
+        // todo understand what data should be for check signature
+        BytesShared someData;
+        if (!keyChain.checkSign(
+            ioTransaction,
+            someData,
+            4,
+            kMessage->signature(),
+            kMessage->publicKeyNumber())) {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
+                kMessage->senderUUID,
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            return reject("Sender send invalid receipt signature. Rejected");
+        }
+        mNeighborsIncomingReceipts.insert(
+            make_pair(
+                kMessage->senderUUID,
+                make_pair(
+                    kMessage->signature(),
+                    kMessage->publicKeyNumber())));
+        info() << "Sender's receipt is valid";
+    } else {
+        if (participantTotalIncomingReservationAmount != TrustLine::kZeroAmount()) {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
+                kMessage->senderUUID,
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            warning() << "Receipt amount: 0. Local reserved incoming amount: "
+                      << participantTotalIncomingReservationAmount;
+            return reject("Sender send invalid receipt amount. Rejected");
+        }
     }
 
     // if coordinator didn't sent final payment configuration yet
@@ -628,17 +718,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
                 currentTransactionUUID(),
                 FinalAmountsConfigurationResponseMessage::Rejected);
             return reject("Public key hashes are not properly. Rejected");
-        }
-
-        if (!checkAllNeighborsReceiptsAppropriate()) {
-            sendMessage<FinalAmountsConfigurationResponseMessage>(
-                coordinatorUUID(),
-                mEquivalent,
-                currentNodeUUID(),
-                currentTransactionUUID(),
-                FinalAmountsConfigurationResponseMessage::Rejected);
-            // todo : discuss if receiver can reject TA on this stage or should wait
-            return reject("Current node has different reservations with remote one. Rejected");
         }
 
         sendMessage<FinalAmountsConfigurationResponseMessage>(

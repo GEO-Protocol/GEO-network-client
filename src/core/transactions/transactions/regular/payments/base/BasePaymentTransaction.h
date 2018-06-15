@@ -34,7 +34,7 @@
 #include "../../../../../network/messages/payments/TTLProlongationResponseMessage.h"
 #include "../../../../../network/messages/payments/FinalAmountsConfigurationMessage.h"
 #include "../../../../../network/messages/payments/FinalAmountsConfigurationResponseMessage.h"
-#include "../../../../../network/messages/payments/ReservationsInRelationToNodeMessage.h"
+#include "../../../../../network/messages/payments/TransactionPublicKeyHashMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsPublicKeysMessage.h"
 #include "../../../../../network/messages/payments/ParticipantVoteMessage.h"
 
@@ -374,7 +374,8 @@ protected:
 
     bool checkAllPublicKeyHashesProperly();
 
-    bool checkAllNeighborsReceiptsAppropriate();
+    const TrustLineAmount totalReservedIncomingAmountToNode(
+        const NodeUUID &nodeUUID);
 
     bool checkPublicKeysAppropriate();
 
@@ -437,13 +438,12 @@ protected:
     // this amount used for saving in payment history
     TrustLineAmount mCommittedAmount;
 
-    map<NodeUUID, vector<pair<PathID, AmountReservation::ConstShared>>> mRemoteReservations;
-
     // ids of nodes inside payment transaction
     map<NodeUUID, PaymentNodeID> mPaymentNodesIds;
     map<NodeUUID, pair<PaymentNodeID, uint32_t>> mParticipantsPublicKeysHashes;
     map<PaymentNodeID, lamport::PublicKey::Shared> mParticipantsPublicKeys;
     map<PaymentNodeID, lamport::Signature::Shared> mParticipantsSigns;
+    map<NodeUUID, pair<lamport::Signature::Shared, KeyNumber>> mNeighborsIncomingReceipts;
 
     // this fields are used by coordinators on final amount configuration clarification
     bool mAllNodesSentConfirmationOnFinalAmountsConfiguration;

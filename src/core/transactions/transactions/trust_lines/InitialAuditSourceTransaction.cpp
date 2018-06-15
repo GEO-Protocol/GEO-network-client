@@ -41,7 +41,7 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runInitialisationS
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineReadOnly(mContractorUUID)->trustLineID());
-    auto signatureAndKeyNumber = keyChain.sign(
+    mOwnSignatureAndKeyNumber = keyChain.sign(
         ioTransaction,
         serializedAuditData.first,
         serializedAuditData.second);
@@ -51,9 +51,9 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runInitialisationS
         mEquivalent,
         mNodeUUID,
         currentTransactionUUID(),
-        signatureAndKeyNumber.second,
-        signatureAndKeyNumber.first);
-    info() << "Send audit message signed by key " << signatureAndKeyNumber.second;
+        mOwnSignatureAndKeyNumber.second,
+        mOwnSignatureAndKeyNumber.first);
+    info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
     mStep = ResponseProcessing;
     return resultWaitForMessageTypes(
         {Message::TrustLines_Audit},
@@ -115,6 +115,19 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runResponseProcess
         error() << "Can't save Audit or update TL on storage. Details: " << e.what();
         return resultDone();
     }
+    AuditNumber initialAuditNumber = 0;
+    keyChain.saveAudit(
+        ioTransaction,
+        initialAuditNumber,
+        mOwnSignatureAndKeyNumber.second,
+        mOwnSignatureAndKeyNumber.first,
+        message->keyNumber(),
+        message->signedData(),
+        mTrustLines->incomingTrustAmountDespiteReservations(
+            mContractorUUID),
+        mTrustLines->outgoingTrustAmountDespiteReservations(
+            mContractorUUID),
+        mTrustLines->balance(mContractorUUID));
     info() << "All data saved. Now TL is ready for using";
     return resultDone();
 }
