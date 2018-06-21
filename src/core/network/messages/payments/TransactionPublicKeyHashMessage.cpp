@@ -5,7 +5,7 @@ TransactionPublicKeyHashMessage::TransactionPublicKeyHashMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const PaymentNodeID paymentNodeID,
-    const uint32_t transactionPublicKeyHash) :
+    const lamport::KeyHash::Shared transactionPublicKeyHash) :
 
     TransactionMessage(
         equivalent,
@@ -21,8 +21,7 @@ TransactionPublicKeyHashMessage::TransactionPublicKeyHashMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const PaymentNodeID paymentNodeID,
-    const uint32_t transactionPublicKeyHash,
-    const TrustLineAmount &amount,
+    const lamport::KeyHash::Shared transactionPublicKeyHash,
     const KeyNumber publicKeyNumber,
     const lamport::Signature::Shared signature) :
 
@@ -33,7 +32,6 @@ TransactionPublicKeyHashMessage::TransactionPublicKeyHashMessage(
     mPaymentNodeID(paymentNodeID),
     mTransactionPublicKeyHash(transactionPublicKeyHash),
     mIsReceiptContains(true),
-    mAmount(amount),
     mPublicKeyNumber(publicKeyNumber),
     mSignature(signature)
 {}
@@ -50,11 +48,9 @@ TransactionPublicKeyHashMessage::TransactionPublicKeyHashMessage(
         sizeof(PaymentNodeID));
     bytesBufferOffset += sizeof(PaymentNodeID);
 
-    memcpy(
-        &mTransactionPublicKeyHash,
-        buffer.get() + bytesBufferOffset,
-        sizeof(uint32_t));
-    bytesBufferOffset += sizeof(uint32_t);
+    mTransactionPublicKeyHash = make_shared<lamport::KeyHash>(
+        buffer.get() + bytesBufferOffset);
+    bytesBufferOffset += lamport::KeyHash::kBytesSize;
 
     memcpy(
         &mIsReceiptContains,
@@ -63,12 +59,6 @@ TransactionPublicKeyHashMessage::TransactionPublicKeyHashMessage(
 
     if (mIsReceiptContains) {
         bytesBufferOffset += sizeof(byte);
-        vector<byte> amountBytes(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-        mAmount = bytesToTrustLineAmount(amountBytes);
-        bytesBufferOffset += kTrustLineAmountBytesCount;
-
         memcpy(
             &mPublicKeyNumber,
             buffer.get() + bytesBufferOffset,
@@ -91,7 +81,7 @@ const PaymentNodeID TransactionPublicKeyHashMessage::paymentNodeID() const
     return mPaymentNodeID;
 }
 
-const uint32_t TransactionPublicKeyHashMessage::transactionPublicKeyHash() const
+const lamport::KeyHash::Shared TransactionPublicKeyHashMessage::transactionPublicKeyHash() const
 {
     return mTransactionPublicKeyHash;
 }
@@ -99,11 +89,6 @@ const uint32_t TransactionPublicKeyHashMessage::transactionPublicKeyHash() const
 bool TransactionPublicKeyHashMessage::isReceiptContains() const
 {
     return mIsReceiptContains;
-}
-
-const TrustLineAmount& TransactionPublicKeyHashMessage::amount() const
-{
-    return mAmount;
 }
 
 const KeyNumber TransactionPublicKeyHashMessage::publicKeyNumber() const
@@ -123,13 +108,11 @@ pair<BytesShared, size_t> TransactionPublicKeyHashMessage::serializeToBytes() co
     auto kBufferSize =
             parentBytesAndCount.second
             + sizeof(PaymentNodeID)
-            + sizeof(uint32_t)
+            + lamport::KeyHash::kBytesSize
             + sizeof(byte);
     if (mIsReceiptContains) {
-        kBufferSize +=
-                kTrustLineAmountBytesCount
-                + sizeof(KeyNumber)
-                + lamport::Signature::signatureSize();
+        kBufferSize += (sizeof(KeyNumber)
+                + lamport::Signature::signatureSize());
     }
 
     BytesShared buffer = tryMalloc(kBufferSize);
@@ -149,9 +132,9 @@ pair<BytesShared, size_t> TransactionPublicKeyHashMessage::serializeToBytes() co
 
     memcpy(
         buffer.get() + dataBytesOffset,
-        &mTransactionPublicKeyHash,
-        sizeof(uint32_t));
-    dataBytesOffset += sizeof(uint32_t);
+        mTransactionPublicKeyHash->data(),
+        lamport::KeyHash::kBytesSize);
+    dataBytesOffset += lamport::KeyHash::kBytesSize;
 
     memcpy(
         buffer.get() + dataBytesOffset,
@@ -160,13 +143,6 @@ pair<BytesShared, size_t> TransactionPublicKeyHashMessage::serializeToBytes() co
 
     if (mIsReceiptContains) {
         dataBytesOffset += sizeof(byte);
-        auto serializedAmount = trustLineAmountToBytes(mAmount);
-        memcpy(
-            buffer.get() + dataBytesOffset,
-            serializedAmount.data(),
-            kTrustLineAmountBytesCount);
-        dataBytesOffset += kTrustLineAmountBytesCount;
-
         memcpy(
             buffer.get() + dataBytesOffset,
             &mPublicKeyNumber,

@@ -26,6 +26,33 @@ protected:
     static const size_t kRandomNumberSize = 256 / 8;
 };
 
+class KeyHash {
+public:
+    typedef shared_ptr<KeyHash> Shared;
+
+public:
+    KeyHash() = default;
+
+    KeyHash(
+        byte* buffer);
+
+    const byte* data() const;
+
+    friend bool operator== (
+        const KeyHash &kh1,
+        const KeyHash &kh2);
+
+    friend bool operator!= (
+        const KeyHash &kh1,
+        const KeyHash &kh2);
+
+public:
+    static const size_t kBytesSize = 32;
+
+private:
+    byte mData[kBytesSize];
+};
+
 
 class PublicKey:
     public BaseKey {
@@ -45,7 +72,7 @@ public:
 
     const byte* data() const;
 
-    const uint32_t hash() const;
+    const KeyHash::Shared hash() const;
 
     const uint64_t crc() const;
 
@@ -64,11 +91,14 @@ class PrivateKey:
 public:
     explicit PrivateKey();
 
+    PrivateKey(
+        byte* data);
+
     PublicKey::Shared derivePublicKey();
 
     void crop();
 
-    const byte* data() const;
+    const memory::SecureSegment* data() const;
 
 private:
     memory::SecureSegment mData;

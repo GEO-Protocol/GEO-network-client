@@ -61,7 +61,7 @@ class Keystore:
 
 public:
     Keystore(
-        // todo memory::SecureSegment &memoryKey,
+        //todo memory::SecureSegment &memoryKey,
         Logger &logger)
         noexcept;
 
@@ -83,6 +83,15 @@ public:
         size_t dataForSignBytesCount);
 
 private:
+    LoggerStream info() const;
+
+    LoggerStream debug() const;
+
+    LoggerStream warning() const;
+
+    const string logHeader() const;
+
+private:
     Logger &mLogger;
     //todo Encryptor mEncryptor;
 };
@@ -97,7 +106,7 @@ private:
  */
 class TrustLineKeychain{
 public:
-    static const size_t kDefaultKeysSetSize = 1024;     // 16MB of PubKeys, and 16MB of PKeys.
+    static const size_t kDefaultKeysSetSize = 10;     // 16MB of PubKeys, and 16MB of PKeys.
     static const size_t kMaxKeysSetSize = 1024;
 
 public:
@@ -114,7 +123,7 @@ public:
      */
     TrustLineKeychain(
         const TrustLineID trustLineID,
-        //todo Encryptor encryptor
+        // todo Encryptor encryptor,
         Logger &logger)
         noexcept;
 
@@ -250,8 +259,17 @@ protected:
         const;
 
 private:
+    LoggerStream info() const;
+
+    LoggerStream debug() const;
+
+    LoggerStream warning() const;
+
+    const string logHeader() const;
+
+private:
     TrustLineID mTrustLineID;
-    // todo Encryptor &mEncryptor;
+    //todo Encryptor &mEncryptor;
     Logger &mLogger;
 };
 

@@ -9,19 +9,19 @@ SecureSegment::SecureSegment(
     size_t bytesCount):
     mSize(bytesCount) {
 
-//    mAddress = static_cast<byte*>(sodium_malloc(bytesCount));
-//    if (mAddress == nullptr) {
-//        // todo: throw memory error on codebase merge;
-//        exit(-1);
-//    }
-//
-//    auto locked = (sodium_mprotect_noaccess(mAddress) == 0);
-//    if (not locked) {
-//        wipeAndFree();
-//
-//        // todo: throw memory error on codebase merge;
-//        exit(-1);
-//    }
+    mAddress = static_cast<byte*>(sodium_malloc(bytesCount));
+    if (mAddress == nullptr) {
+        // todo: throw memory error on codebase merge;
+        exit(-1);
+    }
+
+    auto locked = (sodium_mprotect_noaccess(mAddress) == 0);
+    if (not locked) {
+        wipeAndFree();
+
+        // todo: throw memory error on codebase merge;
+        exit(-1);
+    }
 }
 
 SecureSegment::~SecureSegment()
@@ -48,7 +48,7 @@ void SecureSegment::wipeAndFree()
     noexcept {
 
     if (mAddress != nullptr) {
-//        sodium_free(mAddress);
+        sodium_free(mAddress);
         mAddress = nullptr;
         mSize = 0;
     }
@@ -61,13 +61,13 @@ SecureSegmentGuard::SecureSegmentGuard(
 
     mSegment(segment){
 
-//   sodium_mprotect_readwrite(mSegment.address());
+   sodium_mprotect_readwrite(mSegment.address());
 }
 
 SecureSegmentGuard::~SecureSegmentGuard()
     noexcept {
 
-//   sodium_mprotect_noaccess(mSegment.address());
+   sodium_mprotect_noaccess(mSegment.address());
 }
 
 byte *SecureSegmentGuard::address() const noexcept {

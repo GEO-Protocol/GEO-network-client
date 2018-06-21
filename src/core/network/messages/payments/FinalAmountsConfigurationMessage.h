@@ -27,7 +27,6 @@ public:
         const TransactionUUID &transactionUUID,
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
         const map<NodeUUID, PaymentNodeID> &paymentNodesIds,
-        const TrustLineAmount &amount,
         const KeyNumber publicKeyNumber,
         const lamport::Signature::Shared signature);
 
@@ -40,8 +39,6 @@ public:
 
     bool isReceiptContains() const;
 
-    const TrustLineAmount& amount() const;
-
     const KeyNumber publicKeyNumber() const;
 
     const lamport::Signature::Shared signature() const;
@@ -53,7 +50,6 @@ protected:
 private:
     map<NodeUUID, PaymentNodeID> mPaymentNodesIds;
     bool mIsReceiptContains;
-    TrustLineAmount mAmount;
     KeyNumber mPublicKeyNumber;
     lamport::Signature::Shared mSignature;
 };

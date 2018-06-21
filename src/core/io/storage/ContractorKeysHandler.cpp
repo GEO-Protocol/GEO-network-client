@@ -11,7 +11,7 @@ ContractorKeysHandler::ContractorKeysHandler(
 {
     sqlite3_stmt *stmt;
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
-                   " (hash INTEGER PRIMARY KEY, "
+                   " (hash BLOB PRIMARY KEY, "
                    "trust_line_id INTEGER NOT NULL, "
                    "public_key BLOB NOT NULL, "
                    "number INTEGER NOT NULL, "
@@ -75,7 +75,7 @@ void ContractorKeysHandler::saveKey(
         throw IOError("ContractorKeysHandler::saveKey: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 1, publicKey->hash());
+    rc = sqlite3_bind_blob(stmt, 1, publicKey->hash()->data(), (int)KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::saveKey: "
                           "Bad binding of Hash; sqlite error: " + to_string(rc));
@@ -115,7 +115,8 @@ PublicKey::Shared ContractorKeysHandler::keyByNumber(
     const TrustLineID trustLineID,
     const KeyNumber number)
 {
-    string query = "SELECT public_key FROM " + mTableName + " WHERE trust_line_id = ? AND number = ?;";
+    string query = "SELECT public_key FROM " + mTableName
+                   + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -146,11 +147,12 @@ PublicKey::Shared ContractorKeysHandler::keyByNumber(
     }
 }
 
-uint32_t ContractorKeysHandler::keyHashByNumber(
+const KeyHash ContractorKeysHandler::keyHashByNumber(
     const TrustLineID trustLineID,
     const KeyNumber number)
 {
-    string query = "SELECT hash FROM " + mTableName + " WHERE trust_line_id = ? AND number = ?;";
+    string query = "SELECT hash FROM " + mTableName
+                   + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -169,7 +171,7 @@ uint32_t ContractorKeysHandler::keyHashByNumber(
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        auto result = (uint32_t)sqlite3_column_int(stmt, 0);
+        KeyHash result((byte*)sqlite3_column_blob(stmt, 0));
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
         return result;

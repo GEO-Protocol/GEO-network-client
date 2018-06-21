@@ -5,6 +5,7 @@
 #include "../../logger/Logger.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/NotFoundError.h"
+#include "../../common/memory/MemoryUtils.h"
 #include "../../crypto/lamportkeys.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"

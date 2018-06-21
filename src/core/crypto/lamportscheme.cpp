@@ -110,7 +110,7 @@ bool Signature::check(
     free(hashedSignature);
     free(pubKeySignature);
 
-    return result;
+    return !result;
 }
 
 void Signature::collectSignature(

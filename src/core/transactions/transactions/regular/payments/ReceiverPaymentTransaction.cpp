@@ -380,7 +380,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         mStep = Stages::Coordinator_FinalAmountsConfigurationConfirmation;
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_ReservationsInRelationToNode,
+             Message::Payments_TransactionPublicKeyHash,
              Message::Payments_IntermediateNodeReservationRequest,
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay(kMaxPathLength - 1));
@@ -430,7 +430,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalAmountsConfig
         return runFinalReservationsCoordinatorConfirmation();
     }
 
-    if (contextIsValid(Message::Payments_ReservationsInRelationToNode, false)) {
+    if (contextIsValid(Message::Payments_TransactionPublicKeyHash, false)) {
         return runFinalReservationsNeighborConfirmation();
     }
 
@@ -443,7 +443,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalAmountsConfig
                 {Message::Payments_IntermediateNodeReservationRequest,
                  Message::Payments_TTLProlongationResponse,
                  Message::Payments_FinalAmountsConfiguration,
-                 Message::Payments_ReservationsInRelationToNode},
+                 Message::Payments_TransactionPublicKeyHash},
                 maxNetworkDelay((kMaxPathLength - 1) * 4));
         }
         return reject("Coordinator send TTL message with transaction finish state. Rolling Back");
@@ -459,7 +459,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalAmountsConfig
 
     return resultWaitForMessageTypes(
         {Message::Payments_FinalAmountsConfiguration,
-         Message::Payments_ReservationsInRelationToNode,
+         Message::Payments_TransactionPublicKeyHash,
          Message::Payments_TTLProlongationResponse,
          Message::Payments_IntermediateNodeReservationRequest},
         maxNetworkDelay(2));
@@ -513,28 +513,16 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     if (kMessage->isReceiptContains()) {
-        info() << "Coordinator also send receipt " << kMessage->amount();
-
-        if (coordinatorTotalIncomingReservationAmount != kMessage->amount()) {
-            sendMessage<FinalAmountsConfigurationResponseMessage>(
-                kMessage->senderUUID,
-                mEquivalent,
-                currentNodeUUID(),
-                currentTransactionUUID(),
-                FinalAmountsConfigurationResponseMessage::Rejected);
-            warning() << "Receipt amount: " << kMessage->amount()
-                      << ". Local incoming amount: " << coordinatorTotalIncomingReservationAmount;
-            return reject("Coordinator send invalid receipt amount. Rejected");
-        }
-
+        info() << "Coordinator also send receipt";
         auto keyChain = mKeysStore->keychain(
             mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
-        // todo understand what data should be for check signature
-        BytesShared someData;
+        auto serializedIncomingReceiptData = getSerializedReceipt(
+            kMessage->senderUUID,
+            coordinatorTotalIncomingReservationAmount);
         if (!keyChain.checkSign(
             ioTransaction,
-            someData,
-            4,
+            serializedIncomingReceiptData.first,
+            serializedIncomingReceiptData.second,
             kMessage->signature(),
             kMessage->publicKeyNumber())) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
@@ -620,13 +608,13 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
 
         mStep = Common_VotesChecking;
         return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes,
+            {Message::Payments_ParticipantsPublicKeys,
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay(5)); // todo : need discuss this parameter (5)
     }
 
     return resultWaitForMessageTypes(
-        {Message::Payments_ReservationsInRelationToNode,
+        {Message::Payments_TransactionPublicKeyHash,
          Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(2));
 }
@@ -646,26 +634,16 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     if (kMessage->isReceiptContains()) {
-        info() << "Sender also send receipt " << kMessage->amount();
-        if (participantTotalIncomingReservationAmount != kMessage->amount()) {
-            sendMessage<FinalAmountsConfigurationResponseMessage>(
-                kMessage->senderUUID,
-                mEquivalent,
-                currentNodeUUID(),
-                currentTransactionUUID(),
-                FinalAmountsConfigurationResponseMessage::Rejected);
-            warning() << "Local reserved incoming amount: " << participantTotalIncomingReservationAmount;
-            return reject("Sender send invalid receipt amount. Rejected");
-        }
-
+        info() << "Sender also send receipt";
         auto keyChain = mKeysStore->keychain(
             mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
-        // todo understand what data should be for check signature
-        BytesShared someData;
+        auto serializedIncomingReceiptData = getSerializedReceipt(
+            kMessage->senderUUID,
+            participantTotalIncomingReservationAmount);
         if (!keyChain.checkSign(
             ioTransaction,
-            someData,
-            4,
+            serializedIncomingReceiptData.first,
+            serializedIncomingReceiptData.second,
             kMessage->signature(),
             kMessage->publicKeyNumber())) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
@@ -701,7 +679,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
     if (mPaymentNodesIds.empty()) {
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_ReservationsInRelationToNode,
+             Message::Payments_TransactionPublicKeyHash,
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay(1));
     }
@@ -731,14 +709,14 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
 
         mStep = Common_VotesChecking;
         return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes,
+            {Message::Payments_ParticipantsPublicKeys,
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay(5)); // todo : need discuss this parameter (5)
     }
 
     // not all neighbors sent theirs reservations
     return resultWaitForMessageTypes(
-        {Message::Payments_ReservationsInRelationToNode,
+        {Message::Payments_TransactionPublicKeyHash,
          Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(2));
 }
@@ -751,7 +729,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
     }
 
     if (contextIsValid(Message::Payments_FinalAmountsConfiguration, false) or
-            contextIsValid(Message::Payments_ReservationsInRelationToNode, false)) {
+            contextIsValid(Message::Payments_TransactionPublicKeyHash, false)) {
         mStep = Coordinator_FinalAmountsConfigurationConfirmation;
         return runFinalAmountsConfigurationConfirmation();
     }
@@ -791,7 +769,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runVotesCheckingStage
         return reject("Coordinator send TTL message with transaction finish state. Rolling Back");
     }
 
-    if (contextIsValid(Message::Payments_ParticipantsVotes, false)) {
+    if (contextIsValid(Message::Payments_ParticipantsPublicKeys, false) or
+            contextIsValid(Message::Payments_ParticipantsVotes, false)) {
         if (mTransactionShouldBeRejected) {
             // this case can happens only with Receiver,
             // when coordinator wants to reserve greater then command amount
@@ -808,7 +787,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runVotesCheckingStage
         currentTransactionUUID());
     mStep = Stages::Common_ClarificationTransactionDuringVoting;
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes,
+        {Message::Payments_ParticipantsPublicKeys,
+         Message::Payments_ParticipantsVotes,
          Message::Payments_TTLProlongationResponse,
          Message::Payments_IntermediateNodeReservationRequest},
         maxNetworkDelay(2));
@@ -828,7 +808,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
         return runAmountReservationStage();
     }
 
-    if (contextIsValid(Message::MessageType::Payments_ParticipantsVotes, false)) {
+    if (contextIsValid(Message::MessageType::Payments_ParticipantsPublicKeys, false) or
+            contextIsValid(Message::Payments_ParticipantsVotes, false)) {
         mStep = Stages::Common_VotesChecking;
         return runVotesCheckingStage();
     }
@@ -847,7 +828,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
         debug() << "Transactions is still alive. Continue waiting for messages";
         mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes,
+            {Message::Payments_ParticipantsPublicKeys,
+             Message::Payments_ParticipantsVotes,
              Message::Payments_IntermediateNodeReservationResponse,
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay(kMaxPathLength));

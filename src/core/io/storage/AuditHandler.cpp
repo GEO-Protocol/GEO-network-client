@@ -13,9 +13,9 @@ AuditHandler::AuditHandler(
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    "(number INTEGER NOT NULL, "
                    "trust_line_id INTEGER NOT NULL, "
-                   "our_key_hash INTEGER NOT NULL, "
+                   "our_key_hash BLOB NOT NULL, "
                    "our_sign BLOB NOT NULL, "
-                   "contractor_key_hash INTEGER NOT NULL, "
+                   "contractor_key_hash BLOB NOT NULL, "
                    "contractor_sign BLOB NOT NULL, "
                    "balance BLOB NOT NULL, "
                    "outgoing_amount BLOB NOT NULL, "
@@ -54,9 +54,9 @@ AuditHandler::AuditHandler(
 void AuditHandler::saveAudit(
     AuditNumber number,
     TrustLineID TrustLineID,
-    uint32_t ownKeyHash,
+    lamport::KeyHash& ownKeyHash,
     lamport::Signature::Shared ownSign,
-    uint32_t contractorKeyHash,
+    lamport::KeyHash& contractorKeyHash,
     lamport::Signature::Shared contractorSign,
     const TrustLineAmount &incomingAmount,
     const TrustLineAmount &outgoingAmount,
@@ -83,7 +83,8 @@ void AuditHandler::saveAudit(
         throw IOError("AuditHandler::saveAudit: "
                           "Bad binding of ID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 3, ownKeyHash);
+    rc = sqlite3_bind_blob(stmt, 3, ownKeyHash.data(),
+                          (int)lamport::KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::saveAudit: "
                           "Bad binding of OwnKeyHash; sqlite error: " + to_string(rc));
@@ -93,7 +94,8 @@ void AuditHandler::saveAudit(
         throw IOError("AuditHandler::saveAudit: "
                           "Bad binding of OnwSign; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 5, contractorKeyHash);
+    rc = sqlite3_bind_blob(stmt, 5, contractorKeyHash.data(),
+                          (int)lamport::KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::saveAudit: "
                           "Bad binding of ContractorKeyHash; sqlite error: " + to_string(rc));

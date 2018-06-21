@@ -36,11 +36,13 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::run()
 
 TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runInitialisationStage()
 {
+    info() << "runInitialisationStage";
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineReadOnly(mContractorUUID)->trustLineID());
     try {
-        keyChain.generateKeyPairsSet(ioTransaction);
+        keyChain.generateKeyPairsSet(
+            ioTransaction);
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't generate public keys. Details: " << e.what();
@@ -81,7 +83,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runSendNextKe
     mCurrentKeyNumber++;
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineReadOnly(mContractorUUID)->trustLineID());
-    if (mCurrentKeyNumber > TrustLineKeychain::kDefaultKeysSetSize) {
+    if (mCurrentKeyNumber >= TrustLineKeychain::kDefaultKeysSetSize) {
         info() << "all keys confirmed";
         auto ioTransaction = mStorageHandler->beginTransaction();
         if (keyChain.areKeysReady(ioTransaction)) {

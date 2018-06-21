@@ -68,6 +68,10 @@ pair<BytesShared, size_t> FinalAmountsConfigurationResponseMessage::serializeToB
         parentBytesAndCount.second
         + sizeof(SerializedOperationState);
 
+    if (mState == Accepted) {
+        bytesCount += mPublicKey->keySize();
+    }
+
     BytesShared dataBytesShared = tryMalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
@@ -84,10 +88,11 @@ pair<BytesShared, size_t> FinalAmountsConfigurationResponseMessage::serializeToB
         sizeof(SerializedOperationState));
     //----------------------------------------------------
     if (mState == Accepted) {
+        dataBytesOffset += sizeof(SerializedOperationState);
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             mPublicKey->data(),
-            lamport::PublicKey::keySize());
+            mPublicKey->keySize());
     }
     return make_pair(
         dataBytesShared,

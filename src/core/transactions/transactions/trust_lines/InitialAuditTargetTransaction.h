@@ -29,16 +29,16 @@ protected: // log
     const string logHeader() const;
 
 private:
-    pair<BytesShared, size_t> serializeAuditData();
+    pair<BytesShared, size_t> getOwnSerializedAuditData();
 
-    bool deserializeAuditDataAndCheck(
-        BytesShared serializedData);
+    pair<BytesShared, size_t> getContractorSerializedAuditData();
 
 protected:
     AuditMessage::Shared mMessage;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
+    pair<lamport::Signature::Shared, KeyNumber> mOwnSignatureAndKeyNumber;
 };
 
 

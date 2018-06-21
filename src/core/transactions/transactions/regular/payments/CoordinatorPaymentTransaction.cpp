@@ -1297,13 +1297,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
                 // todo check if all reservations is outgoing
                 outgoingReservedAmount += pathIDAndReservation.second->amount();
             }
-            // todo understand what data should be signed (outgoingReservedAmount)
-            BytesShared someData;
+            auto serializedOutgoingReceiptData = getSerializedReceipt(
+                mNodeUUID,
+                outgoingReservedAmount);
             auto ioTransaction = mStorageHandler->beginTransaction();
             auto signatureAndKeyNumber = keyChain.sign(
                 ioTransaction,
-                someData,
-                4);
+                serializedOutgoingReceiptData.first,
+                serializedOutgoingReceiptData.second);
             info() << "send final amount configuration to " << nodeAndFinalAmountsConfig.first
                    << " with receipt " << outgoingReservedAmount;
             sendMessage<FinalAmountsConfigurationMessage>(
@@ -1313,7 +1314,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
                 currentTransactionUUID(),
                 nodeAndFinalAmountsConfig.second,
                 mPaymentNodesIds,
-                outgoingReservedAmount,
                 signatureAndKeyNumber.second,
                 signatureAndKeyNumber.first);
         } else {
@@ -1495,12 +1495,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 #endif
 
     for (const auto &nodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
-        sendMessage<ParticipantsVotesMessage>(
+        if (nodeUUIDAndPaymentNodeID.first == mNodeUUID) {
+            continue;
+        }
+        sendMessage(
             nodeUUIDAndPaymentNodeID.first,
-            mEquivalent,
-            mNodeUUID,
-            currentTransactionUUID(),
-            mParticipantsSigns);
+            mParticipantsVotesMessage);
     }
     return resultOK();
 }
@@ -1622,11 +1622,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
     }
     auto participantSign = kMessage->sign();
     auto participantPublicKey = mParticipantsPublicKeys[mPaymentNodesIds[kMessage->senderUUID]];
-    // todo understand what data need for check
-    BytesShared someData;
+    auto participantSerializedVotesData = getSerializedParticipantsVotesData(
+        kMessage->senderUUID);
     // todo if we store participants public keys on database, then we should use KeyChain,
     // or we can check sign directly from mParticipantsPublicKeys
-    if (!participantSign->check(someData.get(), 4, participantPublicKey)) {
+    if (!participantSign->check(
+            participantSerializedVotesData.first.get(),
+            participantSerializedVotesData.second,
+            participantPublicKey)) {
         return reject("Participant sign is incorrect. Rolling back");
     }
     info() << "Participant sign is incorrect";
@@ -1637,6 +1640,27 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
 
     if (mParticipantsSigns.size() + 1 == mPaymentNodesIds.size()) {
         info() << "all participants sign their data";
+
+        auto serializedOwnVotesData = getSerializedParticipantsVotesData(
+            mNodeUUID);
+        {
+            auto ioTransaction = mStorageHandler->beginTransaction();
+            auto ownSign = mKeysStore->signPaymentTransaction(
+                ioTransaction,
+                currentTransactionUUID(),
+                serializedOwnVotesData.first,
+                serializedOwnVotesData.second);
+            mParticipantsSigns.insert(
+                make_pair(
+                    mPaymentNodesIds[mNodeUUID],
+                    ownSign));
+        }
+        debug() << "Voted +";
+        mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            mParticipantsSigns);
         return approve();
     }
 

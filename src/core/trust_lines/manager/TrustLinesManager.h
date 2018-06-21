@@ -55,6 +55,16 @@ public:
         StorageHandler *storageHandler,
         Logger &logger);
 
+    void open(
+        IOTransaction::Shared ioTransaction,
+        const NodeUUID &contractorUUID,
+        const TrustLineAmount &amount);
+
+    void accept(
+        IOTransaction::Shared ioTransaction,
+        const NodeUUID &contractorUUID,
+        const TrustLineAmount &amount);
+
     /**
      * Creates / Updates / Closes trust line TO the contractor.
      *

@@ -22,7 +22,6 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     const TransactionUUID &transactionUUID,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
     const map<NodeUUID, PaymentNodeID> &paymentNodesIds,
-    const TrustLineAmount &amount,
     const KeyNumber publicKeyNumber,
     const lamport::Signature::Shared signature) :
 
@@ -33,7 +32,6 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
         finalAmountsConfig),
     mPaymentNodesIds(paymentNodesIds),
     mIsReceiptContains(true),
-    mAmount(amount),
     mPublicKeyNumber(publicKeyNumber),
     mSignature(signature)
 {}
@@ -68,12 +66,6 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     //----------------------------------------------------
     if (mIsReceiptContains) {
         bytesBufferOffset += sizeof(byte);
-        vector<byte> amountBytes(
-            bytesBufferOffset,
-            bytesBufferOffset + kTrustLineAmountBytesCount);
-        mAmount = bytesToTrustLineAmount(amountBytes);
-        bytesBufferOffset += kTrustLineAmountBytesCount;
-
         memcpy(
             &mPublicKeyNumber,
             bytesBufferOffset,
@@ -101,11 +93,6 @@ bool FinalAmountsConfigurationMessage::isReceiptContains() const
     return mIsReceiptContains;
 }
 
-const TrustLineAmount& FinalAmountsConfigurationMessage::amount() const
-{
-    return mAmount;
-}
-
 const KeyNumber FinalAmountsConfigurationMessage::publicKeyNumber() const
 {
     return mPublicKeyNumber;
@@ -130,9 +117,7 @@ pair<BytesShared, size_t> FinalAmountsConfigurationMessage::serializeToBytes() c
                 (NodeUUID::kBytesSize + sizeof(PaymentNodeID))
             + sizeof(byte);
     if (mIsReceiptContains) {
-        bytesCount +=
-                kTrustLineAmountBytesCount
-                + sizeof(KeyNumber)
+        bytesCount += sizeof(KeyNumber)
                 + lamport::Signature::signatureSize();
     }
 
@@ -174,13 +159,6 @@ pair<BytesShared, size_t> FinalAmountsConfigurationMessage::serializeToBytes() c
     //----------------------------------------------------
     if (mIsReceiptContains) {
         bytesBufferOffset += sizeof(byte);
-        auto serializedAmount = trustLineAmountToBytes(mAmount);
-        memcpy(
-            bytesBufferOffset,
-            serializedAmount.data(),
-            kTrustLineAmountBytesCount);
-        bytesBufferOffset += kTrustLineAmountBytesCount;
-
         memcpy(
             bytesBufferOffset,
             &mPublicKeyNumber,

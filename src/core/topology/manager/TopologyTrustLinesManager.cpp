@@ -185,9 +185,9 @@ bool TopologyTrustLinesManager::deleteLegacyTrustLines()
             auto trustLineWithPtr = timeAndTrustLineWithPtr.second;
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
             info() << "deleteLegacyTrustLines\t" <<
-                          trustLineWithPtr->maxFlowCalculationtrustLine()->sourceUUID() << " " <<
-                 trustLineWithPtr->maxFlowCalculationtrustLine()->targetUUID() << " " <<
-                 trustLineWithPtr->maxFlowCalculationtrustLine()->amount();
+                          trustLineWithPtr->topologyTrustLine()->sourceUUID() << " " <<
+                 trustLineWithPtr->topologyTrustLine()->targetUUID() << " " <<
+                 trustLineWithPtr->topologyTrustLine()->amount();
 #endif
             auto hashSetPtr = trustLineWithPtr->hashSetPtr();
             hashSetPtr->erase(trustLineWithPtr);

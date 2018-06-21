@@ -38,13 +38,13 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runInitialisa
 {
     info() << "Receive key number: " << mMessage->number();
     auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineReadOnly(mMessage->senderUUID)->trustLineID());
     try {
         mTrustLines->setTrustLineState(
             ioTransaction,
             mMessage->senderUUID,
             TrustLine::KeysPending);
-        auto keyChain = mKeysStore->keychain(
-            mTrustLines->trustLineReadOnly(mMessage->senderUUID)->trustLineID());
         keyChain.setContractorPublicKey(
             ioTransaction,
             mMessage->number(),
@@ -67,6 +67,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runInitialisa
         mMessage->number(),
         mMessage->publicKey()->crc());
     mReceivedKeysCount = 1;
+
     mStep = ReceiveNextKey;
     return resultWaitForMessageTypes(
         {Message::TrustLines_PublicKey},

@@ -59,11 +59,10 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitialisationStage(
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        auto kOperationResult = mTrustLines->setOutgoing(
+        mTrustLines->open(
             ioTransaction,
             kContractor,
             mCommand->amount());
-        // todo check kOperationResult
         info() << "Outgoing trust line to the node " << kContractor
                << " successfully initialised with " << mCommand->amount();
         // todo serialize transaction
@@ -92,10 +91,10 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitialisationStage(
         mStep = ResponseProcessing;
         return resultOK();
 
-    } catch (ValueError &) {
+    } catch (ValueError &e) {
         ioTransaction->rollback();
         warning() << "Attempt to set outgoing trust line to the node " << kContractor << " failed. "
-                  << "Cannot open trustline with zero amount.";
+                  << "Details are: " << e.message();
         return resultProtocolError();
 
     } catch (IOError &e) {

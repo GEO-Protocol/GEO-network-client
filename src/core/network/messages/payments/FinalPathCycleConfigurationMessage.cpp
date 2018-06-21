@@ -89,6 +89,11 @@ const map<NodeUUID, PaymentNodeID>& FinalPathCycleConfigurationMessage::paymentN
     return mPaymentNodesIds;
 }
 
+bool FinalPathCycleConfigurationMessage::isReceiptContains() const
+{
+    return mIsReceiptContains;
+}
+
 const KeyNumber FinalPathCycleConfigurationMessage::publicKeyNumber() const
 {
     return mPublicKeyNumber;

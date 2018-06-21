@@ -334,6 +334,10 @@ void TrustLineHandler::updateTrustLine(
         throw IOError("TrustLineHandler::update: "
                           "Run query; sqlite error: " + to_string(rc));
     }
+
+    if (sqlite3_changes(mDataBase) == 0) {
+        throw ValueError("No data were modified");
+    }
 }
 
 vector<SerializedEquivalent> TrustLineHandler::equivalents()

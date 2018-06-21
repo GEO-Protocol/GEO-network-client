@@ -366,6 +366,10 @@ protected:
      */
     virtual bool checkReservationsDirections() const = 0;
 
+    pair<BytesShared, size_t> getSerializedReceipt(
+        const NodeUUID &nodeUUID,
+        const TrustLineAmount &amount);
+
     bool compareReservations(
         const vector<pair<PathID, AmountReservation::ConstShared>> &localReservations,
         const vector<pair<PathID, AmountReservation::ConstShared>> &remoteReservations);
@@ -378,6 +382,9 @@ protected:
         const NodeUUID &nodeUUID);
 
     bool checkPublicKeysAppropriate();
+
+    pair<BytesShared, size_t> getSerializedParticipantsVotesData(
+        const NodeUUID &nodeUUID);
 
     bool checkSignsAppropriate();
 
@@ -440,7 +447,7 @@ protected:
 
     // ids of nodes inside payment transaction
     map<NodeUUID, PaymentNodeID> mPaymentNodesIds;
-    map<NodeUUID, pair<PaymentNodeID, uint32_t>> mParticipantsPublicKeysHashes;
+    map<NodeUUID, pair<PaymentNodeID, lamport::KeyHash::Shared>> mParticipantsPublicKeysHashes;
     map<PaymentNodeID, lamport::PublicKey::Shared> mParticipantsPublicKeys;
     map<PaymentNodeID, lamport::Signature::Shared> mParticipantsSigns;
     map<NodeUUID, pair<lamport::Signature::Shared, KeyNumber>> mNeighborsIncomingReceipts;

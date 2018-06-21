@@ -21,7 +21,6 @@ InitialAuditSourceTransaction::InitialAuditSourceTransaction(
 
 TransactionResult::SharedConst InitialAuditSourceTransaction::run()
 {
-    info() << mStep;
     switch (mStep) {
         case Stages::Initialisation: {
             return runInitialisationStage();
@@ -37,14 +36,20 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::run()
 
 TransactionResult::SharedConst InitialAuditSourceTransaction::runInitialisationStage()
 {
-    auto serializedAuditData = serializeAuditData();
+    auto serializedAuditData = getOwnSerializedAuditData();
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineReadOnly(mContractorUUID)->trustLineID());
-    mOwnSignatureAndKeyNumber = keyChain.sign(
-        ioTransaction,
-        serializedAuditData.first,
-        serializedAuditData.second);
+    try {
+        mOwnSignatureAndKeyNumber = keyChain.sign(
+            ioTransaction,
+            serializedAuditData.first,
+            serializedAuditData.second);
+    } catch(IOError &e) {
+        ioTransaction->rollback();
+        error() << "Can't sign audit data. Details: " << e.what();
+        return resultDone();
+    }
 
     sendMessage<AuditMessage>(
         mContractorUUID,
@@ -77,32 +82,17 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runResponseProcess
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineReadOnly(mContractorUUID)->trustLineID());
 
-//    bool isDataCorrect;
-//    BytesShared rowAuditData;
-//    size_t rowAuditDataBytesCount;
-//    std::tie(isDataCorrect, rowAuditData, rowAuditDataBytesCount) = mKeyChain.checkSignedData(
-//        ioTransaction,
-//        message->signedData(),
-//        message->signedDataSize(),
-//        message->keyNumber());
-
-    // todo understand what data need for check
-    BytesShared someData;
+    auto contractorSerializedAuditData = getContractorSerializedAuditData();
     if (!keyChain.checkSign(
             ioTransaction,
-            someData,
-            4,
-            message->signedData(),
+            contractorSerializedAuditData.first,
+            contractorSerializedAuditData.second,
+            message->signature(),
             message->keyNumber())) {
         warning() << "Contractor didn't sign message correct";
         return resultDone();
     }
-    info() << "Sign is correct";
-    if (!deserializeAuditDataAndCheck(someData)) {
-        warning() << "Contractor sign wrong data";
-        return resultDone();
-    }
-    info() << "Signed data is correct";
+    info() << "Signature is correct";
     try {
         // todo mark key as used
         // todo save audit
@@ -122,7 +112,7 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runResponseProcess
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first,
         message->keyNumber(),
-        message->signedData(),
+        message->signature(),
         mTrustLines->incomingTrustAmountDespiteReservations(
             mContractorUUID),
         mTrustLines->outgoingTrustAmountDespiteReservations(
@@ -132,7 +122,7 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runResponseProcess
     return resultDone();
 }
 
-pair<BytesShared, size_t> InitialAuditSourceTransaction::serializeAuditData()
+pair<BytesShared, size_t> InitialAuditSourceTransaction::getOwnSerializedAuditData()
 {
     size_t bytesCount = kTrustLineAmountBytesCount
                         + kTrustLineAmountBytesCount
@@ -148,6 +138,7 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::serializeAuditData()
         incomingAmountBufferBytes.data(),
         kTrustLineAmountBytesCount);
     dataBytesOffset += kTrustLineAmountBytesCount;
+
     vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->outgoingTrustAmountDespiteReservations(
             mContractorUUID));
@@ -156,6 +147,7 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::serializeAuditData()
         outgoingAmountBufferBytes.data(),
         kTrustLineAmountBytesCount);
     dataBytesOffset += kTrustLineAmountBytesCount;
+
     vector<byte> balanceBufferBytes = trustLineBalanceToBytes(
         const_cast<TrustLineBalance&>(mTrustLines->balance(mContractorUUID)));
     memcpy(
@@ -168,43 +160,43 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::serializeAuditData()
         bytesCount);
 }
 
-bool InitialAuditSourceTransaction::deserializeAuditDataAndCheck(
-    BytesShared serializedData)
+pair<BytesShared, size_t> InitialAuditSourceTransaction::getContractorSerializedAuditData()
 {
-    size_t bytesBufferOffset = 0;
-    vector<byte> incomingAmountBytes(
-        serializedData.get() + bytesBufferOffset,
-        serializedData.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-    auto incomingAmount = bytesToTrustLineAmount(incomingAmountBytes);
-    info() << "deserialized incoming amount: " << incomingAmount;
-    if (mTrustLines->outgoingTrustAmountDespiteReservations(mContractorUUID) != incomingAmount) {
-        warning() << "Contractor send wrong incoming amount";
-        return false;
-    }
-    bytesBufferOffset += kTrustLineAmountBytesCount;
+    size_t bytesCount = kTrustLineAmountBytesCount
+                        + kTrustLineAmountBytesCount
+                        + kTrustLineBalanceSerializeBytesCount;
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
 
-    vector<byte> outgoingAmountBytes(
-        serializedData.get() + bytesBufferOffset,
-        serializedData.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-    auto outgoingAmount = bytesToTrustLineAmount(outgoingAmountBytes);
-    info() << "deserialized outgoing amount: " << outgoingAmount;
-    if (mTrustLines->incomingTrustAmountDespiteReservations(mContractorUUID) != outgoingAmount) {
-        warning() << "Contractor send wrong outgoing amount";
-        return false;
-    }
-    bytesBufferOffset += kTrustLineAmountBytesCount;
+    vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(
+        mTrustLines->outgoingTrustAmountDespiteReservations(
+            mContractorUUID));
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        outgoingAmountBufferBytes.data(),
+        kTrustLineAmountBytesCount);
+    dataBytesOffset += kTrustLineAmountBytesCount;
 
-    vector<byte> balanceBufferBytes(
-        serializedData.get() + bytesBufferOffset,
-        serializedData.get() + bytesBufferOffset + kTrustLineBalanceSerializeBytesCount);
-    TrustLineBalance balance = bytesToTrustLineBalance(balanceBufferBytes);
-    info() << "deserialized balance: " << balance;
-    if (mTrustLines->balance(mContractorUUID) != balance) {
-        warning() << "Contractor send wrong balance";
-        return false;
-    }
-    info() << "all data correct";
-    return true;
+    vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(
+        mTrustLines->incomingTrustAmountDespiteReservations(
+            mContractorUUID));
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        incomingAmountBufferBytes.data(),
+        kTrustLineAmountBytesCount);
+    dataBytesOffset += kTrustLineAmountBytesCount;
+
+    auto contractorBalance = -1 * mTrustLines->balance(mContractorUUID);
+    vector<byte> balanceBufferBytes = trustLineBalanceToBytes(
+        const_cast<TrustLineBalance&>(contractorBalance));
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        balanceBufferBytes.data(),
+        kTrustLineBalanceSerializeBytesCount);
+
+    return make_pair(
+        dataBytesShared,
+        bytesCount);
 }
 
 const string InitialAuditSourceTransaction::logHeader() const

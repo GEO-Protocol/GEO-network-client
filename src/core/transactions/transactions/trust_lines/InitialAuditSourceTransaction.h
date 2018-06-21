@@ -41,10 +41,9 @@ private:
 
     TransactionResult::SharedConst runResponseProcessingStage();
 
-    pair<BytesShared, size_t> serializeAuditData();
+    pair<BytesShared, size_t> getOwnSerializedAuditData();
 
-    bool deserializeAuditDataAndCheck(
-        BytesShared serializedData);
+    pair<BytesShared, size_t> getContractorSerializedAuditData();
 
 private:
     static const uint32_t kWaitMillisecondsForResponse = 5000;

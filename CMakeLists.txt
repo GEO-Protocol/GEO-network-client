@@ -175,6 +175,7 @@ target_link_libraries(geo_network_client
         ${Boost_THREAD_LIBRARY}
         Boost::thread
         libsqlite3
+        -lsodium
 
         logger
         settings

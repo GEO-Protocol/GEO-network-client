@@ -11,7 +11,7 @@ OwnKeysHandler::OwnKeysHandler(
 {
     sqlite3_stmt *stmt;
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
-                   " (hash INTEGER PRIMARY KEY, "
+                   " (hash BLOB PRIMARY KEY, "
                    "trust_line_id INTEGER NOT NULL, "
                    "public_key BLOB NOT NULL, "
                    "private_key BLOB NOT NULL, "
@@ -66,43 +66,54 @@ void OwnKeysHandler::saveKey(
     const TrustLineID trustLineID,
     const PublicKey::Shared publicKey,
     const PrivateKey *privateKey,
-    const KeyNumber number)
-{
+    const KeyNumber number) {
     string query = "INSERT INTO " + mTableName +
                    "(hash, trust_line_id, public_key, private_key, number) "
-                   "VALUES (?, ?, ?, ?, ?);";
+                           "VALUES (?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
-                          "Bad query; sqlite error: " + to_string(rc));
+                              "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 1, publicKey->hash());
+    rc = sqlite3_bind_blob(stmt, 1, publicKey->hash()->data(),
+                           (int) KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
-                          "Bad binding of Hash; sqlite error: " + to_string(rc));
+                              "Bad binding of Hash; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_int(stmt, 2, trustLineID);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
-                          "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
+                              "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 3, publicKey->data(),
-                           (int)PublicKey::keySize(), SQLITE_STATIC);
+                           (int) PublicKey::keySize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
-                          "Bad binding of Public Key; sqlite error: " + to_string(rc));
+                              "Bad binding of Public Key; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 4, privateKey->data(),
+
+    // todo encrypt private key data
+    BytesShared buffer = tryMalloc(privateKey->keySize());
+    {
+        auto g = privateKey->data()->unlockAndInitGuard();
+        memcpy(
+            buffer.get(),
+            g.address(),
+            privateKey->keySize());
+    }
+    rc = sqlite3_bind_blob(stmt, 4, buffer.get(),
                            (int)PrivateKey::keySize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
-                          "Bad binding of Private Key; sqlite error: " + to_string(rc));
+                              "Bad binding of Private Key; sqlite error: " + to_string(rc));
     }
+
     rc = sqlite3_bind_int(stmt, 5, number);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
-                          "Bad binding of Number; sqlite error: " + to_string(rc));
+                              "Bad binding of Number; sqlite error: " + to_string(rc));
     }
     // todo : add saving of is_valid
 
@@ -138,13 +149,12 @@ pair<PrivateKey*, KeyNumber> OwnKeysHandler::nextAvailableKey(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        PrivateKey result;
-        // todo need constructor for private key
+        auto privateKey = new PrivateKey((byte*)sqlite3_column_blob(stmt, 0));
         auto number = (KeyNumber)sqlite3_column_int(stmt, 1);
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
         return make_pair(
-            &result,
+            privateKey,
             number);
     } else {
         sqlite3_reset(stmt);
@@ -183,13 +193,18 @@ void OwnKeysHandler::invalidKey(
         throw IOError("OwnKeysHandler::invalidKey: "
                           "Run query; sqlite error: " + to_string(rc));
     }
+
+    if (sqlite3_changes(mDataBase) == 0) {
+        throw ValueError("No data were changed");
+    }
 }
 
 const PublicKey::Shared OwnKeysHandler::getPublicKey(
     const TrustLineID trustLineID,
     const KeyNumber keyNumber)
 {
-    string query = "SELECT public_key FROM  " + mTableName + " WHERE trust_line_id = ? AND number = ?;";
+    string query = "SELECT public_key FROM  " + mTableName
+                   + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -222,11 +237,12 @@ const PublicKey::Shared OwnKeysHandler::getPublicKey(
     }
 }
 
-const uint32_t OwnKeysHandler::getPublicKeyHash(
+const KeyHash OwnKeysHandler::getPublicKeyHash(
     const TrustLineID trustLineID,
     const KeyNumber keyNumber)
 {
-    string query = "SELECT hash FROM  " + mTableName + " WHERE trust_line_id = ? AND number = ?;";
+    string query = "SELECT hash FROM  " + mTableName
+                   + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -246,7 +262,7 @@ const uint32_t OwnKeysHandler::getPublicKeyHash(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        auto result = (uint32_t)sqlite3_column_int(stmt, 0);
+        KeyHash result((byte*)sqlite3_column_blob(stmt, 0));
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
         return result;

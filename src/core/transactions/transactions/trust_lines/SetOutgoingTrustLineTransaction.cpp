@@ -50,7 +50,8 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
     try {
         previousTL = mTrustLines->trustLineReadOnly(mCommand->contractorUUID());
     } catch (NotFoundError &e) {
-        // Nothing actions, because TL will be created
+        warning() << "Attempt to change not existing TL";
+        return resultProtocolError();
     }
 
     TrustLinesManager::TrustLineOperationResult kOperationResult;

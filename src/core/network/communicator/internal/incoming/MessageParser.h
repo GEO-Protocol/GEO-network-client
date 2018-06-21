@@ -57,10 +57,6 @@
 #include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationOneEquivalentMessage.h"
 #include "../../../messages/gateway_notification_and_routing_tables/RoutingTableResponseMessage.h"
 
-#ifdef DEBUG
-#include "../../../messages/debug/DebugMessage.h"
-#endif
-
 #include "../../../../logger/Logger.h"
 
 #include <utility>

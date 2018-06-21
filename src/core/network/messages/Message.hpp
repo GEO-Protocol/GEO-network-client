@@ -53,18 +53,18 @@ public:
         Payments_FinalAmountsConfiguration = 211,
         Payments_FinalAmountsConfigurationResponse = 212,
 
-        Payments_ParticipantsVotes = 213,
-        Payments_VotesStatusRequest = 214,
-        Payments_FinalPathConfiguration = 215,
-        Payments_FinalPathCycleConfiguration = 216,
-        Payments_TTLProlongationRequest = 217,
-        Payments_TTLProlongationResponse = 218,
+        Payments_FinalPathConfiguration = 213,
+        Payments_FinalPathCycleConfiguration = 214,
 
-        Payments_ReservationsInRelationToNode = 219,
+        Payments_TTLProlongationRequest = 215,
+        Payments_TTLProlongationResponse = 216,
 
-        Payments_ParticipantsPublicKeys = 220,
-        Payments_ParticipantVote = 221,
-        Payments_TransactionPublicKeyHash = 222,
+        Payments_TransactionPublicKeyHash = 217,
+        Payments_ParticipantVote = 218,
+        Payments_ParticipantsPublicKeys = 219,
+        Payments_ParticipantsVotes = 220,
+
+        Payments_VotesStatusRequest = 221,
 
         /*
          * Cycles

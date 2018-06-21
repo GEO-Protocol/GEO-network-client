@@ -17,12 +17,12 @@ public:
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const KeyNumber keyNumber,
-        const lamport::Signature::Shared signedData);
+        const lamport::Signature::Shared signature);
 
     AuditMessage(
         BytesShared buffer);
 
-    const lamport::Signature::Shared signedData() const;
+    const lamport::Signature::Shared signature() const;
 
     const KeyNumber keyNumber() const;
 
@@ -32,7 +32,7 @@ public:
 
 private:
     uint32_t mKeyNumber;
-    lamport::Signature::Shared mSignedData;
+    lamport::Signature::Shared mSignature;
 };
 
 

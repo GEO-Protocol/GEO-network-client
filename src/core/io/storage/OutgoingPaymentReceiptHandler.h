@@ -22,7 +22,7 @@ public:
         const TrustLineID trustLineID,
         const AuditNumber auditNumber,
         const TransactionUUID &transactionUUID,
-        const uint32_t ownPublicKeyHash,
+        const KeyHash& ownPublicKeyHash,
         const TrustLineAmount &amount,
         const Signature::Shared ownSignature);
 

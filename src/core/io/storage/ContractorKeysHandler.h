@@ -28,7 +28,7 @@ public:
         const TrustLineID trustLineID,
         const KeyNumber number);
 
-    uint32_t keyHashByNumber(
+    const KeyHash keyHashByNumber(
         const TrustLineID trustLineID,
         const KeyNumber number);
 

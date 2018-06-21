@@ -30,27 +30,26 @@ pair<BytesShared, size_t> Encryptor::decrypt(
 
 
 Keystore::Keystore(
-    //todo memory::SecureSegment &memoryKey
+    //todo memory::SecureSegment &memoryKey,
     Logger &logger)
     noexcept:
 
-    //todo mEncryptor(Encryptor(memoryKey))
+    //todo mEncryptor(Encryptor(memoryKey)),
     mLogger(logger)
 {}
 
 int Keystore::init()
 {
-//    return sodium_init();
-    return 0;
+    return sodium_init();
 }
 
 TrustLineKeychain Keystore::keychain(
     const TrustLineID trustLineID) const
 {
     return TrustLineKeychain(
-            trustLineID,
-            //todo mEncryptor,
-            mLogger);
+        trustLineID,
+        // todo mEncryptor,
+        mLogger);
 }
 
 lamport::PublicKey::Shared Keystore::generateAndSaveKeyPairForPaymentTransaction(
@@ -82,9 +81,31 @@ lamport::Signature::Shared Keystore::signPaymentTransaction(
         privateKey);
 }
 
+LoggerStream Keystore::info() const
+{
+    return mLogger.info(logHeader());
+}
+
+LoggerStream Keystore::debug() const
+{
+    return mLogger.debug(logHeader());
+}
+
+LoggerStream Keystore::warning() const
+{
+    return mLogger.warning(logHeader());
+}
+
+const string Keystore::logHeader() const
+{
+    stringstream s;
+    s << "[Keystore] ";
+    return s.str();
+}
+
 TrustLineKeychain::TrustLineKeychain(
     const TrustLineID trustLineID,
-    // todo Encryptor encryptor,
+    //todo Encryptor encryptor,
     Logger &logger)
     noexcept:
 
@@ -97,15 +118,26 @@ void TrustLineKeychain::generateKeyPairsSet(
     IOTransaction::Shared ioTransaction,
     KeysCount keyPairsCount)
 {
+    auto cntFailedAttempts = 0;
     keyNumberGuard(keyPairsCount);
     for (KeyNumber idx = 0; idx < keyPairsCount; idx++) {
         lamport::PrivateKey pKey;
         auto pubKey = pKey.derivePublicKey();
-        ioTransaction->ownKeysHandler()->saveKey(
-            mTrustLineID,
-            pubKey,
-            &pKey,
-            idx);
+        try {
+            ioTransaction->ownKeysHandler()->saveKey(
+                mTrustLineID,
+                pubKey,
+                &pKey,
+                idx);
+        } catch (IOError &e) {
+            warning() << "Can't save keys pair. Details: " << e.what();
+            cntFailedAttempts++;
+            if (cntFailedAttempts >= 3) {
+                throw e;
+            }
+            idx--;
+            continue;
+        }
     }
 }
 
@@ -145,13 +177,13 @@ bool TrustLineKeychain::areKeysReady(
     keyNumberGuard(count);
 
     if (ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID) != count) {
-//        info() << "There are no all own keys: "
-//               << ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID);
+        info() << "There are no all own keys: "
+               << ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID);
         return false;
     }
     if (ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID) != count) {
-//        info() << "There are no all contractor keys: "
-//               << ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID);
+        info() << "There are no all contractor keys: "
+               << ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID);
         return false;
     }
     return true;
@@ -166,7 +198,14 @@ pair<lamport::Signature::Shared, KeyNumber> TrustLineKeychain::sign(
 
     // todo: throw KeyError if no key is available;
 
-    auto privateKeyAndNumber = ioTransaction->ownKeysHandler()->nextAvailableKey(mTrustLineID);
+    pair<PrivateKey*, KeyNumber> privateKeyAndNumber;
+    try {
+        privateKeyAndNumber = ioTransaction->ownKeysHandler()->nextAvailableKey(
+            mTrustLineID);
+    } catch (NotFoundError &e) {
+        warning() << "Can't get available private key for TL " << mTrustLineID;
+        throw e;
+    }
 
     auto signature = make_shared<lamport::Signature>(
         data.get(),
@@ -176,6 +215,7 @@ pair<lamport::Signature::Shared, KeyNumber> TrustLineKeychain::sign(
     // todo: decrypt it.
     // todo: read sign
     // todo: !! store cutted private key back and mark it as used.
+
     return make_pair(
         signature,
         privateKeyAndNumber.second);
@@ -250,6 +290,28 @@ void TrustLineKeychain::dataGuard(
     if (size == 0) {
         // todo: throw ValueError;
     }
+}
+
+LoggerStream TrustLineKeychain::info() const
+{
+    return mLogger.info(logHeader());
+}
+
+LoggerStream TrustLineKeychain::debug() const
+{
+    return mLogger.debug(logHeader());
+}
+
+LoggerStream TrustLineKeychain::warning() const
+{
+    return mLogger.warning(logHeader());
+}
+
+const string TrustLineKeychain::logHeader() const
+{
+    stringstream s;
+    s << "[TrustLineKeychain: " << mTrustLineID << "] ";
+    return s.str();
 }
 
 

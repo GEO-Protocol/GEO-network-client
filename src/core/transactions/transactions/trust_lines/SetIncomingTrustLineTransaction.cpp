@@ -97,7 +97,9 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
     try {
         previousTL = mTrustLines->trustLineReadOnly(mMessage->senderUUID);
     } catch (NotFoundError &e) {
-        // Nothing actions, because TL will be created
+        warning() << "Attempt to change not existing TL";
+        // todo send response message with reject state
+        return resultDone();
     }
 
     TrustLinesManager::TrustLineOperationResult kOperationResult;

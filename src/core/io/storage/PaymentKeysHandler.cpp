@@ -78,8 +78,19 @@ void PaymentKeysHandler::saveOwnKey(
         throw IOError("PaymentKeysHandler::saveOwnKey: "
                           "Bad binding of Public Key; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 4, privateKey->data(),
-                           (int)privateKey->keySize(), SQLITE_STATIC);
+
+    // todo encrypt private key data
+    BytesShared buffer = tryMalloc(privateKey->keySize());
+    {
+        auto g = privateKey->data()->unlockAndInitGuard();
+        memcpy(
+            buffer.get(),
+            g.address(),
+            privateKey->keySize());
+    }
+    auto g = privateKey->data()->unlockAndInitGuard();
+    rc = sqlite3_bind_blob(stmt, 4, buffer.get(),
+                       (int) privateKey->keySize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::saveOwnKey: "
                           "Bad binding of Private Key; sqlite error: " + to_string(rc));
@@ -117,11 +128,10 @@ PrivateKey* PaymentKeysHandler::getOwnPrivateKey(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        PrivateKey result;
-        // todo need constructor for private key
+        auto result = new PrivateKey((byte*)sqlite3_column_blob(stmt, 0));
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
-        return &result;
+        return result;
     } else {
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);

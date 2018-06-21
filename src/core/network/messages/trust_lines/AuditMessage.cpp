@@ -5,12 +5,12 @@ AuditMessage::AuditMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const KeyNumber keyNumber,
-    const lamport::Signature::Shared signedData):
+    const lamport::Signature::Shared signature):
     TransactionMessage(
          equivalent,
          senderUUID,
          transactionUUID),
-    mSignedData(signedData),
+    mSignature(signature),
     mKeyNumber(keyNumber)
 {}
 
@@ -26,7 +26,7 @@ AuditMessage::AuditMessage(
         sizeof(KeyNumber));
     bytesBufferOffset += sizeof(KeyNumber);
 
-    mSignedData = make_shared<lamport::Signature>(
+    mSignature = make_shared<lamport::Signature>(
         buffer.get() + bytesBufferOffset);
 }
 
@@ -40,9 +40,9 @@ const uint32_t AuditMessage::keyNumber() const
     return mKeyNumber;
 }
 
-const lamport::Signature::Shared AuditMessage::signedData() const
+const lamport::Signature::Shared AuditMessage::signature() const
 {
-    return mSignedData;
+    return mSignature;
 }
 
 pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
@@ -51,7 +51,7 @@ pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
     const auto kBufferSize =
             parentBytesAndCount.second
             + sizeof(KeyNumber)
-            + mSignedData->signatureSize();
+            + mSignature->signatureSize();
     BytesShared buffer = tryMalloc(kBufferSize);
 
     size_t dataBytesOffset = 0;
@@ -70,8 +70,8 @@ pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
 
     memcpy(
         buffer.get() + dataBytesOffset,
-        mSignedData.get(),
-        mSignedData->signatureSize());
+        mSignature->data(),
+        mSignature->signatureSize());
 
     return make_pair(
         buffer,

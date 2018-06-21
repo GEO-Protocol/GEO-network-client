@@ -4,7 +4,9 @@
 #include "../../logger/Logger.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/NotFoundError.h"
+#include "../../common/exceptions/ValueError.h"
 #include "../../crypto/lamportkeys.h"
+#include "../../common/memory/MemoryUtils.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -35,7 +37,7 @@ public:
         const TrustLineID trustLineID,
         const KeyNumber keyNumber);
 
-    const uint32_t getPublicKeyHash(
+    const KeyHash getPublicKeyHash(
         const TrustLineID trustLineID,
         const KeyNumber keyNumber);
 

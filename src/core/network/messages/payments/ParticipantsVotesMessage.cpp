@@ -80,7 +80,7 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
         parentBytesAndCount.second
         + sizeof(SerializedRecordsCount)
         + kTotalParticipantsCount
-          * (sizeof(PaymentNodeID), lamport::Signature::signatureSize());
+          * (sizeof(PaymentNodeID) + lamport::Signature::signatureSize());
 
     BytesShared buffer = tryMalloc(kBufferSize);
 

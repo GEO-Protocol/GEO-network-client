@@ -46,6 +46,66 @@ void TrustLinesManager::loadTrustLinesFromDisk()
     }
 }
 
+void TrustLinesManager::open(
+    IOTransaction::Shared ioTransaction,
+    const NodeUUID &contractorUUID,
+    const TrustLineAmount &amount)
+{
+    if (trustLineIsPresent(contractorUUID)) {
+        throw ValueError(
+            logHeader() + "::open: trust line already present.");
+    }
+    if (amount == 0) {
+        throw ValueError(
+            logHeader() + "::open: "
+            "can't establish trust line with zero amount.");
+    }
+
+    TrustLineID trustLineID = nextFreeID();
+    // In case if trust line to this contractor is absent,
+    // and "amount" is greater than 0 - new trust line should be created.
+    // contractor is not gateway by default
+    auto trustLine = make_shared<TrustLine>(
+        contractorUUID,
+        trustLineID,
+        0,
+        amount,
+        0,
+        false);
+    mTrustLines[contractorUUID] = trustLine;
+    saveToDisk(ioTransaction, trustLine);
+}
+
+void TrustLinesManager::accept(
+    IOTransaction::Shared ioTransaction,
+    const NodeUUID &contractorUUID,
+    const TrustLineAmount &amount)
+{
+    if (trustLineIsPresent(contractorUUID)) {
+        throw ValueError(
+            logHeader() + "::accept: trust line already present.");
+    }
+    if (amount == 0) {
+        throw ValueError(
+            logHeader() + "::accept: "
+                "can't establish trust line with zero amount.");
+    }
+
+    TrustLineID trustLineID = nextFreeID();
+    // In case if TL to this contractor is absent,
+    // and "amount" is greater than 0 - new trust line should be created.
+    // contractor is not gateway by default
+    auto trustLine = make_shared<TrustLine>(
+        contractorUUID,
+        trustLineID,
+        amount,
+        0,
+        0,
+        false);
+    mTrustLines[contractorUUID] = trustLine;
+    saveToDisk(ioTransaction, trustLine);
+}
+
 TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
     IOTransaction::Shared ioTransaction,
     const NodeUUID &contractorUUID,
@@ -61,19 +121,9 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
 
         } else {
             if (not trustLineIsPresent(contractorUUID)) {
-                TrustLineID trustLineID = nextFreeID();
                 // In case if trust line to this contractor is absent,
-                // and "amount" is greater than 0 - new trust line should be created.
-                // todo : contractor is not gateway by default
-                auto trustLine = make_shared<TrustLine>(
-                    contractorUUID,
-                    trustLineID,
-                    0,
-                    amount,
-                    0,
-                    false);
-                mTrustLines[contractorUUID] = trustLine;
-                saveToDisk(ioTransaction, trustLine);
+                throw ValueError(
+                    logHeader() + "::setOutgoing: trust line not created yet.");
             } else {
                 // In case if trust line to this contractor is present,
                 // and "amount" is greater than 0 - outgoing trust line should be created.
@@ -124,19 +174,9 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
 
         } else {
             if (not trustLineIsPresent(contractorUUID)) {
-                TrustLineID trustLineID = nextFreeID();
-                // In case if TL to this contractor is absent,
-                // and "amount" is greater than 0 - new trust line should be created.
-                // todo : contractor is not gateway by default
-                auto trustLine = make_shared<TrustLine>(
-                    contractorUUID,
-                    trustLineID,
-                    amount,
-                    0,
-                    0,
-                    false);
-                mTrustLines[contractorUUID] = trustLine;
-                saveToDisk(ioTransaction, trustLine);
+                // In case if trust line to this contractor is absent,
+                throw ValueError(
+                    logHeader() + "::setIncoming: trust line not created yet.");
             } else {
                 // In case if TL to this contractor is present,
                 // and "amount" is greater than 0 - incoming trust line should be created.

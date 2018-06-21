@@ -22,9 +22,9 @@ public:
     void saveAudit(
         AuditNumber number,
         TrustLineID TrustLineID,
-        uint32_t ownKeyHash,
+        lamport::KeyHash& ownKeyHash,
         lamport::Signature::Shared ownSign,
-        uint32_t contractorKeyHash,
+        lamport::KeyHash& contractorKeyHash,
         lamport::Signature::Shared contractorSign,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,

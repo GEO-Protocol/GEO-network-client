@@ -80,11 +80,11 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        auto kOperationResult = mTrustLines->setIncoming(
+        // todo : add parameter mSenderIsGateway
+        mTrustLines->accept(
             ioTransaction,
             kContractor,
             mMessage->amount());
-        // todo check kOperationResult
         populateHistory(ioTransaction, TrustLineRecord::Accepting);
         info() << "Incoming trust line from the node " << kContractor
                << " has been successfully initialised with " << mMessage->amount();
@@ -107,10 +107,10 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 
         return resultDone();
 
-    } catch (ValueError &) {
+    } catch (ValueError &e) {
         ioTransaction->rollback();
         warning() << "Attempt to set incoming trust line from the node " << kContractor << " failed. "
-                  << "Cannot open trustline with zero amount.";
+                  << "Details are: " << e.what();
         sendMessage<TrustLineConfirmationMessage>(
             kContractor,
             mEquivalent,
@@ -128,7 +128,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
                   << "Details are: " << e.what();
 
         // Rethrowing the exception,
-        // because the TA can't finish propely and no result may be returned.
+        // because the TA can't finish properly and no result may be returned.
         throw e;
     }
 }

@@ -3,7 +3,6 @@
 
 #include "../base/transaction/TransactionMessage.h"
 #include "../../../crypto/lamportscheme.h"
-#include "../../../common/multiprecision/MultiprecisionUtils.h"
 
 using namespace crypto;
 
@@ -18,15 +17,14 @@ public:
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const PaymentNodeID paymentNodeID,
-        const uint32_t transactionPublicKeyHash);
+        const lamport::KeyHash::Shared transactionPublicKeyHash);
 
     TransactionPublicKeyHashMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const PaymentNodeID paymentNodeID,
-        const uint32_t transactionPublicKeyHash,
-        const TrustLineAmount &amount,
+        const lamport::KeyHash::Shared transactionPublicKeyHash,
         const KeyNumber publicKeyNumber,
         const lamport::Signature::Shared signature);
 
@@ -37,11 +35,9 @@ public:
 
     const PaymentNodeID paymentNodeID() const;
 
-    const uint32_t transactionPublicKeyHash() const;
+    const lamport::KeyHash::Shared transactionPublicKeyHash() const;
 
     bool isReceiptContains() const;
-
-    const TrustLineAmount& amount() const;
 
     const KeyNumber publicKeyNumber() const;
 
@@ -51,9 +47,8 @@ public:
 
 private:
     PaymentNodeID mPaymentNodeID;
-    uint32_t mTransactionPublicKeyHash;
+    lamport::KeyHash::Shared mTransactionPublicKeyHash;
     bool mIsReceiptContains;
-    TrustLineAmount mAmount;
     KeyNumber mPublicKeyNumber;
     lamport::Signature::Shared mSignature;
 };

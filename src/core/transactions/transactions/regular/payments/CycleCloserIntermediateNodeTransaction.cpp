@@ -513,7 +513,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
     mStep = Stages::Common_FinalPathConfigurationChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_FinalPathCycleConfiguration,
-         Message::Payments_ReservationsInRelationToNode,
+         Message::Payments_TransactionPublicKeyHash,
          Message::Payments_TTLProlongationResponse},
         maxNetworkDelay((kMaxPathLength - 2) * 4));
 }
@@ -533,7 +533,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     }
 
     // todo make custom ReservationsInRelationToNode message for cycles with only one receipt
-    if (contextIsValid(Message::Payments_ReservationsInRelationToNode, false)) {
+    if (contextIsValid(Message::Payments_TransactionPublicKeyHash, false)) {
         return runFinalReservationsNeighborConfirmation();
     }
 
@@ -596,26 +596,15 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     auto ioTransaction = mStorageHandler->beginTransaction();
     if (kMessage->isReceiptContains()) {
         info() << "Coordinator also send receipt";
-        if (coordinatorTotalIncomingReservationAmount != kMessage->amount()) {
-            sendMessage<FinalAmountsConfigurationResponseMessage>(
-                kMessage->senderUUID,
-                mEquivalent,
-                currentNodeUUID(),
-                currentTransactionUUID(),
-                FinalAmountsConfigurationResponseMessage::Rejected);
-            warning() << "Receipt amount: " << kMessage->amount()
-                      << ". Local reserved incoming amount: " << coordinatorTotalIncomingReservationAmount;
-            return reject("Coordinator send invalid receipt amount. Rejected");
-        }
-
         auto keyChain = mKeysStore->keychain(
             mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
-        // todo understand what data should be for check signature
-        BytesShared someData;
+        auto serializedIncomingReceiptData = getSerializedReceipt(
+            kMessage->senderUUID,
+            coordinatorTotalIncomingReservationAmount);
         if (!keyChain.checkSign(
             ioTransaction,
-            someData,
-            4,
+            serializedIncomingReceiptData.first,
+            serializedIncomingReceiptData.second,
             kMessage->signature(),
             kMessage->publicKeyNumber())) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
@@ -663,7 +652,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     // to rest nodes - only public key hash
     vector<pair<PathID, AmountReservation::ConstShared>> emptyReservations;
     for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
-        if (nodeAndPaymentID.first != mCoordinator) {
+        if (nodeAndPaymentID.first == mCoordinator) {
             continue;
         }
         if (nodeAndPaymentID.first == mNodeUUID) {
@@ -685,12 +674,13 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
             auto outgoingReservedAmount = nodeReservations.begin()->second->amount();
             auto keyChain = mKeysStore->keychain(
                 mTrustLines->trustLineReadOnly(nodeAndPaymentID.first)->trustLineID());
-            // todo understand what data should be signed (outgoingReservedAmount)
-            BytesShared someData;
+            auto serializedOutgoingReceiptData = getSerializedReceipt(
+                mNodeUUID,
+                outgoingReservedAmount);
             auto signatureAndKeyNumber = keyChain.sign(
                 ioTransaction,
-                someData,
-                4);
+                serializedOutgoingReceiptData.first,
+                serializedOutgoingReceiptData.second);
             sendMessage<TransactionPublicKeyHashMessage>(
                 nodeAndPaymentID.first,
                 mEquivalent,
@@ -698,7 +688,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
                 currentTransactionUUID(),
                 mPaymentNodesIds[mNodeUUID],
                 mPublicKey->hash(),
-                outgoingReservedAmount,
                 signatureAndKeyNumber.second,
                 signatureAndKeyNumber.first);
         } else {
@@ -737,13 +726,13 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
 
         mStep = Common_VotesChecking;
         return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes,
+            {Message::Payments_ParticipantsPublicKeys,
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay(5)); // todo : need discuss this parameter (5)
     }
 
     return resultWaitForMessageTypes(
-        {Message::Payments_ReservationsInRelationToNode,
+        {Message::Payments_TransactionPublicKeyHash,
          Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(2));
 }
@@ -763,26 +752,16 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     if (kMessage->isReceiptContains()) {
-        info() << "Sender also send receipt " << kMessage->amount();
-        if (participantTotalIncomingReservationAmount != kMessage->amount()) {
-            sendMessage<FinalAmountsConfigurationResponseMessage>(
-                kMessage->senderUUID,
-                mEquivalent,
-                currentNodeUUID(),
-                currentTransactionUUID(),
-                FinalAmountsConfigurationResponseMessage::Rejected);
-            warning() << "Local reserved incoming amount: " << participantTotalIncomingReservationAmount;
-            return reject("Sender send invalid receipt amount. Rejected");
-        }
-
+        info() << "Sender also send receipt";
         auto keyChain = mKeysStore->keychain(
             mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
-        // todo understand what data should be for check signature
-        BytesShared someData;
+        auto serializedIncomingReceiptData = getSerializedReceipt(
+            kMessage->senderUUID,
+            participantTotalIncomingReservationAmount);
         if (!keyChain.checkSign(
             ioTransaction,
-            someData,
-            4,
+            serializedIncomingReceiptData.first,
+            serializedIncomingReceiptData.second,
             kMessage->signature(),
             kMessage->publicKeyNumber())) {
             sendMessage<FinalAmountsConfigurationResponseMessage>(
@@ -817,7 +796,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
     if (mPaymentNodesIds.empty()) {
         return resultWaitForMessageTypes(
             {Message::Payments_FinalPathCycleConfiguration,
-             Message::Payments_ReservationsInRelationToNode,
+             Message::Payments_TransactionPublicKeyHash,
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay(1));
     }
@@ -848,14 +827,14 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
 
         mStep = Common_VotesChecking;
         return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes,
+            {Message::Payments_ParticipantsPublicKeys,
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay(5)); // todo : need discuss this parameter (5)
     }
 
     // not all neighbors sent theirs reservations
     return resultWaitForMessageTypes(
-        {Message::Payments_ReservationsInRelationToNode,
+        {Message::Payments_TransactionPublicKeyHash,
          Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(2));
 }
@@ -873,7 +852,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runVotesC
         return resultDone();
     }
 
-    if (!contextIsValid(Message::Payments_ParticipantsVotes)) {
+    if (!contextIsValid(Message::Payments_ParticipantsPublicKeys) or
+            contextIsValid(Message::Payments_ParticipantsVotes, false)) {
         if (mTransactionIsVoted) {
             return recover("No participants votes message with all votes received.");
         } else {

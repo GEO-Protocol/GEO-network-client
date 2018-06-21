@@ -14,7 +14,7 @@ OutgoingPaymentReceiptHandler::OutgoingPaymentReceiptHandler(
                    " (trust_line_id INTEGER NOT NULL, "
                    "audit_number INTEGER NOT NULL, "
                    "transaction_uuid BLOB NOT NULL, "
-                   "own_public_key_hash INTEGER NOT NULL, "
+                   "own_public_key_hash BLOB NOT NULL, "
                    "amount BLOB NOT NULL, "
                    "own_signature BLOB NOT NULL, "
                    "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id) ON DELETE CASCADE ON UPDATE CASCADE);";
@@ -66,7 +66,7 @@ void OutgoingPaymentReceiptHandler::saveRecord(
     const TrustLineID trustLineID,
     const AuditNumber auditNumber,
     const TransactionUUID &transactionUUID,
-    const uint32_t ownPublicKeyHash,
+    const KeyHash& ownPublicKeyHash,
     const TrustLineAmount &amount,
     const Signature::Shared ownSignature)
 {
@@ -95,7 +95,8 @@ void OutgoingPaymentReceiptHandler::saveRecord(
         throw IOError("OutgoingPaymentReceiptHandler::saveRecord: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 4, ownPublicKeyHash);
+    rc = sqlite3_bind_blob(stmt, 4, ownPublicKeyHash.data(),
+                           (int)KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::saveRecord: "
                           "Bad binding of ContractorPublicKeyHash; sqlite error: " + to_string(rc));

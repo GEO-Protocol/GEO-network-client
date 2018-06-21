@@ -190,14 +190,6 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::RoutingTableResponse:
             return messageCollected<RoutingTableResponseMessage>(buffer);
 
-#ifdef DEBUG
-        /*
-         * Debug messages
-         */
-        case Message::Debug:
-            return messageCollected<DebugMessage>(buffer);
-#endif
-
         default: {
             warning() << "processBytesSequence: "
                 << "Unexpected message identifier occurred (" << kMessageIdentifier << "). Message dropped.";
