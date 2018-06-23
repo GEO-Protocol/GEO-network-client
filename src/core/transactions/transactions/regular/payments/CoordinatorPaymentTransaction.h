@@ -129,7 +129,7 @@ protected:
     // Therefore this methods are overridden.
     TransactionResult::SharedConst approve();
     TransactionResult::SharedConst reject(
-        const char *message = nullptr);
+        const char *message);
 
 protected:
     // Results handlers

@@ -259,7 +259,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         return resultContinuePreviousState();
     }
 
-    mTransactionIsVoted = true;
     {
         debug() << "Serializing transaction";
         auto ioTransaction = mStorageHandler->beginTransaction();
@@ -280,17 +279,15 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         serializedOwnVotesData.first,
         serializedOwnVotesData.second);
     debug() << "Voted +";
+    mTransactionIsVoted = true;
 
 #ifdef TESTS
     mSubsystemsController->testThrowExceptionOnVoteStage();
     mSubsystemsController->testTerminateProcessOnVoteStage();
-#endif
-
-#ifdef TESTS
     mSubsystemsController->testForbidSendMessageToCoordinatorOnVoteStage();
     mSubsystemsController->testSleepOnVoteConsistencyStage(
         maxNetworkDelay(
-            mParticipantsVotesMessage->participantsSignatures().size() + 2));
+            mPaymentNodesIds.size() + 2));
 #endif
 
     debug() << "Signed transaction transferred to coordinator " << participantsPublicKeyMessage->senderUUID;
@@ -302,8 +299,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         signedTransaction);
 
     return resultWaitForMessageTypes(
-        {Message::Payments_TTLProlongationResponse,
-         Message::Payments_ParticipantsVotes},
+        {Message::Payments_ParticipantsVotes},
         maxNetworkDelay(6));
 }
 
@@ -480,14 +476,8 @@ const bool BasePaymentTransaction::contextIsValid(
 TransactionResult::SharedConst BasePaymentTransaction::reject(
     const char *message)
 {
-    if (message)
+    if (message) {
         warning() << message;
-
-    // Participants votes may not be received,
-    // if transaction doesn't achieved votes processing state yet.
-    if (mParticipantsVotesMessage != nullptr) {
-        auto ioTransaction = mStorageHandler->beginTransaction();
-        saveVotes(ioTransaction);
     }
 
     rollBack();
@@ -650,10 +640,11 @@ TransactionResult::SharedConst BasePaymentTransaction::recover(
     const char *message)
 {
     debug() << "recover";
-    if (message != nullptr)
+    if (message != nullptr) {
         warning() << message;
+    }
 
-    if(mTransactionIsVoted and (mParticipantsVotesMessage != nullptr)){
+    if(mTransactionIsVoted){
         mStep = Stages::Common_Recovery;
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
         clearContext();

@@ -87,9 +87,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
             case Stages::Common_RollbackByOtherTransaction:
                 return runRollbackByOtherTransactionStage();
 
-            case Stages::Common_Recovery:
-                return runVotesRecoveryParentStage();
-
             default:
                 throw RuntimeError(
                     "CycleCloserInitiatorTransaction::run(): "
@@ -97,7 +94,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
         }
     } catch(Exception &e) {
         warning() << e.what();
-        return recover("Something happens wrong in method run(). Transaction will be recovered");
+        return reject("Something happens wrong in method run(). Transaction will be rejected");
     }
 }
 
@@ -198,9 +195,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
 
     // TODO: additional check if payment is correct
 
-    // Prevent simple transaction rolling back
-    // todo: make this atomic
-    mTransactionIsVoted = true;
     mParticipantsSigns.clear();
 
 #ifdef TESTS
@@ -958,7 +952,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
-        mParticipantsVotesMessage->participantsSignatures().size());
+        mPaymentNodesIds.size());
     mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
     mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif

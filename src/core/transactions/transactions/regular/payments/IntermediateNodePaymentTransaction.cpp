@@ -363,10 +363,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     // build reservation configuration for next node;
     // CoordinatorReservationRequestMessage contains configuration for next node
     vector<pair<PathID, ConstSharedTrustLineAmount>> reservations;
-    reservations.push_back(
-        make_pair(
-            kReservation.first,
-            make_shared<const TrustLineAmount>(reservationAmount)));
+    reservations.emplace_back(
+        kReservation.first,
+        make_shared<const TrustLineAmount>(reservationAmount));
 
     if (kMessage->finalAmountsConfiguration().size() > 1) {
         // add actual reservations for next node

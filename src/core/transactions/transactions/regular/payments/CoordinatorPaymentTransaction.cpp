@@ -96,9 +96,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
                 case Stages::Common_VotesChecking:
                     return runVotesConsistencyCheckingStage();
 
-                case Stages::Common_Recovery:
-                    return runVotesRecoveryParentStage();
-
                 default:
                     throw RuntimeError(
                             "CoordinatorPaymentTransaction::run(): "
@@ -409,10 +406,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
 
     // TODO: additional check if payment is correct
 
-    // Prevent simple transaction rolling back
-    // todo: make this atomic
-    mTransactionIsVoted = true;
-
     mParticipantsSigns.clear();
 
     mStep = Stages::Common_VotesChecking;
@@ -499,10 +492,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     // Reserving on the contractor side
     pathStats->shortageMaxFlow(kReservationAmount);
     vector<pair<PathID, ConstSharedTrustLineAmount>> reservations;
-    reservations.push_back(
-        make_pair(
-            mCurrentAmountReservingPathIdentifier,
-            make_shared<const TrustLineAmount>(kReservationAmount)));
+    reservations.emplace_back(
+        mCurrentAmountReservingPathIdentifier,
+        make_shared<const TrustLineAmount>(kReservationAmount));
 
     if (mNodesFinalAmountsConfiguration.find(kContractor) != mNodesFinalAmountsConfiguration.end()) {
         // add existing contractor reservations
@@ -638,10 +630,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         debug() << "No payment amount is available for (" << neighbor << "). "
                   "Switching to another path.";
 
-        mRejectedTrustLines.push_back(
-            make_pair(
-                mNodeUUID,
-                neighbor));
+        mRejectedTrustLines.emplace_back(
+            mNodeUUID,
+            neighbor);
 
         path->setUnusable();
         throw CallChainBreakException("Break call chain for preventing call loop");
@@ -664,10 +655,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         PathStats::NeighbourReservationRequestSent);
 
     vector<pair<PathID, ConstSharedTrustLineAmount>> reservations;
-    reservations.push_back(
-        make_pair(
-            mCurrentAmountReservingPathIdentifier,
-            make_shared<const TrustLineAmount>(kReservationAmount)));
+    reservations.emplace_back(
+        mCurrentAmountReservingPathIdentifier,
+        make_shared<const TrustLineAmount>(kReservationAmount));
 
     if (mNodesFinalAmountsConfiguration.find(neighbor) != mNodesFinalAmountsConfiguration.end()) {
         // add existing neighbor reservations
@@ -714,10 +704,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
     // It was done on previous step.
 
     vector<pair<PathID, ConstSharedTrustLineAmount>> reservations;
-    reservations.push_back(
-        make_pair(
-            mCurrentAmountReservingPathIdentifier,
-            make_shared<const TrustLineAmount>(path->maxFlow())));
+    reservations.emplace_back(
+        mCurrentAmountReservingPathIdentifier,
+        make_shared<const TrustLineAmount>(path->maxFlow()));
 
     if (mNodesFinalAmountsConfiguration.find(kNextAfterNeighborNode) != mNodesFinalAmountsConfiguration.end()) {
         // add existing next after neighbor node reservations
@@ -814,10 +803,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
-        mRejectedTrustLines.push_back(
-            make_pair(
-                mNodeUUID,
-                message->senderUUID));
+        mRejectedTrustLines.emplace_back(
+            mNodeUUID,
+            message->senderUUID);
         return tryProcessNextPath();
     }
 
@@ -924,10 +912,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         const auto R_UUIDAndPos = kPathStats->currentIntermediateNodeAndPos();
         const auto R_PathPosition = R_UUIDAndPos.second;
         const auto S_UUID = kPathStats->path()->nodes[R_PathPosition + 1];
-        mRejectedTrustLines.push_back(
-            make_pair(
-                R_UUIDAndPos.first,
-                S_UUID));
+        mRejectedTrustLines.emplace_back(
+            R_UUIDAndPos.first,
+            S_UUID);
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
@@ -1009,10 +996,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     const auto kTransactionUUID = currentTransactionUUID();
 
     vector<pair<PathID, ConstSharedTrustLineAmount>> reservations;
-    reservations.push_back(
-        make_pair(
-            mCurrentAmountReservingPathIdentifier,
-            make_shared<const TrustLineAmount>(path->maxFlow())));
+    reservations.emplace_back(
+        mCurrentAmountReservingPathIdentifier,
+        make_shared<const TrustLineAmount>(path->maxFlow()));
 
     if (mNodesFinalAmountsConfiguration.find(nextNodeAfterRemote) != mNodesFinalAmountsConfiguration.end()) {
         // add existing next after remote node reservations
@@ -1142,10 +1128,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         // processed trustLine was rejected, we add it to Rejected TrustLines
         const auto kPathStats = currentAmountReservationPathStats();
         const auto S_UUID = kPathStats->path()->nodes[R_PathPosition + 1];
-        mRejectedTrustLines.push_back(
-            make_pair(
-                R_UUIDAndPos.first,
-                S_UUID));
+        mRejectedTrustLines.emplace_back(
+            R_UUIDAndPos.first,
+            S_UUID);
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
@@ -1487,7 +1472,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 #ifdef TESTS
     mSubsystemsController->testSleepOnVoteConsistencyStage(
         maxNetworkDelay(
-            mParticipantsVotesMessage->participantsSignatures().size() + 2));
+            mPaymentNodesIds.size() + 2));
     mSubsystemsController->testThrowExceptionOnCoordinatorAfterApproveBeforeSendMessage();
     mSubsystemsController->testTerminateProcessOnCoordinatorAfterApproveBeforeSendMessage();
 #endif
@@ -1507,9 +1492,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::reject(
     const char *message)
 {
     BasePaymentTransaction::reject(message);
-    if (mParticipantsVotesMessage == nullptr) {
-        informAllNodesAboutTransactionFinish();
-    }
+    informAllNodesAboutTransactionFinish();
     return resultNoConsensusError();
 }
 
@@ -1548,10 +1531,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
             pathStats,
             mCurrentAmountReservingPathIdentifier);
 
-        mRejectedTrustLines.push_back(
-            make_pair(
-                mNodeUUID,
-                kMessage->senderUUID));
+        mRejectedTrustLines.emplace_back(
+            mNodeUUID,
+            kMessage->senderUUID);
 
         mStep = Stages::Coordinator_AmountReservation;
         return tryProcessNextPath();
@@ -1603,7 +1585,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
-        mParticipantsVotesMessage->participantsSignatures().size());
+        mPaymentNodesIds.size());
     mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
     mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif
