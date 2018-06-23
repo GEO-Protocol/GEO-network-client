@@ -39,6 +39,10 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::run()
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAndSendMessageStage()
 {
     debug() << "runCollectDataAndSendMessageStage; creditor is " << mContractorUUID;
+    if (!mTrustLinesManager->trustLineIsActive(mContractorUUID)) {
+        warning() << "TL with creditor is not active";
+        return resultDone();
+    }
     const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
     if (kBalanceToContractor == TrustLine::kZeroBalance()) {
         return resultDone();

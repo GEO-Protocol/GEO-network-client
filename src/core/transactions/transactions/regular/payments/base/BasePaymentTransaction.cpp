@@ -288,11 +288,9 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageToCoordinatorOnVoteStage();
-    // coordinator wait for message with all votes
-    // maxNetworkDelay(mParticipantsVotesMessage->participantsCount() + 1)
     mSubsystemsController->testSleepOnVoteConsistencyStage(
         maxNetworkDelay(
-            mParticipantsVotesMessage->participantsCount() + 2));
+            mParticipantsVotesMessage->participantsSignatures().size() + 2));
 #endif
 
     debug() << "Signed transaction transferred to coordinator " << participantsPublicKeyMessage->senderUUID;

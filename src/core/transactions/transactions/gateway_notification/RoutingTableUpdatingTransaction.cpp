@@ -26,7 +26,7 @@ TransactionResult::SharedConst RoutingTableUpdatingTransaction::run()
                     equivalentAndNeighbors.first);
             auto routingTablesManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(
                     equivalentAndNeighbors.first);
-            if(!trustLinesManager->isNeighbor(mMessage->senderUUID)){
+            if(!trustLinesManager->trustLineIsPresent(mMessage->senderUUID)){
                 warning() << "Node " << mMessage->senderUUID << " is not a neighbor on equivalent "
                           << equivalentAndNeighbors.first;
                 continue;

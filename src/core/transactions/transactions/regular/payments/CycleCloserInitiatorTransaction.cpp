@@ -110,7 +110,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
     debug() << "cycle is valid";
     mNextNode = mPathStats->path()->nodes[1];
     debug() << "first intermediate node: " << mNextNode;
-    if (! mTrustLines->isNeighbor(mNextNode)){
+    if (! mTrustLines->trustLineIsPresent(mNextNode)){
         // Internal process error. Wrong path
         warning() << "Invalid path occurred. Node (" << mNextNode << ") is not listed in first level contractors list.";
         throw RuntimeError(
@@ -143,7 +143,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
 
     mPreviousNode = mPathStats->path()->nodes[mPathStats->path()->length() - 2];
     debug() << "last intermediate node: " << mPreviousNode;
-    if (! mTrustLines->isNeighbor(mPreviousNode)){
+    if (! mTrustLines->trustLineIsPresent(mPreviousNode)){
         // Internal process error. Wrong path
         warning() << "Invalid path occurred. Node (" << mPreviousNode << ") is not listed in first level contractors list.";
         throw RuntimeError(
@@ -898,7 +898,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalReservat
         info() << "Sender also send receipt";
 
         auto keyChain = mKeysStore->keychain(
-            mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
+            mTrustLines->trustLineID(kMessage->senderUUID));
         auto serializedIncomingReceiptData = getSerializedReceipt(
             kMessage->senderUUID,
             participantTotalIncomingReservationAmount);
@@ -958,7 +958,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
-        mParticipantsVotesMessage->participantsCount());
+        mParticipantsVotesMessage->participantsSignatures().size());
     mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
     mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif
@@ -1088,7 +1088,7 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
         if (sendReservationToFirstIntermediateNode) {
             // we should send receipt to first intermediate node
             auto keyChain = mKeysStore->keychain(
-                mTrustLines->trustLineReadOnly(intermediateNode)->trustLineID());
+                mTrustLines->trustLineID(intermediateNode));
             // coordinator should have one outgoing reservation to first intermediate node
             auto serializedOutgoingReceiptData = getSerializedReceipt(
                 mNodeUUID,

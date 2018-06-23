@@ -143,7 +143,7 @@ public:
      *
      * @throws NotFoundError in case if no trust line from this contractor is present.
      */
-    const TrustLineAmount &outgoingTrustAmountDespiteReservations(
+    const TrustLineAmount &outgoingTrustAmount(
         const NodeUUID &contractorUUID) const;
 
     /**
@@ -151,7 +151,7 @@ public:
      *
      * @throws NotFoundError in case if no trust line from this contractor is present.
      */
-    const TrustLineAmount &incomingTrustAmountDespiteReservations(
+    const TrustLineAmount &incomingTrustAmount(
         const NodeUUID &contractorUUID) const;
 
     /**
@@ -160,6 +160,9 @@ public:
      * @throws NotFoundError in case if no trust line from this contractor is present.
      */
     const TrustLineBalance &balance(
+        const NodeUUID &contractorUUID) const;
+
+    const TrustLineID trustLineID(
         const NodeUUID &contractorUUID) const;
 
     /**
@@ -276,11 +279,11 @@ public:
     const bool trustLineIsPresent (
         const NodeUUID &contractorUUID) const;
 
-    const bool reservationIsPresent(
+    const bool trustLineIsActive(
         const NodeUUID &contractorUUID) const;
 
-    const bool isNeighbor(
-        const NodeUUID &node) const;
+    const bool reservationIsPresent(
+        const NodeUUID &contractorUUID) const;
 
     void removeTrustLine(
         IOTransaction::Shared ioTransaction,

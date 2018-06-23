@@ -18,6 +18,10 @@ CyclesThreeNodesReceiverTransaction::CyclesThreeNodesReceiverTransaction(
 
 TransactionResult::SharedConst CyclesThreeNodesReceiverTransaction::run()
 {
+    if (!mTrustLinesManager->trustLineIsActive(mRequestMessage->senderUUID)) {
+        warning() << "TL with requested node " << mRequestMessage->senderUUID << " is not active";
+        return resultDone();
+    }
     const auto kNeighbors = mRequestMessage->neighbors();
     const auto kContractorBalance = mTrustLinesManager->balance(mRequestMessage->senderUUID);
 
@@ -33,6 +37,9 @@ TransactionResult::SharedConst CyclesThreeNodesReceiverTransaction::run()
 
     TrustLineBalance stepNodeBalance;
     for (const auto &kNodeUUID: kNeighbors) {
+        if (!mTrustLinesManager->trustLineIsActive(kNodeUUID)) {
+            continue;
+        }
         stepNodeBalance = mTrustLinesManager->balance(kNodeUUID);
         if ((searchDebtors and stepNodeBalance > TrustLine::kZeroBalance())
             or (not searchDebtors and (stepNodeBalance < TrustLine::kZeroBalance())))

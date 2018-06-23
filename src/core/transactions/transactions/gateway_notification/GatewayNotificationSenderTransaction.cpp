@@ -76,7 +76,7 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
                             equivalentAndNeighbors.first);
                     auto routingTablesManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(
                             equivalentAndNeighbors.first);
-                    if(!trustLinesManager->isNeighbor(kMessage->senderUUID)){
+                    if(!trustLinesManager->trustLineIsPresent(kMessage->senderUUID)){
                         warning() << "Node " << kMessage->senderUUID << " is not a neighbor on equivalent "
                                   << equivalentAndNeighbors.first;
                         continue;

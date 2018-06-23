@@ -26,6 +26,7 @@ TransactionResult::SharedConst GetFirstLevelContractorsBalancesTransaction::run(
     stringstream ss;
     ss << to_string(kNeighborsCount);
     for (const auto &kNodeUUIDAndTrustline: mTrustLinesManager->trustLines()) {
+        // todo discuss if exclude non active TLs
         ss << kTokensSeparator;
         ss << kNodeUUIDAndTrustline.first;
         ss << kTokensSeparator;

@@ -220,7 +220,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             << kNeighbor << " [" << kReservation.first << "]";
     debug() << "Received reservations size: " << kMessage->finalAmountsConfiguration().size();
 
-    if (! mTrustLines->isNeighbor(kNeighbor)) {
+    if (! mTrustLines->trustLineIsPresent(kNeighbor)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             mEquivalent,
@@ -515,7 +515,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
     if (kMessage->isReceiptContains()) {
         info() << "Coordinator also send receipt";
         auto keyChain = mKeysStore->keychain(
-            mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
+            mTrustLines->trustLineID(kMessage->senderUUID));
         auto serializedIncomingReceiptData = getSerializedReceipt(
             kMessage->senderUUID,
             coordinatorTotalIncomingReservationAmount);
@@ -636,7 +636,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
     if (kMessage->isReceiptContains()) {
         info() << "Sender also send receipt";
         auto keyChain = mKeysStore->keychain(
-            mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
+            mTrustLines->trustLineID(kMessage->senderUUID));
         auto serializedIncomingReceiptData = getSerializedReceipt(
             kMessage->senderUUID,
             participantTotalIncomingReservationAmount);

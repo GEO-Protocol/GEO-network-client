@@ -24,7 +24,7 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
     auto ioTransaction = mStorageHandler->beginTransaction();
     for (const auto &equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-        if (!trustLinesManager->isNeighbor(
+        if (!trustLinesManager->trustLineIsPresent(
                 mMessage->senderUUID)) {
             continue;
         }

@@ -231,13 +231,21 @@ bool TrustLineKeychain::checkSign(
     dataGuard(data, size);
     keyNumberGuard(keyNumber);
 
-    auto contractorPublicKey = ioTransaction->contractorKeysHandler()->keyByNumber(
-        mTrustLineID,
-        keyNumber);
-    return signature->check(
-        data.get(),
-        size,
-        contractorPublicKey);
+    try {
+        auto contractorPublicKey = ioTransaction->contractorKeysHandler()->keyByNumber(
+            mTrustLineID,
+            keyNumber);
+        return signature->check(
+            data.get(),
+            size,
+            contractorPublicKey);
+    } catch (NotFoundError &e) {
+        warning() << "There are no data for TL " << mTrustLineID << " and keyNumber " << keyNumber;
+        return false;
+    } catch (IOError &e) {
+        warning() << "Can't get contractor public key. Details: " << e.what();
+        return false;
+    }
 }
 
 void TrustLineKeychain::saveAudit(

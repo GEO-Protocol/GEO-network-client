@@ -24,7 +24,7 @@ TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::run()
 {
     stringstream ss;
     auto contractorUUID = mCommand->contractorUUID();
-    if (!mTrustLinesManager->isNeighbor(contractorUUID)) {
+    if (!mTrustLinesManager->trustLineIsPresent(contractorUUID)) {
         return resultTrustLineIsAbsent();
     }
     auto kContractorTrustLine = mTrustLinesManager->trustLineReadOnly(contractorUUID);
@@ -34,6 +34,7 @@ TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::run()
     ss << kContractorTrustLine->balance();
     ss << kCommandsSeparator;
     string kResultInfo = ss.str();
+    // todo return also state of TL
     return transactionResultFromCommand(
         mCommand->resultOk(
             kResultInfo));

@@ -17,7 +17,10 @@ CyclesFiveNodesReceiverTransaction::CyclesFiveNodesReceiverTransaction(
 TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run()
 {
     vector<NodeUUID> path = mInBetweenNodeTopologyMessage->Path();
-    auto currentDepth = (SerializedPathLengthSize)path.size();
+    if (mTrustLinesManager->trustLineIsActive(path.back())) {
+        warning() << "TL with previous node " << path.back() << " is not active";
+        return resultDone();
+    }
     // Direction has mirror sign for initiator node and receiver node.
     // Direction is calculated based on initiator node
     TrustLineBalance maxFlow = (-1) * mTrustLinesManager->balance(path.back());
@@ -30,6 +33,7 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run()
     if (maxFlow < TrustLine::kZeroBalance())
         creditorsBranch = false;
 
+    auto currentDepth = (SerializedPathLengthSize)path.size();
     if ((creditorsBranch and currentDepth==1)) {
         mInBetweenNodeTopologyMessage->addNodeToPath(mNodeUUID);
         for(const auto &kNodeUUID: firstLevelNodes)

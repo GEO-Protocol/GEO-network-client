@@ -39,7 +39,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runInitialisa
     info() << "Receive key number: " << mMessage->number();
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineReadOnly(mMessage->senderUUID)->trustLineID());
+        mTrustLines->trustLineID(mMessage->senderUUID));
     try {
         mTrustLines->setTrustLineState(
             ioTransaction,
@@ -87,7 +87,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
     }
     info() << "Receive key number: " << message->number();
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineReadOnly(message->senderUUID)->trustLineID());
+        mTrustLines->trustLineID(message->senderUUID));
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
         try {

@@ -107,7 +107,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
 
     mCycleLength = mMessage->cycleLength();
 
-    if (!mTrustLines->isNeighbor(mPreviousNode)) {
+    if (!mTrustLines->trustLineIsPresent(mPreviousNode)) {
         sendMessage<IntermediateNodeCycleReservationResponseMessage>(
             mPreviousNode,
             mEquivalent,
@@ -278,7 +278,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     debug() << "Requested amount reservation: " << kMessage->amount();
     debug() << "Next node is " << kMessage->nextNodeInPath();
 
-    if (!mTrustLines->isNeighbor(mNextNode)) {
+    if (!mTrustLines->trustLineIsPresent(mNextNode)) {
         sendMessage<CoordinatorCycleReservationResponseMessage>(
             mCoordinator,
             mEquivalent,
@@ -597,7 +597,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     if (kMessage->isReceiptContains()) {
         info() << "Coordinator also send receipt";
         auto keyChain = mKeysStore->keychain(
-            mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
+            mTrustLines->trustLineID(kMessage->senderUUID));
         auto serializedIncomingReceiptData = getSerializedReceipt(
             kMessage->senderUUID,
             coordinatorTotalIncomingReservationAmount);
@@ -673,7 +673,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
             // in cycles nodes should have only one outgoing reservation
             auto outgoingReservedAmount = nodeReservations.begin()->second->amount();
             auto keyChain = mKeysStore->keychain(
-                mTrustLines->trustLineReadOnly(nodeAndPaymentID.first)->trustLineID());
+                mTrustLines->trustLineID(nodeAndPaymentID.first));
             auto serializedOutgoingReceiptData = getSerializedReceipt(
                 mNodeUUID,
                 outgoingReservedAmount);
@@ -754,7 +754,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
     if (kMessage->isReceiptContains()) {
         info() << "Sender also send receipt";
         auto keyChain = mKeysStore->keychain(
-            mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
+            mTrustLines->trustLineID(kMessage->senderUUID));
         auto serializedIncomingReceiptData = getSerializedReceipt(
             kMessage->senderUUID,
             participantTotalIncomingReservationAmount);

@@ -20,7 +20,7 @@ GatewayNotificationOneEquivalentReceiverTransaction::GatewayNotificationOneEquiv
 
 TransactionResult::SharedConst GatewayNotificationOneEquivalentReceiverTransaction::run()
 {
-    if (!mTrustLineManager->isNeighbor(mMessage->senderUUID)) {
+    if (!mTrustLineManager->trustLineIsPresent(mMessage->senderUUID)) {
         warning() << "Sender " << mMessage->senderUUID << " is not neighbor of current node";
         sendMessage<ConfirmationMessage>(
             mMessage->senderUUID,

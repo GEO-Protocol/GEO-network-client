@@ -611,7 +611,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     const auto kCurrentNode = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
-    if (! mTrustLines->isNeighbor(neighbor)){
+    if (! mTrustLines->trustLineIsPresent(neighbor)){
         // Internal process error.
         // No next path must be selected.
         // Transaction execution must be cancelled.
@@ -1291,7 +1291,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
         // if coordinator has reservations with current node it also send receipt
         if (mReservations.find(nodeAndFinalAmountsConfig.first) != mReservations.end()) {
             auto keyChain = mKeysStore->keychain(
-                mTrustLines->trustLineReadOnly(nodeAndFinalAmountsConfig.first)->trustLineID());
+                mTrustLines->trustLineID(nodeAndFinalAmountsConfig.first));
             auto outgoingReservedAmount = TrustLine::kZeroAmount();
             for (const auto &pathIDAndReservation : mReservations[nodeAndFinalAmountsConfig.first]) {
                 // todo check if all reservations is outgoing
@@ -1485,11 +1485,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
     BasePaymentTransaction::runThreeNodesCyclesTransactions();
     BasePaymentTransaction::runFourNodesCyclesTransactions();
 #ifdef TESTS
-    // all nodes wait for this message
-    // maxNetworkDelay(mParticipantsVotesMessage->participantsCount() + 1)
     mSubsystemsController->testSleepOnVoteConsistencyStage(
         maxNetworkDelay(
-            mParticipantsVotesMessage->participantsCount() + 2));
+            mParticipantsVotesMessage->participantsSignatures().size() + 2));
     mSubsystemsController->testThrowExceptionOnCoordinatorAfterApproveBeforeSendMessage();
     mSubsystemsController->testTerminateProcessOnCoordinatorAfterApproveBeforeSendMessage();
 #endif
@@ -1605,7 +1603,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
-        mParticipantsVotesMessage->participantsCount());
+        mParticipantsVotesMessage->participantsSignatures().size());
     mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
     mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif

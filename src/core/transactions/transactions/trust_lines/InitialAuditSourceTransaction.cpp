@@ -39,7 +39,7 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runInitialisationS
     auto serializedAuditData = getOwnSerializedAuditData();
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineReadOnly(mContractorUUID)->trustLineID());
+        mTrustLines->trustLineID(mContractorUUID));
     try {
         mOwnSignatureAndKeyNumber = keyChain.sign(
             ioTransaction,
@@ -80,7 +80,7 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runResponseProcess
     }
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineReadOnly(mContractorUUID)->trustLineID());
+        mTrustLines->trustLineID(mContractorUUID));
 
     auto contractorSerializedAuditData = getContractorSerializedAuditData();
     if (!keyChain.checkSign(
@@ -113,9 +113,9 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runResponseProcess
         mOwnSignatureAndKeyNumber.first,
         message->keyNumber(),
         message->signature(),
-        mTrustLines->incomingTrustAmountDespiteReservations(
+        mTrustLines->incomingTrustAmount(
             mContractorUUID),
-        mTrustLines->outgoingTrustAmountDespiteReservations(
+        mTrustLines->outgoingTrustAmount(
             mContractorUUID),
         mTrustLines->balance(mContractorUUID));
     info() << "All data saved. Now TL is ready for using";
@@ -131,7 +131,7 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getOwnSerializedAuditDa
     size_t dataBytesOffset = 0;
 
     vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(
-        mTrustLines->incomingTrustAmountDespiteReservations(
+        mTrustLines->incomingTrustAmount(
             mContractorUUID));
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
@@ -140,7 +140,7 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getOwnSerializedAuditDa
     dataBytesOffset += kTrustLineAmountBytesCount;
 
     vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(
-        mTrustLines->outgoingTrustAmountDespiteReservations(
+        mTrustLines->outgoingTrustAmount(
             mContractorUUID));
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
@@ -169,7 +169,7 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getContractorSerialized
     size_t dataBytesOffset = 0;
 
     vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(
-        mTrustLines->outgoingTrustAmountDespiteReservations(
+        mTrustLines->outgoingTrustAmount(
             mContractorUUID));
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
@@ -178,7 +178,7 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getContractorSerialized
     dataBytesOffset += kTrustLineAmountBytesCount;
 
     vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(
-        mTrustLines->incomingTrustAmountDespiteReservations(
+        mTrustLines->incomingTrustAmount(
             mContractorUUID));
     memcpy(
         dataBytesShared.get() + dataBytesOffset,

@@ -34,7 +34,7 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
 
 TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run()
 {
-    if (!mTrustLinesManager->isNeighbor(mRequestMessage->contractor())) {
+    if (!mTrustLinesManager->trustLineIsPresent(mRequestMessage->contractor())) {
         warning() << "Contractor node " << mRequestMessage->contractor() << " is not a neighbor";
         return resultDone();
     }
@@ -66,8 +66,12 @@ void CyclesFourNodesReceiverTransaction::buildSuitableDebtorsForCycleNegativeBal
     }
 
     for (const auto &debtor : mRequestMessage->checkedNodes()) {
-        if (!mTrustLinesManager->isNeighbor(debtor)) {
+        if (!mTrustLinesManager->trustLineIsPresent(debtor)) {
             warning() << "Checked node " << debtor << " is not a neighbor";
+            continue;
+        }
+        if (!mTrustLinesManager->trustLineIsActive(debtor)) {
+            warning() << "TL with checked node " << debtor << " is not active";
             continue;
         }
         if (mTrustLinesManager->balance(debtor) < TrustLine::kZeroBalance()) {
@@ -85,8 +89,12 @@ void CyclesFourNodesReceiverTransaction::buildSuitableDebtorsForCyclePositiveBal
     }
 
     for (const auto &debtor : mRequestMessage->checkedNodes()) {
-        if (!mTrustLinesManager->isNeighbor(debtor)) {
+        if (!mTrustLinesManager->trustLineIsPresent(debtor)) {
             warning() << "Checked node " << debtor << " is not a neighbor";
+            continue;
+        }
+        if (!mTrustLinesManager->trustLineIsActive(debtor)) {
+            warning() << "TL with checked node " << debtor << " is not active";
             continue;
         }
         if (mTrustLinesManager->balance(debtor) > TrustLine::kZeroBalance()) {

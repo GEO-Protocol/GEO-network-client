@@ -39,7 +39,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runInitialisa
     info() << "runInitialisationStage";
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineReadOnly(mContractorUUID)->trustLineID());
+        mTrustLines->trustLineID(mContractorUUID));
     try {
         keyChain.generateKeyPairsSet(
             ioTransaction);
@@ -82,7 +82,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runSendNextKe
     info() << "Key number: " << mCurrentKeyNumber << " confirmed";
     mCurrentKeyNumber++;
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineReadOnly(mContractorUUID)->trustLineID());
+        mTrustLines->trustLineID(mContractorUUID));
     if (mCurrentKeyNumber >= TrustLineKeychain::kDefaultKeysSetSize) {
         info() << "all keys confirmed";
         auto ioTransaction = mStorageHandler->beginTransaction();

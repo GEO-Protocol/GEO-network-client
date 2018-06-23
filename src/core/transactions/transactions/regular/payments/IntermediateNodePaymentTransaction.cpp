@@ -133,7 +133,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     debug() << "Requested amount reservation: " << *kReservation.second.get() << " on path " << kReservation.first;
     debug() << "Received reservations size: " << mMessage->finalAmountsConfiguration().size();
 
-    if (!mTrustLines->isNeighbor(kNeighbor)) {
+    if (!mTrustLines->trustLineIsPresent(kNeighbor)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             mEquivalent,
@@ -295,7 +295,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     debug() << "requested reservation amount is " << *kReservation.second.get() << " on path " << kReservation.first;
     debug() << "Next node is " << kNextNode;
     debug() << "Received reservations size: " << kMessage->finalAmountsConfiguration().size();
-    if (!mTrustLines->isNeighbor(kNextNode)) {
+    if (!mTrustLines->trustLineIsPresent(kNextNode)) {
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             mEquivalent,
@@ -774,7 +774,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
     if (kMessage->isReceiptContains()) {
         info() << "Coordinator also send receipt";
         auto keyChain = mKeysStore->keychain(
-            mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
+            mTrustLines->trustLineID(kMessage->senderUUID));
         auto serializedIncomingReceiptData = getSerializedReceipt(
             kMessage->senderUUID,
             coordinatorTotalIncomingReservationAmount);
@@ -849,7 +849,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
         auto nodeReservations = mReservations[nodeAndPaymentID.first];
         if (nodeReservations.begin()->second->direction() == AmountReservation::Outgoing) {
             auto keyChain = mKeysStore->keychain(
-                mTrustLines->trustLineReadOnly(nodeAndPaymentID.first)->trustLineID());
+                mTrustLines->trustLineID(nodeAndPaymentID.first));
             auto outgoingReservedAmount = TrustLine::kZeroAmount();
             for (const auto &pathIDAndReservation : nodeReservations) {
                 // todo check if all reservations is outgoing
@@ -938,7 +938,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
     if (kMessage->isReceiptContains()) {
         info() << "Sender also send receipt";
         auto keyChain = mKeysStore->keychain(
-            mTrustLines->trustLineReadOnly(kMessage->senderUUID)->trustLineID());
+            mTrustLines->trustLineID(kMessage->senderUUID));
         auto serializedIncomingReceiptData = getSerializedReceipt(
             kMessage->senderUUID,
             participantTotalIncomingReservationAmount);

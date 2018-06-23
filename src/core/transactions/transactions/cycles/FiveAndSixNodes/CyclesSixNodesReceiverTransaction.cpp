@@ -17,7 +17,10 @@ CyclesSixNodesReceiverTransaction::CyclesSixNodesReceiverTransaction(
 TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
 {
     vector<NodeUUID> path = mInBetweenNodeTopologyMessage->Path();
-    const auto kCurrentDepth = (SerializedPathLengthSize)path.size();
+    if (mTrustLinesManager->trustLineIsActive(path.back())) {
+        warning() << "TL with previous node " << path.back() << " is not active";
+        return resultDone();
+    }
     // Direction has mirror sign for initiator node and receiver node.
     // Direction is calculated based on initiator node
     TrustLineBalance maxFlow = (-1) *  mTrustLinesManager->balance(path.back());
@@ -27,6 +30,7 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
         return resultDone();
     auto kFirstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
     //  Update message path and send to next level nodes
+    const auto kCurrentDepth = (SerializedPathLengthSize)path.size();
 #ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     info() << "current depth: " << to_string(kCurrentDepth);
 #endif

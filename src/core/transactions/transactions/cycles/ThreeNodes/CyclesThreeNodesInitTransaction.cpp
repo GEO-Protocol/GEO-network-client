@@ -39,6 +39,10 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run()
 TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAndSendMessageStage()
 {
     debug() << "runCollectDataAndSendMessageStage to " << mContractorUUID;
+    if (!mTrustLinesManager->trustLineIsActive(mContractorUUID)) {
+        warning() << "TL with contractor is not active";
+        return resultDone();
+    }
     set<NodeUUID> commonNeighbors = getNeighborsWithContractor();
     if(commonNeighbors.empty()){
         info() << "No common neighbors with: " << mContractorUUID;
@@ -115,6 +119,9 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor()
 
     for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()){
         const auto kTL = kNodeUUIDAndTrustLine.second;
+        if (kTL->state() != TrustLine::Active) {
+            continue;
+        }
         if (kBalanceToContractor < TrustLine::kZeroBalance()) {
             if (kTL->balance() > TrustLine::kZeroBalance())
                 ownNeighbors.insert(kNodeUUIDAndTrustLine.first);
