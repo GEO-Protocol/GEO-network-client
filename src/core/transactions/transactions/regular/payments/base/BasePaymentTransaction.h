@@ -174,14 +174,16 @@ protected:
      */
     virtual TransactionResult::SharedConst runVotesConsistencyCheckingStage();
 
+    TransactionResult::SharedConst processParticipantsVotesMessage();
+
     // approving of transaction
     virtual TransactionResult::SharedConst approve();
     // recovering of transaction
     virtual TransactionResult::SharedConst recover(
-        const char *message = nullptr);
+        const char *message);
     // rejecting of transaction
     virtual TransactionResult::SharedConst reject(
-        const char *message = nullptr);
+        const char *message);
 
     /**
      * starts recovery process
@@ -194,6 +196,12 @@ protected:
      */
     TransactionResult::SharedConst sendVotesRequestMessageAndWaitForResponse(
         const NodeUUID &contractorUUID);
+
+    /**
+    * process next node in participants votes message during recovery stage
+    * @return result of transaction
+    */
+    TransactionResult::SharedConst processNextNodeToCheckVotes();
 
     /**
      * prepare list of nodes which will be asked about result of recovered transaction
@@ -339,12 +347,6 @@ protected:
     size_t reservationsSizeInBytes() const;
 
     /**
-     * process next node in participants votes message during recovery stage
-     * @return result of transaction
-     */
-    TransactionResult::SharedConst processNextNodeToCheckVotes();
-
-    /**
      * @param reservationDirection direction (outgoing or incoming) total amount of which will be returned
      * @return total reserved amount of current node on specified direction
      */
@@ -430,8 +432,6 @@ protected:
     // Additional message must be received from the coordinator,
     // so the votes message must be saved for further processing.
     ParticipantsVotesMessage::Shared mParticipantsVotesMessage;
-
-    ParticipantsPublicKeysMessage::Shared mParticipantsPublicKeyMessage;
 
     map<NodeUUID, vector<pair<PathID, AmountReservation::ConstShared>>> mReservations;
 

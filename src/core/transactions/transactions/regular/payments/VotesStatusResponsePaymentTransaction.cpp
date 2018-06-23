@@ -4,7 +4,7 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
     const NodeUUID &nodeUUID,
     VotesStatusRequestMessage::Shared message,
     StorageHandler *storageHandler,
-    bool isRequestedTransactionCurrentlyRunned,
+    bool isRequestedTransactionCurrentlyInProcessing,
     Logger &logger):
     BaseTransaction(
         BaseTransaction::TransactionType::VoutesStatusResponsePaymentTransaction,
@@ -13,23 +13,23 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
         logger),
     mStorageHandler(storageHandler),
     mRequest(message),
-    mIsRequestedTransactionCurrentlyRunned(isRequestedTransactionCurrentlyRunned)
+    mIsRequestedTransactionCurrentlyInProcessing(isRequestedTransactionCurrentlyInProcessing)
 {}
 
-// todo change this logik according to crypto changes
 TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
 {
-    debug() << "run";
-    map<PaymentNodeID, lamport::Signature::Shared> emptySignMap;
-    if (mIsRequestedTransactionCurrentlyRunned) {
+    map<PaymentNodeID, lamport::Signature::Shared> emptySignatureMap;
+    if (mIsRequestedTransactionCurrentlyInProcessing) {
         // if requested transaction didn't finish yet,
         // we send empty message, which means that requester should wait and ask again
         const auto kResponse = make_shared<ParticipantsVotesMessage>(
             mEquivalent,
             mNodeUUID,
             mRequest->transactionUUID(),
-            emptySignMap);
-        debug() << "send response with empty ParticipantsVotesMessage to " << mRequest->senderUUID;
+            emptySignatureMap);
+        info() << "Requested TA currently is in processing. "
+                "Send response with empty ParticipantsVotesMessage to "
+                << mRequest->senderUUID;
         sendMessage(
             mRequest->senderUUID,
             kResponse);
@@ -43,21 +43,19 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
             mRequest->transactionUUID());
         const auto kResponse = make_shared<ParticipantsVotesMessage>(
             serializedVotesBufferAndSize.first);
-        debug() << "send response with not empty ParticipantsVotesMessage to " << mRequest->senderUUID;
+        info() << "send response with not empty ParticipantsVotesMessage to " << mRequest->senderUUID;
         sendMessage(
             mRequest->senderUUID,
             kResponse);
 
     } catch(NotFoundError &) {
-        // If node was offline and it does not have serialize VotesMessage.
-        // it means that coordinator didn't accept this transaction (maybe crash)
-        // in this case we send reject message
         const auto kResponse = make_shared<ParticipantsVotesMessage>(
             mEquivalent,
             mNodeUUID,
             mRequest->transactionUUID(),
-            emptySignMap);
-        debug() << "send reject response to " << mRequest->senderUUID;
+            emptySignatureMap);
+        info() << "Node don't know about requested TA. Send response with empty ParticipantsVotesMessage to "
+               << mRequest->senderUUID;
         sendMessage(
             mRequest->senderUUID,
             kResponse);

@@ -138,16 +138,16 @@ pair<BytesShared, size_t> FinalAmountsConfigurationMessage::serializeToBytes() c
         sizeof(SerializedRecordsCount));
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     //----------------------------------------------------
-    for (auto const &it : mPaymentNodesIds) {
+    for (auto const &nodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
         memcpy(
             bytesBufferOffset,
-            it.first.data,
+            nodeUUIDAndPaymentNodeID.first.data,
             NodeUUID::kBytesSize);
         bytesBufferOffset += NodeUUID::kBytesSize;
 
         memcpy(
             bytesBufferOffset,
-            &it.second,
+            &nodeUUIDAndPaymentNodeID.second,
             sizeof(PaymentNodeID));
         bytesBufferOffset += sizeof(PaymentNodeID);
     }

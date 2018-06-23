@@ -26,19 +26,19 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        map<PaymentNodeID, lamport::Signature::Shared> &participantsSigns);
+        map<PaymentNodeID, lamport::Signature::Shared> &participantsSignatures);
 
     ParticipantsVotesMessage(
         BytesShared buffer);
 
     const MessageType typeID() const;
 
-    const map<PaymentNodeID, lamport::Signature::Shared>& participantsSigns() const;
+    const map<PaymentNodeID, lamport::Signature::Shared>& participantsSignatures() const;
 
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
 private:
-    map<PaymentNodeID, lamport::Signature::Shared> mParticipantsSigns;
+    map<PaymentNodeID, lamport::Signature::Shared> mParticipantsSignatures;
 };
 #endif //GEO_NETWORK_CLIENT_PARTICIPANTSAPPROVINGMESSAGE_H

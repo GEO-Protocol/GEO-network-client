@@ -4,13 +4,13 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
-    map<PaymentNodeID, lamport::Signature::Shared> &participantsSigns) :
+    map<PaymentNodeID, lamport::Signature::Shared> &participantsSignatures) :
 
     TransactionMessage(
         equivalent,
         senderUUID,
         transactionUUID),
-    mParticipantsSigns(participantsSigns)
+    mParticipantsSignatures(participantsSignatures)
 {}
 
 ParticipantsVotesMessage::ParticipantsVotesMessage(
@@ -30,14 +30,14 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
         auto *paymentNodeID = new (buffer.get() + bytesBufferOffset) PaymentNodeID;
         bytesBufferOffset += sizeof(PaymentNodeID);
 
-        auto sign = make_shared<lamport::Signature>(
+        auto signature = make_shared<lamport::Signature>(
             buffer.get() + bytesBufferOffset);
         bytesBufferOffset += lamport::Signature::signatureSize();
 
-        mParticipantsSigns.insert(
+        mParticipantsSignatures.insert(
             make_pair(
                 *paymentNodeID,
-                sign));
+                signature));
     }
 }
 
@@ -74,7 +74,7 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
 {
     const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
-    const auto kTotalParticipantsCount = mParticipantsSigns.size();
+    const auto kTotalParticipantsCount = mParticipantsSignatures.size();
 
     const auto kBufferSize =
         parentBytesAndCount.second
@@ -100,7 +100,7 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
     dataBytesOffset += sizeof(SerializedRecordsCount);
 
     // Payment Node IDs and signatures
-    for (const auto &paymentNodeIDAndVote : mParticipantsSigns) {
+    for (const auto &paymentNodeIDAndVote : mParticipantsSignatures) {
 
         const auto kParticipantPaymentID = paymentNodeIDAndVote.first;
         memcpy(
@@ -121,7 +121,7 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
         kBufferSize);
 }
 
-const map<PaymentNodeID, lamport::Signature::Shared>& ParticipantsVotesMessage::participantsSigns() const
+const map<PaymentNodeID, lamport::Signature::Shared>& ParticipantsVotesMessage::participantsSignatures() const
 {
-    return mParticipantsSigns;
+    return mParticipantsSignatures;
 }
