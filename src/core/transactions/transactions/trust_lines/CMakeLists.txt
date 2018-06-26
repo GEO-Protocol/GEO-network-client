@@ -13,9 +13,6 @@ set(SOURCE_FILES
     CloseOutgoingTrustLineTransaction.h
     CloseOutgoingTrustLineTransaction.cpp
 
-    RejectOutgoingTrustLineTransaction.h
-    RejectOutgoingTrustLineTransaction.cpp
-
     OpenTrustLineTransaction.h
     OpenTrustLineTransaction.cpp
 

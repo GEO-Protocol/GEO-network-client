@@ -4,7 +4,6 @@
 #include "../../common/Types.h"
 #include "TrustLineHandler.h"
 #include "HistoryStorage.h"
-#include "PaymentOperationStateHandler.h"
 #include "TransactionsHandler.h"
 #include "BlackListHandler.h"
 
@@ -14,6 +13,7 @@
 #include "IncomingPaymentReceiptHandler.h"
 #include "OutgoingPaymentReceiptHandler.h"
 #include "PaymentKeysHandler.h"
+#include "PaymentParticipantsVotesHandler.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -27,7 +27,6 @@ public:
         sqlite3 *dbConnection,
         TrustLineHandler *trustLinesHandler,
         HistoryStorage *historyStorage,
-        PaymentOperationStateHandler *paymentOperationStorage,
         TransactionsHandler *transactionHandler,
         BlackListHandler *blackListHandler,
         OwnKeysHandler *ownKeysHandler,
@@ -36,6 +35,7 @@ public:
         IncomingPaymentReceiptHandler *incomingPaymentReceiptHandler,
         OutgoingPaymentReceiptHandler *outgoingPaymentReceiptHandler,
         PaymentKeysHandler *paymentKeysHandler,
+        PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler,
         Logger &logger);
 
     ~IOTransaction();
@@ -43,8 +43,6 @@ public:
     TrustLineHandler *trustLinesHandler();
 
     HistoryStorage *historyStorage();
-
-    PaymentOperationStateHandler *paymentOperationStateHandler();
 
     TransactionsHandler *transactionHandler();
 
@@ -61,6 +59,8 @@ public:
     OutgoingPaymentReceiptHandler *outgoingPaymentReceiptHandler();
 
     PaymentKeysHandler *paymentKeysHandler();
+
+    PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler();
 
     void rollback();
 
@@ -80,7 +80,6 @@ private:
     sqlite3 *mDBConnection;
     TrustLineHandler *mTrustLineHandler;
     HistoryStorage *mHistoryStorage;
-    PaymentOperationStateHandler *mPaymentOperationStateHandler;
     TransactionsHandler *mTransactionHandler;
     BlackListHandler *mBlackListHandler;
 
@@ -90,6 +89,7 @@ private:
     IncomingPaymentReceiptHandler *mIncomingPaymentReceiptHandler;
     OutgoingPaymentReceiptHandler *mOutgoingPaymentReceiptHandler;
     PaymentKeysHandler *mPaymentKeysHandler;
+    PaymentParticipantsVotesHandler *mPaymentParticipantsVotesHandler;
 
     bool mIsTransactionBegin;
     Logger &mLog;

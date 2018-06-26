@@ -16,8 +16,8 @@ OutgoingPaymentReceiptHandler::OutgoingPaymentReceiptHandler(
                    "transaction_uuid BLOB NOT NULL, "
                    "own_public_key_hash BLOB NOT NULL, "
                    "amount BLOB NOT NULL, "
-                   "own_signature BLOB NOT NULL, "
-                   "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id) ON DELETE CASCADE ON UPDATE CASCADE);";
+                   "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                   "FOREIGN KEY(own_public_key_hash) REFERENCES own_keys(hash) ON DELETE CASCADE ON UPDATE CASCADE);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::creating table: "
@@ -31,7 +31,7 @@ OutgoingPaymentReceiptHandler::OutgoingPaymentReceiptHandler(
     }
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
-            + "_trust_line_id_audit_number_idx on " + mTableName + "(trust_line_id, audit_number);";
+            + "_trust_line_id_audit_number_key_hash_idx on " + mTableName + "(trust_line_id, audit_number, own_public_key_hash);";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::creating  index for TrustLineID and AuditNumber: "
@@ -66,13 +66,12 @@ void OutgoingPaymentReceiptHandler::saveRecord(
     const TrustLineID trustLineID,
     const AuditNumber auditNumber,
     const TransactionUUID &transactionUUID,
-    const KeyHash& ownPublicKeyHash,
-    const TrustLineAmount &amount,
-    const Signature::Shared ownSignature)
+    const KeyHash::Shared ownPublicKeyHash,
+    const TrustLineAmount &amount)
 {
     string query = "INSERT INTO " + mTableName +
                    "(trust_line_id, audit_number, transaction_uuid, own_public_key_hash, "
-                   "amount, own_signature) VALUES (?, ?, ?, ?, ?, ?);";
+                   "amount) VALUES (?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -95,7 +94,7 @@ void OutgoingPaymentReceiptHandler::saveRecord(
         throw IOError("OutgoingPaymentReceiptHandler::saveRecord: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 4, ownPublicKeyHash.data(),
+    rc = sqlite3_bind_blob(stmt, 4, ownPublicKeyHash->data(),
                            (int)KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::saveRecord: "
@@ -106,12 +105,6 @@ void OutgoingPaymentReceiptHandler::saveRecord(
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::saveRecord: "
                           "Bad binding of Amount; sqlite error: " + to_string(rc));
-    }
-    rc = sqlite3_bind_blob(stmt, 6, ownSignature->data(),
-                           (int)ownSignature->signatureSize(), SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("OutgoingPaymentReceiptHandler::saveRecord: "
-                          "Bad binding of ContractorSignature; sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_step(stmt);

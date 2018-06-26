@@ -28,7 +28,7 @@ public:
         const TrustLineID trustLineID,
         const KeyNumber number);
 
-    const KeyHash keyHashByNumber(
+    const KeyHash::Shared keyHashByNumber(
         const TrustLineID trustLineID,
         const KeyNumber number);
 

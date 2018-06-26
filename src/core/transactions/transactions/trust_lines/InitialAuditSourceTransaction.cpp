@@ -105,10 +105,9 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runResponseProcess
         error() << "Can't save Audit or update TL on storage. Details: " << e.what();
         return resultDone();
     }
-    AuditNumber initialAuditNumber = 0;
     keyChain.saveAudit(
         ioTransaction,
-        initialAuditNumber,
+        kInitialAuditNumber,
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first,
         message->keyNumber(),
@@ -124,11 +123,18 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runResponseProcess
 
 pair<BytesShared, size_t> InitialAuditSourceTransaction::getOwnSerializedAuditData()
 {
-    size_t bytesCount = kTrustLineAmountBytesCount
+    size_t bytesCount = sizeof(AuditNumber)
+                        + kTrustLineAmountBytesCount
                         + kTrustLineAmountBytesCount
                         + kTrustLineBalanceSerializeBytesCount;
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &kInitialAuditNumber,
+        sizeof(AuditNumber));
+    dataBytesOffset += sizeof(AuditNumber);
 
     vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->incomingTrustAmount(
@@ -162,11 +168,18 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getOwnSerializedAuditDa
 
 pair<BytesShared, size_t> InitialAuditSourceTransaction::getContractorSerializedAuditData()
 {
-    size_t bytesCount = kTrustLineAmountBytesCount
+    size_t bytesCount = sizeof(AuditNumber)
+                        + kTrustLineAmountBytesCount
                         + kTrustLineAmountBytesCount
                         + kTrustLineBalanceSerializeBytesCount;
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &kInitialAuditNumber,
+        sizeof(AuditNumber));
+    dataBytesOffset += sizeof(AuditNumber);
 
     vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->outgoingTrustAmount(

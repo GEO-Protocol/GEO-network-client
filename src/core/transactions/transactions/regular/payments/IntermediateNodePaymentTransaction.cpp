@@ -776,6 +776,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
             mTrustLines->trustLineID(kMessage->senderUUID));
         auto serializedIncomingReceiptData = getSerializedReceipt(
             kMessage->senderUUID,
+            mNodeUUID,
             coordinatorTotalIncomingReservationAmount);
         if (!keyChain.checkSign(
             ioTransaction,
@@ -791,12 +792,21 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
                 FinalAmountsConfigurationResponseMessage::Rejected);
             return reject("Coordinator send invalid receipt signature. Rejected");
         }
-        mNeighborsIncomingReceipts.insert(
-            make_pair(
+        if (!keyChain.saveIncomingPaymentReceipt(
+            ioTransaction,
+            mTrustLines->auditNumber(kMessage->senderUUID),
+            mTransactionUUID,
+            kMessage->publicKeyNumber(),
+            coordinatorTotalIncomingReservationAmount,
+            kMessage->signature())) {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
                 kMessage->senderUUID,
-                make_pair(
-                    kMessage->signature(),
-                    kMessage->publicKeyNumber())));
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            return reject("Can't save coordinator receipt. Rejected.");
+        }
         info() << "Coordinator's receipt is valid";
     } else {
         if (coordinatorTotalIncomingReservationAmount != TrustLine::kZeroAmount()) {
@@ -856,11 +866,26 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
             }
             auto serializedOutgoingReceiptData = getSerializedReceipt(
                 mNodeUUID,
+                nodeAndPaymentID.first,
                 outgoingReservedAmount);
             auto signatureAndKeyNumber = keyChain.sign(
                 ioTransaction,
                 serializedOutgoingReceiptData.first,
                 serializedOutgoingReceiptData.second);
+            if (!keyChain.saveOutgoingPaymentReceipt(
+                ioTransaction,
+                mTrustLines->auditNumber(nodeAndPaymentID.first),
+                mTransactionUUID,
+                signatureAndKeyNumber.second,
+                outgoingReservedAmount)) {
+                sendMessage<FinalAmountsConfigurationResponseMessage>(
+                    kMessage->senderUUID,
+                    mEquivalent,
+                    currentNodeUUID(),
+                    currentTransactionUUID(),
+                    FinalAmountsConfigurationResponseMessage::Rejected);
+                return reject("Can't save outgoing receipt. Rejected.");
+            }
             info() << "Send public key hash to " << nodeAndPaymentID.first
                    << " with receipt " << outgoingReservedAmount;
             sendMessage<TransactionPublicKeyHashMessage>(
@@ -940,6 +965,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
             mTrustLines->trustLineID(kMessage->senderUUID));
         auto serializedIncomingReceiptData = getSerializedReceipt(
             kMessage->senderUUID,
+            mNodeUUID,
             participantTotalIncomingReservationAmount);
         if (!keyChain.checkSign(
             ioTransaction,
@@ -955,12 +981,21 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
                 FinalAmountsConfigurationResponseMessage::Rejected);
             return reject("Sender send invalid receipt signature. Rejected");
         }
-        mNeighborsIncomingReceipts.insert(
-            make_pair(
+        if (!keyChain.saveIncomingPaymentReceipt(
+            ioTransaction,
+            mTrustLines->auditNumber(kMessage->senderUUID),
+            mTransactionUUID,
+            kMessage->publicKeyNumber(),
+            participantTotalIncomingReservationAmount,
+            kMessage->signature())) {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
                 kMessage->senderUUID,
-                make_pair(
-                    kMessage->signature(),
-                    kMessage->publicKeyNumber())));
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            return reject("Can't save participant receipt. Rejected.");
+        }
         info() << "Sender's receipt is valid";
     } else {
         if (participantTotalIncomingReservationAmount != TrustLine::kZeroAmount()) {

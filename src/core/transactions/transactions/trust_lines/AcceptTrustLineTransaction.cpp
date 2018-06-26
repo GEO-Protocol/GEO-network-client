@@ -109,6 +109,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 
     } catch (ValueError &e) {
         ioTransaction->rollback();
+        mTrustLines->trustLines().erase(kContractor);
         warning() << "Attempt to set incoming trust line from the node " << kContractor << " failed. "
                   << "Details are: " << e.what();
         sendMessage<TrustLineConfirmationMessage>(

@@ -128,8 +128,9 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
                 trustLine);
             return TrustLineOperationResult::Opened;
         }
+    }
 
-    } else if (amount == 0) {
+    if (amount == 0) {
         // In case if trust line is already present,
         // but incoming trust amount is 0, and received "amount" is 0 -
         // then it is interpreted as the command to close the outgoing trust line.
@@ -174,8 +175,9 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
                 trustLine);
             return TrustLineOperationResult::Opened;
         }
+    }
 
-    } else if (amount == 0) {
+    if (amount == 0) {
         // In case if incoming trust line is already present,
         // and received "amount" is 0 -
         // then it is interpreted as the command to close the incoming trust line.
@@ -272,7 +274,7 @@ void TrustLinesManager::setContractorAsGateway(
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
             logHeader() + "::setContractorAsGateway: "
-            "Can't set contractor as gateway. No trust line to this contractor is present.");
+                "Can't set contractor as gateway. There is no trust line to contractor " + contractorUUID.stringUUID());
     }
 
     auto trustLine = mTrustLines[contractorUUID];
@@ -290,7 +292,7 @@ void TrustLinesManager::setTrustLineState(
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
             logHeader() + "::setTrustLineState: "
-                "Can't set trust line state. No trust line to this contractor is present.");
+                "Can't set trust line state. There is no trust line to contractor " + contractorUUID.stringUUID());
     }
 
     auto trustLine = mTrustLines[contractorUUID];
@@ -305,8 +307,8 @@ const TrustLineAmount &TrustLinesManager::incomingTrustAmount(
 {
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-                logHeader() + "::incomingTrustAmountDespiteReservations: "
-                        "There is no trust line to this contractor.");
+            logHeader() + "::incomingTrustAmountDespiteReservations: "
+                "There is no trust line to contractor " + contractorUUID.stringUUID());
     }
 
     return mTrustLines.at(contractorUUID)->incomingTrustAmount();
@@ -318,7 +320,7 @@ const TrustLineAmount &TrustLinesManager::outgoingTrustAmount(
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
             logHeader() + "::outgoingTrustAmountDespiteReservations: "
-                "There is no trust line to this contractor.");
+                "There is no trust line to contractor " + contractorUUID.stringUUID());
     }
 
     return mTrustLines.at(contractorUUID)->outgoingTrustAmount();
@@ -330,7 +332,7 @@ const TrustLineBalance &TrustLinesManager::balance(
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
             logHeader() + "::outgoingTrustAmountDespiteResevations: "
-                "There is no trust line to this contractor.");
+                "There is no trust line to contractor " + contractorUUID.stringUUID());
     }
 
     return mTrustLines.at(contractorUUID)->balance();
@@ -342,10 +344,22 @@ const TrustLineID TrustLinesManager::trustLineID(
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
             logHeader() + "::trustLineID: "
-                "There is no trust line to this contractor.");
+                "There is no trust line to contractor " + contractorUUID.stringUUID());
     }
 
     return mTrustLines.at(contractorUUID)->trustLineID();
+}
+
+const AuditNumber TrustLinesManager::auditNumber(
+    const NodeUUID &contractorUUID) const
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            logHeader() + "::auditNumber: "
+                "There is no trust line to contractor " + contractorUUID.stringUUID());
+    }
+
+    return mTrustLines.at(contractorUUID)->currentAuditNumber();
 }
 
 AmountReservation::ConstShared TrustLinesManager::reserveOutgoingAmount(

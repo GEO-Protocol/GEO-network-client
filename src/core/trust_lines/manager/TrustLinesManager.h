@@ -165,6 +165,9 @@ public:
     const TrustLineID trustLineID(
         const NodeUUID &contractorUUID) const;
 
+    const AuditNumber auditNumber(
+        const NodeUUID &contractorUUID) const;
+
     /**
      * Reserves payment amount TO the contractor.
      *

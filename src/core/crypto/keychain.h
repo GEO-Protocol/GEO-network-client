@@ -229,6 +229,21 @@ public:
         const lamport::Signature::Shared signature,
         const KeyNumber keyNumber);
 
+    bool saveOutgoingPaymentReceipt(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber,
+        const TransactionUUID &transactionUUID,
+        const KeyNumber ownPublicKeyNumber,
+        const TrustLineAmount &amount);
+
+    bool saveIncomingPaymentReceipt(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber,
+        const TransactionUUID &transactionUUID,
+        const KeyNumber contractorPublicKeyNumber,
+        const TrustLineAmount &amount,
+        const Signature::Shared contractorSignature);
+
     void saveAudit(
         IOTransaction::Shared ioTransaction,
         const AuditNumber auditNumber,

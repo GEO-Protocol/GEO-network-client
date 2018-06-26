@@ -327,7 +327,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
 
     mParticipantsVotesMessage = popNextMessage<ParticipantsVotesMessage>();
     debug () << "Participants votes message received.";
-    mParticipantsSigns = mParticipantsVotesMessage->participantsSignatures();
+    mParticipantsSignatures = mParticipantsVotesMessage->participantsSignatures();
 
     return processParticipantsVotesMessage();
 }
@@ -341,7 +341,7 @@ TransactionResult::SharedConst BasePaymentTransaction::processParticipantsVotesM
     info() << "All signatures are appropriate";
 
     PaymentNodeID coordinatorID = 0;
-    auto coordinatorSign = mParticipantsSigns[coordinatorID];
+    auto coordinatorSign = mParticipantsSignatures[coordinatorID];
     auto coordinatorPublicKey = mParticipantsPublicKeys[coordinatorID];
     auto coordinatorSerializedVotesData = getSerializedParticipantsVotesData(
         mParticipantsVotesMessage->senderUUID);
@@ -361,7 +361,7 @@ TransactionResult::SharedConst BasePaymentTransaction::processParticipantsVotesM
             continue;
         }
         auto participantPublicKey = mParticipantsPublicKeys[nodeUUIDAndPaymentNodeID.second];
-        auto participantSign = mParticipantsSigns[nodeUUIDAndPaymentNodeID.second];
+        auto participantSign = mParticipantsSignatures[nodeUUIDAndPaymentNodeID.second];
         auto participantSerializedVotesData = getSerializedParticipantsVotesData(
                 nodeUUIDAndPaymentNodeID.first);
         if (!participantSign->check(
@@ -562,17 +562,19 @@ void BasePaymentTransaction::saveVotes(
     IOTransaction::Shared ioTransaction)
 {
     debug() << "saveVotes";
-    auto bufferAndSize = mParticipantsVotesMessage->serializeToBytes();
-    ioTransaction->paymentOperationStateHandler()->saveRecord(
-        mParticipantsVotesMessage->transactionUUID(),
-        bufferAndSize.first,
-        bufferAndSize.second);
+    for (const auto &nodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
+        ioTransaction->paymentParticipantsVotesHandler()->saveRecord(
+            mTransactionUUID,
+            nodeUUIDAndPaymentNodeID.first,
+            nodeUUIDAndPaymentNodeID.second,
+            mParticipantsPublicKeys[nodeUUIDAndPaymentNodeID.second],
+            mParticipantsSignatures[nodeUUIDAndPaymentNodeID.second]);
+    }
 }
 
 void BasePaymentTransaction::rollBack ()
 {
     debug() << "rollback";
-
     const auto ioTransaction = mStorageHandler->beginTransaction();
 
     // drop reservations in AmountReservationHandler
@@ -872,7 +874,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
     }
 
     mParticipantsVotesMessage = kMessage;
-    mParticipantsSigns = mParticipantsVotesMessage->participantsSignatures();
+    mParticipantsSignatures = mParticipantsVotesMessage->participantsSignatures();
 
     return processParticipantsVotesMessage();
 }
@@ -904,7 +906,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
     }
 
     mParticipantsVotesMessage = kMessage;
-    mParticipantsSigns = mParticipantsVotesMessage->participantsSignatures();
+    mParticipantsSignatures = mParticipantsVotesMessage->participantsSignatures();
 
     return processParticipantsVotesMessage();
 }
@@ -948,18 +950,27 @@ const TrustLineAmount BasePaymentTransaction::totalReservedAmount(
 }
 
 pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
-    const NodeUUID &nodeUUID,
+    const NodeUUID &source,
+    const NodeUUID &target,
     const TrustLineAmount &amount)
 {
     size_t serializedDataSize = NodeUUID::kBytesSize
+                                + NodeUUID::kBytesSize
                                 + TransactionUUID::kBytesSize
-                                + kTrustLineAmountBytesCount;
+                                + kTrustLineAmountBytesCount
+                                + sizeof(AuditNumber);
     BytesShared serializedData = tryMalloc(serializedDataSize);
 
     size_t bytesBufferOffset = 0;
     memcpy(
         serializedData.get() + bytesBufferOffset,
-        nodeUUID.data,
+        source.data,
+        NodeUUID::kBytesSize);
+    bytesBufferOffset += NodeUUID::kBytesSize;
+
+    memcpy(
+        serializedData.get() + bytesBufferOffset,
+        target.data,
         NodeUUID::kBytesSize);
     bytesBufferOffset += NodeUUID::kBytesSize;
 
@@ -974,37 +985,22 @@ pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
         serializedData.get() + bytesBufferOffset,
         serializedAmount.data(),
         kTrustLineAmountBytesCount);
+    bytesBufferOffset += kTrustLineAmountBytesCount;
+
+    AuditNumber currentAuditNumber;
+    if (source == mNodeUUID) {
+        currentAuditNumber = mTrustLines->auditNumber(target);
+    } else {
+        currentAuditNumber = mTrustLines->auditNumber(source);
+    }
+    memcpy(
+        serializedData.get() + bytesBufferOffset,
+        &currentAuditNumber,
+        sizeof(AuditNumber));
 
     return make_pair(
         serializedData,
         serializedDataSize);
-}
-
-bool BasePaymentTransaction::compareReservations(
-    const vector<pair<PathID, AmountReservation::ConstShared>> &localReservations,
-    const vector<pair<PathID, AmountReservation::ConstShared>> &remoteReservations)
-{
-    if (localReservations.size() != remoteReservations.size()) {
-        return false;
-    }
-    for (const auto &localPathAndReservation : localReservations) {
-        bool findAppropriateReservation = false;
-        for (const auto &remotePathAndReservation : remoteReservations) {
-            if (remotePathAndReservation.first == localPathAndReservation.first) {
-                if (remotePathAndReservation.second->amount() == localPathAndReservation.second->amount() and
-                    remotePathAndReservation.second->direction() != localPathAndReservation.second->direction()) {
-                    findAppropriateReservation = true;
-                    break;
-                } else {
-                    return false;
-                }
-            }
-        }
-        if (!findAppropriateReservation) {
-            return false;
-        }
-    }
-    return true;
 }
 
 bool BasePaymentTransaction::checkAllNeighborsWithReservationsAreInFinalParticipantsList()
@@ -1125,12 +1121,12 @@ pair<BytesShared, size_t> BasePaymentTransaction::getSerializedParticipantsVotes
 
 bool BasePaymentTransaction::checkSignsAppropriate()
 {
-    if (mParticipantsSigns.size() != mParticipantsPublicKeys.size()) {
+    if (mParticipantsSignatures.size() != mParticipantsPublicKeys.size()) {
         warning() << "different numbers of signatures and participants";
         return false;
     }
     for (const auto &nodeUUIDAndPaymentNodeID : mParticipantsPublicKeys) {
-        if (mParticipantsSigns.find(nodeUUIDAndPaymentNodeID.first) == mParticipantsSigns.end()) {
+        if (mParticipantsSignatures.find(nodeUUIDAndPaymentNodeID.first) == mParticipantsSignatures.end()) {
             warning() << "there are no signature from node " << nodeUUIDAndPaymentNodeID.first
                       << " [" << nodeUUIDAndPaymentNodeID.first << "]";
         }

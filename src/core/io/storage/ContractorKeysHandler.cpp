@@ -147,7 +147,7 @@ PublicKey::Shared ContractorKeysHandler::keyByNumber(
     }
 }
 
-const KeyHash ContractorKeysHandler::keyHashByNumber(
+const KeyHash::Shared ContractorKeysHandler::keyHashByNumber(
     const TrustLineID trustLineID,
     const KeyNumber number)
 {
@@ -171,7 +171,8 @@ const KeyHash ContractorKeysHandler::keyHashByNumber(
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        KeyHash result((byte*)sqlite3_column_blob(stmt, 0));
+        auto result = make_shared<KeyHash>(
+            (byte*)sqlite3_column_blob(stmt, 0));
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
         return result;

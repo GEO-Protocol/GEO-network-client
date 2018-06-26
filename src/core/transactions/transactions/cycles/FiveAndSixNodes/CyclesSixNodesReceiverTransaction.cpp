@@ -17,7 +17,7 @@ CyclesSixNodesReceiverTransaction::CyclesSixNodesReceiverTransaction(
 TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
 {
     vector<NodeUUID> path = mInBetweenNodeTopologyMessage->Path();
-    if (mTrustLinesManager->trustLineIsActive(path.back())) {
+    if (!mTrustLinesManager->trustLineIsActive(path.back())) {
         warning() << "TL with previous node " << path.back() << " is not active";
         return resultDone();
     }

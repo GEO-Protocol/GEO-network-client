@@ -452,10 +452,6 @@ void TransactionsManager::processMessage(
         launchCloseOutgoingTrustLineTransaction(
             static_pointer_cast<CloseOutgoingTrustLineMessage>(message));
 
-    } else if (message->typeID() == Message::System_Confirmation) {
-        launchRejectOutgoingTrustLineTransaction(
-            static_pointer_cast<ConfirmationMessage>(message));
-
     } else if (message->typeID() == Message::TrustLines_PublicKey) {
         try {
             mScheduler->tryAttachMessageToTransaction(message);
@@ -480,10 +476,6 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::GatewayNotification) {
         launchGatewayNotificationReceiverTransaction(
             static_pointer_cast<GatewayNotificationMessage>(message));
-
-    } else if (message->typeID() == Message::GatewayNotificationOneEquivalent) {
-        launchGatewayNotificationOneEquivalentReceiverTransaction(
-            static_pointer_cast<GatewayNotificationOneEquivalentMessage>(message));
 
     } else if (message->typeID() == Message::RoutingTableResponse) {
         try {
@@ -542,6 +534,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
                     mEquivalentsSubsystemsRouter->topologyCacheManager(command->equivalent()),
                     mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
                     mSubsystemsController,
+                    mKeysStore,
                     mVisualInterface.get(),
                     mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
                     mLog),
@@ -756,29 +749,6 @@ void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
             true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CloseOutgoingTrustLineTransaction "
-                "with equivalent " << message->equivalent() << " Details are: " << e.what();
-    }
-}
-
-void TransactionsManager::launchRejectOutgoingTrustLineTransaction(
-    ConfirmationMessage::Shared message)
-{
-    try {
-        auto transaction = make_shared<RejectOutgoingTrustLineTransaction>(
-            mNodeUUID,
-            message,
-            mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-            mStorageHandler,
-            mLog);
-        subscribeForProcessingConfirmationMessage(
-            transaction->processConfirmationMessageSignal);
-        prepareAndSchedule(
-            transaction,
-            true,
-            false,
-            false);
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for RejectOutgoingTrustLineTransaction "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
@@ -1851,36 +1821,6 @@ void TransactionsManager::launchGatewayNotificationReceiverTransaction(
             true);
     } catch (ConflictError &e){
         throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchGatewayNotificationOneEquivalentReceiverTransaction(
-    GatewayNotificationOneEquivalentMessage::Shared message)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<GatewayNotificationOneEquivalentReceiverTransaction>(
-                mNodeUUID,
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mStorageHandler,
-                mLog),
-            false,
-            false,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for launchGatewayNotificationOneEquivalentReceiverTransaction "
-                "with equivalent " << message->equivalent() << " Details are: " << e.what();
-        prepareAndSchedule(
-            make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
-                message,
-                mLog),
-            false,
-            false,
-            true);
     }
 }
 

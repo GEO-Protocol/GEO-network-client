@@ -83,11 +83,12 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
     // if contractor in black list we should reject operation with TL
     if (ioTransaction->blackListHandler()->checkIfNodeExists(kContractor)) {
         warning() << "Contractor " << kContractor << " is in black list. Transaction rejected";
-        sendMessage<ConfirmationMessage>(
+        sendMessage<TrustLineConfirmationMessage>(
             mMessage->senderUUID,
             mEquivalent,
             mNodeUUID,
             mMessage->transactionUUID(),
+            false,
             ConfirmationMessage::ContractorBanned);
 
         return resultDone();
@@ -107,6 +108,11 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
+        mTrustLines->setTrustLineState(
+            ioTransaction,
+            kContractor,
+            TrustLine::AuditPending);
+
         kOperationResult = mTrustLines->setIncoming(
             ioTransaction,
             kContractor,
@@ -127,18 +133,6 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
                     true);
                 info() << "Incoming trust line was opened from gateway";
             }
-
-            if (mIAmGateway) {
-                // Notifying remote node that current node is gateway.
-                // Network communicator knows, that this message must be forced to be delivered,
-                // so the TA itself might finish without any response from the remote node.
-                sendMessage<GatewayNotificationOneEquivalentMessage>(
-                    kContractor,
-                    mEquivalent,
-                    currentNodeUUID(),
-                    currentTransactionUUID());
-            }
-
             break;
         }
 
@@ -176,11 +170,13 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         }
 
         // Sending confirmation back.
-        sendMessage<ConfirmationMessage>(
+        sendMessage<TrustLineConfirmationMessage>(
             mMessage->senderUUID,
             mEquivalent,
             mNodeUUID,
-            mMessage->transactionUUID());
+            mMessage->transactionUUID(),
+            mIAmGateway,
+            ConfirmationMessage::OK);
 
         if (mSubsystemsController->isWriteVisualResults()) {
             if (kOperationResult == TrustLinesManager::TrustLineOperationResult::Opened) {
@@ -219,53 +215,59 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
             }
         }
 
+        info() << "Wait for audit";
         return resultDone();
 
     } catch (ValueError &) {
         ioTransaction->rollback();
+        mTrustLines->trustLines()[mMessage->senderUUID] = make_shared<TrustLine>(
+            mMessage->senderUUID,
+            previousTL->trustLineID(),
+            previousTL->incomingTrustAmount(),
+            previousTL->outgoingTrustAmount(),
+            previousTL->balance(),
+            previousTL->isContractorGateway(),
+            previousTL->state(),
+            previousTL->currentAuditNumber());
         warning() << "Attempt to set incoming trust line from the node " << kContractor << " failed. "
                << "Cannot open trustline with zero amount.";
-        sendMessage<ConfirmationMessage>(
+        sendMessage<TrustLineConfirmationMessage>(
             mMessage->senderUUID,
             mEquivalent,
             mNodeUUID,
             mMessage->transactionUUID(),
+            false,
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         return resultDone();
 
     } catch (NotFoundError &e) {
         ioTransaction->rollback();
+        mTrustLines->trustLines()[mMessage->senderUUID] = make_shared<TrustLine>(
+            mMessage->senderUUID,
+            previousTL->trustLineID(),
+            previousTL->incomingTrustAmount(),
+            previousTL->outgoingTrustAmount(),
+            previousTL->balance(),
+            previousTL->isContractorGateway(),
+            previousTL->state(),
+            previousTL->currentAuditNumber());
+        // todo send response
         warning() << "Attempt to update incoming trust line from the node " << kContractor << " failed. "
                << "Details are: " << e.what();
         return resultDone();
 
     } catch (IOError &e) {
         ioTransaction->rollback();
-        switch (kOperationResult) {
-            case TrustLinesManager::TrustLineOperationResult::Opened: {
-                // remove created TL from TrustLinesManager
-                mTrustLines->trustLines().erase(mMessage->senderUUID);
-                break;
-            }
-            case TrustLinesManager::TrustLineOperationResult::Updated: {
-                // Change outgoing TL amount to previous value
-                mTrustLines->trustLines()[mMessage->senderUUID]->setOutgoingTrustAmount(
-                    previousTL->outgoingTrustAmount());
-                break;
-            }
-            case TrustLinesManager::TrustLineOperationResult::Closed: {
-                // return closed TL
-                auto trustLine = make_shared<TrustLine>(
-                    mMessage->senderUUID,
-                    previousTL->trustLineID(),
-                    previousTL->incomingTrustAmount(),
-                    previousTL->outgoingTrustAmount(),
-                    previousTL->balance(),
-                    previousTL->isContractorGateway());
-                mTrustLines->trustLines()[mMessage->senderUUID] = trustLine;
-                break;
-            }
-        }
+        mTrustLines->trustLines()[mMessage->senderUUID] = make_shared<TrustLine>(
+            mMessage->senderUUID,
+            previousTL->trustLineID(),
+            previousTL->incomingTrustAmount(),
+            previousTL->outgoingTrustAmount(),
+            previousTL->balance(),
+            previousTL->isContractorGateway(),
+            previousTL->state(),
+            previousTL->currentAuditNumber());
+        // todo send response
         warning() << "Attempt to set incoming trust line to the node " << kContractor << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();

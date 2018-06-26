@@ -5,8 +5,6 @@ set(SOURCE_FILES
         StorageHandler.cpp
         TrustLineHandler.h
         TrustLineHandler.cpp
-        PaymentOperationStateHandler.h
-        PaymentOperationStateHandler.cpp
         TransactionsHandler.h
         TransactionsHandler.cpp
         HistoryStorage.h
@@ -44,7 +42,9 @@ set(SOURCE_FILES
         IncomingPaymentReceiptHandler.h
         IncomingPaymentReceiptHandler.cpp
         OutgoingPaymentReceiptHandler.h
-        OutgoingPaymentReceiptHandler.cpp)
+        OutgoingPaymentReceiptHandler.cpp
+        PaymentParticipantsVotesHandler.h
+        PaymentParticipantsVotesHandler.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

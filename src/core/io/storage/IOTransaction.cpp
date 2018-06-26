@@ -4,7 +4,6 @@ IOTransaction::IOTransaction(
     sqlite3 *dbConnection,
     TrustLineHandler *trustLineHandler,
     HistoryStorage *historyStorage,
-    PaymentOperationStateHandler *paymentOperationStorage,
     TransactionsHandler *transactionHandler,
     BlackListHandler *blackListHandler,
     OwnKeysHandler *ownKeysHandler,
@@ -13,12 +12,12 @@ IOTransaction::IOTransaction(
     IncomingPaymentReceiptHandler *incomingPaymentReceiptHandler,
     OutgoingPaymentReceiptHandler *outgoingPaymentReceiptHandler,
     PaymentKeysHandler *paymentKeysHandler,
+    PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler,
     Logger &logger) :
 
     mDBConnection(dbConnection),
     mTrustLineHandler(trustLineHandler),
     mHistoryStorage(historyStorage),
-    mPaymentOperationStateHandler(paymentOperationStorage),
     mTransactionHandler(transactionHandler),
     mBlackListHandler(blackListHandler),
     mOwnKeysHandler(ownKeysHandler),
@@ -27,6 +26,7 @@ IOTransaction::IOTransaction(
     mIncomingPaymentReceiptHandler(incomingPaymentReceiptHandler),
     mOutgoingPaymentReceiptHandler(outgoingPaymentReceiptHandler),
     mPaymentKeysHandler(paymentKeysHandler),
+    mPaymentParticipantsVotesHandler(paymentParticipantsVotesHandler),
     mIsTransactionBegin(true),
     mLog(logger)
 {
@@ -54,15 +54,6 @@ HistoryStorage* IOTransaction::historyStorage()
                           "transaction was rollback, it can't be use now");
     }
     return mHistoryStorage;
-}
-
-PaymentOperationStateHandler* IOTransaction::paymentOperationStateHandler()
-{
-    if (!mIsTransactionBegin) {
-        throw IOError("IOTransaction::paymentOperationStateHandler: "
-                          "transaction was rollback, it can't be use now");
-    }
-    return mPaymentOperationStateHandler;
 }
 
 TransactionsHandler* IOTransaction::transactionHandler()
@@ -126,6 +117,15 @@ PaymentKeysHandler* IOTransaction::paymentKeysHandler()
                           "transaction was rollback, it can't be use now");
     }
     return mPaymentKeysHandler;
+}
+
+PaymentParticipantsVotesHandler* IOTransaction::paymentParticipantsVotesHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::paymentParticipantsVotesHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mPaymentParticipantsVotesHandler;
 }
 
 void IOTransaction::commit()

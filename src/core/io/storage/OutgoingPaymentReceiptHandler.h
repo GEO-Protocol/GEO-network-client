@@ -22,9 +22,8 @@ public:
         const TrustLineID trustLineID,
         const AuditNumber auditNumber,
         const TransactionUUID &transactionUUID,
-        const KeyHash& ownPublicKeyHash,
-        const TrustLineAmount &amount,
-        const Signature::Shared ownSignature);
+        const KeyHash::Shared ownPublicKeyHash,
+        const TrustLineAmount &amount);
 
 private:
     LoggerStream info() const;

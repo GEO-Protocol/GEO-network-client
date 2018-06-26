@@ -33,6 +33,9 @@ private:
 
     pair<BytesShared, size_t> getContractorSerializedAuditData();
 
+private:
+    static const AuditNumber kInitialAuditNumber = 0;
+
 protected:
     AuditMessage::Shared mMessage;
     TrustLinesManager *mTrustLines;

@@ -70,10 +70,9 @@ TransactionResult::SharedConst InitialAuditTargetTransaction::run()
         mOwnSignatureAndKeyNumber.first);
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
 
-    AuditNumber initialAuditNumber = 0;
     keyChain.saveAudit(
         ioTransaction,
-        initialAuditNumber,
+        kInitialAuditNumber,
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first,
         mMessage->keyNumber(),
@@ -88,11 +87,18 @@ TransactionResult::SharedConst InitialAuditTargetTransaction::run()
 
 pair<BytesShared, size_t> InitialAuditTargetTransaction::getOwnSerializedAuditData()
 {
-    size_t bytesCount = kTrustLineAmountBytesCount
+    size_t bytesCount = sizeof(AuditNumber)
+                        + kTrustLineAmountBytesCount
                         + kTrustLineAmountBytesCount
                         + kTrustLineBalanceSerializeBytesCount;
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &kInitialAuditNumber,
+        sizeof(AuditNumber));
+    dataBytesOffset += sizeof(AuditNumber);
 
     vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->incomingTrustAmount(
@@ -124,11 +130,18 @@ pair<BytesShared, size_t> InitialAuditTargetTransaction::getOwnSerializedAuditDa
 
 pair<BytesShared, size_t> InitialAuditTargetTransaction::getContractorSerializedAuditData()
 {
-    size_t bytesCount = kTrustLineAmountBytesCount
+    size_t bytesCount = sizeof(AuditNumber)
+                        + kTrustLineAmountBytesCount
                         + kTrustLineAmountBytesCount
                         + kTrustLineBalanceSerializeBytesCount;
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &kInitialAuditNumber,
+        sizeof(AuditNumber));
+    dataBytesOffset += sizeof(AuditNumber);
 
     vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->outgoingTrustAmount(

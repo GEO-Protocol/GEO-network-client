@@ -7,9 +7,6 @@ set(SOURCE_FILES
         GatewayNotificationReceiverTransaction.h
         GatewayNotificationReceiverTransaction.cpp
 
-        GatewayNotificationOneEquivalentReceiverTransaction.h
-        GatewayNotificationOneEquivalentReceiverTransaction.cpp
-
         RoutingTableUpdatingTransaction.h
         RoutingTableUpdatingTransaction.cpp)
 

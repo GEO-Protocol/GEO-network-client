@@ -49,11 +49,10 @@ public:
         SetIncomingTrustLineTransaction = 103,
         CloseIncomingTrustLineTransaction = 104,
         CloseOutgoingTrustLineTransaction = 105,
-        RejectOutgoingTrustLineTransaction = 106,
-        PublicKeysSharingSourceTransactionType = 107,
-        PublicKeysSharingTargetTransactionType = 108,
-        InitialAuditSourceTransactionType = 109,
-        InitialAuditTargetTransactionType = 110,
+        PublicKeysSharingSourceTransactionType = 106,
+        PublicKeysSharingTargetTransactionType = 107,
+        InitialAuditSourceTransactionType = 108,
+        InitialAuditTargetTransactionType = 109,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction = 200,
@@ -87,7 +86,7 @@ public:
 
         // Contractors
         ContractorsList = 500,
-        TrustlinesList = 501,
+        TrustLinesList = 501,
         TrustLineOne = 502,
 
         // TotalBalances
@@ -115,8 +114,7 @@ public:
         // Gateway notification
         GatewayNotificationSenderType = 1200,
         GatewayNotificationReceiverType = 1201,
-        GatewayNotificationOneEquivalentReceiverType = 1202,
-        RoutingTableUpdatingType = 1203,
+        RoutingTableUpdatingType = 1202,
 
         //No equivalent
         NoEquivalentType = 1300

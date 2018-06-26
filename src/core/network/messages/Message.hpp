@@ -103,8 +103,7 @@ public:
          * Gateway notification & Routing tables
          */
         GatewayNotification = 700,
-        GatewayNotificationOneEquivalent = 701,
-        RoutingTableResponse = 702,
+        RoutingTableResponse = 701,
 
         NoEquivalent = 800,
 

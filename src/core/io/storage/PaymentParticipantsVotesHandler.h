@@ -1,32 +1,34 @@
-#ifndef GEO_NETWORK_CLIENT_PAYMENTOPERATIONSTATEHANDLER_H
-#define GEO_NETWORK_CLIENT_PAYMENTOPERATIONSTATEHANDLER_H
+#ifndef GEO_NETWORK_CLIENT_PAYMENTPARTICIPANTSVOTESHANDLER_H
+#define GEO_NETWORK_CLIENT_PAYMENTPARTICIPANTSVOTESHANDLER_H
 
 #include "../../logger/Logger.h"
 #include "../../transactions/transactions/base/TransactionUUID.h"
 #include "../../common/Types.h"
-#include "../../common/memory/MemoryUtils.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/NotFoundError.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
+#include "../../crypto/lamportkeys.h"
+#include "../../crypto/lamportscheme.h"
 
-class PaymentOperationStateHandler {
+using namespace crypto;
+
+class PaymentParticipantsVotesHandler {
 
 public:
-    PaymentOperationStateHandler(
+    PaymentParticipantsVotesHandler(
         sqlite3 *dbConnection,
         const string &tableName,
         Logger &logger);
 
     void saveRecord(
         const TransactionUUID &transactionUUID,
-        BytesShared state,
-        size_t stateBytesCount);
+        const NodeUUID &nodeUUID,
+        const PaymentNodeID paymentNodeID,
+        const lamport::PublicKey::Shared publicKey,
+        const lamport::Signature::Shared signature);
 
-    pair<BytesShared, size_t> byTransaction(
-        const TransactionUUID &transactionUUID);
-
-    void deleteRecord(
+    map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures(
         const TransactionUUID &transactionUUID);
 
 private:
@@ -43,4 +45,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_PAYMENTOPERATIONSTATEHANDLER_H
+#endif //GEO_NETWORK_CLIENT_PAYMENTPARTICIPANTSVOTESHANDLER_H

@@ -59,7 +59,6 @@
 #include "../transactions/trust_lines/SetIncomingTrustLineTransaction.h"
 #include "../transactions/trust_lines/CloseIncomingTrustLineTransaction.h"
 #include "../transactions/trust_lines/CloseOutgoingTrustLineTransaction.h"
-#include "../transactions/trust_lines/RejectOutgoingTrustLineTransaction.h"
 #include "../transactions/trust_lines/PublicKeysSharingTargetTransaction.h"
 #include "../transactions/trust_lines/InitialAuditTargetTransaction.h"
 
@@ -112,7 +111,6 @@
 
 #include "../transactions/gateway_notification/GatewayNotificationSenderTransaction.h"
 #include "../transactions/gateway_notification/GatewayNotificationReceiverTransaction.h"
-#include "../transactions/gateway_notification/GatewayNotificationOneEquivalentReceiverTransaction.h"
 #include "../transactions/gateway_notification/RoutingTableUpdatingTransaction.h"
 
 #include "../transactions/no_equivalent/NoEquivalentTransaction.h"
@@ -195,9 +193,6 @@ protected: // Transactions
 
     void launchCloseOutgoingTrustLineTransaction(
         CloseOutgoingTrustLineMessage::Shared message);
-
-    void launchRejectOutgoingTrustLineTransaction(
-        ConfirmationMessage::Shared message);
 
     void launchPublicKeysSharingTargetTransaction(
         PublicKeyMessage::Shared message);
@@ -346,9 +341,6 @@ protected: // Transactions
 
     void launchGatewayNotificationReceiverTransaction(
         GatewayNotificationMessage::Shared message);
-
-    void launchGatewayNotificationOneEquivalentReceiverTransaction(
-        GatewayNotificationOneEquivalentMessage::Shared message);
 
     void launchRoutingTableUpdatingTransaction(
         RoutingTableResponseMessage::Shared message);

@@ -7,7 +7,8 @@ TrustLine::TrustLine(
     const TrustLineAmount &outgoingAmount,
     const TrustLineBalance &nodeBalance,
     bool isContractorGateway,
-    TrustLineState state) :
+    TrustLineState state,
+    AuditNumber auditNumber) :
 
     mContractorNodeUUID(nodeUUID),
     mID(trustLineID),
@@ -15,6 +16,7 @@ TrustLine::TrustLine(
     mOutgoingTrustAmount(outgoingAmount),
     mBalance(nodeBalance),
     mIsContractorGateway(isContractorGateway),
+    mCurrentAudit(auditNumber),
     mState(state)
 {
     // todo zero amounts checking
@@ -91,10 +93,21 @@ const TrustLine::TrustLineState TrustLine::state() const
     return mState;
 }
 
+const AuditNumber TrustLine::currentAuditNumber() const
+{
+    return mCurrentAudit;
+}
+
 void TrustLine::setState(
     TrustLine::TrustLineState newState)
 {
     mState = newState;
+}
+
+void TrustLine::setAuditNumber(
+    AuditNumber newAuditNumber)
+{
+    mCurrentAudit = newAuditNumber;
 }
 
 /*!

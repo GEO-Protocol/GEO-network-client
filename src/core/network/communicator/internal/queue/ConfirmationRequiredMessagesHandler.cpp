@@ -262,10 +262,6 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<SetIncomingTrustLineFromGatewayMessage>(messageBody));
                 break;
-            case Message::GatewayNotificationOneEquivalent:
-                sendingMessage = static_pointer_cast<TransactionMessage>(
-                    make_shared<GatewayNotificationOneEquivalentMessage>(messageBody));
-                break;
             default:
                 mLog.error("ConfirmationRequiredMessagesHandler::deserializeMessages "
                                "invalid message type");

@@ -36,11 +36,6 @@ bool ConfirmationRequiredMessagesQueue::enqueue(
                 message);
             return true;
         }
-        case Message::GatewayNotificationOneEquivalent: {
-            updateGatewayNotificationOneEquivalentInTheQueue(
-                message);
-            return true;
-        }
         default:
             return false;
     }
@@ -175,31 +170,6 @@ void ConfirmationRequiredMessagesQueue::updateGatewayNotificationInTheQueue(
         const auto kMessage = it->second;
 
         if (kMessage->typeID() == Message::GatewayNotification) {
-            mMessages.erase(it++);
-            signalRemoveMessageFromStorage(
-                mContractorUUID,
-                mEquivalent,
-                kMessage->typeID());
-        } else {
-            ++it;
-        }
-    }
-
-    mMessages[message->transactionUUID()] = message;
-    signalSaveMessageToStorage(
-        mContractorUUID,
-        message);
-}
-
-void ConfirmationRequiredMessagesQueue::updateGatewayNotificationOneEquivalentInTheQueue(
-    TransactionMessage::Shared message)
-{
-    // Only one GatewayNotificationOneEquivalentMessage should be in the queue in one moment of time.
-    // queue must contains only newest one notification, all other must be removed.
-    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
-        const auto kMessage = it->second;
-
-        if (kMessage->typeID() == Message::GatewayNotificationOneEquivalent) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,

@@ -10,7 +10,6 @@ StorageHandler::StorageHandler(
     mDirectory(directory),
     mDataBaseName(dataBaseName),
     mTrustLineHandler(connection(dataBaseName, directory), kTrustLineTableName, logger),
-    mPaymentOperationStateHandler(connection(dataBaseName, directory), kPaymentOperationStateTableName, logger),
     mTransactionHandler(connection(dataBaseName, directory), kTransactionTableName, logger),
     mHistoryStorage(connection(dataBaseName, directory), kHistoryMainTableName, kHistoryAdditionalTableName, logger),
     mBlackListHandler(connection(dataBaseName, directory), kBlackListTableName, logger),
@@ -20,6 +19,7 @@ StorageHandler::StorageHandler(
     mIncomingPaymentReceiptHandler(connection(dataBaseName, directory), kIncomingReceiptTableName, logger),
     mOutgoingPaymentReceiptHandler(connection(dataBaseName, directory), kOutgoingReceiptTableName, logger),
     mPaymentKeysHandler(connection(dataBaseName, directory), kPaymentKeysTableName, logger),
+    mPaymentParticipantsVotesHandler(connection(dataBaseName, directory), kPaymentParticipantsVotesTableName, logger),
     mLog(logger)
 {
     sqlite3_config(SQLITE_CONFIG_SINGLETHREAD);
@@ -78,7 +78,6 @@ IOTransaction::Shared StorageHandler::beginTransaction()
         mDBConnection,
         &mTrustLineHandler,
         &mHistoryStorage,
-        &mPaymentOperationStateHandler,
         &mTransactionHandler,
         &mBlackListHandler,
         &mOwnKeysHandler,
@@ -87,6 +86,7 @@ IOTransaction::Shared StorageHandler::beginTransaction()
         &mIncomingPaymentReceiptHandler,
         &mOutgoingPaymentReceiptHandler,
         &mPaymentKeysHandler,
+        &mPaymentParticipantsVotesHandler,
         mLog);
 }
 

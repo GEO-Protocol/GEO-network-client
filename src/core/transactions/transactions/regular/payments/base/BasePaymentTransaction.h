@@ -369,12 +369,9 @@ protected:
     virtual bool checkReservationsDirections() const = 0;
 
     pair<BytesShared, size_t> getSerializedReceipt(
-        const NodeUUID &nodeUUID,
+        const NodeUUID &source,
+        const NodeUUID &target,
         const TrustLineAmount &amount);
-
-    bool compareReservations(
-        const vector<pair<PathID, AmountReservation::ConstShared>> &localReservations,
-        const vector<pair<PathID, AmountReservation::ConstShared>> &remoteReservations);
 
     bool checkAllNeighborsWithReservationsAreInFinalParticipantsList();
 
@@ -449,8 +446,7 @@ protected:
     map<NodeUUID, PaymentNodeID> mPaymentNodesIds;
     map<NodeUUID, pair<PaymentNodeID, lamport::KeyHash::Shared>> mParticipantsPublicKeysHashes;
     map<PaymentNodeID, lamport::PublicKey::Shared> mParticipantsPublicKeys;
-    map<PaymentNodeID, lamport::Signature::Shared> mParticipantsSigns;
-    map<NodeUUID, pair<lamport::Signature::Shared, KeyNumber>> mNeighborsIncomingReceipts;
+    map<PaymentNodeID, lamport::Signature::Shared> mParticipantsSignatures;
 
     // this fields are used by coordinators on final amount configuration clarification
     bool mAllNodesSentConfirmationOnFinalAmountsConfiguration;

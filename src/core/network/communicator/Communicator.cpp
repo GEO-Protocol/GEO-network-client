@@ -208,13 +208,9 @@ void Communicator::onMessageReceived(
     // Instead of that, it must be transferred for processing into
     // confirmation required messages handler.
     else if (message->typeID() == Message::System_Confirmation) {
-        const auto kConfirmationMessage =
-            static_pointer_cast<ConfirmationMessage>(message);
-        if (kConfirmationMessage->state() != ConfirmationMessage::ContractorBanned) {
-            mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
-                kConfirmationMessage);
-            return;
-        }
+        mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
+            static_pointer_cast<ConfirmationMessage>(message));
+        return;
 
     } else if (message->typeID() == Message::RoutingTableResponse) {
         const auto kConfirmationMessage =

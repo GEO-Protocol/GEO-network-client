@@ -195,7 +195,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
 
     // TODO: additional check if payment is correct
 
-    mParticipantsSigns.clear();
+    mParticipantsSignatures.clear();
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
@@ -674,8 +674,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
 #endif
 
         // send final path amount to all intermediate nodes on path
-        sendFinalPathConfiguration(
-            path->maxFlow());
+        if (!sendFinalPathConfiguration(
+            path->maxFlow())) {
+            return reject("Can't send final path configuration. Rejected.");
+        }
 
         mAllNodesSentConfirmationOnFinalAmountsConfiguration = false;
         mAllNeighborsSentFinalReservations = false;
@@ -895,6 +897,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalReservat
             mTrustLines->trustLineID(kMessage->senderUUID));
         auto serializedIncomingReceiptData = getSerializedReceipt(
             kMessage->senderUUID,
+            mNodeUUID,
             participantTotalIncomingReservationAmount);
         if (!keyChain.checkSign(
             ioTransaction,
@@ -904,13 +907,23 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalReservat
             kMessage->publicKeyNumber())) {
             return reject("Sender send invalid receipt signature. Rejected");
         }
-        mNeighborsIncomingReceipts.insert(
-            make_pair(
+        if (!keyChain.saveIncomingPaymentReceipt(
+            ioTransaction,
+            mTrustLines->auditNumber(kMessage->senderUUID),
+            mTransactionUUID,
+            kMessage->publicKeyNumber(),
+            participantTotalIncomingReservationAmount,
+            kMessage->signature())) {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
                 kMessage->senderUUID,
-                make_pair(
-                    kMessage->signature(),
-                    kMessage->publicKeyNumber())));
+                mEquivalent,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            return reject("Can't save participant receipt. Rejected.");
+        }
         info() << "Sender's receipt is valid";
+        mAllNeighborsSentFinalReservations = true;
     } else {
         // coordinator should receive only 1 message from last intermediate node
         // and this message should contain receipt
@@ -918,9 +931,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalReservat
     }
 
     // only one node may send reservations
-    if (!mNeighborsIncomingReceipts.empty()) {
+    if (mAllNeighborsSentFinalReservations) {
         info() << "All neighbors sent theirs reservations";
-        mAllNeighborsSentFinalReservations = true;
         if (mAllNodesSentConfirmationOnFinalAmountsConfiguration) {
             debug() << "Begin processing participants votes.";
             return propagateVotesListAndWaitForVotingResult();
@@ -975,14 +987,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
             participantSerializedVotesData.first.get(),
             participantSerializedVotesData.second,
             participantPublicKey)) {
-        return reject("Participant sign is incorrect. Rolling back");
+        return reject("Participant signature is incorrect. Rolling back");
     }
-    info() << "Participant sign is incorrect";
-    mParticipantsSigns.insert(make_pair(
+    info() << "Participant signature is correct";
+    mParticipantsSignatures.insert(make_pair(
         mPaymentNodesIds[kMessage->senderUUID],
         participantSign));
 
-    if (mParticipantsSigns.size() + 1 == mPaymentNodesIds.size()) {
+    if (mParticipantsSignatures.size() + 1 == mPaymentNodesIds.size()) {
         info() << "all participants sign their data";
 
         auto serializedOwnVotesData = getSerializedParticipantsVotesData(
@@ -994,7 +1006,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
                 currentTransactionUUID(),
                 serializedOwnVotesData.first,
                 serializedOwnVotesData.second);
-            mParticipantsSigns.insert(
+            mParticipantsSignatures.insert(
                 make_pair(
                     mPaymentNodesIds[mNodeUUID],
                     ownSignature));
@@ -1004,11 +1016,11 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
             mEquivalent,
             mNodeUUID,
             currentTransactionUUID(),
-            mParticipantsSigns);
+            mParticipantsSignatures);
         return approve();
     }
 
-    info() << "Not all participants send theirs signs";
+    info() << "Not all participants send theirs signatures";
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantVote},
         maxNetworkDelay(3));
@@ -1061,7 +1073,7 @@ void CycleCloserInitiatorTransaction::informIntermediateNodesAboutTransactionFin
     }
 }
 
-void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
+bool CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
     const TrustLineAmount &finalPathAmount)
 {
     debug() << "sendFinalPathConfiguration";
@@ -1086,12 +1098,22 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
             // coordinator should have one outgoing reservation to first intermediate node
             auto serializedOutgoingReceiptData = getSerializedReceipt(
                 mNodeUUID,
+                intermediateNode,
                 finalPathAmount);
             auto ioTransaction = mStorageHandler->beginTransaction();
             auto signatureAndKeyNumber = keyChain.sign(
                 ioTransaction,
                 serializedOutgoingReceiptData.first,
                 serializedOutgoingReceiptData.second);
+            if (!keyChain.saveOutgoingPaymentReceipt(
+                    ioTransaction,
+                    mTrustLines->auditNumber(intermediateNode),
+                    mTransactionUUID,
+                    signatureAndKeyNumber.second,
+                    finalPathAmount)) {
+                warning() << "Can't save outgoing receipt.";
+                return false;
+            }
             info() << "send message with final path amount info for node "
                    << intermediateNode << " with receipt";
             sendMessage<FinalPathCycleConfigurationMessage>(
@@ -1115,6 +1137,7 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
                 mPaymentNodesIds);
         }
     }
+    return true;
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::approve()

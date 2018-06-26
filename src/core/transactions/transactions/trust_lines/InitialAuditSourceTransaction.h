@@ -48,6 +48,8 @@ private:
 private:
     static const uint32_t kWaitMillisecondsForResponse = 5000;
 
+    static const AuditNumber kInitialAuditNumber = 0;
+
 protected:
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLines;

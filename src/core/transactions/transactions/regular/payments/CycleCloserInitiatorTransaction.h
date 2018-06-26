@@ -169,7 +169,7 @@ protected:
      * send messages to all transaction participants with final amount which should be committed
      * @param finalPathAmount final amount which should be committed
      */
-    void sendFinalPathConfiguration(
+    bool sendFinalPathConfiguration(
         const TrustLineAmount &finalPathAmount);
 
     /**

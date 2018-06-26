@@ -54,9 +54,9 @@ AuditHandler::AuditHandler(
 void AuditHandler::saveAudit(
     AuditNumber number,
     TrustLineID TrustLineID,
-    lamport::KeyHash& ownKeyHash,
+    lamport::KeyHash::Shared ownKeyHash,
     lamport::Signature::Shared ownSign,
-    lamport::KeyHash& contractorKeyHash,
+    lamport::KeyHash::Shared contractorKeyHash,
     lamport::Signature::Shared contractorSign,
     const TrustLineAmount &incomingAmount,
     const TrustLineAmount &outgoingAmount,
@@ -83,7 +83,7 @@ void AuditHandler::saveAudit(
         throw IOError("AuditHandler::saveAudit: "
                           "Bad binding of ID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 3, ownKeyHash.data(),
+    rc = sqlite3_bind_blob(stmt, 3, ownKeyHash->data(),
                           (int)lamport::KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::saveAudit: "
@@ -94,7 +94,7 @@ void AuditHandler::saveAudit(
         throw IOError("AuditHandler::saveAudit: "
                           "Bad binding of OnwSign; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 5, contractorKeyHash.data(),
+    rc = sqlite3_bind_blob(stmt, 5, contractorKeyHash->data(),
                           (int)lamport::KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::saveAudit: "

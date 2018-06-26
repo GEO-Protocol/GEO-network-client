@@ -39,7 +39,8 @@ public:
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &nodeBalance,
         bool isContractorGateway,
-        TrustLineState state = Init);
+        TrustLineState state = Init,
+        AuditNumber auditNumber = 0);
 
     void setIncomingTrustAmount(
         const TrustLineAmount &amount);
@@ -65,8 +66,13 @@ public:
 
     const TrustLineState state() const;
 
+    const AuditNumber currentAuditNumber() const;
+
     void setState(
         TrustLineState newState);
+
+    void setAuditNumber(
+        AuditNumber newAuditNumber);
 
     ConstSharedTrustLineAmount availableOutgoingAmount() const;
 
@@ -101,6 +107,7 @@ private:
     TrustLineBalance mBalance;
     bool mIsContractorGateway;
     TrustLineState mState;
+    AuditNumber mCurrentAudit;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINE_H

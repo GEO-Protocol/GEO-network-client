@@ -23,7 +23,7 @@ public:
         const TrustLineID trustLineID,
         const AuditNumber auditNumber,
         const TransactionUUID &transactionUUID,
-        const KeyHash& contractorPublicKeyHash,
+        const KeyHash::Shared contractorPublicKeyHash,
         const TrustLineAmount &amount,
         const Signature::Shared contractorSignature);
 

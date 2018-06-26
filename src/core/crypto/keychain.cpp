@@ -248,6 +248,64 @@ bool TrustLineKeychain::checkSign(
     }
 }
 
+bool TrustLineKeychain::saveOutgoingPaymentReceipt(
+    IOTransaction::Shared ioTransaction,
+    const AuditNumber auditNumber,
+    const TransactionUUID &transactionUUID,
+    const KeyNumber ownKeyNumber,
+    const TrustLineAmount &amount)
+{
+    try {
+        auto contractorKeyHash = ioTransaction->ownKeysHandler()->getPublicKeyHash(
+            mTrustLineID,
+            ownKeyNumber);
+
+        ioTransaction->outgoingPaymentReceiptHandler()->saveRecord(
+            mTrustLineID,
+            auditNumber,
+            transactionUUID,
+            contractorKeyHash,
+            amount);
+    } catch (NotFoundError &e) {
+        warning() << "There are no valid own key with number " << ownKeyNumber;
+        return false;
+    } catch (IOError &e) {
+        warning() << "Can't save incoming receipt into storage. Details: " << e.what();
+        return false;
+    }
+    return true;
+}
+
+bool TrustLineKeychain::saveIncomingPaymentReceipt(
+    IOTransaction::Shared ioTransaction,
+    const AuditNumber auditNumber,
+    const TransactionUUID &transactionUUID,
+    const KeyNumber contractorKeyNumber,
+    const TrustLineAmount &amount,
+    const Signature::Shared contractorSignature)
+{
+    try {
+        auto contractorKeyHash = ioTransaction->contractorKeysHandler()->keyHashByNumber(
+            mTrustLineID,
+            contractorKeyNumber);
+
+        ioTransaction->incomingPaymentReceiptHandler()->saveRecord(
+            mTrustLineID,
+            auditNumber,
+            transactionUUID,
+            contractorKeyHash,
+            amount,
+            contractorSignature);
+    } catch (NotFoundError &e) {
+        warning() << "There are no valid contractor key with number " << contractorKeyNumber;
+        return false;
+    } catch (IOError &e) {
+        warning() << "Can't save incoming receipt into storage. Details: " << e.what();
+        return false;
+    }
+    return true;
+}
+
 void TrustLineKeychain::saveAudit(
     IOTransaction::Shared ioTransaction,
     const AuditNumber auditNumber,

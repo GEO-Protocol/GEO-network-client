@@ -4,9 +4,6 @@ set(SOURCE_FILES
         GatewayNotificationMessage.h
         GatewayNotificationMessage.cpp
 
-        GatewayNotificationOneEquivalentMessage.h
-        GatewayNotificationOneEquivalentMessage.cpp
-
         RoutingTableResponseMessage.h
         RoutingTableResponseMessage.cpp)
 

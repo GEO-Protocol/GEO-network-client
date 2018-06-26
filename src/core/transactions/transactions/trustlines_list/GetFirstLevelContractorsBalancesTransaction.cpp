@@ -7,7 +7,7 @@ GetFirstLevelContractorsBalancesTransaction::GetFirstLevelContractorsBalancesTra
     Logger &logger)
     noexcept:
     BaseTransaction(
-        BaseTransaction::TrustlinesList,
+        BaseTransaction::TrustLinesList,
         nodeUUID,
         command->equivalent(),
         logger),

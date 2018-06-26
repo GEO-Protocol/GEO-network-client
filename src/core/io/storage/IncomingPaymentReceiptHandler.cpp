@@ -17,7 +17,8 @@ IncomingPaymentReceiptHandler::IncomingPaymentReceiptHandler(
                    "contractor_public_key_hash BLOB NOT NULL, "
                    "amount BLOB NOT NULL, "
                    "contractor_signature BLOB NOT NULL, "
-                   "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id) ON DELETE CASCADE ON UPDATE CASCADE);";
+                   "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                   "FOREIGN KEY(contractor_public_key_hash) REFERENCES contractor_keys(hash) ON DELETE CASCADE ON UPDATE CASCADE);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("IncomingPaymentReceiptHandler::creating table: "
@@ -31,7 +32,7 @@ IncomingPaymentReceiptHandler::IncomingPaymentReceiptHandler(
     }
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
-            + "_trust_line_id_audit_number_idx on " + mTableName + "(trust_line_id, audit_number);";
+            + "_trust_line_id_audit_number_key_hash_idx on " + mTableName + "(trust_line_id, audit_number, contractor_public_key_hash);";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("IncomingPaymentReceiptHandler::creating  index for TrustLineID and AuditNumber: "
@@ -66,7 +67,7 @@ void IncomingPaymentReceiptHandler::saveRecord(
     const TrustLineID trustLineID,
     const AuditNumber auditNumber,
     const TransactionUUID &transactionUUID,
-    const KeyHash& contractorPublicKeyHash,
+    const KeyHash::Shared contractorPublicKeyHash,
     const TrustLineAmount &amount,
     const Signature::Shared contractorSignature)
 {
@@ -95,7 +96,7 @@ void IncomingPaymentReceiptHandler::saveRecord(
         throw IOError("IncomingPaymentReceiptHandler::saveRecord: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 4, contractorPublicKeyHash.data(),
+    rc = sqlite3_bind_blob(stmt, 4, contractorPublicKeyHash->data(),
                            (int)KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("IncomingPaymentReceiptHandler::saveRecord: "

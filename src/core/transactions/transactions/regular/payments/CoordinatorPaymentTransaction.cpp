@@ -406,7 +406,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
 
     // TODO: additional check if payment is correct
 
-    mParticipantsSigns.clear();
+    mParticipantsSignatures.clear();
 
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
@@ -1284,12 +1284,21 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
             }
             auto serializedOutgoingReceiptData = getSerializedReceipt(
                 mNodeUUID,
+                nodeAndFinalAmountsConfig.first,
                 outgoingReservedAmount);
             auto ioTransaction = mStorageHandler->beginTransaction();
             auto signatureAndKeyNumber = keyChain.sign(
                 ioTransaction,
                 serializedOutgoingReceiptData.first,
                 serializedOutgoingReceiptData.second);
+            if (!keyChain.saveOutgoingPaymentReceipt(
+                    ioTransaction,
+                    mTrustLines->auditNumber(nodeAndFinalAmountsConfig.first),
+                    mTransactionUUID,
+                    signatureAndKeyNumber.second,
+                    outgoingReservedAmount)) {
+                return reject("Can't save outgoing receipt. Rejected.");
+            }
             info() << "send final amount configuration to " << nodeAndFinalAmountsConfig.first
                    << " with receipt " << outgoingReservedAmount;
             sendMessage<FinalAmountsConfigurationMessage>(
@@ -1610,15 +1619,15 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
             participantSerializedVotesData.first.get(),
             participantSerializedVotesData.second,
             participantPublicKey)) {
-        return reject("Participant sign is incorrect. Rolling back");
+        return reject("Participant signature is incorrect. Rolling back");
     }
-    info() << "Participant sign is incorrect";
-    mParticipantsSigns.insert(
+    info() << "Participant signature is correct";
+    mParticipantsSignatures.insert(
         make_pair(
             mPaymentNodesIds[kMessage->senderUUID],
             participantSign));
 
-    if (mParticipantsSigns.size() + 1 == mPaymentNodesIds.size()) {
+    if (mParticipantsSignatures.size() + 1 == mPaymentNodesIds.size()) {
         info() << "all participants sign their data";
 
         auto serializedOwnVotesData = getSerializedParticipantsVotesData(
@@ -1630,7 +1639,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
                 currentTransactionUUID(),
                 serializedOwnVotesData.first,
                 serializedOwnVotesData.second);
-            mParticipantsSigns.insert(
+            mParticipantsSignatures.insert(
                 make_pair(
                     mPaymentNodesIds[mNodeUUID],
                     ownSign));
@@ -1640,7 +1649,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
             mEquivalent,
             mNodeUUID,
             currentTransactionUUID(),
-            mParticipantsSigns);
+            mParticipantsSignatures);
         return approve();
     }
 

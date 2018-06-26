@@ -3,7 +3,6 @@
 
 #include "../../logger/Logger.h"
 #include "TrustLineHandler.h"
-#include "PaymentOperationStateHandler.h"
 #include "TransactionsHandler.h"
 #include "HistoryStorage.h"
 #include "BlackListHandler.h"
@@ -13,6 +12,7 @@
 #include "IncomingPaymentReceiptHandler.h"
 #include "OutgoingPaymentReceiptHandler.h"
 #include "PaymentKeysHandler.h"
+#include "PaymentParticipantsVotesHandler.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
 #include "IOTransaction.h"
@@ -52,7 +52,6 @@ private:
 
 private:
     const string kTrustLineTableName = "trust_lines";
-    const string kPaymentOperationStateTableName = "payment_operation_state";
     const string kTransactionTableName = "transactions";
     const string kHistoryMainTableName = "history";
     const string kHistoryAdditionalTableName = "history_additional";
@@ -64,6 +63,7 @@ private:
     const string kIncomingReceiptTableName = "incoming_receipt";
     const string kAuditTableName = "audit";
     const string kPaymentKeysTableName = "payment_keys";
+    const string kPaymentParticipantsVotesTableName = "payment_participants_votes";
 
 private:
     static sqlite3 *mDBConnection;
@@ -71,7 +71,6 @@ private:
 private:
     Logger &mLog;
     TrustLineHandler mTrustLineHandler;
-    PaymentOperationStateHandler mPaymentOperationStateHandler;
     TransactionsHandler mTransactionHandler;
     HistoryStorage mHistoryStorage;
     BlackListHandler mBlackListHandler;
@@ -81,6 +80,7 @@ private:
     IncomingPaymentReceiptHandler mIncomingPaymentReceiptHandler;
     OutgoingPaymentReceiptHandler mOutgoingPaymentReceiptHandler;
     PaymentKeysHandler mPaymentKeysHandler;
+    PaymentParticipantsVotesHandler mPaymentParticipantsVotesHandler;
     string mDirectory;
     string mDataBaseName;
 };

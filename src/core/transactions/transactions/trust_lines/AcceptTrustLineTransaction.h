@@ -6,7 +6,6 @@
 #include "../../../io/storage/StorageHandler.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
-#include "../../../network/messages/gateway_notification_and_routing_tables/GatewayNotificationOneEquivalentMessage.h"
 #include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 

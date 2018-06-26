@@ -7,9 +7,12 @@
 #include "../../../io/storage/StorageHandler.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../crypto/keychain.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
+#include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
+#include "InitialAuditSourceTransaction.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 #include "../../../interface/visual_interface/interface/VisualInterface.h"
 #include "../../../interface/visual_interface/visual/VisualResult.h"
@@ -42,12 +45,19 @@ public:
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
+        Keystore *keystore,
         VisualInterface *visualInterface,
         bool iAmGateway,
         Logger &logger)
         noexcept;
 
     TransactionResult::SharedConst run();
+
+protected:
+    enum Stages {
+        Initialisation = 1,
+        ResponseProcessing = 2,
+    };
 
 protected:
     TransactionResult::SharedConst resultOK();
@@ -65,6 +75,14 @@ protected: // log
     const string logHeader() const
         noexcept;
 
+private:
+    TransactionResult::SharedConst runInitialisationStage();
+
+    TransactionResult::SharedConst runResponseProcessingStage();
+
+private:
+    static const uint32_t kWaitMillisecondsForResponse = 60000;
+
 protected:
     SetOutgoingTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLines;
@@ -72,8 +90,12 @@ protected:
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
     SubsystemsController *mSubsystemsController;
+    Keystore *mKeysStore;
     VisualInterface *mVisualInterface;
     bool mIAmGateway;
+
+    TrustLine::ConstShared mPreviousTL = nullptr;
+    TrustLinesManager::TrustLineOperationResult mOperationResult = TrustLinesManager::NoChanges;
 };
 
 
