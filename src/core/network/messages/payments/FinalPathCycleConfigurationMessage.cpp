@@ -143,7 +143,7 @@ pair<BytesShared, size_t> FinalPathCycleConfigurationMessage::serializeToBytes()
             bytesBufferOffset,
             it.first.data,
             NodeUUID::kBytesSize);
-        bytesBufferOffset += sizeof(NodeUUID::kBytesSize);
+        bytesBufferOffset += NodeUUID::kBytesSize;
 
         memcpy(
             bytesBufferOffset,

@@ -662,13 +662,13 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     // to rest nodes - only public key hash
     vector<pair<PathID, AmountReservation::ConstShared>> emptyReservations;
     for (const auto &nodeAndPaymentID : mPaymentNodesIds) {
-        if (nodeAndPaymentID.first == mCoordinator) {
-            continue;
-        }
         if (nodeAndPaymentID.first == mNodeUUID) {
             continue;
         }
         if (mReservations.find(nodeAndPaymentID.first) == mReservations.end()) {
+            if (nodeAndPaymentID.first == mCoordinator) {
+                continue;
+            }
             sendMessage<TransactionPublicKeyHashMessage>(
                 nodeAndPaymentID.first,
                 mEquivalent,
@@ -716,6 +716,9 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
                 signatureAndKeyNumber.second,
                 signatureAndKeyNumber.first);
         } else {
+            if (nodeAndPaymentID.first == mCoordinator) {
+                continue;
+            }
             sendMessage<TransactionPublicKeyHashMessage>(
                 nodeAndPaymentID.first,
                 mEquivalent,

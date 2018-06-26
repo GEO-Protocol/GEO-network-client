@@ -72,7 +72,7 @@ void PaymentParticipantsVotesHandler::saveRecord(
     }
     rc = sqlite3_bind_int(stmt, 3, paymentNodeID);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentParticipantsVotesHandler::insert: "
+        throw IOError("PaymentParticipantsVotesHandler::saveRecord: "
                           "Bad binding of PaymentNodeID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 4, publicKey->data(), (int)publicKey->keySize(), SQLITE_STATIC);
@@ -88,8 +88,20 @@ void PaymentParticipantsVotesHandler::saveRecord(
     GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(utc_now());
     rc = sqlite3_bind_int64(stmt, 6, timestamp);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentParticipantsVotesHandler::insert: "
+        throw IOError("PaymentParticipantsVotesHandler::saveRecord: "
                           "Bad binding of Timestamp; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "prepare inserting is completed successfully";
+#endif
+    } else {
+        throw IOError("PaymentParticipantsVotesHandler::saveRecord: "
+                          "Run query; sqlite error: " + to_string(rc));
     }
 }
 
@@ -112,7 +124,7 @@ map<PaymentNodeID, lamport::Signature::Shared> PaymentParticipantsVotesHandler::
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         auto paymentNodeID = (PaymentNodeID)sqlite3_column_int(stmt, 0);
         auto signature = make_shared<lamport::Signature>(
-            (byte*)sqlite3_column_blob(stmt, 2));
+            (byte*)sqlite3_column_blob(stmt, 1));
         result.insert(
             make_pair(
                 paymentNodeID,
