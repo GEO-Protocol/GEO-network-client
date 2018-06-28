@@ -111,6 +111,41 @@ void ContractorKeysHandler::saveKey(
     }
 }
 
+void ContractorKeysHandler::invalidKey(
+    const TrustLineID trustLineID,
+    const KeyNumber number)
+{
+    string query = "UPDATE " + mTableName + " SET is_valid = 0 WHERE trust_line_id = ? AND number = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::invalidKey: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::invalidKey: "
+                          "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 2, number);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::invalidKey: "
+                          "Bad binding of Number; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc != SQLITE_DONE) {
+        throw IOError("ContractorKeysHandler::invalidKey: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+
+    if (sqlite3_changes(mDataBase) == 0) {
+        throw ValueError("No data were changed");
+    }
+}
+
 PublicKey::Shared ContractorKeysHandler::keyByNumber(
     const TrustLineID trustLineID,
     const KeyNumber number)

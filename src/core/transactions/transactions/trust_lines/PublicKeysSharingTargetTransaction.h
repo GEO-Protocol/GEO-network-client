@@ -7,7 +7,7 @@
 #include "../../../crypto/lamportkeys.h"
 
 #include "../../../network/messages/trust_lines/PublicKeyMessage.h"
-#include "../../../network/messages/trust_lines/PublicKeyCRCConfirmation.h"
+#include "../../../network/messages/trust_lines/PublicKeyHashConfirmation.h"
 
 #include "PublicKeysSharingSourceTransaction.h"
 #include "InitialAuditSourceTransaction.h"

@@ -16,9 +16,11 @@ set(SOURCE_FILES
         TrustLineConfirmationMessage.h
         TrustLineConfirmationMessage.cpp
 
-        PublicKeyCRCConfirmation.h
-        PublicKeyCRCConfirmation.cpp
+        PublicKeyHashConfirmation.h
+        PublicKeyHashConfirmation.cpp
 
+        InitialAuditMessage.h
+        InitialAuditMessage.cpp
         AuditMessage.h
         AuditMessage.cpp)
 

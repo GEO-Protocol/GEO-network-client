@@ -1,38 +1,18 @@
 #ifndef GEO_NETWORK_CLIENT_AUDITMESSAGE_H
 #define GEO_NETWORK_CLIENT_AUDITMESSAGE_H
 
-#include "../base/transaction/TransactionMessage.h"
-#include "../../../crypto/lamportscheme.h"
+#include "InitialAuditMessage.h"
 
-using namespace crypto;
-
-class AuditMessage : public TransactionMessage {
+class AuditMessage : public InitialAuditMessage {
 
 public:
-    typedef shared_ptr<AuditMessage> Shared;
+    typedef shared_ptr<InitialAuditMessage> Shared;
 
 public:
-    AuditMessage(
-        const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
-        const TransactionUUID &transactionUUID,
-        const KeyNumber keyNumber,
-        const lamport::Signature::Shared signature);
+    using InitialAuditMessage::InitialAuditMessage;
 
-    AuditMessage(
-        BytesShared buffer);
-
-    const lamport::Signature::Shared signature() const;
-
-    const KeyNumber keyNumber() const;
-
+public:
     const MessageType typeID() const;
-
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
-
-private:
-    uint32_t mKeyNumber;
-    lamport::Signature::Shared mSignature;
 };
 
 

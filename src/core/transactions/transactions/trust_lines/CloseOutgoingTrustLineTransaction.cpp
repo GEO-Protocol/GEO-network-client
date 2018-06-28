@@ -26,9 +26,23 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
 TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
 {
     const auto kContractor = mMessage->senderUUID;
+    info() << "sender: " << mMessage->senderUUID;
 
     if (kContractor == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
+        return resultDone();
+    }
+
+    if (!mTrustLines->trustLineIsPresent(kContractor)) {
+        warning() << "Trust line already present.";
+        sendMessage<TrustLineConfirmationMessage>(
+            kContractor,
+            mEquivalent,
+            mNodeUUID,
+            mMessage->transactionUUID(),
+            false,
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+
         return resultDone();
     }
 
@@ -41,6 +55,11 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
         previousTL = mTrustLines->trustLineReadOnly(mMessage->senderUUID);
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
+        mTrustLines->setTrustLineState(
+            ioTransaction,
+            kContractor,
+            TrustLine::AuditPending);
+
         mTrustLines->closeOutgoing(
             ioTransaction,
             kContractor);
@@ -52,50 +71,44 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
                << " has been successfully closed by remote node.";
 
         // Sending confirmation back.
-        sendMessage<ConfirmationMessage>(
-            mMessage->senderUUID,
-            mEquivalent,
-            mNodeUUID,
-            mMessage->transactionUUID());
-
-        return resultDone();
-
-    } catch (NotFoundError &e) {
-        ioTransaction->rollback();
-        warning() << "Attempt to close outgoing trust line to the node " << kContractor << " failed. "
-               << "Details are: " << e.what();
-        sendMessage<ConfirmationMessage>(
+        sendMessage<TrustLineConfirmationMessage>(
             mMessage->senderUUID,
             mEquivalent,
             mNodeUUID,
             mMessage->transactionUUID(),
-            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+            false,
+            ConfirmationMessage::OK);
+
+        info() << "Wait for audit";
         return resultDone();
 
     } catch (IOError &e) {
         ioTransaction->rollback();
         // return closed TL
-        auto trustLine = make_shared<TrustLine>(
+        mTrustLines->trustLines()[mMessage->senderUUID] = make_shared<TrustLine>(
             mMessage->senderUUID,
             previousTL->trustLineID(),
             previousTL->incomingTrustAmount(),
             previousTL->outgoingTrustAmount(),
             previousTL->balance(),
-            previousTL->isContractorGateway());
+            previousTL->isContractorGateway(),
+            previousTL->state(),
+            previousTL->currentAuditNumber());
         warning() << "Attempt to close outgoing trust line to the node " << kContractor << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();
+        sendMessage<TrustLineConfirmationMessage>(
+            mMessage->senderUUID,
+            mEquivalent,
+            mNodeUUID,
+            mMessage->transactionUUID(),
+            false,
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
 
         // Rethrowing the exception,
-        // because the TA can't finish propely and no result may be returned.
+        // because the TA can't finish properly and no result may be returned.
         throw e;
     }
-}
-
-TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::resultDone()
-{
-    return make_shared<TransactionResult>(
-        TransactionState::exit());
 }
 
 const string CloseOutgoingTrustLineTransaction::logHeader() const

@@ -6,11 +6,12 @@
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/ValueError.h"
 #include "../../crypto/lamportkeys.h"
+#include "../../crypto/lamportscheme.h"
 #include "../../common/memory/MemoryUtils.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
-using namespace crypto::lamport;
+using namespace crypto;
 
 class OwnKeysHandler {
 
@@ -22,22 +23,23 @@ public:
 
     void saveKey(
         const TrustLineID trustLineID,
-        const PublicKey::Shared publicKey,
-        const PrivateKey *privateKey,
+        const lamport::PublicKey::Shared publicKey,
+        const lamport::PrivateKey *privateKey,
         const KeyNumber number);
 
-    pair<PrivateKey*, KeyNumber> nextAvailableKey(
+    pair<lamport::PrivateKey*, KeyNumber> nextAvailableKey(
         const TrustLineID trustLineID);
 
     void invalidKey(
         const TrustLineID trustLineID,
-        const KeyNumber number);
+        const KeyNumber number,
+        const lamport::Signature::Shared signature);
 
-    const PublicKey::Shared getPublicKey(
+    const lamport::PublicKey::Shared getPublicKey(
         const TrustLineID trustLineID,
         const KeyNumber keyNumber);
 
-    const KeyHash::Shared getPublicKeyHash(
+    const lamport::KeyHash::Shared getPublicKeyHash(
         const TrustLineID trustLineID,
         const KeyNumber keyNumber);
 

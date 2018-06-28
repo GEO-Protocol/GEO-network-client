@@ -1,60 +1,57 @@
-#include "PublicKeyCRCConfirmation.h"
+#include "InitialAuditMessage.h"
 
-PublicKeyCRCConfirmation::PublicKeyCRCConfirmation(
+InitialAuditMessage::InitialAuditMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    KeyNumber number,
-    uint64_t crcConfirmation):
+    const KeyNumber keyNumber,
+    const lamport::Signature::Shared signature):
     TransactionMessage(
-        equivalent,
-        senderUUID,
-        transactionUUID),
-    mNumber(number),
-    mCrcConfirmation(crcConfirmation)
+         equivalent,
+         senderUUID,
+         transactionUUID),
+    mSignature(signature),
+    mKeyNumber(keyNumber)
 {}
 
-PublicKeyCRCConfirmation::PublicKeyCRCConfirmation(
+InitialAuditMessage::InitialAuditMessage(
     BytesShared buffer) :
     TransactionMessage(buffer)
 {
     auto bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
     memcpy(
-        &mNumber,
+        &mKeyNumber,
         buffer.get() + bytesBufferOffset,
         sizeof(KeyNumber));
     bytesBufferOffset += sizeof(KeyNumber);
 
-    memcpy(
-        &mCrcConfirmation,
-        buffer.get() + bytesBufferOffset,
-        sizeof(uint64_t));
+    mSignature = make_shared<lamport::Signature>(
+        buffer.get() + bytesBufferOffset);
 }
 
-const Message::MessageType PublicKeyCRCConfirmation::typeID() const
-    noexcept
+const Message::MessageType InitialAuditMessage::typeID() const
 {
-    return Message::TrustLines_CRCConfirmation;
+    return Message::TrustLines_InitialAudit;
 }
 
-const KeyNumber PublicKeyCRCConfirmation::number() const
+const uint32_t InitialAuditMessage::keyNumber() const
 {
-    return mNumber;
+    return mKeyNumber;
 }
 
-const uint64_t PublicKeyCRCConfirmation::crcConfirmation() const
+const lamport::Signature::Shared InitialAuditMessage::signature() const
 {
-    return mCrcConfirmation;
+    return mSignature;
 }
 
-pair<BytesShared, size_t> PublicKeyCRCConfirmation::serializeToBytes() const
+pair<BytesShared, size_t> InitialAuditMessage::serializeToBytes() const
 {
     const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     const auto kBufferSize =
             parentBytesAndCount.second
             + sizeof(KeyNumber)
-            + sizeof(uint64_t);
+            + mSignature->signatureSize();
     BytesShared buffer = tryMalloc(kBufferSize);
 
     size_t dataBytesOffset = 0;
@@ -67,14 +64,14 @@ pair<BytesShared, size_t> PublicKeyCRCConfirmation::serializeToBytes() const
 
     memcpy(
         buffer.get() + dataBytesOffset,
-        &mNumber,
+        &mKeyNumber,
         sizeof(KeyNumber));
     dataBytesOffset += sizeof(KeyNumber);
 
     memcpy(
         buffer.get() + dataBytesOffset,
-        &mCrcConfirmation,
-        sizeof(uint64_t));
+        mSignature->data(),
+        mSignature->signatureSize());
 
     return make_pair(
         buffer,

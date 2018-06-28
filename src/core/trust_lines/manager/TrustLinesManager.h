@@ -56,7 +56,6 @@ public:
         Logger &logger);
 
     void open(
-        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount);
 
@@ -64,6 +63,10 @@ public:
         IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount);
+
+    void save(
+        IOTransaction::Shared ioTransaction,
+        const NodeUUID &contractorUUID);
 
     /**
      * Creates / Updates / Closes trust line TO the contractor.
@@ -137,6 +140,11 @@ public:
         IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID,
         TrustLine::TrustLineState state);
+
+    void setTrustLineAuditNumber(
+        IOTransaction::Shared ioTransaction,
+        const NodeUUID &contractorUUID,
+        AuditNumber newAuditNumber);
 
     /**
      * @returns outgoing trust amount without considering present reservations.
@@ -288,8 +296,11 @@ public:
     const bool reservationIsPresent(
         const NodeUUID &contractorUUID) const;
 
-    void removeTrustLine(
+    void updateTrustLine(
         IOTransaction::Shared ioTransaction,
+        TrustLine::Shared trustLine);
+
+    void removeTrustLine(
         const NodeUUID &contractorUUID);
 
     bool isTrustLineEmpty(
@@ -342,13 +353,9 @@ public:
     void printRTs();
 
 protected:
-    void saveToDisk(
-        IOTransaction::Shared ioTransaction,
-        TrustLine::Shared trustLine);
-
-    void updateTrustLine(
-        IOTransaction::Shared ioTransaction,
-        TrustLine::Shared trustLine);
+    void saveToStorage(
+            IOTransaction::Shared ioTransaction,
+            TrustLine::Shared trustLine);
 
     /**
      * Reads trust lines info from the internal storage and initialises internal trust lines map.
@@ -356,7 +363,7 @@ protected:
      *
      * @throws IOError in case of storage read error.
      */
-    void loadTrustLinesFromDisk();
+    void loadTrustLinesFromStorage();
     
     const TrustLineID nextFreeID() const;
 

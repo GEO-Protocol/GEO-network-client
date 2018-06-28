@@ -45,108 +45,102 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitialisationStage(
         return resultForbiddenRun();
     }
     const auto kContractor = mCommand->contractorUUID();
+    info() << "Try open TL to " << kContractor;
 
     if (kContractor == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
         return resultProtocolError();
     }
 
-    // Trust line must be created (or updated) in the internal storage.
-    // Also, history record must be written about this operation.
-    // Both writes must be done atomically, so the IO transaction is used.
-    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (mTrustLines->trustLineIsPresent(kContractor)) {
+        warning() << "Trust line already present.";
+        return resultProtocolError();
+    }
+    if (mCommand->amount() == 0) {
+        warning() << "Can't establish trust line with zero amount.";
+        return resultProtocolError();
+    }
 
-    try {
-        // note: io transaction would commit automatically on destructor call.
-        // there is no need to call commit manually.
-        mTrustLines->open(
-            ioTransaction,
-            kContractor,
+    mTrustLines->open(
+        kContractor,
+        mCommand->amount());
+    info() << "Outgoing trust line to the node " << kContractor
+           << " successfully initialised with " << mCommand->amount();
+    // todo serialize transaction
+
+    // Notifying remote node about trust line state changed.
+    // Network communicator knows, that this message must be forced to be delivered,
+    // so the TA itself might finish without any response from the remote node.
+    if (mIAmGateway) {
+        sendMessage<SetIncomingTrustLineFromGatewayMessage>(
+            mCommand->contractorUUID(),
+            mEquivalent,
+            mNodeUUID,
+            mTransactionUUID,
+            mCommand->contractorUUID(),
             mCommand->amount());
-        info() << "Outgoing trust line to the node " << kContractor
-               << " successfully initialised with " << mCommand->amount();
-        // todo serialize transaction
-
-        // Notifying remote node about trust line state changed.
-        // Network communicator knows, that this message must be forced to be delivered,
-        // so the TA itself might finish without any response from the remote node.
-        if (mIAmGateway) {
-            sendMessage<SetIncomingTrustLineFromGatewayMessage>(
-                mCommand->contractorUUID(),
-                mEquivalent,
-                mNodeUUID,
-                mTransactionUUID,
-                mCommand->contractorUUID(),
-                mCommand->amount());
-        } else {
-            sendMessage<SetIncomingTrustLineMessage>(
-                mCommand->contractorUUID(),
-                mEquivalent,
-                mNodeUUID,
-                mTransactionUUID,
-                mCommand->contractorUUID(),
-                mCommand->amount());
-        }
+    } else {
+        sendMessage<SetIncomingTrustLineMessage>(
+            mCommand->contractorUUID(),
+            mEquivalent,
+            mNodeUUID,
+            mTransactionUUID,
+            mCommand->contractorUUID(),
+            mCommand->amount());
+    }
 
         mStep = ResponseProcessing;
         return resultOK();
-
-    } catch (ValueError &e) {
-        ioTransaction->rollback();
-        warning() << "Attempt to set outgoing trust line to the node " << kContractor << " failed. "
-                  << "Details are: " << e.message();
-        return resultProtocolError();
-
-    } catch (IOError &e) {
-        ioTransaction->rollback();
-
-        // remove created TL from TrustLinesManager
-        mTrustLines->trustLines().erase(mCommand->contractorUUID());
-        warning() << "Attempt to open outgoing trust line to the node " << kContractor << " failed. "
-                  << "IO transaction can't be completed. "
-                  << "Details are: " << e.what();
-
-        // Rethrowing the exception,
-        // because the TA can't finish properly and no result may be returned.
-        throw e;
-    }
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingStage()
 {
+    if (mContext.empty()) {
+        warning() << "Contractor don't send response";
+        // todo serializing of this TA need discuss
+        return resultDone();
+    }
     auto message = popNextMessage<TrustLineConfirmationMessage>();
     info() << "contractor " << message->senderUUID << " confirmed opening TL. gateway: " << message->gateway();
+    if (message->senderUUID != mCommand->contractorUUID()) {
+        warning() << "Sender is not contractor of this transaction";
+        return resultContinuePreviousState();
+    }
+    if (!mTrustLines->trustLineIsPresent(message->senderUUID)) {
+        warning() << "Something wrong, because TL must be created";
+        // todo : need correct reaction
+        return resultDone();
+    }
     auto ioTransaction = mStorageHandler->beginTransaction();
     if (message->state() != ConfirmationMessage::OK) {
         warning() << "Contractor didn't accept opening TL. Response code: " << message->state();
         mTrustLines->removeTrustLine(
-            ioTransaction,
             message->senderUUID);
+        processConfirmationMessage(message);
         return resultDone();
     }
     try {
+        // save into storage, because open create TL only in memory
+        mTrustLines->save(
+            ioTransaction,
+            message->senderUUID);
+        mTrustLines->setTrustLineState(
+            ioTransaction,
+            message->senderUUID,
+            TrustLine::KeysPending);
         if (message->gateway()) {
             mTrustLines->setContractorAsGateway(
                 ioTransaction,
                 message->senderUUID,
                 true);
         }
-        mTrustLines->setTrustLineState(
-            ioTransaction,
-            message->senderUUID,
-            TrustLine::KeysPending);
         populateHistory(
             ioTransaction,
             TrustLineRecord::Opening);
-    } catch (NotFoundError &e) {
-        ioTransaction->rollback();
-        error() << "Attempt to process confirmation from contractor " << message->senderUUID << " failed. "
-                << "IO transaction can't be completed. Details are: " << e.what();
-        return resultDone();
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Attempt to process confirmation from contractor " << message->senderUUID << " failed. "
-                << "Trust Line not found. Details are: " << e.what();
+                << "IO transaction can't be completed. Details are: " << e.what();
         return resultDone();
     }
 

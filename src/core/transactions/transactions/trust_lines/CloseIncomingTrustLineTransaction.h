@@ -5,11 +5,15 @@
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
 #include "../../../network/messages/trust_lines/CloseOutgoingTrustLineMessage.h"
+#include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../io/storage/StorageHandler.h"
 #include "../../../topology/manager/TopologyTrustLinesManager.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
+#include "AuditSourceTransaction.h"
+
+#include "../../../crypto/keychain.h"
 
 class CloseIncomingTrustLineTransaction : public BaseTransaction {
 
@@ -26,10 +30,17 @@ public:
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
+        Keystore *keystore,
         Logger &logger)
     noexcept;
 
     TransactionResult::SharedConst run();
+
+protected:
+    enum Stages {
+        Initialisation = 1,
+        ResponseProcessing = 2,
+    };
 
 protected:
     TransactionResult::SharedConst resultOK();
@@ -47,7 +58,15 @@ protected: // log
     const string logHeader() const
     noexcept;
 
-protected:
+private:
+    TransactionResult::SharedConst runInitialisationStage();
+
+    TransactionResult::SharedConst runResponseProcessingStage();
+
+private:
+    static const uint32_t kWaitMillisecondsForResponse = 60000;
+
+private:
     CloseIncomingTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
@@ -55,6 +74,9 @@ protected:
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
     SubsystemsController *mSubsystemsController;
+    Keystore *mKeysStore;
+
+    TrustLine::ConstShared mPreviousTL = nullptr;
 };
 
 

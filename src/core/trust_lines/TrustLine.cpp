@@ -22,6 +22,22 @@ TrustLine::TrustLine(
     // todo zero amounts checking
 }
 
+TrustLine::TrustLine(
+    const NodeUUID &nodeUUID,
+    const TrustLineID trustLineID,
+    bool isContractorGateway,
+    TrustLineState state) :
+
+    mContractorNodeUUID(nodeUUID),
+    mID(trustLineID),
+    mIncomingTrustAmount(TrustLine::kZeroAmount()),
+    mOutgoingTrustAmount(TrustLine::kZeroAmount()),
+    mBalance(TrustLine::kZeroBalance()),
+    mIsContractorGateway(isContractorGateway),
+    mCurrentAudit(0),
+    mState(state)
+{}
+
 /**
  * Sets incoming trust amount of the trust line.
  * This method rewrites previous incoming trust amount.
@@ -61,6 +77,15 @@ void TrustLine::setOutgoingTrustAmount(
     }
 
     mOutgoingTrustAmount = amount;
+}
+
+void TrustLine::setBalance(
+    const TrustLineBalance &balance)
+{
+    if (numeric_limits<TrustLineBalance>::max() == balance) {
+        throw ValueError("TrustLine::setBalance: Balance is too big");
+    }
+    mBalance = balance;
 }
 
 const NodeUUID &TrustLine::contractorNodeUUID() const

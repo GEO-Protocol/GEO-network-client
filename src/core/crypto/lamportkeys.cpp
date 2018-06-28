@@ -99,12 +99,6 @@ const KeyHash::Shared PublicKey::hash() const
     return make_shared<KeyHash>(mData);
 }
 
-const uint64_t PublicKey::crc() const
-{
-    // todo return crc and change return type
-    return 0;
-}
-
 KeyHash::KeyHash(
     byte* buffer)
 {

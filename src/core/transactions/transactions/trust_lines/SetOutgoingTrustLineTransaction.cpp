@@ -44,7 +44,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
             throw ValueError(logHeader() + "::run: "
                     "wrong value of mStep");
     }
-
 }
 
 TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitialisationStage()
@@ -60,10 +59,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitialisatio
         return resultProtocolError();
     }
 
-    // Trust line must be created (or updated) in the internal storage.
-    // Also, history record must be written about this operation.
-    // Both writes must be done atomically, so the IO transaction is used.
-    auto ioTransaction = mStorageHandler->beginTransaction();
     try {
         mPreviousTL = mTrustLines->trustLineReadOnly(mCommand->contractorUUID());
     } catch (NotFoundError &e) {
@@ -71,18 +66,22 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitialisatio
         return resultProtocolError();
     }
 
+    // Trust line must be updated in the internal storage.
+    // Also, history record must be written about this operation.
+    // Both writes must be done atomically, so the IO transaction is used.
+    auto ioTransaction = mStorageHandler->beginTransaction();
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        mTrustLines->setTrustLineState(
-            ioTransaction,
-            mCommand->contractorUUID(),
-            TrustLine::AuditPending);
-
         mOperationResult = mTrustLines->setOutgoing(
             ioTransaction,
             kContractor,
             mCommand->amount());
+
+        mTrustLines->setTrustLineState(
+            ioTransaction,
+            mCommand->contractorUUID(),
+            TrustLine::AuditPending);
 
         mTopologyCacheManager->resetInitiatorCache();
         mMaxFlowCacheManager->clearCashes();
@@ -180,33 +179,8 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitialisatio
         return resultOK();
 
     } catch (ValueError &) {
-        ioTransaction->rollback();
-        mTrustLines->trustLines()[mCommand->contractorUUID()] = make_shared<TrustLine>(
-            mCommand->contractorUUID(),
-            mPreviousTL->trustLineID(),
-            mPreviousTL->incomingTrustAmount(),
-            mPreviousTL->outgoingTrustAmount(),
-            mPreviousTL->balance(),
-            mPreviousTL->isContractorGateway(),
-            mPreviousTL->state(),
-            mPreviousTL->currentAuditNumber());
         warning() << "Attempt to set outgoing trust line to the node " << kContractor << " failed. "
                   << "Cannot open trustline with zero amount.";
-        return resultProtocolError();
-
-    } catch (NotFoundError &e) {
-        ioTransaction->rollback();
-        mTrustLines->trustLines()[mCommand->contractorUUID()] = make_shared<TrustLine>(
-            mCommand->contractorUUID(),
-            mPreviousTL->trustLineID(),
-            mPreviousTL->incomingTrustAmount(),
-            mPreviousTL->outgoingTrustAmount(),
-            mPreviousTL->balance(),
-            mPreviousTL->isContractorGateway(),
-            mPreviousTL->state(),
-            mPreviousTL->currentAuditNumber());
-        warning() << "Attempt to update outgoing trust line to the node " << kContractor << " failed. "
-                  << "Details are: " << e.what();
         return resultProtocolError();
 
     } catch (IOError &e) {
@@ -232,23 +206,38 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitialisatio
 
 TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProcessingStage()
 {
-    auto message = popNextMessage<TrustLineConfirmationMessage>();
-    info() << "contractor " << message->senderUUID << " confirmed opening TL. gateway: " << message->gateway();
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    if (message->state() != ConfirmationMessage::OK) {
-        warning() << "Contractor didn't accept opening TL. Response code: " << message->state();
-        mTrustLines->trustLines()[mCommand->contractorUUID()] = make_shared<TrustLine>(
-            mCommand->contractorUUID(),
-            mPreviousTL->trustLineID(),
-            mPreviousTL->incomingTrustAmount(),
-            mPreviousTL->outgoingTrustAmount(),
-            mPreviousTL->balance(),
-            mPreviousTL->isContractorGateway(),
-            mPreviousTL->state(),
-            mPreviousTL->currentAuditNumber());
+    if (mContext.empty()) {
+        warning() << "Contractor don't send response";
+        // todo serializing of this TA need discuss
         return resultDone();
     }
+    auto message = popNextMessage<TrustLineConfirmationMessage>();
+    info() << "contractor " << message->senderUUID << " confirmed opening TL. gateway: " << message->gateway();
+    if (message->senderUUID != mCommand->contractorUUID()) {
+        warning() << "Sender is not contractor of this transaction";
+        return resultContinuePreviousState();
+    }
+    if (!mTrustLines->trustLineIsPresent(message->senderUUID)) {
+        warning() << "Something wrong, because TL must be created";
+        // todo : need correct reaction
+        return resultDone();
+    }
+    auto ioTransaction = mStorageHandler->beginTransaction();
     try {
+        if (message->state() != ConfirmationMessage::OK) {
+            warning() << "Contractor didn't accept opening TL. Response code: " << message->state();
+            mTrustLines->setOutgoing(
+                ioTransaction,
+                message->senderUUID,
+                mPreviousTL->outgoingTrustAmount());
+            mTrustLines->setTrustLineState(
+                ioTransaction,
+                message->senderUUID,
+                mPreviousTL->state());
+            processConfirmationMessage(message);
+            return resultDone();
+        }
+
         if (message->gateway()) {
             mTrustLines->setContractorAsGateway(
                 ioTransaction,
@@ -276,20 +265,16 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
                 break;
             }
         }
-    } catch (NotFoundError &e) {
-        ioTransaction->rollback();
-        error() << "Attempt to process confirmation from contractor " << message->senderUUID << " failed. "
-                << "IO transaction can't be completed. Details are: " << e.what();
-        return resultDone();
     } catch (IOError &e) {
         ioTransaction->rollback();
+        // todo : need return intermediate state of TL
         error() << "Attempt to process confirmation from contractor " << message->senderUUID << " failed. "
-                << "Trust Line not found. Details are: " << e.what();
+                << "IO transaction can't be completed. Details are: " << e.what();
         return resultDone();
     }
 
     processConfirmationMessage(message);
-    const auto kTransaction = make_shared<InitialAuditSourceTransaction>(
+    const auto kTransaction = make_shared<AuditSourceTransaction>(
         mNodeUUID,
         message->senderUUID,
         mEquivalent,

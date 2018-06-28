@@ -25,6 +25,10 @@ public:
         const KeyHash::Shared ownPublicKeyHash,
         const TrustLineAmount &amount);
 
+    vector<TrustLineAmount> auditAmounts(
+        const TrustLineID trustLineID,
+        const AuditNumber auditNumber);
+
 private:
     LoggerStream info() const;
 

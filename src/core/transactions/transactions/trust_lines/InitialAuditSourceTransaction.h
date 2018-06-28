@@ -6,7 +6,7 @@
 #include "../../../crypto/keychain.h"
 #include "../../../crypto/lamportkeys.h"
 
-#include "../../../network/messages/trust_lines/AuditMessage.h"
+#include "../../../network/messages/trust_lines/InitialAuditMessage.h"
 
 using namespace crypto;
 

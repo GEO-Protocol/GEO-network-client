@@ -314,7 +314,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
 #ifdef TESTS
     mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
         mNextNode,
-        path->maxFlow());
+        mPathStats->maxFlow());
 #endif
 
     debug() << "Send request reservation (" << mPathStats->maxFlow() << ") message to " << mNextNode;

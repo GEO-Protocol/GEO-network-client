@@ -1,6 +1,6 @@
-#include "InitialAuditSourceTransaction.h"
+#include "AuditSourceTransaction.h"
 
-InitialAuditSourceTransaction::InitialAuditSourceTransaction(
+AuditSourceTransaction::AuditSourceTransaction(
     const NodeUUID &nodeUUID,
     const NodeUUID &contractorUUID,
     const SerializedEquivalent equivalent,
@@ -9,17 +9,18 @@ InitialAuditSourceTransaction::InitialAuditSourceTransaction(
     Keystore *keystore,
     Logger &logger) :
     BaseTransaction(
-        BaseTransaction::InitialAuditSourceTransactionType,
+        BaseTransaction::AuditSourceTransactionType,
         nodeUUID,
         equivalent,
         logger),
     mContractorUUID(contractorUUID),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mKeysStore(keystore)
+    mKeysStore(keystore),
+    mAuditNumber(mTrustLines->auditNumber(mContractorUUID) + 1)
 {}
 
-TransactionResult::SharedConst InitialAuditSourceTransaction::run()
+TransactionResult::SharedConst AuditSourceTransaction::run()
 {
     switch (mStep) {
         case Stages::Initialisation: {
@@ -34,7 +35,7 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::run()
     }
 }
 
-TransactionResult::SharedConst InitialAuditSourceTransaction::runInitialisationStage()
+TransactionResult::SharedConst AuditSourceTransaction::runInitialisationStage()
 {
     auto serializedAuditData = getOwnSerializedAuditData();
     auto ioTransaction = mStorageHandler->beginTransaction();
@@ -51,7 +52,7 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runInitialisationS
         return resultDone();
     }
 
-    sendMessage<InitialAuditMessage>(
+    sendMessage<AuditMessage>(
         mContractorUUID,
         mEquivalent,
         mNodeUUID,
@@ -61,22 +62,22 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runInitialisationS
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
     mStep = ResponseProcessing;
     return resultWaitForMessageTypes(
-        {Message::TrustLines_InitialAudit},
+        {Message::TrustLines_Audit},
         kWaitMillisecondsForResponse);
 }
 
-TransactionResult::SharedConst InitialAuditSourceTransaction::runResponseProcessingStage()
+TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStage()
 {
     if (mContext.empty()) {
         warning() << "No audit confirmation message received";
         return resultDone();
     }
 
-    auto message = popNextMessage<InitialAuditMessage>();
+    auto message = popNextMessage<AuditMessage>();
     info() << "Contractor send audit message";
     if (message->senderUUID != mContractorUUID) {
         warning() << "Receive message from different sender: " << message->senderUUID;
-        return resultDone();
+        return resultContinuePreviousState();
     }
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
@@ -84,20 +85,30 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runResponseProcess
 
     auto contractorSerializedAuditData = getContractorSerializedAuditData();
     if (!keyChain.checkSign(
-            ioTransaction,
-            contractorSerializedAuditData.first,
-            contractorSerializedAuditData.second,
-            message->signature(),
-            message->keyNumber())) {
+        ioTransaction,
+        contractorSerializedAuditData.first,
+        contractorSerializedAuditData.second,
+        message->signature(),
+        message->keyNumber())) {
         warning() << "Contractor didn't sign message correct";
+        // todo run conflict resolver TA
         return resultDone();
     }
     info() << "Signature is correct";
     try {
-        mTrustLines->setTrustLineState(
+        mTrustLines->setTrustLineAuditNumber(
             ioTransaction,
             mContractorUUID,
-            TrustLine::Active);
+            mAuditNumber);
+        // if TL is empty: incomingAmount, outgoingAmount and balance is 0
+        // we marked it as Archived
+        if (mTrustLines->isTrustLineEmpty(
+            mContractorUUID)) {
+            mTrustLines->setTrustLineState(
+                ioTransaction,
+                mContractorUUID,
+                TrustLine::Archived);
+        }
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't save Audit or update TL on storage. Details: " << e.what();
@@ -105,7 +116,7 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runResponseProcess
     }
     keyChain.saveAudit(
         ioTransaction,
-        kInitialAuditNumber,
+        mAuditNumber,
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first,
         message->keyNumber(),
@@ -119,7 +130,7 @@ TransactionResult::SharedConst InitialAuditSourceTransaction::runResponseProcess
     return resultDone();
 }
 
-pair<BytesShared, size_t> InitialAuditSourceTransaction::getOwnSerializedAuditData()
+pair<BytesShared, size_t> AuditSourceTransaction::getOwnSerializedAuditData()
 {
     size_t bytesCount = sizeof(AuditNumber)
                         + kTrustLineAmountBytesCount
@@ -130,9 +141,10 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getOwnSerializedAuditDa
 
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
-        &kInitialAuditNumber,
+        &mAuditNumber,
         sizeof(AuditNumber));
     dataBytesOffset += sizeof(AuditNumber);
+    info() << "own audit " << mAuditNumber;
 
     vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->incomingTrustAmount(
@@ -142,6 +154,7 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getOwnSerializedAuditDa
         incomingAmountBufferBytes.data(),
         kTrustLineAmountBytesCount);
     dataBytesOffset += kTrustLineAmountBytesCount;
+    info() << "own incoming amount " << mTrustLines->incomingTrustAmount(mContractorUUID);
 
     vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->outgoingTrustAmount(
@@ -151,6 +164,7 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getOwnSerializedAuditDa
         outgoingAmountBufferBytes.data(),
         kTrustLineAmountBytesCount);
     dataBytesOffset += kTrustLineAmountBytesCount;
+    info() << "own outgoing amount " << mTrustLines->outgoingTrustAmount(mContractorUUID);
 
     vector<byte> balanceBufferBytes = trustLineBalanceToBytes(
         const_cast<TrustLineBalance&>(mTrustLines->balance(mContractorUUID)));
@@ -158,13 +172,14 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getOwnSerializedAuditDa
         dataBytesShared.get() + dataBytesOffset,
         balanceBufferBytes.data(),
         kTrustLineBalanceSerializeBytesCount);
+    info() << "own balance " << mTrustLines->balance(mContractorUUID);
 
     return make_pair(
         dataBytesShared,
         bytesCount);
 }
 
-pair<BytesShared, size_t> InitialAuditSourceTransaction::getContractorSerializedAuditData()
+pair<BytesShared, size_t> AuditSourceTransaction::getContractorSerializedAuditData()
 {
     size_t bytesCount = sizeof(AuditNumber)
                         + kTrustLineAmountBytesCount
@@ -175,9 +190,10 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getContractorSerialized
 
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
-        &kInitialAuditNumber,
+        &mAuditNumber,
         sizeof(AuditNumber));
     dataBytesOffset += sizeof(AuditNumber);
+    info() << "contractor audit " << mAuditNumber;
 
     vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->outgoingTrustAmount(
@@ -187,6 +203,7 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getContractorSerialized
         outgoingAmountBufferBytes.data(),
         kTrustLineAmountBytesCount);
     dataBytesOffset += kTrustLineAmountBytesCount;
+    info() << "contractor outgoing amount " << mTrustLines->outgoingTrustAmount(mContractorUUID);
 
     vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->incomingTrustAmount(
@@ -196,6 +213,7 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getContractorSerialized
         incomingAmountBufferBytes.data(),
         kTrustLineAmountBytesCount);
     dataBytesOffset += kTrustLineAmountBytesCount;
+    info() << "contractor incoming amount " << mTrustLines->incomingTrustAmount(mContractorUUID);
 
     auto contractorBalance = -1 * mTrustLines->balance(mContractorUUID);
     vector<byte> balanceBufferBytes = trustLineBalanceToBytes(
@@ -204,15 +222,16 @@ pair<BytesShared, size_t> InitialAuditSourceTransaction::getContractorSerialized
         dataBytesShared.get() + dataBytesOffset,
         balanceBufferBytes.data(),
         kTrustLineBalanceSerializeBytesCount);
+    info() << "contractor balance " << contractorBalance;
 
     return make_pair(
         dataBytesShared,
         bytesCount);
 }
 
-const string InitialAuditSourceTransaction::logHeader() const
+const string AuditSourceTransaction::logHeader() const
 {
     stringstream s;
-    s << "[InitialAuditSourceTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
+    s << "[AuditSourceTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

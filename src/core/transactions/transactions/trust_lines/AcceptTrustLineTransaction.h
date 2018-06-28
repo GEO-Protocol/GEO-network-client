@@ -37,9 +37,6 @@ public:
 
     TransactionResult::SharedConst run();
 
-protected:
-    TransactionResult::SharedConst resultDone();
-
 protected: // trust lines history shortcuts
     void populateHistory(
         IOTransaction::Shared ioTransaction,

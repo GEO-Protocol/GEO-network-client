@@ -68,10 +68,23 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
 TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 {
     const auto kContractor = mMessage->senderUUID;
-    info() << "sender: " << mMessage->senderUUID << " equivalent: " << mMessage->equivalent();
+    info() << "sender: " << mMessage->senderUUID;
 
     if (kContractor == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
+        return resultDone();
+    }
+
+    if (!mTrustLines->trustLineIsPresent(kContractor)) {
+        warning() << "Trust line already present.";
+        sendMessage<TrustLineConfirmationMessage>(
+            kContractor,
+            mEquivalent,
+            mNodeUUID,
+            mMessage->transactionUUID(),
+            false,
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+
         return resultDone();
     }
 
@@ -94,29 +107,21 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         return resultDone();
     }
 
-    TrustLine::ConstShared previousTL = nullptr;
-    try {
-        previousTL = mTrustLines->trustLineReadOnly(mMessage->senderUUID);
-    } catch (NotFoundError &e) {
-        warning() << "Attempt to change not existing TL";
-        // todo send response message with reject state
-        return resultDone();
-    }
-
+    auto previousTL = mTrustLines->trustLineReadOnly(mMessage->senderUUID);
     TrustLinesManager::TrustLineOperationResult kOperationResult;
 
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        mTrustLines->setTrustLineState(
-            ioTransaction,
-            kContractor,
-            TrustLine::AuditPending);
-
         kOperationResult = mTrustLines->setIncoming(
             ioTransaction,
             kContractor,
             mMessage->amount());
+
+        mTrustLines->setTrustLineState(
+            ioTransaction,
+            kContractor,
+            TrustLine::AuditPending);
 
         switch (kOperationResult) {
         case TrustLinesManager::TrustLineOperationResult::Opened: {
@@ -219,16 +224,6 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         return resultDone();
 
     } catch (ValueError &) {
-        ioTransaction->rollback();
-        mTrustLines->trustLines()[mMessage->senderUUID] = make_shared<TrustLine>(
-            mMessage->senderUUID,
-            previousTL->trustLineID(),
-            previousTL->incomingTrustAmount(),
-            previousTL->outgoingTrustAmount(),
-            previousTL->balance(),
-            previousTL->isContractorGateway(),
-            previousTL->state(),
-            previousTL->currentAuditNumber());
         warning() << "Attempt to set incoming trust line from the node " << kContractor << " failed. "
                << "Cannot open trustline with zero amount.";
         sendMessage<TrustLineConfirmationMessage>(
@@ -238,22 +233,6 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
             mMessage->transactionUUID(),
             false,
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
-        return resultDone();
-
-    } catch (NotFoundError &e) {
-        ioTransaction->rollback();
-        mTrustLines->trustLines()[mMessage->senderUUID] = make_shared<TrustLine>(
-            mMessage->senderUUID,
-            previousTL->trustLineID(),
-            previousTL->incomingTrustAmount(),
-            previousTL->outgoingTrustAmount(),
-            previousTL->balance(),
-            previousTL->isContractorGateway(),
-            previousTL->state(),
-            previousTL->currentAuditNumber());
-        // todo send response
-        warning() << "Attempt to update incoming trust line from the node " << kContractor << " failed. "
-               << "Details are: " << e.what();
         return resultDone();
 
     } catch (IOError &e) {
@@ -267,21 +246,21 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
             previousTL->isContractorGateway(),
             previousTL->state(),
             previousTL->currentAuditNumber());
-        // todo send response
+        sendMessage<TrustLineConfirmationMessage>(
+            mMessage->senderUUID,
+            mEquivalent,
+            mNodeUUID,
+            mMessage->transactionUUID(),
+            false,
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         warning() << "Attempt to set incoming trust line to the node " << kContractor << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();
 
         // Rethrowing the exception,
-        // because the TA can't finish propely and no result may be returned.
+        // because the TA can't finish properly and no result may be returned.
         throw e;
     }
-}
-
-TransactionResult::SharedConst SetIncomingTrustLineTransaction::resultDone()
-{
-    return make_shared<TransactionResult>(
-        TransactionState::exit());
 }
 
 const string SetIncomingTrustLineTransaction::logHeader() const

@@ -5,6 +5,7 @@
 #include "../../common/memory/MemoryUtils.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/NotFoundError.h"
+#include "../../common/exceptions/ValueError.h"
 #include "../../crypto/lamportkeys.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
@@ -22,6 +23,10 @@ public:
     void saveKey(
         const TrustLineID trustLineID,
         const PublicKey::Shared publicKey,
+        const KeyNumber number);
+
+    void invalidKey(
+        const TrustLineID trustLineID,
         const KeyNumber number);
 
     PublicKey::Shared keyByNumber(

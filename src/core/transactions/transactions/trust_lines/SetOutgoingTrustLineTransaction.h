@@ -12,7 +12,7 @@
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
-#include "InitialAuditSourceTransaction.h"
+#include "AuditSourceTransaction.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 #include "../../../interface/visual_interface/interface/VisualInterface.h"
 #include "../../../interface/visual_interface/visual/VisualResult.h"

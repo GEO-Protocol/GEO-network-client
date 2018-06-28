@@ -58,14 +58,14 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runInitialisa
         error() << "Can't update TL state or store contractor public key. Details " << e.what();
         return resultDone();
     }
-    info() << "Key saved, send crc confirmation " << mMessage->publicKey()->crc();
-    sendMessage<PublicKeyCRCConfirmation>(
+    info() << "Key saved, send hash confirmation";
+    sendMessage<PublicKeyHashConfirmation>(
         mMessage->senderUUID,
         mMessage->equivalent(),
         mNodeUUID,
         mMessage->transactionUUID(),
         mMessage->number(),
-        mMessage->publicKey()->crc());
+        mMessage->publicKey()->hash());
     mReceivedKeysCount = 1;
 
     mStep = ReceiveNextKey;
@@ -101,14 +101,14 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
             return resultDone();
         }
     }
-    info() << "Key saved, send crc confirmation " << message->publicKey()->crc();
-    sendMessage<PublicKeyCRCConfirmation>(
+    info() << "Key saved, send hash confirmation";
+    sendMessage<PublicKeyHashConfirmation>(
         message->senderUUID,
         message->equivalent(),
         mNodeUUID,
         message->transactionUUID(),
         message->number(),
-        message->publicKey()->crc());
+        message->publicKey()->hash());
     mReceivedKeysCount++;
     if (mReceivedKeysCount >= TrustLineKeychain::kDefaultKeysSetSize) {
         info() << "All keys received";

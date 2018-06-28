@@ -58,6 +58,19 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         return resultDone();
     }
 
+    if (mTrustLines->trustLineIsPresent(kContractor)) {
+        warning() << "Trust line already present.";
+        sendMessage<TrustLineConfirmationMessage>(
+            kContractor,
+            mEquivalent,
+            mNodeUUID,
+            mMessage->transactionUUID(),
+            false,
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+
+        return resultDone();
+    }
+
     // Trust line must be created (or updated) in the internal storage.
     // Also, history record must be written about this operation.
     // Both writes must be done atomically, so the IO transaction is used.
@@ -74,6 +87,18 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
             false,
             ConfirmationMessage::ContractorBanned);
 
+        return resultDone();
+    }
+
+    if (mMessage->amount() == 0) {
+        warning() << "Can't establish trust line with zero amount.";
+        sendMessage<TrustLineConfirmationMessage>(
+            kContractor,
+            mEquivalent,
+            mNodeUUID,
+            mMessage->transactionUUID(),
+            false,
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         return resultDone();
     }
 
@@ -107,20 +132,6 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 
         return resultDone();
 
-    } catch (ValueError &e) {
-        ioTransaction->rollback();
-        mTrustLines->trustLines().erase(kContractor);
-        warning() << "Attempt to set incoming trust line from the node " << kContractor << " failed. "
-                  << "Details are: " << e.what();
-        sendMessage<TrustLineConfirmationMessage>(
-            kContractor,
-            mEquivalent,
-            mNodeUUID,
-            mMessage->transactionUUID(),
-            false,
-            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
-        return resultDone();
-
     } catch (IOError &e) {
         ioTransaction->rollback();
         mTrustLines->trustLines().erase(kContractor);
@@ -132,12 +143,6 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         // because the TA can't finish properly and no result may be returned.
         throw e;
     }
-}
-
-TransactionResult::SharedConst AcceptTrustLineTransaction::resultDone()
-{
-    return make_shared<TransactionResult>(
-        TransactionState::exit());
 }
 
 const string AcceptTrustLineTransaction::logHeader() const

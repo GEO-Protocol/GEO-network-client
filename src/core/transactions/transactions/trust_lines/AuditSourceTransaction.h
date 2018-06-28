@@ -1,23 +1,22 @@
-#ifndef GEO_NETWORK_CLIENT_PUBLICKEYSSHARINGSOURCETRANSACTION_H
-#define GEO_NETWORK_CLIENT_PUBLICKEYSSHARINGSOURCETRANSACTION_H
+#ifndef GEO_NETWORK_CLIENT_AUDITSOURCETRANSACTION_H
+#define GEO_NETWORK_CLIENT_AUDITSOURCETRANSACTION_H
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../crypto/keychain.h"
 #include "../../../crypto/lamportkeys.h"
 
-#include "../../../network/messages/trust_lines/PublicKeyMessage.h"
-#include "../../../network/messages/trust_lines/PublicKeyHashConfirmation.h"
+#include "../../../network/messages/trust_lines/AuditMessage.h"
 
 using namespace crypto;
 
-class PublicKeysSharingSourceTransaction : public BaseTransaction {
+class AuditSourceTransaction : public BaseTransaction {
 
 public:
-    typedef shared_ptr<PublicKeysSharingSourceTransaction> Shared;
+    typedef shared_ptr<AuditSourceTransaction> Shared;
 
 public:
-    PublicKeysSharingSourceTransaction(
+    AuditSourceTransaction(
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
         const SerializedEquivalent equivalent,
@@ -31,7 +30,7 @@ public:
 protected:
     enum Stages {
         Initialisation = 1,
-        SendNextKey = 2,
+        ResponseProcessing = 2,
     };
 
 protected: // log
@@ -40,19 +39,23 @@ protected: // log
 private:
     TransactionResult::SharedConst runInitialisationStage();
 
-    TransactionResult::SharedConst runSendNextKeyStage();
+    TransactionResult::SharedConst runResponseProcessingStage();
+
+    pair<BytesShared, size_t> getOwnSerializedAuditData();
+
+    pair<BytesShared, size_t> getContractorSerializedAuditData();
 
 private:
-    static const uint32_t kWaitMillisecondsForResponse = 3000;
+    static const uint32_t kWaitMillisecondsForResponse = 5000;
 
-protected:
+private:
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
-    KeyNumber mCurrentKeyNumber;
-    lamport::PublicKey::Shared mCurrentPublicKey;
+    pair<lamport::Signature::Shared, KeyNumber> mOwnSignatureAndKeyNumber;
+    AuditNumber mAuditNumber;
 };
 
 
-#endif //GEO_NETWORK_CLIENT_PUBLICKEYSSHARINGSOURCETRANSACTION_H
+#endif //GEO_NETWORK_CLIENT_AUDITSOURCETRANSACTION_H

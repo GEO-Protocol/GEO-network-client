@@ -531,9 +531,7 @@ void BasePaymentTransaction::commit(
                 kPathIDAndReservation.second);
         }
         if (mTrustLines->isTrustLineEmpty(kNodeUUIDAndReservations.first)) {
-            mTrustLines->removeTrustLine(
-                ioTransaction,
-                kNodeUUIDAndReservations.first);
+            // todo mark TL as archived
         } else {
             ioTransaction->trustLinesHandler()->updateTrustLine(
                 mTrustLines->trustLines().at(
@@ -1061,7 +1059,7 @@ bool BasePaymentTransaction::checkPublicKeysAppropriate()
             return false;
         }
         auto publicKey = mParticipantsPublicKeys[nodeAndPublicKeyHash.second.first];
-        if (*publicKey->hash().get() != *nodeAndPublicKeyHash.second.second.get()) {
+        if (*publicKey->hash() != *nodeAndPublicKeyHash.second.second) {
             warning() << "there are different public key hashes for node " << nodeAndPublicKeyHash.first
                       << " [" << nodeAndPublicKeyHash.second.first << "]";
             return false;

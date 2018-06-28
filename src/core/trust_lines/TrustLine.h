@@ -29,6 +29,7 @@ public:
         KeysPending = 2,
         AuditPending = 3,
         Active = 4,
+        Archived = 5,
     };
 
 public:
@@ -42,11 +43,20 @@ public:
         TrustLineState state = Init,
         AuditNumber auditNumber = 0);
 
+    TrustLine(
+        const NodeUUID &nodeUUID,
+        const TrustLineID trustLineID,
+        bool isContractorGateway,
+        TrustLineState state);
+
     void setIncomingTrustAmount(
         const TrustLineAmount &amount);
 
     void setOutgoingTrustAmount(
         const TrustLineAmount &amount);
+
+    void setBalance(
+        const TrustLineBalance &balance);
 
     void pay(
         const TrustLineAmount &amount);

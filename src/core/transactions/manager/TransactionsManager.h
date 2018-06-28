@@ -61,6 +61,7 @@
 #include "../transactions/trust_lines/CloseOutgoingTrustLineTransaction.h"
 #include "../transactions/trust_lines/PublicKeysSharingTargetTransaction.h"
 #include "../transactions/trust_lines/InitialAuditTargetTransaction.h"
+#include "../transactions/trust_lines/AuditTargetTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -198,6 +199,9 @@ protected: // Transactions
         PublicKeyMessage::Shared message);
 
     void launchInitialAuditTargetTransaction(
+        InitialAuditMessage::Shared message);
+
+    void launchAuditTargetTransaction(
         AuditMessage::Shared message);
 
     /*

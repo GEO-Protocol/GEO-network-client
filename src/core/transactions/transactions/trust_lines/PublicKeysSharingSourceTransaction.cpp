@@ -64,7 +64,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runInitialisa
     info() << "Send key number: " << mCurrentKeyNumber;
     mStep = SendNextKey;
     return resultWaitForMessageTypes(
-        {Message::TrustLines_CRCConfirmation},
+        {Message::TrustLines_HashConfirmation},
         kWaitMillisecondsForResponse);
 }
 
@@ -74,9 +74,9 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runSendNextKe
         warning() << "No confirmation message received";
         return resultDone();
     }
-    auto message = popNextMessage<PublicKeyCRCConfirmation>();
-    if (message->number() != mCurrentKeyNumber || message->crcConfirmation() != mCurrentPublicKey->crc()) {
-        warning() << "Number or CRC is incorrect";
+    auto message = popNextMessage<PublicKeyHashConfirmation>();
+    if (message->number() != mCurrentKeyNumber || *message->hashConfirmation() != *mCurrentPublicKey->hash()) {
+        warning() << "Number or Hash is incorrect";
         return resultDone();
     }
     info() << "Key number: " << mCurrentKeyNumber << " confirmed";
@@ -119,7 +119,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runSendNextKe
         mCurrentPublicKey);
     info() << "Send key number: " << mCurrentKeyNumber;
     return resultWaitForMessageTypes(
-        {Message::TrustLines_CRCConfirmation},
+        {Message::TrustLines_HashConfirmation},
         kWaitMillisecondsForResponse);
 }
 

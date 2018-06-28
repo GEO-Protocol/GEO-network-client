@@ -74,8 +74,6 @@ public:
 
     const KeyHash::Shared hash() const;
 
-    const uint64_t crc() const;
-
 public:
     using BaseKey::BaseKey;
 

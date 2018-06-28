@@ -196,12 +196,12 @@ pair<lamport::Signature::Shared, KeyNumber> TrustLineKeychain::sign(
 {
     dataGuard(data, size);
 
-    // todo: throw KeyError if no key is available;
-
     pair<PrivateKey*, KeyNumber> privateKeyAndNumber;
     try {
         privateKeyAndNumber = ioTransaction->ownKeysHandler()->nextAvailableKey(
             mTrustLineID);
+        // todo: decrypt private key.
+        // todo: throw KeyError if no key is available;
     } catch (NotFoundError &e) {
         warning() << "Can't get available private key for TL " << mTrustLineID;
         throw e;
@@ -211,10 +211,6 @@ pair<lamport::Signature::Shared, KeyNumber> TrustLineKeychain::sign(
         data.get(),
         size,
         privateKeyAndNumber.first);
-    // todo: read PKey
-    // todo: decrypt it.
-    // todo: read sign
-    // todo: !! store cutted private key back and mark it as used.
 
     return make_pair(
         signature,
@@ -334,6 +330,15 @@ void TrustLineKeychain::saveAudit(
         incomingAmount,
         outgoingAmount,
         balance);
+
+    ioTransaction->ownKeysHandler()->invalidKey(
+        mTrustLineID,
+        ownKeyNumber,
+        ownSignature);
+
+    ioTransaction->contractorKeysHandler()->invalidKey(
+        mTrustLineID,
+        contractorKeyNumber);
 }
 
 void TrustLineKeychain::keyNumberGuard(

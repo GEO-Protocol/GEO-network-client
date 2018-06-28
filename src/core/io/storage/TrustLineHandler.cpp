@@ -14,9 +14,6 @@ TrustLineHandler::TrustLineHandler(
                    "(id INTEGER PRIMARY KEY, "
                    "state INTEGER NOT NULL, "
                    "contractor BLOB NOT NULL, "
-                   "incoming_amount BLOB NOT NULL, "
-                   "outgoing_amount BLOB NOT NULL, "
-                   "balance BLOB NOT NULL, "
                    "equivalent INTEGER NOT NULL, "
                    "is_contractor_gateway INTEGER NOT NULL DEFAULT 0);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
@@ -93,14 +90,14 @@ vector<TrustLine::Shared> TrustLineHandler::allTrustLinesByEquivalent(
                           "Bad binding of Equivalent; sqlite error: " + to_string(rc));
     }
     sqlite3_step(stmt);
-    uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
+    auto rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     vector<TrustLine::Shared> result;
     result.reserve(rowCount);
 
-    string query = "SELECT id, state, contractor, incoming_amount, outgoing_amount, "
-                    "balance, is_contractor_gateway FROM " + mTableName + " WHERE equivalent = ?";
+    string query = "SELECT id, state, contractor, is_contractor_gateway FROM "
+                   + mTableName + " WHERE equivalent = ?";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::allTrustLinesByEquivalent: "
@@ -112,40 +109,19 @@ vector<TrustLine::Shared> TrustLineHandler::allTrustLinesByEquivalent(
                           "Bad binding of Equivalent; sqlite error: " + to_string(rc));
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        TrustLineID id = (TrustLineID)sqlite3_column_int(stmt, 0);
+        auto id = (TrustLineID)sqlite3_column_int(stmt, 0);
 
-        TrustLine::TrustLineState state = (TrustLine::TrustLineState)sqlite3_column_int(stmt, 1);
+        auto state = (TrustLine::TrustLineState)sqlite3_column_int(stmt, 1);
 
         NodeUUID contractor((uint8_t*)sqlite3_column_blob(stmt, 2));
 
-        byte* incomingAmountBytes = (byte*)sqlite3_column_blob(stmt, 3);
-        vector<byte> incomingAmountBufferBytes(
-            incomingAmountBytes,
-            incomingAmountBytes + kTrustLineAmountBytesCount);
-        TrustLineAmount incomingAmount = bytesToTrustLineAmount(incomingAmountBufferBytes);
-
-        byte* outgoingAmountBytes = (byte*)sqlite3_column_blob(stmt, 4);
-        vector<byte> outgoingAmountBufferBytes(
-            outgoingAmountBytes,
-            outgoingAmountBytes + kTrustLineAmountBytesCount);
-        TrustLineAmount outgoingAmount = bytesToTrustLineAmount(outgoingAmountBufferBytes);
-
-        byte* balanceBytes = (byte*)sqlite3_column_blob(stmt, 5);
-        vector<byte> balanceBufferBytes(
-            balanceBytes,
-            balanceBytes + kTrustLineBalanceSerializeBytesCount);
-        TrustLineBalance balance = bytesToTrustLineBalance(balanceBufferBytes);
-
-        int32_t isContractorGateway = sqlite3_column_int(stmt, 6);
+        int32_t isContractorGateway = sqlite3_column_int(stmt, 3);
 
         try {
             result.push_back(
                 make_shared<TrustLine>(
                     contractor,
                     id,
-                    incomingAmount,
-                    outgoingAmount,
-                    balance,
                     isContractorGateway != 0,
                     state));
         } catch (...) {
@@ -197,57 +173,39 @@ void TrustLineHandler::saveTrustLine(
     const SerializedEquivalent equivalent)
 {
     string query = "INSERT OR REPLACE INTO " + mTableName +
-                   "(id, state, contractor, equivalent, incoming_amount, outgoing_amount, "
-                   "balance, is_contractor_gateway) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+                   "(id, state, contractor, equivalent, is_contractor_gateway) "
+                           "VALUES (?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert or replace: "
+        throw IOError("TrustLineHandler::saveTrustLine: "
                               "Bad query; sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_bind_int(stmt, 1, trustLine->trustLineID());
     if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert or replace: "
+        throw IOError("TrustLineHandler::saveTrustLine: "
                           "Bad binding of ID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_int(stmt, 2, (int)trustLine->state());
     if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert or replace: "
+        throw IOError("TrustLineHandler::saveTrustLine: "
                           "Bad binding of State; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 3, trustLine->contractorNodeUUID().data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert or replace: "
+        throw IOError("TrustLineHandler::saveTrustLine: "
                           "Bad binding of Contractor; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_int(stmt, 4, equivalent);
     if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert or replace: "
+        throw IOError("TrustLineHandler::saveTrustLine: "
                           "Bad binding of Equivalent; sqlite error: " + to_string(rc));
     }
-    vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(trustLine->incomingTrustAmount());
-    rc = sqlite3_bind_blob(stmt, 5, incomingAmountBufferBytes.data(), kTrustLineAmountBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert or replace: "
-                          "Bad binding of Incoming Amount; sqlite error: " + to_string(rc));
-    }
-    vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(trustLine->outgoingTrustAmount());
-    rc = sqlite3_bind_blob(stmt, 6, outgoingAmountBufferBytes.data(), kTrustLineAmountBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert or replace: "
-                          "Bad binding of Outgoing Amount; sqlite error: " + to_string(rc));
-    }
-    vector<byte> balanceBufferBytes = trustLineBalanceToBytes(const_cast<TrustLineBalance&>(trustLine->balance()));
-    rc = sqlite3_bind_blob(stmt, 7, balanceBufferBytes.data(), kTrustLineBalanceSerializeBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert or replace: "
-                          "Bad binding of Balance; sqlite error: " + to_string(rc));
-    }
     int32_t isContractorGateway = trustLine->isContractorGateway();
-    rc = sqlite3_bind_int(stmt, 8, isContractorGateway);
+    rc = sqlite3_bind_int(stmt, 5, isContractorGateway);
     if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert or replace: "
+        throw IOError("TrustLineHandler::saveTrustLine: "
                           "Bad binding of IsContractorGateway; sqlite error: " + to_string(rc));
     }
 
@@ -256,10 +214,10 @@ void TrustLineHandler::saveTrustLine(
     sqlite3_finalize(stmt);
     if (rc == SQLITE_DONE) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "prepare inserting or replacing is completed successfully";
+        info() << "prepare inserting is completed successfully";
 #endif
     } else {
-        throw IOError("TrustLineHandler::insert or replace: "
+        throw IOError("TrustLineHandler::saveTrustLine: "
                           "Run query; sqlite error: " + to_string(rc));
     }
 }
@@ -269,8 +227,8 @@ void TrustLineHandler::updateTrustLine(
     const SerializedEquivalent equivalent)
 {
     string query = "UPDATE " + mTableName +
-                   " SET state = ?, incoming_amount = ?, outgoing_amount = ?, balance = ?, "
-                   "is_contractor_gateway = ? WHERE id = ? AND equivalent = ? AND contractor = ?;";
+                   " SET state = ?, is_contractor_gateway = ? "
+                   "WHERE id = ? AND equivalent = ? AND contractor = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -283,41 +241,23 @@ void TrustLineHandler::updateTrustLine(
         throw IOError("TrustLineHandler::update: "
                           "Bad binding of State; sqlite error: " + to_string(rc));
     }
-    vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(trustLine->incomingTrustAmount());
-    rc = sqlite3_bind_blob(stmt, 2, incomingAmountBufferBytes.data(), kTrustLineAmountBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::update: "
-                          "Bad binding of Incoming Amount; sqlite error: " + to_string(rc));
-    }
-    vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(trustLine->outgoingTrustAmount());
-    rc = sqlite3_bind_blob(stmt, 3, outgoingAmountBufferBytes.data(), kTrustLineAmountBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::update: "
-                          "Bad binding of Outgoing Amount; sqlite error: " + to_string(rc));
-    }
-    vector<byte> balanceBufferBytes = trustLineBalanceToBytes(const_cast<TrustLineBalance&>(trustLine->balance()));
-    rc = sqlite3_bind_blob(stmt, 4, balanceBufferBytes.data(), kTrustLineBalanceSerializeBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::update: "
-                          "Bad binding of Balance; sqlite error: " + to_string(rc));
-    }
     int32_t isContractorGateway = trustLine->isContractorGateway();
-    rc = sqlite3_bind_int(stmt, 5, isContractorGateway);
+    rc = sqlite3_bind_int(stmt, 2, isContractorGateway);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::update: "
                           "Bad binding of IsContractorGateway; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 6, trustLine->trustLineID());
+    rc = sqlite3_bind_int(stmt, 3, trustLine->trustLineID());
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::update: "
                           "Bad binding of ID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 7, equivalent);
+    rc = sqlite3_bind_int(stmt, 4, equivalent);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::update: "
                           "Bad binding of Equivalent; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 8, trustLine->contractorNodeUUID().data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 5, trustLine->contractorNodeUUID().data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::update: "
                           "Bad binding of Contractor; sqlite error: " + to_string(rc));
@@ -352,7 +292,7 @@ vector<SerializedEquivalent> TrustLineHandler::equivalents()
 
     vector<SerializedEquivalent> result;
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        SerializedEquivalent equivalent = (SerializedEquivalent)sqlite3_column_int(stmt, 0);
+        auto equivalent = (SerializedEquivalent)sqlite3_column_int(stmt, 0);
         result.push_back(equivalent);
     }
     sqlite3_reset(stmt);

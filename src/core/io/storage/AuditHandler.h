@@ -5,7 +5,9 @@
 #include "../../common/Types.h"
 #include "../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../common/exceptions/IOError.h"
+#include "../../common/exceptions/NotFoundError.h"
 #include "../../crypto/lamportscheme.h"
+#include "record/audit/AuditRecord.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -21,7 +23,7 @@ public:
 
     void saveAudit(
         AuditNumber number,
-        TrustLineID TrustLineID,
+        TrustLineID trustLineID,
         lamport::KeyHash::Shared ownKeyHash,
         lamport::Signature::Shared ownSign,
         lamport::KeyHash::Shared contractorKeyHash,
@@ -29,6 +31,9 @@ public:
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);
+
+    const AuditRecord::Shared getActualAudit(
+        TrustLineID trustLineID);
 
 private:
     LoggerStream info() const;

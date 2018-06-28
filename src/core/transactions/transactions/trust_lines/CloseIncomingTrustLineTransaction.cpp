@@ -9,6 +9,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
+    Keystore *keystore,
     Logger &logger)
     noexcept :
 
@@ -23,10 +24,26 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     mTopologyTrustLinesManager(topologyTrustLinesManager),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
-    mSubsystemsController(subsystemsController)
+    mSubsystemsController(subsystemsController),
+    mKeysStore(keystore)
 {}
 
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
+{
+    switch (mStep) {
+        case Stages::Initialisation: {
+            return runInitialisationStage();
+        }
+        case Stages::ResponseProcessing: {
+            return runResponseProcessingStage();
+        }
+        default:
+            throw ValueError(logHeader() + "::run: "
+                "wrong value of mStep");
+    }
+}
+
+TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitialisationStage()
 {
     if (!mSubsystemsController->isRunTrustLineTransactions()) {
         debug() << "It is forbidden run trust line transactions";
@@ -39,20 +56,29 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
         return resultProtocolError();
     }
 
+    try {
+        mPreviousTL = mTrustLines->trustLineReadOnly(mCommand->contractorUUID());
+    } catch (NotFoundError &e) {
+        warning() << "Attempt to change not existing TL";
+        return resultProtocolError();
+    }
+
     // Trust line must be created (or updated) in the internal storage.
     // Also, history record must be written about this operation.
     // Both writes must be done atomically, so the IO transaction is used.
     auto ioTransaction = mStorageHandler->beginTransaction();
-    TrustLine::ConstShared previousTL = nullptr;
     try {
-        previousTL = mTrustLines->trustLineReadOnly(mCommand->contractorUUID());
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
         mTrustLines->closeIncoming(
             ioTransaction,
             kContractor);
 
-        populateHistory(ioTransaction, TrustLineRecord::ClosingIncoming);
+        mTrustLines->setTrustLineState(
+            ioTransaction,
+            mCommand->contractorUUID(),
+            TrustLine::AuditPending);
+
         // remove this TL from Topology TrustLines Manager
         mTopologyTrustLinesManager->addTrustLine(
             make_shared<TopologyTrustLine>(
@@ -74,28 +100,24 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
             mTransactionUUID,
             mCommand->contractorUUID());
 
+        mStep = ResponseProcessing;
         return resultOK();
-
-    } catch (NotFoundError &e) {
-        ioTransaction->rollback();
-        warning() << "Attempt to close incoming trust line from the node " << kContractor << " failed. "
-               << "Details are: " << e.what();
-        return resultProtocolError();
 
     } catch (IOError &e) {
         ioTransaction->rollback();
         // return closed TL
-        auto trustLine = make_shared<TrustLine>(
+        mTrustLines->trustLines()[mCommand->contractorUUID()] = make_shared<TrustLine>(
             mCommand->contractorUUID(),
-            previousTL->trustLineID(),
-            previousTL->incomingTrustAmount(),
-            previousTL->outgoingTrustAmount(),
-            previousTL->balance(),
-            previousTL->isContractorGateway());
-        mTrustLines->trustLines()[mCommand->contractorUUID()] = trustLine;
+            mPreviousTL->trustLineID(),
+            mPreviousTL->incomingTrustAmount(),
+            mPreviousTL->outgoingTrustAmount(),
+            mPreviousTL->balance(),
+            mPreviousTL->isContractorGateway(),
+            mPreviousTL->state(),
+            mPreviousTL->currentAuditNumber());
         warning() << "Attempt to close incoming trust line from the node " << kContractor << " failed. "
-               << "IO transaction can't be completed. "
-               << "Details are: " << e.what();
+                  << "IO transaction can't be completed. "
+                  << "Details are: " << e.what();
 
         // Rethrowing the exception,
         // because the TA can't finish properly and no result may be returned.
@@ -103,10 +125,68 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
     }
 }
 
+TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponseProcessingStage()
+{
+    if (mContext.empty()) {
+        warning() << "Contractor don't send response";
+        // todo serializing of this TA need discuss
+        return resultDone();
+    }
+    auto message = popNextMessage<TrustLineConfirmationMessage>();
+    info() << "contractor " << message->senderUUID << " confirmed closing incoming TL.";
+    if (message->senderUUID != mCommand->contractorUUID()) {
+        warning() << "Sender is not contractor of this transaction";
+        return resultContinuePreviousState();
+    }
+    if (!mTrustLines->trustLineIsPresent(message->senderUUID)) {
+        warning() << "Something wrong, because TL must be created";
+        // todo : need correct reaction
+        return resultDone();
+    }
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    try {
+        if (message->state() != ConfirmationMessage::OK) {
+            warning() << "Contractor didn't accept closing incoming TL. Response code: " << message->state();
+            mTrustLines->setIncoming(
+                ioTransaction,
+                message->senderUUID,
+                mPreviousTL->incomingTrustAmount());
+            mTrustLines->setTrustLineState(
+                ioTransaction,
+                message->senderUUID,
+                mPreviousTL->state());
+            processConfirmationMessage(message);
+            return resultDone();
+        }
+
+        populateHistory(ioTransaction, TrustLineRecord::ClosingIncoming);
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        // todo : need return intermediate state of TL
+        error() << "Attempt to process confirmation from contractor " << message->senderUUID << " failed. "
+                << "IO transaction can't be completed. Details are: " << e.what();
+        return resultDone();
+    }
+
+    processConfirmationMessage(message);
+    const auto kTransaction = make_shared<AuditSourceTransaction>(
+        mNodeUUID,
+        message->senderUUID,
+        mEquivalent,
+        mTrustLines,
+        mStorageHandler,
+        mKeysStore,
+        mLog);
+    launchSubsidiaryTransaction(kTransaction);
+    return resultDone();
+}
+
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::resultOK()
 {
-    return transactionResultFromCommand(
-        mCommand->responseOK());
+    return transactionResultFromCommandAndWaitForMessageTypes(
+        mCommand->responseOK(),
+        {Message::TrustLines_Confirmation},
+        kWaitMillisecondsForResponse);
 }
 
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::resultForbiddenRun()

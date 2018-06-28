@@ -1,32 +1,34 @@
 cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
-        StorageHandler.h
-        StorageHandler.cpp
-        TrustLineHandler.h
-        TrustLineHandler.cpp
-        TransactionsHandler.h
-        TransactionsHandler.cpp
-        HistoryStorage.h
-        HistoryStorage.cpp
         record/base/Record.h
         record/base/Record.cpp
         record/trust_line/TrustLineRecord.h
         record/trust_line/TrustLineRecord.cpp
         record/payment/PaymentRecord.h
         record/payment/PaymentRecord.cpp
+        record/audit/AuditRecord.h
+        record/audit/AuditRecord.cpp
 
+        StorageHandler.h
+        StorageHandler.cpp
         IOTransaction.cpp
         IOTransaction.h
 
-        CommunicatorMessagesQueueHandler.h
-        CommunicatorMessagesQueueHandler.cpp
+        TrustLineHandler.h
+        TrustLineHandler.cpp
+        TransactionsHandler.h
+        TransactionsHandler.cpp
+        HistoryStorage.h
+        HistoryStorage.cpp
 
         CommunicatorStorageHandler.h
         CommunicatorStorageHandler.cpp
-
         CommunicatorIOTransaction.h
         CommunicatorIOTransaction.cpp
+
+        CommunicatorMessagesQueueHandler.h
+        CommunicatorMessagesQueueHandler.cpp
 
         BlackListHandler.h
         BlackListHandler.cpp

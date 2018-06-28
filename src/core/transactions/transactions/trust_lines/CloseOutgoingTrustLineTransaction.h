@@ -5,7 +5,7 @@
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../io/storage/StorageHandler.h"
 #include "../../../network/messages/trust_lines/CloseOutgoingTrustLineMessage.h"
-#include "../../../network/messages/base/transaction/ConfirmationMessage.h"
+#include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
 
@@ -26,9 +26,6 @@ public:
         noexcept;
 
     TransactionResult::SharedConst run();
-
-protected:
-    TransactionResult::SharedConst resultDone();
 
 protected: // trust lines history shortcuts
     void populateHistory(

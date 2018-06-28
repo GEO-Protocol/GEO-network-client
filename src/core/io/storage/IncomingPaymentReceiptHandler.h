@@ -27,6 +27,10 @@ public:
         const TrustLineAmount &amount,
         const Signature::Shared contractorSignature);
 
+    vector<TrustLineAmount> auditAmounts(
+        const TrustLineID trustLineID,
+        const AuditNumber auditNumber);
+
 private:
     LoggerStream info() const;
 

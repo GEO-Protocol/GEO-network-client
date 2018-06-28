@@ -29,7 +29,7 @@ set(SOURCE_FILES
     InitialAuditSourceTransaction.cpp
 
     InitialAuditTargetTransaction.h
-    InitialAuditTargetTransaction.cpp)
+    InitialAuditTargetTransaction.cpp AuditSourceTransaction.cpp AuditSourceTransaction.h AuditTargetTransaction.cpp AuditTargetTransaction.h)
 
 add_library(transactions__trustlines ${SOURCE_FILES})
 target_link_libraries(transactions__trustlines

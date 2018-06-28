@@ -53,7 +53,7 @@ AuditHandler::AuditHandler(
 
 void AuditHandler::saveAudit(
     AuditNumber number,
-    TrustLineID TrustLineID,
+    TrustLineID trustLineID,
     lamport::KeyHash::Shared ownKeyHash,
     lamport::Signature::Shared ownSign,
     lamport::KeyHash::Shared contractorKeyHash,
@@ -78,7 +78,7 @@ void AuditHandler::saveAudit(
         throw IOError("AuditHandler::saveAudit: "
                           "Bad binding of ID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 2, TrustLineID);
+    rc = sqlite3_bind_int(stmt, 2, trustLineID);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::saveAudit: "
                           "Bad binding of ID; sqlite error: " + to_string(rc));
@@ -134,6 +134,58 @@ void AuditHandler::saveAudit(
     } else {
         throw IOError("AuditHandler::saveAudit: "
                           "Run query; sqlite error: " + to_string(rc));
+    }
+}
+
+const AuditRecord::Shared AuditHandler::getActualAudit(
+    TrustLineID trustLineID)
+{
+    string query = "SELECT number, incoming_amount, outgoing_amount, balance FROM " + mTableName
+                   + " WHERE trust_line_id = ? ORDER BY number ASC LIMIT 1;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("AuditHandler::getActualAudit: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("AuditHandler::getActualAudit: "
+                          "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        auto number = (KeyNumber)sqlite3_column_int(stmt, 0);
+        auto incomingAmountBytes = (byte*)sqlite3_column_blob(stmt, 1);
+        vector<byte> incomingAmountBufferBytes(
+            incomingAmountBytes,
+            incomingAmountBytes + kTrustLineAmountBytesCount);
+        TrustLineAmount incomingAmount = bytesToTrustLineAmount(incomingAmountBufferBytes);
+
+        auto outgoingAmountBytes = (byte*)sqlite3_column_blob(stmt, 2);
+        vector<byte> outgoingAmountBufferBytes(
+            outgoingAmountBytes,
+            outgoingAmountBytes + kTrustLineAmountBytesCount);
+        TrustLineAmount outgoingAmount = bytesToTrustLineAmount(outgoingAmountBufferBytes);
+
+        auto balanceBytes = (byte*)sqlite3_column_blob(stmt, 3);
+        vector<byte> balanceBufferBytes(
+            balanceBytes,
+            balanceBytes + kTrustLineBalanceSerializeBytesCount);
+        TrustLineBalance balance = bytesToTrustLineBalance(balanceBufferBytes);
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        return make_shared<AuditRecord>(
+            number,
+            incomingAmount,
+            outgoingAmount,
+            balance);
+    } else {
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        throw NotFoundError("AuditHandler::getActualAudit: "
+                                "There are now records with requested trust line id");
     }
 }
 
