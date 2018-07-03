@@ -25,13 +25,13 @@ public:
         BytesShared transaction,
         size_t transactionBytesCount);
 
-    pair<BytesShared, size_t> getTransaction(
+    BytesShared getTransaction(
         const TransactionUUID &transactionUUID);
 
     void deleteRecord(
         const TransactionUUID &transactionUUID);
 
-    vector<pair<BytesShared, size_t>> allTransactions();
+    vector<BytesShared> allTransactions();
 
 private:
     LoggerStream info() const;

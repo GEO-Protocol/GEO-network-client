@@ -227,9 +227,6 @@ protected:
 
     void clearContext();
 
-    virtual void deserializeFromBytes(
-        BytesShared buffer);
-
     // TODO: add other states shortcuts here
     TransactionResult::Shared resultDone () const;
 

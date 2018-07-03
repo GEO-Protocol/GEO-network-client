@@ -54,7 +54,7 @@ void TransactionsHandler::saveRecord(
         throw IOError("TransactionsHandler::insert or replace: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::insert or replace: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
@@ -92,7 +92,7 @@ void TransactionsHandler::deleteRecord(
         throw IOError("TransactionsHandler::delete: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::delete: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
@@ -110,7 +110,7 @@ void TransactionsHandler::deleteRecord(
     }
 }
 
-pair<BytesShared, size_t> TransactionsHandler::getTransaction(
+BytesShared TransactionsHandler::getTransaction(
     const TransactionUUID &transactionUUID)
 {
     string query = "SELECT transaction_body, transaction_bytes_count FROM "
@@ -121,22 +121,22 @@ pair<BytesShared, size_t> TransactionsHandler::getTransaction(
         throw IOError("TransactionsHandler::getTransaction: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::getTransaction: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        size_t stateBytesCount = (size_t)sqlite3_column_int(stmt, 1);
-        BytesShared state = tryMalloc(stateBytesCount);
+        auto transactionBytesCount = (size_t)sqlite3_column_int(stmt, 1);
+        BytesShared transaction = tryMalloc(transactionBytesCount);
         memcpy(
-            state.get(),
+            transaction.get(),
             sqlite3_column_blob(stmt, 0),
-            stateBytesCount);
+            transactionBytesCount);
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
-        return make_pair(state, stateBytesCount);
+        return transaction;
     } else {
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
@@ -145,7 +145,7 @@ pair<BytesShared, size_t> TransactionsHandler::getTransaction(
     }
 }
 
-vector<pair<BytesShared, size_t>> TransactionsHandler::allTransactions()
+vector<BytesShared> TransactionsHandler::allTransactions()
 {
     string queryCount = "SELECT count(*) FROM " + mTableName;
     sqlite3_stmt *stmt;
@@ -155,10 +155,10 @@ vector<pair<BytesShared, size_t>> TransactionsHandler::allTransactions()
                           "Bad count query; sqlite error: " + to_string(rc));
     }
     sqlite3_step(stmt);
-    uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
+    auto rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    vector<pair<BytesShared, size_t>> result;
+    vector<BytesShared> result;
     result.reserve(rowCount);
     string query = "SELECT transaction_body, transaction_bytes_count FROM "
                    + mTableName + ";";
@@ -168,17 +168,15 @@ vector<pair<BytesShared, size_t>> TransactionsHandler::allTransactions()
                           "Bad query; sqlite error: " + to_string(rc));
     }
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        size_t stateBytesCount = (size_t) sqlite3_column_int(stmt, 1);
-        BytesShared state = tryMalloc(stateBytesCount);
+        auto transactionBytesCount = (size_t) sqlite3_column_int(stmt, 1);
+        BytesShared transaction = tryMalloc(transactionBytesCount);
         memcpy(
-            state.get(),
+            transaction.get(),
             sqlite3_column_blob(stmt, 0),
-            stateBytesCount);
+            transactionBytesCount);
 
         result.push_back(
-            make_pair(
-                state,
-                stateBytesCount));
+            transaction);
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);

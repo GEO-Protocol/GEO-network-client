@@ -1609,7 +1609,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
         warning() << "Sender is not participant of current transaction";
         return resultContinuePreviousState();
     }
-    auto participantSign = kMessage->sign();
+    auto participantSign = kMessage->signature();
     auto participantPublicKey = mParticipantsPublicKeys[mPaymentNodesIds[kMessage->senderUUID]];
     auto participantSerializedVotesData = getSerializedParticipantsVotesData(
         kMessage->senderUUID);

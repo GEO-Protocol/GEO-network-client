@@ -62,6 +62,10 @@ public:
                 set<NodeUUID> &creditorUUID,
                 const SerializedEquivalent equivalent)>
             BuildCycleFourNodesSignal;
+    typedef signals::signal<void(
+                const NodeUUID&,
+                const SerializedEquivalent)>
+            EmptyTrustLineAudit;
 
 public:
     BasePaymentTransaction(
@@ -410,6 +414,9 @@ public:
 
     // signal for launching transaction of building cycles on four nodes
     mutable BuildCycleFourNodesSignal mBuildCycleFourNodesSignal;
+
+    // signal for launching audit transaction on empty TL
+    mutable EmptyTrustLineAudit mEmptyTrustLineAuditSignal;
 
 protected:
     TrustLinesManager *mTrustLines;

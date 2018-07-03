@@ -25,12 +25,21 @@ public:
         Keystore *keystore,
         Logger &logger);
 
+    InitialAuditSourceTransaction(
+        BytesShared buffer,
+        const NodeUUID &nodeUUID,
+        TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        Keystore *keystore,
+        Logger &logger);
+
     TransactionResult::SharedConst run();
 
 protected:
     enum Stages {
         Initialisation = 1,
         ResponseProcessing = 2,
+        Recovery = 3,
     };
 
 protected: // log
@@ -41,12 +50,16 @@ private:
 
     TransactionResult::SharedConst runResponseProcessingStage();
 
+    TransactionResult::SharedConst runRecoveryStage();
+
+    pair<BytesShared, size_t> serializeToBytes() const override;
+
     pair<BytesShared, size_t> getOwnSerializedAuditData();
 
     pair<BytesShared, size_t> getContractorSerializedAuditData();
 
 private:
-    static const uint32_t kWaitMillisecondsForResponse = 5000;
+    static const uint32_t kWaitMillisecondsForResponse = 60000;
 
     static const AuditNumber kInitialAuditNumber = 0;
 

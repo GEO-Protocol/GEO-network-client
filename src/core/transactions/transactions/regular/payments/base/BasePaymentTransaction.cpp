@@ -81,13 +81,6 @@ BasePaymentTransaction::BasePaymentTransaction(
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
     mStep = Stages::Common_Recovery;
 
-    // mEquivalent
-    memcpy(
-        &mEquivalent,
-        buffer.get() + bytesBufferOffset,
-        sizeof(SerializedEquivalent));
-    bytesBufferOffset += sizeof(SerializedEquivalent);
-
     // mReservations count
     SerializedRecordsCount reservationsCount;
     memcpy(
@@ -511,9 +504,9 @@ void BasePaymentTransaction::commit(
     debug() << "Transaction committing...";
 
     for (const auto &kNodeUUIDAndReservations : mReservations) {
+        AmountReservation::ReservationDirection reservationDirection;
         for (const auto &kPathIDAndReservation : kNodeUUIDAndReservations.second) {
             mTrustLines->useReservation(kNodeUUIDAndReservations.first, kPathIDAndReservation.second);
-
             if (kPathIDAndReservation.second->direction() == AmountReservation::Outgoing) {
                 debug() << "Committed reservation: [ => ] " << kPathIDAndReservation.second->amount()
                         << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathIDAndReservation.first
@@ -526,12 +519,23 @@ void BasePaymentTransaction::commit(
                         << "]";
             }
 
+            reservationDirection = kPathIDAndReservation.second->direction();
             mTrustLines->dropAmountReservation(
                 kNodeUUIDAndReservations.first,
                 kPathIDAndReservation.second);
         }
         if (mTrustLines->isTrustLineEmpty(kNodeUUIDAndReservations.first)) {
-            // todo mark TL as archived
+            mTrustLines->setTrustLineState(
+                kNodeUUIDAndReservations.first,
+                TrustLine::AuditPending,
+                ioTransaction);
+            // if TL become empty, it is necessary to run Audit TA.
+            // AuditSource TA run on node which pay
+            if (reservationDirection == AmountReservation::Outgoing) {
+                mEmptyTrustLineAuditSignal(
+                    kNodeUUIDAndReservations.first,
+                    mEquivalent);
+            }
         } else {
             ioTransaction->trustLinesHandler()->updateTrustLine(
                 mTrustLines->trustLines().at(
@@ -1136,7 +1140,6 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
 {
     const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
-                        + sizeof(SerializedEquivalent)
                         + sizeof(SerializedRecordsCount)
                         + reservationsSizeInBytes()
                         + sizeof(SerializedRecordsCount)
@@ -1154,13 +1157,6 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
-
-    // mEquivalent
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &mEquivalent,
-        sizeof(SerializedEquivalent));
-    dataBytesOffset += sizeof(SerializedEquivalent);
 
     // Reservation Part
     auto kmReservationSize = (SerializedRecordsCount)mReservations.size();

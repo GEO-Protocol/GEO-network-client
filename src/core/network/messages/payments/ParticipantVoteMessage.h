@@ -16,20 +16,20 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        lamport::Signature::Shared sign);
+        lamport::Signature::Shared signature);
 
     ParticipantVoteMessage(
         BytesShared buffer);
 
     const MessageType typeID() const;
 
-    const lamport::Signature::Shared sign() const;
+    const lamport::Signature::Shared signature() const;
 
     pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
 private:
-    lamport::Signature::Shared mSign;
+    lamport::Signature::Shared mSignature;
 };
 
 

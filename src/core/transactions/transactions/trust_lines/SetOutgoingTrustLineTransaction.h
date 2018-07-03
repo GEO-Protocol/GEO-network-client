@@ -13,6 +13,7 @@
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "AuditSourceTransaction.h"
+#include "PublicKeysSharingSourceTransaction.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 #include "../../../interface/visual_interface/interface/VisualInterface.h"
 #include "../../../interface/visual_interface/visual/VisualResult.h"
@@ -51,12 +52,21 @@ public:
         Logger &logger)
         noexcept;
 
+    SetOutgoingTrustLineTransaction(
+        BytesShared buffer,
+        const NodeUUID &nodeUUID,
+        TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        Keystore *keystore,
+        Logger &logger);
+
     TransactionResult::SharedConst run();
 
 protected:
     enum Stages {
         Initialisation = 1,
         ResponseProcessing = 2,
+        Recovery = 3,
     };
 
 protected:
@@ -80,11 +90,17 @@ private:
 
     TransactionResult::SharedConst runResponseProcessingStage();
 
+    TransactionResult::SharedConst runRecoveryStage();
+
+    pair<BytesShared, size_t> serializeToBytes() const override;
+
 private:
     static const uint32_t kWaitMillisecondsForResponse = 60000;
 
 protected:
     SetOutgoingTrustLineCommand::Shared mCommand;
+    NodeUUID mContractorUUID;
+    TrustLineAmount mAmount;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     TopologyCacheManager *mTopologyCacheManager;
@@ -94,7 +110,8 @@ protected:
     VisualInterface *mVisualInterface;
     bool mIAmGateway;
 
-    TrustLine::ConstShared mPreviousTL = nullptr;
+    TrustLineAmount mPreviousOutgoingAmount;
+    TrustLine::TrustLineState mPreviousState;
     TrustLinesManager::TrustLineOperationResult mOperationResult = TrustLinesManager::NoChanges;
 };
 

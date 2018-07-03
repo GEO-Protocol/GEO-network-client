@@ -90,9 +90,9 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runSendNextKe
             info() << "All Keys Ready";
             try {
                 mTrustLines->setTrustLineState(
-                    ioTransaction,
                     mContractorUUID,
-                    TrustLine::AuditPending);
+                    TrustLine::AuditPending,
+                    ioTransaction);
             } catch (IOError &e) {
                 ioTransaction->rollback();
                 error() << "Can't update TL state. Details " << e.what();

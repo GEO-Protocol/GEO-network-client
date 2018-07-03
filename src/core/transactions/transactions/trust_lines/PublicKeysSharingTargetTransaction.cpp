@@ -42,9 +42,9 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runInitialisa
         mTrustLines->trustLineID(mMessage->senderUUID));
     try {
         mTrustLines->setTrustLineState(
-            ioTransaction,
             mMessage->senderUUID,
-            TrustLine::KeysPending);
+            TrustLine::KeysPending,
+            ioTransaction);
         keyChain.setContractorPublicKey(
             ioTransaction,
             mMessage->number(),
@@ -117,9 +117,9 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
             info() << "All Keys Ready";
             try {
                 mTrustLines->setTrustLineState(
-                    ioTransaction,
                     mMessage->senderUUID,
-                    TrustLine::AuditPending);
+                    TrustLine::AuditPending,
+                    ioTransaction);
             } catch (IOError &e) {
                 ioTransaction->rollback();
                 error() << "Can't update TL state. Details " << e.what();

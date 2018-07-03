@@ -25,24 +25,34 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
 
 TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
 {
-    const auto kContractor = mMessage->senderUUID;
     info() << "sender: " << mMessage->senderUUID;
 
-    if (kContractor == mNodeUUID) {
+    if (mMessage->senderUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
         return resultDone();
     }
 
-    if (!mTrustLines->trustLineIsPresent(kContractor)) {
-        warning() << "Trust line already present.";
+    if (!mTrustLines->trustLineIsPresent(mMessage->senderUUID)) {
+        warning() << "Trust line is absent.";
         sendMessage<TrustLineConfirmationMessage>(
-            kContractor,
+            mMessage->senderUUID,
             mEquivalent,
             mNodeUUID,
             mMessage->transactionUUID(),
             false,
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+        return resultDone();
+    }
 
+    if (mTrustLines->trustLineState(mMessage->senderUUID) != TrustLine::Active) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mMessage->senderUUID);
+        sendMessage<TrustLineConfirmationMessage>(
+            mMessage->senderUUID,
+            mEquivalent,
+            mNodeUUID,
+            mMessage->transactionUUID(),
+            false,
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         return resultDone();
     }
 
@@ -50,24 +60,22 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
     // Also, history record must be written about this operation.
     // Both writes must be done atomically, so the IO transaction is used.
     auto ioTransaction = mStorageHandler->beginTransaction();
-    TrustLine::ConstShared previousTL = nullptr;
+    TrustLine::ConstShared previousTL = mTrustLines->trustLineReadOnly(mMessage->senderUUID);
     try {
-        previousTL = mTrustLines->trustLineReadOnly(mMessage->senderUUID);
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
         mTrustLines->setTrustLineState(
-            ioTransaction,
-            kContractor,
-            TrustLine::AuditPending);
+            mMessage->senderUUID,
+            TrustLine::AuditPending,
+            ioTransaction);
 
         mTrustLines->closeOutgoing(
-            ioTransaction,
-            kContractor);
+            mMessage->senderUUID);
 
         populateHistory(ioTransaction, TrustLineRecord::RejectingOutgoing);
         mTopologyCacheManager->resetInitiatorCache();
         mMaxFlowCacheManager->clearCashes();
-        info() << "Outgoing trust line to the node " << kContractor
+        info() << "Outgoing trust line to the node " << mMessage->senderUUID
                << " has been successfully closed by remote node.";
 
         // Sending confirmation back.
@@ -85,16 +93,13 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
     } catch (IOError &e) {
         ioTransaction->rollback();
         // return closed TL
-        mTrustLines->trustLines()[mMessage->senderUUID] = make_shared<TrustLine>(
+        mTrustLines->setOutgoing(
             mMessage->senderUUID,
-            previousTL->trustLineID(),
-            previousTL->incomingTrustAmount(),
-            previousTL->outgoingTrustAmount(),
-            previousTL->balance(),
-            previousTL->isContractorGateway(),
-            previousTL->state(),
-            previousTL->currentAuditNumber());
-        warning() << "Attempt to close outgoing trust line to the node " << kContractor << " failed. "
+            previousTL->outgoingTrustAmount());
+        mTrustLines->setTrustLineState(
+            mMessage->senderUUID,
+            previousTL->state());
+        warning() << "Attempt to close outgoing trust line to the node " << mMessage->senderUUID << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();
         sendMessage<TrustLineConfirmationMessage>(

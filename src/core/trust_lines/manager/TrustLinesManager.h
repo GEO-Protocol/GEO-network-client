@@ -57,12 +57,13 @@ public:
 
     void open(
         const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount);
+        const TrustLineAmount &amount,
+        IOTransaction::Shared ioTransaction = nullptr);
 
     void accept(
-        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount);
+        const TrustLineAmount &amount,
+        IOTransaction::Shared ioTransaction = nullptr);
 
     void save(
         IOTransaction::Shared ioTransaction,
@@ -82,7 +83,6 @@ public:
      * @throws might throw exceptions of the closeOutgoing() method.
      */
     TrustLineOperationResult setOutgoing(
-        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount);
 
@@ -100,7 +100,6 @@ public:
      * @throws might throw exceptions of the closeIncoming() method.
      */
     TrustLineOperationResult setIncoming(
-        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount);
 
@@ -112,7 +111,6 @@ public:
      *         and it can't be removed at this moment.
      */
     void closeOutgoing(
-        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID);
 
     /**
@@ -123,7 +121,6 @@ public:
      *         and it can't be removed at this moment.
      */
     void closeIncoming(
-        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID);
 
     /**
@@ -137,9 +134,9 @@ public:
         bool contractorIsGateway);
 
     void setTrustLineState(
-        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID,
-        TrustLine::TrustLineState state);
+        TrustLine::TrustLineState state,
+        IOTransaction::Shared ioTransaction = nullptr);
 
     void setTrustLineAuditNumber(
         IOTransaction::Shared ioTransaction,
@@ -174,6 +171,9 @@ public:
         const NodeUUID &contractorUUID) const;
 
     const AuditNumber auditNumber(
+        const NodeUUID &contractorUUID) const;
+
+    const TrustLine::TrustLineState trustLineState(
         const NodeUUID &contractorUUID) const;
 
     /**

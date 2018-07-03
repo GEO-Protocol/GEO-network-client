@@ -21,6 +21,30 @@ InitialAuditTargetTransaction::InitialAuditTargetTransaction(
 
 TransactionResult::SharedConst InitialAuditTargetTransaction::run()
 {
+    info() << "Audit initialized by " << mMessage->senderUUID;
+    if (!mTrustLines->trustLineIsPresent(mMessage->senderUUID)) {
+        warning() << "Trust Line is absent";
+        sendMessage<InitialAuditMessage>(
+            mMessage->senderUUID,
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+        return resultDone();
+    }
+
+    if (mTrustLines->trustLineState(mMessage->senderUUID) != TrustLine::AuditPending) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mMessage->senderUUID);
+        // todo set TL state into conflict
+        sendMessage<InitialAuditMessage>(
+            mMessage->senderUUID,
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+        return resultDone();
+    }
+
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineID(mMessage->senderUUID));
@@ -33,20 +57,27 @@ TransactionResult::SharedConst InitialAuditTargetTransaction::run()
             mMessage->signature(),
             mMessage->keyNumber())) {
         warning() << "Contractor didn't sign message correct";
+        // todo set TL state into conflict
+        sendMessage<InitialAuditMessage>(
+            mMessage->senderUUID,
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         return resultDone();
     }
     info() << "Signature is correct";
     try {
         mTrustLines->setTrustLineState(
-            ioTransaction,
             mMessage->senderUUID,
-            TrustLine::Active);
+            TrustLine::Active,
+            ioTransaction);
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't save Audit or update TL on storage. Details: " << e.what();
-        return resultDone();
+        throw e;
     }
-    info() << "All data saved. Now TL is ready for using";
+    info() << "TL state updated";
 
     auto serializedAuditData = getOwnSerializedAuditData();
     try {
@@ -54,11 +85,25 @@ TransactionResult::SharedConst InitialAuditTargetTransaction::run()
             ioTransaction,
             serializedAuditData.first,
             serializedAuditData.second);
+
+        keyChain.saveAudit(
+            ioTransaction,
+            kInitialAuditNumber,
+            mOwnSignatureAndKeyNumber.second,
+            mOwnSignatureAndKeyNumber.first,
+            mMessage->keyNumber(),
+            mMessage->signature(),
+            mTrustLines->incomingTrustAmount(
+                mMessage->senderUUID),
+            mTrustLines->outgoingTrustAmount(
+                mMessage->senderUUID),
+            mTrustLines->balance(mMessage->senderUUID));
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't sign audit data. Details: " << e.what();
-        return resultDone();
+        throw e;
     }
+    info() << "All data saved. Now TL is ready for using";
 
     sendMessage<InitialAuditMessage>(
         mMessage->senderUUID,
@@ -68,19 +113,6 @@ TransactionResult::SharedConst InitialAuditTargetTransaction::run()
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
-
-    keyChain.saveAudit(
-        ioTransaction,
-        kInitialAuditNumber,
-        mOwnSignatureAndKeyNumber.second,
-        mOwnSignatureAndKeyNumber.first,
-        mMessage->keyNumber(),
-        mMessage->signature(),
-        mTrustLines->incomingTrustAmount(
-            mMessage->senderUUID),
-        mTrustLines->outgoingTrustAmount(
-            mMessage->senderUUID),
-        mTrustLines->balance(mMessage->senderUUID));
     return resultDone();
 }
 

@@ -61,6 +61,7 @@
 #include "../transactions/trust_lines/CloseOutgoingTrustLineTransaction.h"
 #include "../transactions/trust_lines/PublicKeysSharingTargetTransaction.h"
 #include "../transactions/trust_lines/InitialAuditTargetTransaction.h"
+#include "../transactions/trust_lines/AuditSourceTransaction.h"
 #include "../transactions/trust_lines/AuditTargetTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
@@ -387,6 +388,9 @@ protected:
     void subscribeForGatewayNotificationSignal(
         EquivalentsSubsystemsRouter::GatewayNotificationSignal &signal);
 
+    void subscribeForAuditOnEmptyTrustLine(
+        BasePaymentTransaction::EmptyTrustLineAudit &signal);
+
     // Slots
     void onSubsidiaryTransactionReady(
         BaseTransaction::Shared transaction);
@@ -427,12 +431,19 @@ protected:
 
     void onGatewayNotificationSlot();
 
+    void onAuditOnEmptyTrustLineSlot(
+        const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent);
+
 protected:
     void prepareAndSchedule(
         BaseTransaction::Shared transaction,
         bool regenerateUUID=false,
         bool subsidiaryTransactionSubscribe=false,
         bool outgoingMessagesSubscribe=false);
+
+    bool findSerializedTransactionAndLaunchIt(
+        Message::Shared message);
 
 protected:
     static string logHeader()

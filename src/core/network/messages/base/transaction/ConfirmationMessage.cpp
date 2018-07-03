@@ -20,7 +20,7 @@ ConfirmationMessage::ConfirmationMessage(
 {
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
-    SerializedOperationState *state = new (buffer.get() + bytesBufferOffset) SerializedOperationState;
+    auto *state = new (buffer.get() + bytesBufferOffset) SerializedOperationState;
     mState = (OperationState) (*state);
 }
 
@@ -52,10 +52,9 @@ pair<BytesShared, size_t> ConfirmationMessage::serializeToBytes() const
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
-    SerializedOperationState state(mState);
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
-        &state,
+        &mState,
         sizeof(SerializedOperationState));
     //----------------------------------------------------
     return make_pair(

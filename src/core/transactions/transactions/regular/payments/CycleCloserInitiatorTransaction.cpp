@@ -968,7 +968,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
         return resultContinuePreviousState();
     }
 
-    auto participantSign = kMessage->sign();
+    auto participantSign = kMessage->signature();
     auto participantPublicKey = mParticipantsPublicKeys[mPaymentNodesIds[kMessage->senderUUID]];
     auto participantSerializedVotesData = getSerializedParticipantsVotesData(
         kMessage->senderUUID);

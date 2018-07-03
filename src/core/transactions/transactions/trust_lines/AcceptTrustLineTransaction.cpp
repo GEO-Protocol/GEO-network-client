@@ -50,18 +50,17 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
 
 TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 {
-    const auto kContractor = mMessage->senderUUID;
-    info() << "sender: " << kContractor << " equivalent: " << mMessage->equivalent();
+    info() << "sender: " << mMessage->senderUUID;
 
-    if (kContractor == mNodeUUID) {
+    if (mMessage->senderUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
         return resultDone();
     }
 
-    if (mTrustLines->trustLineIsPresent(kContractor)) {
+    if (mTrustLines->trustLineIsPresent(mMessage->senderUUID)) {
         warning() << "Trust line already present.";
         sendMessage<TrustLineConfirmationMessage>(
-            kContractor,
+            mMessage->senderUUID,
             mEquivalent,
             mNodeUUID,
             mMessage->transactionUUID(),
@@ -77,10 +76,10 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     auto ioTransaction = mStorageHandler->beginTransaction();
 
     // if contractor in black list we should reject operation with TL
-    if (ioTransaction->blackListHandler()->checkIfNodeExists(kContractor)) {
-        warning() << "Contractor " << kContractor << " is in black list. Transaction rejected";
+    if (ioTransaction->blackListHandler()->checkIfNodeExists(mMessage->senderUUID)) {
+        warning() << "Contractor " << mMessage->senderUUID << " is in black list. Transaction rejected";
         sendMessage<TrustLineConfirmationMessage>(
-            kContractor,
+            mMessage->senderUUID,
             mEquivalent,
             mNodeUUID,
             mMessage->transactionUUID(),
@@ -93,7 +92,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     if (mMessage->amount() == 0) {
         warning() << "Can't establish trust line with zero amount.";
         sendMessage<TrustLineConfirmationMessage>(
-            kContractor,
+            mMessage->senderUUID,
             mEquivalent,
             mNodeUUID,
             mMessage->transactionUUID(),
@@ -107,11 +106,11 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         // there is no need to call commit manually.
         // todo : add parameter mSenderIsGateway
         mTrustLines->accept(
-            ioTransaction,
-            kContractor,
-            mMessage->amount());
+            mMessage->senderUUID,
+            mMessage->amount(),
+            ioTransaction);
         populateHistory(ioTransaction, TrustLineRecord::Accepting);
-        info() << "Incoming trust line from the node " << kContractor
+        info() << "Incoming trust line from the node " << mMessage->senderUUID
                << " has been successfully initialised with " << mMessage->amount();
 
         if (mSenderIsGateway) {
@@ -123,7 +122,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         }
 
         sendMessage<TrustLineConfirmationMessage>(
-            kContractor,
+            mMessage->senderUUID,
             mEquivalent,
             mNodeUUID,
             currentTransactionUUID(),
@@ -134,8 +133,8 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 
     } catch (IOError &e) {
         ioTransaction->rollback();
-        mTrustLines->trustLines().erase(kContractor);
-        warning() << "Attempt to accept incoming trust line from the node " << kContractor << " failed. "
+        mTrustLines->trustLines().erase(mMessage->senderUUID);
+        warning() << "Attempt to accept incoming trust line from the node " << mMessage->senderUUID << " failed. "
                   << "IO transaction can't be completed. "
                   << "Details are: " << e.what();
 

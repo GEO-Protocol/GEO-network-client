@@ -1,12 +1,12 @@
 #ifndef GEO_NETWORK_CLIENT_INITIALAUDITMESSAGE_H
 #define GEO_NETWORK_CLIENT_INITIALAUDITMESSAGE_H
 
-#include "../base/transaction/TransactionMessage.h"
+#include "../base/transaction/ConfirmationMessage.h"
 #include "../../../crypto/lamportscheme.h"
 
 using namespace crypto;
 
-class InitialAuditMessage : public TransactionMessage {
+class InitialAuditMessage : public ConfirmationMessage {
 
 public:
     typedef shared_ptr<InitialAuditMessage> Shared;
@@ -20,6 +20,12 @@ public:
         const lamport::Signature::Shared signature);
 
     InitialAuditMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+        OperationState state);
+
+    InitialAuditMessage(
         BytesShared buffer);
 
     const lamport::Signature::Shared signature() const;
@@ -28,7 +34,10 @@ public:
 
     const MessageType typeID() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
+    const bool isAddToConfirmationRequiredMessagesHandler() const;
+
+    pair<BytesShared, size_t> serializeToBytes() const
+        throw (bad_alloc);
 
 private:
     uint32_t mKeyNumber;

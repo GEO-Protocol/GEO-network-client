@@ -30,7 +30,26 @@ BaseTransaction::BaseTransaction(
     mLog(log),
     mNodeUUID(nodeUUID)
 {
-    deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = 0;
+
+    SerializedTransactionType *transactionType = new (buffer.get()) SerializedTransactionType;
+    mType = (TransactionType) *transactionType;
+    bytesBufferOffset += sizeof(SerializedTransactionType);
+    //-----------------------------------------------------
+    memcpy(
+        &mEquivalent,
+        buffer.get() + bytesBufferOffset,
+        sizeof(SerializedEquivalent));
+    bytesBufferOffset += sizeof(SerializedEquivalent);
+    //-----------------------------------------------------
+    memcpy(
+        mTransactionUUID.data,
+        buffer.get() + bytesBufferOffset,
+        TransactionUUID::kBytesSize);
+    bytesBufferOffset += TransactionUUID::kBytesSize;
+    //-----------------------------------------------------
+    SerializedStep *step = new (buffer.get() + bytesBufferOffset) SerializedStep;
+    mStep = *step;
 }
 
 BaseTransaction::BaseTransaction(
@@ -197,7 +216,8 @@ pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const
 {
     size_t bytesCount = sizeof(SerializedTransactionType) +
         TransactionUUID::kBytesSize +
-        sizeof(SerializedStep);
+        sizeof(SerializedStep) +
+        sizeof(SerializedEquivalent);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //-----------------------------------------------------
@@ -207,6 +227,12 @@ pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const
         &transactionType,
         sizeof(SerializedTransactionType));
     dataBytesOffset += sizeof(SerializedTransactionType);
+    //-----------------------------------------------------
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &mEquivalent,
+        sizeof(SerializedEquivalent));
+    dataBytesOffset += sizeof(SerializedEquivalent);
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
@@ -224,28 +250,10 @@ pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const
         bytesCount);
 }
 
-void BaseTransaction::deserializeFromBytes(
-    BytesShared buffer)
-{
-    size_t bytesBufferOffset = 0;
-
-    SerializedTransactionType *transactionType = new (buffer.get()) SerializedTransactionType;
-    mType = (TransactionType) *transactionType;
-    bytesBufferOffset += sizeof(SerializedTransactionType);
-    //-----------------------------------------------------
-    memcpy(
-        mTransactionUUID.data,
-        buffer.get() + bytesBufferOffset,
-        TransactionUUID::kBytesSize);
-    bytesBufferOffset += TransactionUUID::kBytesSize;
-    //-----------------------------------------------------
-    SerializedStep *step = new (buffer.get() + bytesBufferOffset) SerializedStep;
-    mStep = *step;
-}
-
 const size_t BaseTransaction::kOffsetToInheritedBytes()
 {
     static const size_t offset = sizeof(SerializedTransactionType)
+                                 + sizeof(SerializedEquivalent)
                                  + TransactionUUID::kBytesSize
                                  + sizeof(SerializedStep);
     return offset;

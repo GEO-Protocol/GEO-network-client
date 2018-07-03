@@ -23,23 +23,53 @@ AuditTargetTransaction::AuditTargetTransaction(
 TransactionResult::SharedConst AuditTargetTransaction::run()
 {
     info() << "Audit initialized by " << mMessage->senderUUID;
+    if (!mTrustLines->trustLineIsPresent(mMessage->senderUUID)) {
+        warning() << "Trust Line is absent";
+        sendMessage<InitialAuditMessage>(
+            mMessage->senderUUID,
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+        return resultDone();
+    }
+
+    if (mTrustLines->trustLineState(mMessage->senderUUID) != TrustLine::AuditPending) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mMessage->senderUUID);
+        // todo set TL state into conflict
+        sendMessage<InitialAuditMessage>(
+            mMessage->senderUUID,
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+        return resultDone();
+    }
+
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineID(mMessage->senderUUID));
 
     auto contractorSerializedAuditData = getContractorSerializedAuditData();
-    if (!keyChain.checkSign(
-        ioTransaction,
-        contractorSerializedAuditData.first,
-        contractorSerializedAuditData.second,
-        mMessage->signature(),
-        mMessage->keyNumber())) {
-        warning() << "Contractor didn't sign message correct";
-        // todo run conflict resolver TA
-        return resultDone();
-    }
-    info() << "Signature is correct";
     try {
+        if (!keyChain.checkSign(
+                ioTransaction,
+                contractorSerializedAuditData.first,
+                contractorSerializedAuditData.second,
+                mMessage->signature(),
+                mMessage->keyNumber())) {
+            warning() << "Contractor didn't sign message correct";
+            // todo set TL state into conflict
+            sendMessage<InitialAuditMessage>(
+                mMessage->senderUUID,
+                mEquivalent,
+                mNodeUUID,
+                currentTransactionUUID(),
+                ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+            return resultDone();
+        }
+        info() << "Signature is correct";
+
         mTrustLines->setTrustLineAuditNumber(
             ioTransaction,
             mMessage->senderUUID,
@@ -47,16 +77,17 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
         if (mTrustLines->isTrustLineEmpty(
                 mMessage->senderUUID)) {
             mTrustLines->setTrustLineState(
-                ioTransaction,
                 mMessage->senderUUID,
-                TrustLine::Archived);
+                TrustLine::Archived,
+                ioTransaction);
+            info() << "TL is Archived";
         }
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't update TL on storage. Details: " << e.what();
         return resultDone();
     }
-    info() << "All data saved. Now TL is ready for using";
+    info() << "TL state updated";
 
     auto serializedAuditData = getOwnSerializedAuditData();
     try {
@@ -64,11 +95,25 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             ioTransaction,
             serializedAuditData.first,
             serializedAuditData.second);
+
+        keyChain.saveAudit(
+            ioTransaction,
+            mAuditNumber,
+            mOwnSignatureAndKeyNumber.second,
+            mOwnSignatureAndKeyNumber.first,
+            mMessage->keyNumber(),
+            mMessage->signature(),
+            mTrustLines->incomingTrustAmount(
+                mMessage->senderUUID),
+            mTrustLines->outgoingTrustAmount(
+                mMessage->senderUUID),
+            mTrustLines->balance(mMessage->senderUUID));
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't sign audit data. Details: " << e.what();
         return resultDone();
     }
+    info() << "All data saved. Now TL is ready for using";
 
     sendMessage<AuditMessage>(
         mMessage->senderUUID,
@@ -78,19 +123,6 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
-
-    keyChain.saveAudit(
-        ioTransaction,
-        mAuditNumber,
-        mOwnSignatureAndKeyNumber.second,
-        mOwnSignatureAndKeyNumber.first,
-        mMessage->keyNumber(),
-        mMessage->signature(),
-        mTrustLines->incomingTrustAmount(
-            mMessage->senderUUID),
-        mTrustLines->outgoingTrustAmount(
-            mMessage->senderUUID),
-        mTrustLines->balance(mMessage->senderUUID));
     return resultDone();
 }
 

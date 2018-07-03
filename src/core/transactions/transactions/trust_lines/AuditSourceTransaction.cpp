@@ -20,6 +20,52 @@ AuditSourceTransaction::AuditSourceTransaction(
     mAuditNumber(mTrustLines->auditNumber(mContractorUUID) + 1)
 {}
 
+AuditSourceTransaction::AuditSourceTransaction(
+    BytesShared buffer,
+    const NodeUUID &nodeUUID,
+    TrustLinesManager *manager,
+    StorageHandler *storageHandler,
+    Keystore *keystore,
+    Logger &logger) :
+
+    BaseTransaction(
+        buffer,
+        nodeUUID,
+        logger),
+    mTrustLines(manager),
+    mStorageHandler(storageHandler),
+    mKeysStore(keystore)
+{
+    auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
+    mStep = Stages::Recovery;
+
+    memcpy(
+        mContractorUUID.data,
+        buffer.get() + bytesBufferOffset,
+        NodeUUID::kBytesSize);
+    bytesBufferOffset += NodeUUID::kBytesSize;
+
+    memcpy(
+        &mAuditNumber,
+        buffer.get() + bytesBufferOffset,
+        sizeof(AuditNumber));
+    bytesBufferOffset += sizeof(AuditNumber);
+
+    auto signature = make_shared<lamport::Signature>(
+        buffer.get() + bytesBufferOffset);
+    bytesBufferOffset += lamport::Signature::signatureSize();
+
+    KeyNumber keyNumber;
+    memcpy(
+        &keyNumber,
+        buffer.get() + bytesBufferOffset,
+        sizeof(KeyNumber));
+
+    mOwnSignatureAndKeyNumber = make_pair(
+        signature,
+        keyNumber);
+}
+
 TransactionResult::SharedConst AuditSourceTransaction::run()
 {
     switch (mStep) {
@@ -29,6 +75,9 @@ TransactionResult::SharedConst AuditSourceTransaction::run()
         case Stages::ResponseProcessing: {
             return runResponseProcessingStage();
         }
+        case Stages::Recovery: {
+            return runRecoveryStage();
+        }
         default:
             throw ValueError(logHeader() + "::run: "
                     "wrong value of mStep");
@@ -37,6 +86,13 @@ TransactionResult::SharedConst AuditSourceTransaction::run()
 
 TransactionResult::SharedConst AuditSourceTransaction::runInitialisationStage()
 {
+    info() << "Contractor " << mContractorUUID;
+    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::AuditPending) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
+        // todo implement actual reaction
+        return resultDone();
+    }
+
     auto serializedAuditData = getOwnSerializedAuditData();
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
@@ -46,6 +102,14 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitialisationStage()
             ioTransaction,
             serializedAuditData.first,
             serializedAuditData.second);
+
+        auto bytesAndCount = serializeToBytes();
+        info() << "Transaction serialized";
+        ioTransaction->transactionHandler()->saveRecord(
+            currentTransactionUUID(),
+            bytesAndCount.first,
+            bytesAndCount.second);
+        info() << "Transaction saved";
     } catch(IOError &e) {
         ioTransaction->rollback();
         error() << "Can't sign audit data. Details: " << e.what();
@@ -79,23 +143,43 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         warning() << "Receive message from different sender: " << message->senderUUID;
         return resultContinuePreviousState();
     }
+    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+        warning() << "Something wrong, because TL must be present";
+        // todo : need correct reaction
+        return resultDone();
+    }
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineID(mContractorUUID));
 
     auto contractorSerializedAuditData = getContractorSerializedAuditData();
-    if (!keyChain.checkSign(
-        ioTransaction,
-        contractorSerializedAuditData.first,
-        contractorSerializedAuditData.second,
-        message->signature(),
-        message->keyNumber())) {
-        warning() << "Contractor didn't sign message correct";
-        // todo run conflict resolver TA
-        return resultDone();
-    }
-    info() << "Signature is correct";
     try {
+        if (message->state() != ConfirmationMessage::OK) {
+            warning() << "Contractor didn't accept audit. Response code: " << message->state();
+            // delete this transaction from storage
+            ioTransaction->transactionHandler()->deleteRecord(
+                currentTransactionUUID());
+            processConfirmationMessage(message);
+            // todo run conflict resolver TA
+            return resultDone();
+        }
+
+        if (!keyChain.checkSign(
+                ioTransaction,
+                contractorSerializedAuditData.first,
+                contractorSerializedAuditData.second,
+                message->signature(),
+                message->keyNumber())) {
+            warning() << "Contractor didn't sign message correct";
+            // delete this transaction from storage
+            ioTransaction->transactionHandler()->deleteRecord(
+                currentTransactionUUID());
+            processConfirmationMessage(message);
+            // todo run conflict resolver TA
+            return resultDone();
+        }
+        info() << "Signature is correct";
+
         mTrustLines->setTrustLineAuditNumber(
             ioTransaction,
             mContractorUUID,
@@ -105,29 +189,102 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         if (mTrustLines->isTrustLineEmpty(
             mContractorUUID)) {
             mTrustLines->setTrustLineState(
-                ioTransaction,
                 mContractorUUID,
-                TrustLine::Archived);
+                TrustLine::Archived,
+                ioTransaction);
+            info() << "TL is Archived";
         }
+
+        keyChain.saveAudit(
+            ioTransaction,
+            mAuditNumber,
+            mOwnSignatureAndKeyNumber.second,
+            mOwnSignatureAndKeyNumber.first,
+            message->keyNumber(),
+            message->signature(),
+            mTrustLines->incomingTrustAmount(
+                mContractorUUID),
+            mTrustLines->outgoingTrustAmount(
+                mContractorUUID),
+            mTrustLines->balance(mContractorUUID));
+        // delete this transaction from storage
+        ioTransaction->transactionHandler()->deleteRecord(
+            currentTransactionUUID());
     } catch (IOError &e) {
         ioTransaction->rollback();
-        error() << "Can't save Audit or update TL on storage. Details: " << e.what();
+        error() << "Can't check signature, update TL on storage or save Audit. Details: " << e.what();
         return resultDone();
     }
-    keyChain.saveAudit(
-        ioTransaction,
-        mAuditNumber,
-        mOwnSignatureAndKeyNumber.second,
-        mOwnSignatureAndKeyNumber.first,
-        message->keyNumber(),
-        message->signature(),
-        mTrustLines->incomingTrustAmount(
-            mContractorUUID),
-        mTrustLines->outgoingTrustAmount(
-            mContractorUUID),
-        mTrustLines->balance(mContractorUUID));
+    processConfirmationMessage(message);
     info() << "All data saved. Now TL is ready for using";
+    sendMessage<ConfirmationMessage>(
+        mContractorUUID,
+        mEquivalent,
+        mNodeUUID,
+        mTransactionUUID);
     return resultDone();
+}
+
+TransactionResult::SharedConst AuditSourceTransaction::runRecoveryStage()
+{
+    info() << "Recovery";
+    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+        warning() << "Trust line is absent.";
+        return resultDone();
+    }
+    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::AuditPending) {
+        warning() << "Invalid TL state for this TA state: "
+                  << mTrustLines->trustLineState(mContractorUUID);
+        return resultDone();
+    }
+    mStep = ResponseProcessing;
+    return runResponseProcessingStage();
+}
+
+pair<BytesShared, size_t> AuditSourceTransaction::serializeToBytes() const
+{
+    const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second
+                        + NodeUUID::kBytesSize
+                        + sizeof(AuditNumber)
+                        + lamport::Signature::signatureSize()
+                        + sizeof(KeyNumber);
+
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
+
+    memcpy(
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second);
+    dataBytesOffset += parentBytesAndCount.second;
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        mContractorUUID.data,
+        NodeUUID::kBytesSize);
+    dataBytesOffset += NodeUUID::kBytesSize;
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &mAuditNumber,
+        sizeof(AuditNumber));
+    dataBytesOffset += sizeof(AuditNumber);
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        mOwnSignatureAndKeyNumber.first->data(),
+        lamport::Signature::signatureSize());
+    dataBytesOffset += lamport::Signature::signatureSize();
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &mOwnSignatureAndKeyNumber.second,
+        sizeof(KeyNumber));
+
+    return make_pair(
+        dataBytesShared,
+        bytesCount);
 }
 
 pair<BytesShared, size_t> AuditSourceTransaction::getOwnSerializedAuditData()

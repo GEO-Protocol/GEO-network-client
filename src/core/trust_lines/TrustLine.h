@@ -22,14 +22,16 @@ class TrustLine {
 public:
     typedef shared_ptr<TrustLine> Shared;
     typedef shared_ptr<const TrustLine> ConstShared;
+    typedef uint16_t SerializedTrustLineState;
 
 public:
     enum TrustLineState {
         Init = 1,
-        KeysPending = 2,
-        AuditPending = 3,
-        Active = 4,
-        Archived = 5,
+        Modify = 2,
+        KeysPending = 3,
+        AuditPending = 4,
+        Active = 5,
+        Archived = 6,
     };
 
 public:

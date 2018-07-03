@@ -7,6 +7,8 @@
 #include "../../../messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 #include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
+#include "../../../messages/trust_lines/InitialAuditMessage.h"
+#include "../../../messages/trust_lines/AuditMessage.h"
 
 #include <boost/signals2.hpp>
 
@@ -89,6 +91,12 @@ protected: // messages handlers
         TransactionMessage::Shared message);
 
     void updateGatewayNotificationInTheQueue(
+        TransactionMessage::Shared message);
+
+    void updateInitialAuditInTheQueue(
+        TransactionMessage::Shared message);
+
+    void updateAuditInTheQueue(
         TransactionMessage::Shared message);
 
 protected:

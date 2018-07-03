@@ -4,12 +4,12 @@ ParticipantVoteMessage::ParticipantVoteMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    lamport::Signature::Shared sign) :
+    lamport::Signature::Shared signature) :
     TransactionMessage(
         equivalent,
         senderUUID,
         transactionUUID),
-    mSign(sign)
+    mSignature(signature)
 {}
 
 ParticipantVoteMessage::ParticipantVoteMessage(
@@ -18,9 +18,9 @@ ParticipantVoteMessage::ParticipantVoteMessage(
 {
     auto bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
-    auto sign = make_shared<lamport::Signature>(
+    auto signature = make_shared<lamport::Signature>(
         buffer.get() + bytesBufferOffset);
-    mSign = sign;
+    mSignature = signature;
 }
 
 const Message::MessageType ParticipantVoteMessage::typeID() const
@@ -28,9 +28,9 @@ const Message::MessageType ParticipantVoteMessage::typeID() const
     return Message::Payments_ParticipantVote;
 }
 
-const lamport::Signature::Shared ParticipantVoteMessage::sign() const
+const lamport::Signature::Shared ParticipantVoteMessage::signature() const
 {
-    return mSign;
+    return mSignature;
 }
 
 pair<BytesShared, size_t> ParticipantVoteMessage::serializeToBytes() const
@@ -54,7 +54,7 @@ pair<BytesShared, size_t> ParticipantVoteMessage::serializeToBytes() const
 
     memcpy(
         buffer.get() + dataBytesOffset,
-        mSign->data(),
+        mSignature->data(),
         lamport::Signature::signatureSize());
 
     return make_pair(

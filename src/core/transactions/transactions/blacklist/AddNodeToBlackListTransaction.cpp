@@ -47,7 +47,6 @@ TransactionResult::SharedConst AddNodeToBlackListTransaction::run()
 
         try {
             trustLineManager->closeIncoming(
-                ioTransaction,
                 kContractor);
 
             populateHistory(

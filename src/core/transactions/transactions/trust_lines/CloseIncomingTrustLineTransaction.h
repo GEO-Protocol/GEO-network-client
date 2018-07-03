@@ -34,12 +34,21 @@ public:
         Logger &logger)
     noexcept;
 
+    CloseIncomingTrustLineTransaction(
+        BytesShared buffer,
+        const NodeUUID &nodeUUID,
+        TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        Keystore *keystore,
+        Logger &logger);
+
     TransactionResult::SharedConst run();
 
 protected:
     enum Stages {
         Initialisation = 1,
         ResponseProcessing = 2,
+        Recovery = 3,
     };
 
 protected:
@@ -63,11 +72,16 @@ private:
 
     TransactionResult::SharedConst runResponseProcessingStage();
 
+    TransactionResult::SharedConst runRecoveryStage();
+
+    pair<BytesShared, size_t> serializeToBytes() const override;
+
 private:
     static const uint32_t kWaitMillisecondsForResponse = 60000;
 
 private:
     CloseIncomingTrustLineCommand::Shared mCommand;
+    NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     TopologyTrustLinesManager *mTopologyTrustLinesManager;
@@ -76,7 +90,8 @@ private:
     SubsystemsController *mSubsystemsController;
     Keystore *mKeysStore;
 
-    TrustLine::ConstShared mPreviousTL = nullptr;
+    TrustLineAmount mPreviousIncomingAmount;
+    TrustLine::TrustLineState mPreviousState;
 };
 
 

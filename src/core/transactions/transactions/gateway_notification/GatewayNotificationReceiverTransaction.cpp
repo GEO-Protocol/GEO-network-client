@@ -68,10 +68,9 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
     for (const auto &equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
         if (trustLinesManager->trustLineIsPresent(mMessage->senderUUID)) {
-            neighborsByEquivalents.push_back(
-                make_pair(
-                    equivalent,
-                    getNeighborsForEquivalent(equivalent)));
+            neighborsByEquivalents.emplace_back(
+                equivalent,
+                getNeighborsForEquivalent(equivalent));
         }
     }
     debug() << "Send routing tables to node " << mMessage->senderUUID;

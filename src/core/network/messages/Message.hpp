@@ -190,10 +190,6 @@ public:
     }
 
 protected:
-    virtual void deserializeFromBytes(
-        BytesShared buffer)
-    {}
-
     virtual const size_t kOffsetToInheritedBytes() const
     {
         return sizeof(SerializedType);
