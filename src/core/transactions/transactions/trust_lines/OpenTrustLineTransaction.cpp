@@ -98,9 +98,11 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitialisationStage(
         return resultProtocolError();
     }
 
+    auto ioTransaction = mStorageHandler->beginTransaction();
     mTrustLines->open(
         mContractorUUID,
-        mAmount);
+        mAmount,
+        ioTransaction);
     info() << "Outgoing trust line to the node " << mContractorUUID
            << " successfully initialised with " << mAmount;
 
@@ -126,7 +128,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitialisationStage(
     }
 
     try {
-        auto ioTransaction = mStorageHandler->beginTransaction();
         auto bytesAndCount = serializeToBytes();
         info() << "Transaction serialized";
         ioTransaction->transactionHandler()->saveRecord(
@@ -135,6 +136,9 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitialisationStage(
             bytesAndCount.second);
         info() << "Transaction saved";
     } catch (IOError &e) {
+        ioTransaction->rollback();
+        mTrustLines->removeTrustLine(
+            mContractorUUID);
         error() << "Error during saving TA. Details: " << e.what();
         throw e;
     }
@@ -164,7 +168,8 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
     if (message->state() != ConfirmationMessage::OK) {
         warning() << "Contractor didn't accept opening TL. Response code: " << message->state();
         mTrustLines->removeTrustLine(
-            mContractorUUID);
+            mContractorUUID,
+            ioTransaction);
         // delete this transaction from storage
         ioTransaction->transactionHandler()->deleteRecord(
             currentTransactionUUID());
@@ -172,10 +177,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
         return resultDone();
     }
     try {
-        // save into storage, because open create TL only in memory
-        mTrustLines->save(
-            ioTransaction,
-            mContractorUUID);
         mTrustLines->setTrustLineState(
             mContractorUUID,
             TrustLine::KeysPending,

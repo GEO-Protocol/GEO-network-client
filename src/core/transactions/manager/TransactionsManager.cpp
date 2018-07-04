@@ -267,7 +267,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                 }
                 break;
             }
-            case BaseTransaction::TransactionType::CloseIncomingTrustLineTransaction: {
+            case BaseTransaction::TransactionType::CloseIncomingTrustLineTransactionType: {
                 try {
                     auto transaction = make_shared<CloseIncomingTrustLineTransaction>(
                         kTABuffer,
@@ -1888,10 +1888,11 @@ void TransactionsManager::launchAddNodeToBlackListTransaction(
                 mStorageHandler,
                 mEquivalentsSubsystemsRouter,
                 mSubsystemsController,
+                mKeysStore,
                 mLog),
             true,
-            false,
-            true);
+            true,
+            false);
     } catch (ConflictError &e) {
         throw ConflictError(e.message());
     }
@@ -2476,7 +2477,7 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
             }
             break;
         }
-        case BaseTransaction::CloseIncomingTrustLineTransaction: {
+        case BaseTransaction::CloseIncomingTrustLineTransactionType: {
             try {
                 auto transaction = make_shared<CloseIncomingTrustLineTransaction>(
                     serializedTransaction,

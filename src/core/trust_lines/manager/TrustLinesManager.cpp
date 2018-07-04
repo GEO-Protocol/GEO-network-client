@@ -56,7 +56,7 @@ void TrustLinesManager::open(
     const TrustLineAmount &amount,
     IOTransaction::Shared ioTransaction)
 {
-    TrustLineID trustLineID = nextFreeID();
+    TrustLineID trustLineID = nextFreeID(ioTransaction);
     // In case if trust line to this contractor is absent,
     // and "amount" is greater than 0 - new trust line should be created.
     // contractor is not gateway by default
@@ -91,7 +91,7 @@ void TrustLinesManager::accept(
                 "can't establish trust line with zero amount.");
     }
 
-    TrustLineID trustLineID = nextFreeID();
+    TrustLineID trustLineID = nextFreeID(ioTransaction);
     // In case if TL to this contractor is absent,
     // and "amount" is greater than 0 - new trust line should be created.
     // contractor is not gateway by default
@@ -109,14 +109,6 @@ void TrustLinesManager::accept(
             ioTransaction,
             trustLine);
     }
-}
-
-void TrustLinesManager::save(
-    IOTransaction::Shared ioTransaction,
-    const NodeUUID &contractorUUID)
-{
-    auto trustLine = mTrustLines[contractorUUID];
-    saveToStorage(ioTransaction, trustLine);
 }
 
 TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
@@ -556,8 +548,8 @@ const bool TrustLinesManager::reservationIsPresent(
 }
 
 void TrustLinesManager::saveToStorage(
-        IOTransaction::Shared ioTransaction,
-        TrustLine::Shared trustLine)
+    IOTransaction::Shared ioTransaction,
+    TrustLine::Shared trustLine)
 {
     ioTransaction->trustLinesHandler()->saveTrustLine(
         trustLine,
@@ -600,7 +592,8 @@ void TrustLinesManager::updateTrustLine(
  * @throws NotFoundError
  */
 void TrustLinesManager::removeTrustLine(
-    const NodeUUID &contractorUUID)
+    const NodeUUID &contractorUUID,
+    IOTransaction::Shared ioTransaction)
 {
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
@@ -609,6 +602,12 @@ void TrustLinesManager::removeTrustLine(
     }
 
     mTrustLines.erase(contractorUUID);
+
+    if (ioTransaction != nullptr) {
+        ioTransaction->trustLinesHandler()->deleteTrustLine(
+            contractorUUID,
+            mEquivalent);
+    }
 }
 
 /**
@@ -1011,16 +1010,12 @@ vector<AmountReservation::ConstShared> TrustLinesManager::reservationsFromContra
         AmountReservation::ReservationDirection::Incoming);
 }
 
-const TrustLineID TrustLinesManager::nextFreeID() const
+const TrustLineID TrustLinesManager::nextFreeID(
+    IOTransaction::Shared ioTransaction) const
 {
-    if (mTrustLines.empty()) {
+    vector<TrustLineID> tmpIDs = ioTransaction->trustLinesHandler()->allIDs();
+    if (tmpIDs.empty()) {
         return 0;
-    }
-    vector<TrustLineID> tmpIDs;
-    tmpIDs.reserve(mTrustLines.size());
-    for (const auto &kTrustLine : mTrustLines) {
-        tmpIDs.push_back(
-            kTrustLine.second->trustLineID());
     }
     sort(tmpIDs.begin(), tmpIDs.end());
     auto prevElement = *tmpIDs.begin();

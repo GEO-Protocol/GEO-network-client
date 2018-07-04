@@ -11,7 +11,7 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
     noexcept:
 
     BaseTransaction(
-        BaseTransaction::CloseOutgoingTrustLineTransaction,
+        BaseTransaction::CloseOutgoingTrustLineTransactionType,
         message->transactionUUID(),
         nodeUUID,
         message->equivalent(),

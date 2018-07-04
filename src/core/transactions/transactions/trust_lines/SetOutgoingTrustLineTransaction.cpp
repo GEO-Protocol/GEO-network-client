@@ -194,7 +194,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitialisatio
                 s << VisualResult::OutgoingTrustLineOpen << kTokensSeparator
                   << microsecondsSinceUnixEpoch() << kTokensSeparator
                   << currentTransactionUUID() << kTokensSeparator
-                  << mCommand->contractorUUID() << kCommandsSeparator;
+                  << mContractorUUID << kCommandsSeparator;
                 auto message = s.str();
 
                 try {
@@ -211,7 +211,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitialisatio
                 s << VisualResult::OutgoingTrustLineClose << kTokensSeparator
                   << microsecondsSinceUnixEpoch() << kTokensSeparator
                   << currentTransactionUUID() << kTokensSeparator
-                  << mCommand->contractorUUID() << kCommandsSeparator;
+                  << mContractorUUID << kCommandsSeparator;
                 auto message = s.str();
 
                 try {

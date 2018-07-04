@@ -14,7 +14,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     noexcept :
 
     BaseTransaction(
-        BaseTransaction::CloseIncomingTrustLineTransaction,
+        BaseTransaction::CloseIncomingTrustLineTransactionType,
         nodeUUID,
         command->equivalent(),
         logger),
@@ -28,6 +28,32 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     mSubsystemsController(subsystemsController),
     mKeysStore(keystore)
 {}
+
+CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
+    const NodeUUID &nodeUUID,
+    SerializedEquivalent equivalent,
+    const NodeUUID &contractorUUID,
+    TrustLinesManager *manager,
+    StorageHandler *storageHandler,
+    TopologyTrustLinesManager *topologyTrustLinesManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
+    Keystore *keystore, Logger &logger) :
+    BaseTransaction(
+        BaseTransaction::CloseIncomingTrustLineTransactionType,
+        nodeUUID,
+        equivalent,
+        logger),
+    mContractorUUID(contractorUUID),
+    mTrustLines(manager),
+    mStorageHandler(storageHandler),
+    mTopologyTrustLinesManager(topologyTrustLinesManager),
+    mTopologyCacheManager(topologyCacheManager),
+    mMaxFlowCacheManager(maxFlowCacheManager),
+    mKeysStore(keystore)
+{
+    mStep = Stages::AddToBlackList;
+}
 
 CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     BytesShared buffer,
@@ -76,6 +102,9 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
         case Stages::Recovery: {
             return runRecoveryStage();
         }
+        case Stages::AddToBlackList: {
+            return runAddToBlackListStage();
+        }
         default:
             throw ValueError(logHeader() + "::run: "
                 "wrong value of mStep");
@@ -118,7 +147,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitialisat
             mContractorUUID);
 
         mTrustLines->setTrustLineState(
-            mCommand->contractorUUID(),
+            mContractorUUID,
             TrustLine::Modify,
             ioTransaction);
 
@@ -255,6 +284,85 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runRecoverySta
 
     mStep = ResponseProcessing;
     return runResponseProcessingStage();
+}
+
+TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runAddToBlackListStage()
+{
+    info() << "Close incoming TL to " << mContractorUUID << " after adding to black list";
+    try {
+        mPreviousIncomingAmount = mTrustLines->incomingTrustAmount(mContractorUUID);
+        mPreviousState = mTrustLines->trustLineState(mContractorUUID);
+    } catch (NotFoundError &e) {
+        warning() << "Attempt to change not existing TL";
+        return resultDone();
+    }
+
+    // Trust line must be created (or updated) in the internal storage.
+    // Also, history record must be written about this operation.
+    // Both writes must be done atomically, so the IO transaction is used.
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    try {
+        // note: io transaction would commit automatically on destructor call.
+        // there is no need to call commit manually.
+        mTrustLines->closeIncoming(
+            mContractorUUID);
+
+        mTrustLines->setTrustLineState(
+            mContractorUUID,
+            TrustLine::Modify,
+            ioTransaction);
+
+        // remove this TL from Topology TrustLines Manager
+        mTopologyTrustLinesManager->addTrustLine(
+            make_shared<TopologyTrustLine>(
+                mNodeUUID,
+                mContractorUUID,
+                make_shared<const TrustLineAmount>(0)));
+        mTopologyCacheManager->resetInitiatorCache();
+        mMaxFlowCacheManager->clearCashes();
+        info() << "Incoming trust line from the node " << mContractorUUID
+               << " successfully closed.";
+
+        // Notifying remote node about trust line state changed.
+        // Network communicator knows, that this message must be forced to be delivered,
+        // so the TA itself might finish without any response from the remote node.
+        sendMessage<CloseOutgoingTrustLineMessage>(
+            mContractorUUID,
+            mEquivalent,
+            mNodeUUID,
+            mTransactionUUID,
+            mContractorUUID);
+
+        auto bytesAndCount = serializeToBytes();
+        info() << "Transaction serialized";
+        ioTransaction->transactionHandler()->saveRecord(
+            currentTransactionUUID(),
+            bytesAndCount.first,
+            bytesAndCount.second);
+        info() << "Transaction saved";
+
+        mStep = ResponseProcessing;
+        return resultWaitForMessageTypes(
+            {Message::TrustLines_Confirmation},
+            kWaitMillisecondsForResponse);
+
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        // return closed TL
+        mTrustLines->setIncoming(
+            mContractorUUID,
+            mPreviousIncomingAmount);
+        mTrustLines->setTrustLineState(
+            mContractorUUID,
+            mPreviousState);
+        warning() << "Attempt to close incoming TL from the node " << mContractorUUID << " failed. "
+                  << "IO transaction can't be completed. "
+                  << "Details are: " << e.what();
+
+        // Rethrowing the exception,
+        // because the TA can't finish properly and no result may be returned.
+        throw e;
+    }
 }
 
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::resultOK()

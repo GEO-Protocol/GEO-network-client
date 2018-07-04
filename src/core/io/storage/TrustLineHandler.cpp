@@ -172,9 +172,9 @@ void TrustLineHandler::saveTrustLine(
     TrustLine::Shared trustLine,
     const SerializedEquivalent equivalent)
 {
-    string query = "INSERT OR REPLACE INTO " + mTableName +
+    string query = "INSERT INTO " + mTableName +
                    "(id, state, contractor, equivalent, is_contractor_gateway) "
-                           "VALUES (?, ?, ?, ?, ?);";
+                   "VALUES (?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -294,6 +294,37 @@ vector<SerializedEquivalent> TrustLineHandler::equivalents()
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         auto equivalent = (SerializedEquivalent)sqlite3_column_int(stmt, 0);
         result.push_back(equivalent);
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+vector<TrustLineID> TrustLineHandler::allIDs()
+{
+    string queryCount = "SELECT count(*) FROM " + mTableName;
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::allIDs: "
+                          "Bad count query; sqlite error: " + to_string(rc));
+    }
+    sqlite3_step(stmt);
+    auto rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    vector<TrustLineID> result;
+    result.reserve(rowCount);
+
+    string query = "SELECT id FROM " + mTableName;
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::allIDs: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+        result.push_back(
+            (TrustLineID)sqlite3_column_int(stmt, 0));
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);

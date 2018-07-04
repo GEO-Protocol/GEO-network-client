@@ -5,8 +5,9 @@
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/blacklist/AddNodeToBlackListCommand.h"
 #include "../../../equivalents/EquivalentsSubsystemsRouter.h"
-#include "../../../network/messages/trust_lines/CloseOutgoingTrustLineMessage.h"
+#include "../trust_lines/CloseIncomingTrustLineTransaction.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
+#include "../../../crypto/keychain.h"
 
 
 class AddNodeToBlackListTransaction :
@@ -22,9 +23,8 @@ public:
         StorageHandler *storageHandler,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         SubsystemsController *subsystemsController,
+        Keystore *keystore,
         Logger &logger);
-
-    AddNodeToBlackListCommand::Shared command() const;
 
     TransactionResult::SharedConst run();
 
@@ -36,11 +36,6 @@ protected:
     TransactionResult::SharedConst resultProtocolError();
 
 protected:
-    void populateHistory(
-        const SerializedEquivalent equivalent,
-        IOTransaction::Shared ioTransaction);
-
-protected:
     const string logHeader() const;
 
 private:
@@ -48,6 +43,7 @@ private:
     StorageHandler *mStorageHandler;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     SubsystemsController *mSubsystemsController;
+    Keystore *mKeysStore;
 };
 
 #endif //GEO_NETWORK_CLIENT_ADDNODETOBLACKLISTTRANSACTION_H

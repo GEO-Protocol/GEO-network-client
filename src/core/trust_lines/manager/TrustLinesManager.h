@@ -65,10 +65,6 @@ public:
         const TrustLineAmount &amount,
         IOTransaction::Shared ioTransaction = nullptr);
 
-    void save(
-        IOTransaction::Shared ioTransaction,
-        const NodeUUID &contractorUUID);
-
     /**
      * Creates / Updates / Closes trust line TO the contractor.
      *
@@ -301,7 +297,8 @@ public:
         TrustLine::Shared trustLine);
 
     void removeTrustLine(
-        const NodeUUID &contractorUUID);
+        const NodeUUID &contractorUUID,
+        IOTransaction::Shared ioTransaction = nullptr);
 
     bool isTrustLineEmpty(
         const NodeUUID &contractorUUID);
@@ -354,8 +351,8 @@ public:
 
 protected:
     void saveToStorage(
-            IOTransaction::Shared ioTransaction,
-            TrustLine::Shared trustLine);
+        IOTransaction::Shared ioTransaction,
+        TrustLine::Shared trustLine);
 
     /**
      * Reads trust lines info from the internal storage and initialises internal trust lines map.
@@ -365,7 +362,8 @@ protected:
      */
     void loadTrustLinesFromStorage();
     
-    const TrustLineID nextFreeID() const;
+    const TrustLineID nextFreeID(
+        IOTransaction::Shared ioTransaction) const;
 
 protected: // log shortcuts
     const string logHeader() const

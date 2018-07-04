@@ -35,6 +35,18 @@ public:
     noexcept;
 
     CloseIncomingTrustLineTransaction(
+        const NodeUUID &nodeUUID,
+        SerializedEquivalent equivalent,
+        const NodeUUID &contractorUUID,
+        TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        TopologyTrustLinesManager *topologyTrustLinesManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
+        Keystore *keystore,
+        Logger &logger);
+
+    CloseIncomingTrustLineTransaction(
         BytesShared buffer,
         const NodeUUID &nodeUUID,
         TrustLinesManager *manager,
@@ -49,6 +61,7 @@ protected:
         Initialisation = 1,
         ResponseProcessing = 2,
         Recovery = 3,
+        AddToBlackList = 4,
     };
 
 protected:
@@ -73,6 +86,8 @@ private:
     TransactionResult::SharedConst runResponseProcessingStage();
 
     TransactionResult::SharedConst runRecoveryStage();
+
+    TransactionResult::SharedConst runAddToBlackListStage();
 
     pair<BytesShared, size_t> serializeToBytes() const override;
 

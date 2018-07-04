@@ -37,6 +37,8 @@ public:
 
     vector<SerializedEquivalent> equivalents();
 
+    vector<TrustLineID> allIDs();
+
 private:
     LoggerStream info() const;
 
