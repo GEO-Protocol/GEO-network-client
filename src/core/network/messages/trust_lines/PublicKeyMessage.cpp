@@ -47,6 +47,11 @@ const lamport::PublicKey::Shared PublicKeyMessage::publicKey() const
     return mPublicKey;
 }
 
+const bool PublicKeyMessage::isAddToConfirmationRequiredMessagesHandler() const
+{
+    return true;
+}
+
 pair<BytesShared, size_t> PublicKeyMessage::serializeToBytes() const
 {
     const auto parentBytesAndCount = TransactionMessage::serializeToBytes();

@@ -47,10 +47,9 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
         vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
         maxFlows.reserve(mCommand->contractors().size());
         for (const auto &contractorUUID : mCommand->contractors()) {
-            maxFlows.push_back(
-                make_pair(
-                    contractorUUID,
-                    TrustLineAmount(0)));
+            maxFlows.emplace_back(
+                contractorUUID,
+                TrustLineAmount(0));
         }
         return resultOk(true, maxFlows);
     }
@@ -72,10 +71,9 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
         maxFlows.reserve(mCommand->contractors().size());
         for (const auto &contractorUUID : mCommand->contractors()) {
             auto nodeCache = mMaxFlowCacheManager->cacheByNode(contractorUUID);
-                maxFlows.push_back(
-                    make_pair(
-                        contractorUUID,
-                        nodeCache->currentFlow()));
+                maxFlows.emplace_back(
+                    contractorUUID,
+                    nodeCache->currentFlow());
         }
         return resultOk(true, maxFlows);
     }
@@ -110,17 +108,15 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCol
     for (const auto &contractorUUID : mCommand->contractors()) {
         auto nodeCache = mMaxFlowCacheManager->cacheByNode(contractorUUID);
         if (nodeCache != nullptr) {
-            maxFlows.push_back(
-                make_pair(
-                    contractorUUID,
-                    nodeCache->currentFlow()));
+            maxFlows.emplace_back(
+                contractorUUID,
+                nodeCache->currentFlow());
         } else {
-            maxFlows.push_back(
-                make_pair(
-                    contractorUUID,
-                    // todo : choose updated or not
-                    calculateMaxFlow(
-                        contractorUUID)));
+            maxFlows.emplace_back(
+                contractorUUID,
+                // todo : choose updated or not
+                calculateMaxFlow(
+                    contractorUUID));
         }
     }
     info() << "all contractors calculating time: " << utc_now() - startTime;

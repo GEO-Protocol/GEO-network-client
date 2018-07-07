@@ -303,6 +303,31 @@ KeysCount OwnKeysHandler::availableKeysCnt(
     return rowCount;
 }
 
+void OwnKeysHandler::removeUnusedKeys(
+    const TrustLineID trustLineID)
+{
+    string queryCount = "DELETE FROM " + mTableName + " WHERE trust_line_id = ? AND is_valid = 1";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::removeUnusedKeys: "
+                          "Bad count query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::removeUnusedKeys: "
+                          "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc != SQLITE_DONE) {
+        throw IOError("OwnKeysHandler::removeUnusedKeys: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+}
+
 LoggerStream OwnKeysHandler::info() const
 {
     return mLog.info(logHeader());

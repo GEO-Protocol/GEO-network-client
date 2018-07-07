@@ -74,7 +74,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
     }
 
     if (!mTrustLines->trustLineIsPresent(mMessage->senderUUID)) {
-        warning() << "Trust line already present.";
+        warning() << "Trust line is absent.";
         sendMessage<TrustLineConfirmationMessage>(
             mMessage->senderUUID,
             mEquivalent,

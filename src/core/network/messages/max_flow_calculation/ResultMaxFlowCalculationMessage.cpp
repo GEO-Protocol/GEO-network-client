@@ -21,7 +21,7 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
 {
     size_t bytesBufferOffset = MaxFlowCalculationConfirmationMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
-    SerializedRecordsCount *trustLinesOutCount = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
+    auto *trustLinesOutCount = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     //-----------------------------------------------------
     mOutgoingFlows.reserve(*trustLinesOutCount);
@@ -35,13 +35,13 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
         bytesBufferOffset += kTrustLineAmountBytesCount;
         //---------------------------------------------------
         TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
-        mOutgoingFlows.push_back(make_pair(
+        mOutgoingFlows.emplace_back(
             nodeUUID,
             make_shared<const TrustLineAmount>(
-                trustLineAmount)));
+                trustLineAmount));
     }
     //----------------------------------------------------
-    SerializedRecordsCount *trustLinesInCount = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
+    auto *trustLinesInCount = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     //-----------------------------------------------------
     mIncomingFlows.reserve(*trustLinesInCount);
@@ -55,10 +55,10 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
         bytesBufferOffset += kTrustLineAmountBytesCount;
         //---------------------------------------------------
         TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
-        mIncomingFlows.push_back(make_pair(
+        mIncomingFlows.emplace_back(
             nodeUUID,
             make_shared<const TrustLineAmount>(
-                trustLineAmount)));
+                trustLineAmount));
     }
 }
 
@@ -90,7 +90,7 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() co
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
-    SerializedRecordsCount trustLinesOutCount = (SerializedRecordsCount)mOutgoingFlows.size();
+    auto trustLinesOutCount = (SerializedRecordsCount)mOutgoingFlows.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &trustLinesOutCount,
@@ -112,7 +112,7 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() co
         dataBytesOffset += kTrustLineAmountBytesCount;
     }
     //----------------------------------------------------
-    SerializedRecordsCount trustLinesInCount = (SerializedRecordsCount)mIncomingFlows.size();
+    auto trustLinesInCount = (SerializedRecordsCount)mIncomingFlows.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &trustLinesInCount,

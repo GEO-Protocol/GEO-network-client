@@ -70,10 +70,12 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
         }
         info() << "Signature is correct";
 
-        mTrustLines->setTrustLineAuditNumber(
+        mTrustLines->setTrustLineAuditNumberAndMakeActive(
             ioTransaction,
             mMessage->senderUUID,
             mAuditNumber);
+        mTrustLines->resetTrustLineTotalReceiptsAmounts(
+            mMessage->senderUUID);
         if (mTrustLines->isTrustLineEmpty(
                 mMessage->senderUUID)) {
             mTrustLines->setTrustLineState(
@@ -81,6 +83,21 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
                 TrustLine::Archived,
                 ioTransaction);
             info() << "TL is Archived";
+        } else if (keyChain.ownKeysCriticalCount(ioTransaction)) {
+            mTrustLines->setTrustLineState(
+                mMessage->senderUUID,
+                TrustLine::KeysPending,
+                ioTransaction);
+            info() << "Start sharing own keys";
+            const auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
+                mNodeUUID,
+                mMessage->senderUUID,
+                mEquivalent,
+                mTrustLines,
+                mStorageHandler,
+                mKeysStore,
+                mLog);
+            launchSubsidiaryTransaction(transaction);
         }
     } catch (IOError &e) {
         ioTransaction->rollback();

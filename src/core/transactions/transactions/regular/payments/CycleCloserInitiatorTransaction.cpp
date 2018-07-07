@@ -1101,7 +1101,8 @@ bool CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
                     mTrustLines->auditNumber(intermediateNode),
                     mTransactionUUID,
                     signatureAndKeyNumber.second,
-                    finalPathAmount)) {
+                    finalPathAmount,
+                    signatureAndKeyNumber.first)) {
                 warning() << "Can't save outgoing receipt.";
                 return false;
             }

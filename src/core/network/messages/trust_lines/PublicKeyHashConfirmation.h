@@ -1,12 +1,12 @@
 #ifndef GEO_NETWORK_CLIENT_PUBLICKEYHASHCONFIRMATION_H
 #define GEO_NETWORK_CLIENT_PUBLICKEYHASHCONFIRMATION_H
 
-#include "../base/transaction/TransactionMessage.h"
+#include "../base/transaction/ConfirmationMessage.h"
 #include "../../../crypto/lamportkeys.h"
 
 using namespace crypto;
 
-class PublicKeyHashConfirmation : public TransactionMessage {
+class PublicKeyHashConfirmation : public ConfirmationMessage {
 
 public:
     typedef shared_ptr<PublicKeyHashConfirmation> Shared;
@@ -20,6 +20,12 @@ public:
         lamport::KeyHash::Shared hashConfirmation);
 
     PublicKeyHashConfirmation(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+        OperationState state);
+
+    PublicKeyHashConfirmation(
         BytesShared buffer);
 
     const KeyNumber number() const;
@@ -28,7 +34,8 @@ public:
 
     const MessageType typeID() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
+    pair<BytesShared, size_t> serializeToBytes() const
+        throw (bad_alloc);
 
 private:
     KeyNumber mNumber;

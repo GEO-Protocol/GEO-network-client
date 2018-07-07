@@ -46,10 +46,10 @@ int Keystore::init()
 TrustLineKeychain Keystore::keychain(
     const TrustLineID trustLineID) const
 {
-    return TrustLineKeychain(
+    return {
         trustLineID,
         // todo mEncryptor,
-        mLogger);
+        mLogger};
 }
 
 lamport::PublicKey::Shared Keystore::generateAndSaveKeyPairForPaymentTransaction(
@@ -141,18 +141,23 @@ void TrustLineKeychain::generateKeyPairsSet(
     }
 }
 
-pair<lamport::PublicKey::Shared, bool> TrustLineKeychain::publicKey(
+lamport::PublicKey::Shared TrustLineKeychain::publicKey(
     IOTransaction::Shared ioTransaction,
     const KeyNumber number) const
 {
     keyNumberGuard(number);
 
-    auto publicKey = ioTransaction->ownKeysHandler()->getPublicKey(
-        mTrustLineID,
-        number);
-    return make_pair(
-        publicKey,
-        true);
+    try {
+        auto publicKey = ioTransaction->ownKeysHandler()->getPublicKey(
+            mTrustLineID,
+            number);
+        return publicKey;
+    } catch (NotFoundError &e) {
+        return nullptr;
+    } catch (IOError &e) {
+        error() << "Can't get public key " << number << ". Details: " << e.what();
+        throw e;
+    }
 }
 
 void TrustLineKeychain::setContractorPublicKey(
@@ -170,23 +175,28 @@ void TrustLineKeychain::setContractorPublicKey(
         number);
 }
 
-bool TrustLineKeychain::areKeysReady(
-    IOTransaction::Shared ioTransaction,
-    KeysCount count) noexcept
+bool TrustLineKeychain::contractorKeysPresent(
+    IOTransaction::Shared ioTransaction)
 {
-    keyNumberGuard(count);
+    return ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID) > 0;
+}
 
-    if (ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID) != count) {
-        info() << "There are no all own keys: "
-               << ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID);
-        return false;
-    }
-    if (ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID) != count) {
-        info() << "There are no all contractor keys: "
-               << ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID);
-        return false;
-    }
-    return true;
+bool TrustLineKeychain::ownKeysPresent(
+    IOTransaction::Shared ioTransaction)
+{
+    return ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID) > 0;
+}
+
+bool TrustLineKeychain::allContractorKeysPresent(
+    IOTransaction::Shared ioTransaction)
+{
+    return ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID) == kDefaultKeysSetSize;
+}
+
+bool TrustLineKeychain::ownKeysCriticalCount(
+    IOTransaction::Shared ioTransaction)
+{
+    return ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID) <= kMinKeysSetSize;
 }
 
 pair<lamport::Signature::Shared, KeyNumber> TrustLineKeychain::sign(
@@ -244,12 +254,27 @@ bool TrustLineKeychain::checkSign(
     }
 }
 
+void TrustLineKeychain::removeUnusedContractorKeys(
+    IOTransaction::Shared ioTransaction)
+{
+    ioTransaction->contractorKeysHandler()->removeUnusedKeys(
+        mTrustLineID);
+}
+
+void TrustLineKeychain::removeUnusedOwnKeys(
+    IOTransaction::Shared ioTransaction)
+{
+    ioTransaction->ownKeysHandler()->removeUnusedKeys(
+        mTrustLineID);
+}
+
 bool TrustLineKeychain::saveOutgoingPaymentReceipt(
     IOTransaction::Shared ioTransaction,
     const AuditNumber auditNumber,
     const TransactionUUID &transactionUUID,
     const KeyNumber ownKeyNumber,
-    const TrustLineAmount &amount)
+    const TrustLineAmount &amount,
+    const lamport::Signature::Shared signature)
 {
     try {
         auto contractorKeyHash = ioTransaction->ownKeysHandler()->getPublicKeyHash(
@@ -262,11 +287,16 @@ bool TrustLineKeychain::saveOutgoingPaymentReceipt(
             transactionUUID,
             contractorKeyHash,
             amount);
+
+        ioTransaction->ownKeysHandler()->invalidKey(
+            mTrustLineID,
+            ownKeyNumber,
+            signature);
     } catch (NotFoundError &e) {
         warning() << "There are no valid own key with number " << ownKeyNumber;
         return false;
     } catch (IOError &e) {
-        warning() << "Can't save incoming receipt into storage. Details: " << e.what();
+        warning() << "Can't save outgoing receipt into storage. Details: " << e.what();
         return false;
     }
     return true;
@@ -292,6 +322,10 @@ bool TrustLineKeychain::saveIncomingPaymentReceipt(
             contractorKeyHash,
             amount,
             contractorSignature);
+
+        ioTransaction->contractorKeysHandler()->invalidKey(
+            mTrustLineID,
+            contractorKeyNumber);
     } catch (NotFoundError &e) {
         warning() << "There are no valid contractor key with number " << contractorKeyNumber;
         return false;
@@ -368,9 +402,9 @@ LoggerStream TrustLineKeychain::info() const
     return mLogger.info(logHeader());
 }
 
-LoggerStream TrustLineKeychain::debug() const
+LoggerStream TrustLineKeychain::error() const
 {
-    return mLogger.debug(logHeader());
+    return mLogger.error(logHeader());
 }
 
 LoggerStream TrustLineKeychain::warning() const

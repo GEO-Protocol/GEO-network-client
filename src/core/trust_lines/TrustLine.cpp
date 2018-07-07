@@ -17,7 +17,9 @@ TrustLine::TrustLine(
     mBalance(nodeBalance),
     mIsContractorGateway(isContractorGateway),
     mCurrentAudit(auditNumber),
-    mState(state)
+    mState(state),
+    mTotalIncomingReceiptsAmount(kZeroAmount()),
+    mTotalOutgoingReceiptsAmount(kZeroAmount())
 {
     // todo zero amounts checking
 }
@@ -30,12 +32,14 @@ TrustLine::TrustLine(
 
     mContractorNodeUUID(nodeUUID),
     mID(trustLineID),
-    mIncomingTrustAmount(TrustLine::kZeroAmount()),
-    mOutgoingTrustAmount(TrustLine::kZeroAmount()),
-    mBalance(TrustLine::kZeroBalance()),
+    mIncomingTrustAmount(kZeroAmount()),
+    mOutgoingTrustAmount(kZeroAmount()),
+    mBalance(kZeroBalance()),
     mIsContractorGateway(isContractorGateway),
     mCurrentAudit(0),
-    mState(state)
+    mState(state),
+    mTotalIncomingReceiptsAmount(kZeroAmount()),
+    mTotalOutgoingReceiptsAmount(kZeroAmount())
 {}
 
 /**
@@ -177,6 +181,42 @@ ConstSharedTrustLineAmount TrustLine::usedAmountBySelf() const
     }
 }
 
+void TrustLine::setTotalOutgoingReceiptsAmount(
+    const TrustLineAmount &amount)
+{
+    if (numeric_limits<TrustLineAmount>::max() == amount) {
+        throw ValueError("TrustLine::setTotalOutgoingReceiptsAmount: Amount is too big.");
+    }
+
+    mTotalOutgoingReceiptsAmount = amount;
+}
+
+void TrustLine::setTotalIncomingReceiptsAmount(
+    const TrustLineAmount &amount)
+{
+    if (numeric_limits<TrustLineAmount>::max() == amount) {
+        throw ValueError("TrustLine::setTotalIncomingReceiptsAmount: Amount is too big.");
+    }
+
+    mTotalIncomingReceiptsAmount = amount;
+}
+
+// todo : need improve this logic or launch automatic audit by user configuration
+bool TrustLine::isTrustLineOverflowed() const
+{
+    if (mTotalIncomingReceiptsAmount > mOutgoingTrustAmount
+        or mTotalOutgoingReceiptsAmount > mIncomingTrustAmount) {
+        return true;
+    }
+    return false;
+}
+
+void TrustLine::resetTotalReceiptsAmounts()
+{
+    mTotalOutgoingReceiptsAmount = TrustLine::kZeroAmount();
+    mTotalIncomingReceiptsAmount = TrustLine::kZeroAmount();
+}
+
 bool TrustLine::isContractorGateway() const
 {
     return mIsContractorGateway;
@@ -236,10 +276,12 @@ void TrustLine::pay(
     if (mBalance * kNewBalance > kZeroBalance()) {
         if (mBalance > kZeroBalance() && mBalance > kNewBalance) {
             mBalance = kNewBalance;
+            mTotalOutgoingReceiptsAmount = mTotalOutgoingReceiptsAmount + amount;
             return;
         }
         if (mBalance < kZeroBalance() && mBalance < kNewBalance) {
             mBalance = kNewBalance;
+            mTotalOutgoingReceiptsAmount = mTotalOutgoingReceiptsAmount + amount;
             return;
         }
     }
@@ -252,6 +294,7 @@ void TrustLine::pay(
             "TrustLine::useCredit: attempt of using more than incoming credit amount.");
     }
     mBalance = kNewBalance;
+    mTotalOutgoingReceiptsAmount = mTotalOutgoingReceiptsAmount + amount;
 }
 
 /**
@@ -268,10 +311,12 @@ void TrustLine::acceptPayment(
     if (mBalance * kNewBalance > kZeroBalance()) {
         if (mBalance > kZeroBalance() && mBalance > kNewBalance) {
             mBalance = kNewBalance;
+            mTotalIncomingReceiptsAmount = mTotalIncomingReceiptsAmount + amount;
             return;
         }
         if (mBalance < kZeroBalance() && mBalance < kNewBalance) {
             mBalance = kNewBalance;
+            mTotalIncomingReceiptsAmount = mTotalIncomingReceiptsAmount + amount;
             return;
         }
     }
@@ -284,4 +329,5 @@ void TrustLine::acceptPayment(
             "TrustLine::useCredit: attempt of using more than incoming credit amount.");
     }
     mBalance = kNewBalance;
+    mTotalIncomingReceiptsAmount = mTotalIncomingReceiptsAmount + amount;
 }

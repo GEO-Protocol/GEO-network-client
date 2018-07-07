@@ -65,7 +65,11 @@ public:
     typedef signals::signal<void(
                 const NodeUUID&,
                 const SerializedEquivalent)>
-            EmptyTrustLineAudit;
+            TrustLineAuditSignal;
+    typedef signals::signal<void(
+                const NodeUUID&,
+                const SerializedEquivalent)>
+            PublicKeysSharingSignal;
 
 public:
     BasePaymentTransaction(
@@ -416,7 +420,10 @@ public:
     mutable BuildCycleFourNodesSignal mBuildCycleFourNodesSignal;
 
     // signal for launching audit transaction on empty TL
-    mutable EmptyTrustLineAudit mEmptyTrustLineAuditSignal;
+    mutable TrustLineAuditSignal mTrustLineAuditSignal;
+
+    // signal for generating and sharing public keys
+    mutable PublicKeysSharingSignal mPublicKeysSharingSignal;
 
 protected:
     TrustLinesManager *mTrustLines;

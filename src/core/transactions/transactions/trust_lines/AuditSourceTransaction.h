@@ -7,6 +7,7 @@
 #include "../../../crypto/lamportkeys.h"
 
 #include "../../../network/messages/trust_lines/AuditMessage.h"
+#include "PublicKeysSharingSourceTransaction.h"
 
 using namespace crypto;
 

@@ -1296,7 +1296,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
                     mTrustLines->auditNumber(nodeAndFinalAmountsConfig.first),
                     mTransactionUUID,
                     signatureAndKeyNumber.second,
-                    outgoingReservedAmount)) {
+                    outgoingReservedAmount,
+                    signatureAndKeyNumber.first)) {
                 return reject("Can't save outgoing receipt. Rejected.");
             }
             info() << "send final amount configuration to " << nodeAndFinalAmountsConfig.first

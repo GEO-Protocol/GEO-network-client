@@ -83,16 +83,14 @@ TransactionResult::SharedConst MaxFlowCalculationStepTwoTransaction::applyCustom
     auto nodeCache = mMaxFlowCacheManager->cacheByNode(contractorUUID);
     // todo : implement separated logic when !nodeCache->isFlowFinal()
     if (nodeCache != nullptr && nodeCache->isFlowFinal()) {
-        mMaxFlows.push_back(
-            make_pair(
-                contractorUUID,
-                nodeCache->currentFlow()));
+        mMaxFlows.emplace_back(
+            contractorUUID,
+            nodeCache->currentFlow());
     } else {
-        mMaxFlows.push_back(
-            make_pair(
-                contractorUUID,
-                calculateMaxFlow(
-                    contractorUUID)));
+        mMaxFlows.emplace_back(
+            contractorUUID,
+            calculateMaxFlow(
+                contractorUUID));
     }
     if (mMaxFlows.size() >= mCommand->contractors().size()) {
         mTopologyTrustLineManager->setPreventDeleting(false);

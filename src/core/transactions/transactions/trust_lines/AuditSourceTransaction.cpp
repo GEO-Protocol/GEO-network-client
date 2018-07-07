@@ -180,10 +180,12 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         }
         info() << "Signature is correct";
 
-        mTrustLines->setTrustLineAuditNumber(
+        mTrustLines->setTrustLineAuditNumberAndMakeActive(
             ioTransaction,
             mContractorUUID,
             mAuditNumber);
+        mTrustLines->resetTrustLineTotalReceiptsAmounts(
+            mContractorUUID);
         // if TL is empty: incomingAmount, outgoingAmount and balance is 0
         // we marked it as Archived
         if (mTrustLines->isTrustLineEmpty(
@@ -193,6 +195,21 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
                 TrustLine::Archived,
                 ioTransaction);
             info() << "TL is Archived";
+        } else if (keyChain.ownKeysCriticalCount(ioTransaction)) {
+            mTrustLines->setTrustLineState(
+                mContractorUUID,
+                TrustLine::KeysPending,
+                ioTransaction);
+            info() << "Start sharing own keys";
+            const auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
+                mNodeUUID,
+                mContractorUUID,
+                mEquivalent,
+                mTrustLines,
+                mStorageHandler,
+                mKeysStore,
+                mLog);
+            launchSubsidiaryTransaction(transaction);
         }
 
         keyChain.saveAudit(

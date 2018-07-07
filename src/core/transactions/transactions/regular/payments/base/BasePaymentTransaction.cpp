@@ -529,18 +529,44 @@ void BasePaymentTransaction::commit(
                 kNodeUUIDAndReservations.first,
                 TrustLine::AuditPending,
                 ioTransaction);
+            info() << "TL become empty";
             // if TL become empty, it is necessary to run Audit TA.
             // AuditSource TA run on node which pay
             if (reservationDirection == AmountReservation::Outgoing) {
-                mEmptyTrustLineAuditSignal(
+                mTrustLineAuditSignal(
                     kNodeUUIDAndReservations.first,
                     mEquivalent);
+                info() << "Audit signal";
             }
         } else {
-            ioTransaction->trustLinesHandler()->updateTrustLine(
-                mTrustLines->trustLines().at(
-                    kNodeUUIDAndReservations.first),
-                mEquivalent);
+            if (mTrustLines->isTrustLineOverflowed(kNodeUUIDAndReservations.first)) {
+                mTrustLines->setTrustLineState(
+                    kNodeUUIDAndReservations.first,
+                    TrustLine::AuditPending,
+                    ioTransaction);
+                info() << "TL become overflowed";
+                // if TL become overflowed, it is necessary to run Audit TA.
+                // AuditSource TA run on node which pay
+                if (reservationDirection == AmountReservation::Outgoing) {
+                    mTrustLineAuditSignal(
+                        kNodeUUIDAndReservations.first,
+                        mEquivalent);
+                    info() << "Audit signal";
+                }
+            }
+            auto keyChain = mKeysStore->keychain(
+                mTrustLines->trustLineID(
+                    kNodeUUIDAndReservations.first));
+            if (keyChain.ownKeysCriticalCount(ioTransaction)) {
+                mTrustLines->setTrustLineState(
+                    kNodeUUIDAndReservations.first,
+                    TrustLine::KeysPending,
+                    ioTransaction);
+                mPublicKeysSharingSignal(
+                    kNodeUUIDAndReservations.first,
+                    mEquivalent);
+                info() << "Public key sharing signal";
+            }
         }
     }
 

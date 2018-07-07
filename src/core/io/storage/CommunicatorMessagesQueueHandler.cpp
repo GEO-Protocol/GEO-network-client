@@ -11,12 +11,12 @@ CommunicatorMessagesQueueHandler::CommunicatorMessagesQueueHandler(
 {
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    " (contractor_uuid BLOB NOT NULL, "
-                       "equivalent INT NOT NULL, "
-                       "transaction_uuid BLOB NOT NULL, "
-                       "message_type INT NOT NULL, "
-                       "message BLOB NOT NULL, "
-                       "message_bytes_count INT NOT NULL, "
-                       "recording_time INT NOT NULL);";
+                   "equivalent INT NOT NULL, "
+                   "transaction_uuid BLOB NOT NULL, "
+                   "message_type INT NOT NULL, "
+                   "message BLOB NOT NULL, "
+                   "message_bytes_count INT NOT NULL, "
+                   "recording_time INT NOT NULL);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -42,8 +42,9 @@ void CommunicatorMessagesQueueHandler::saveRecord(
     size_t messageBytesCount)
 {
     string query = "INSERT INTO " + mTableName +
-               " (contractor_uuid, equivalent, transaction_uuid, message_type, message, message_bytes_count, recording_time) "
-                       "VALUES(?, ?, ?, ?, ?, ?, ?);";
+                   " (contractor_uuid, equivalent, transaction_uuid, message_type, "
+                   "message, message_bytes_count, recording_time) "
+                   "VALUES(?, ?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -188,7 +189,7 @@ vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> Communicator
                           "Bad count query; sqlite error: " + to_string(rc));
     }
     sqlite3_step(stmt);
-    uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
+    auto rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> result;
@@ -203,20 +204,19 @@ vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> Communicator
     while (sqlite3_step(stmt) == SQLITE_ROW) {
 
         NodeUUID contractorUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
-        Message::SerializedType messageType = (Message::SerializedType)sqlite3_column_int(stmt, 1);
+        auto messageType = (Message::SerializedType)sqlite3_column_int(stmt, 1);
 
-        size_t messageBytesCount = (size_t) sqlite3_column_int(stmt, 3);
+        auto messageBytesCount = (size_t) sqlite3_column_int(stmt, 3);
         BytesShared message = tryMalloc(messageBytesCount);
         memcpy(
             message.get(),
             sqlite3_column_blob(stmt, 2),
             messageBytesCount);
 
-        result.push_back(
-            make_tuple(
-                contractorUUID,
-                message,
-                messageType));
+        result.emplace_back(
+            contractorUUID,
+            message,
+            messageType);
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);

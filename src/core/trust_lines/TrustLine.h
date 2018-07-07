@@ -94,6 +94,16 @@ public:
 
     ConstSharedTrustLineAmount usedAmountBySelf() const;
 
+    void setTotalOutgoingReceiptsAmount(
+        const TrustLineAmount &amount);
+
+    void setTotalIncomingReceiptsAmount(
+        const TrustLineAmount &amount);
+
+    bool isTrustLineOverflowed() const;
+
+    void resetTotalReceiptsAmounts();
+
     bool isContractorGateway() const;
 
     void setContractorAsGateway(
@@ -117,6 +127,8 @@ private:
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;
     TrustLineBalance mBalance;
+    TrustLineAmount mTotalOutgoingReceiptsAmount;
+    TrustLineAmount mTotalIncomingReceiptsAmount;
     bool mIsContractorGateway;
     TrustLineState mState;
     AuditNumber mCurrentAudit;

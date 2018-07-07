@@ -6,6 +6,7 @@
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../crypto/keychain.h"
 #include "../../../crypto/lamportkeys.h"
+#include "PublicKeysSharingSourceTransaction.h"
 
 using namespace crypto;
 

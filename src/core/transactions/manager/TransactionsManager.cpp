@@ -79,7 +79,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                      + sizeof(BaseTransaction::SerializedTransactionType)) SerializedEquivalent;
 
         switch (transactionTypeId) {
-            case BaseTransaction::TransactionType::CoordinatorPaymentTransaction: {
+            case BaseTransaction::CoordinatorPaymentTransaction: {
                 try {
                     auto transaction = make_shared<CoordinatorPaymentTransaction>(
                         kTABuffer,
@@ -95,8 +95,10 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mSubsystemsController);
                     subscribeForBuildCyclesThreeNodesTransaction(
                         transaction->mBuildCycleThreeNodesSignal);
-                    subscribeForAuditOnEmptyTrustLine(
-                        transaction->mEmptyTrustLineAuditSignal);
+                    subscribeForAuditSignal(
+                        transaction->mTrustLineAuditSignal);
+                    subscribeForPublicKeysSharingSignal(
+                        transaction->mPublicKeysSharingSignal);
                     prepareAndSchedule(
                         transaction,
                         true,
@@ -109,7 +111,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                 }
                 break;
             }
-            case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
+            case BaseTransaction::IntermediateNodePaymentTransaction: {
                 try {
                     auto transaction = make_shared<IntermediateNodePaymentTransaction>(
                         kTABuffer,
@@ -125,8 +127,10 @@ void TransactionsManager::loadTransactionsFromStorage()
                         transaction->mBuildCycleThreeNodesSignal);
                     subscribeForBuildCyclesFourNodesTransaction(
                         transaction->mBuildCycleFourNodesSignal);
-                    subscribeForAuditOnEmptyTrustLine(
-                        transaction->mEmptyTrustLineAuditSignal);
+                    subscribeForAuditSignal(
+                        transaction->mTrustLineAuditSignal);
+                    subscribeForPublicKeysSharingSignal(
+                        transaction->mPublicKeysSharingSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -139,7 +143,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                 }
                 break;
             }
-            case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
+            case BaseTransaction::ReceiverPaymentTransaction: {
                 try {
                     auto transaction = make_shared<ReceiverPaymentTransaction>(
                         kTABuffer,
@@ -165,7 +169,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                 }
                 break;
             }
-            case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
+            case BaseTransaction::Payments_CycleCloserInitiatorTransaction: {
                 try {
                     auto transaction = make_shared<CycleCloserInitiatorTransaction>(
                         kTABuffer,
@@ -178,8 +182,10 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mKeysStore,
                         mLog,
                         mSubsystemsController);
-                    subscribeForAuditOnEmptyTrustLine(
-                        transaction->mEmptyTrustLineAuditSignal);
+                    subscribeForAuditSignal(
+                        transaction->mTrustLineAuditSignal);
+                    subscribeForPublicKeysSharingSignal(
+                        transaction->mPublicKeysSharingSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -192,7 +198,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                 }
                 break;
             }
-            case BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction: {
+            case BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction: {
                 try {
                     auto transaction = make_shared<CycleCloserIntermediateNodeTransaction>(
                         kTABuffer,
@@ -205,8 +211,10 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mKeysStore,
                         mLog,
                         mSubsystemsController);
-                    subscribeForAuditOnEmptyTrustLine(
-                        transaction->mEmptyTrustLineAuditSignal);
+                    subscribeForAuditSignal(
+                        transaction->mTrustLineAuditSignal);
+                    subscribeForPublicKeysSharingSignal(
+                        transaction->mPublicKeysSharingSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -219,7 +227,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                 }
                 break;
             }
-            case BaseTransaction::TransactionType::OpenTrustLineTransaction: {
+            case BaseTransaction::OpenTrustLineTransaction: {
                 // todo it is possible that no subsystems for current equivalent.
                 // on this case subsystems for equivalent should be init
                 try {
@@ -244,7 +252,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                 }
                 break;
             }
-            case BaseTransaction::TransactionType::SetOutgoingTrustLineTransaction: {
+            case BaseTransaction::SetOutgoingTrustLineTransaction: {
                 try {
                     auto transaction = make_shared<SetOutgoingTrustLineTransaction>(
                         kTABuffer,
@@ -267,7 +275,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                 }
                 break;
             }
-            case BaseTransaction::TransactionType::CloseIncomingTrustLineTransactionType: {
+            case BaseTransaction::CloseIncomingTrustLineTransactionType: {
                 try {
                     auto transaction = make_shared<CloseIncomingTrustLineTransaction>(
                         kTABuffer,
@@ -290,7 +298,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                 }
                 break;
             }
-            case BaseTransaction::TransactionType::InitialAuditSourceTransactionType: {
+            case BaseTransaction::InitialAuditSourceTransactionType: {
                 try {
                     auto transaction = make_shared<InitialAuditSourceTransaction>(
                         kTABuffer,
@@ -313,7 +321,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                 }
                 break;
             }
-            case BaseTransaction::TransactionType::AuditSourceTransactionType: {
+            case BaseTransaction::AuditSourceTransactionType: {
                 try {
                     auto transaction = make_shared<AuditSourceTransaction>(
                         kTABuffer,
@@ -331,6 +339,29 @@ void TransactionsManager::loadTransactionsFromStorage()
                         true);
                 } catch (NotFoundError &e) {
                     error() << "There are no subsystems for serialized AuditSourceTransaction "
+                            "with equivalent " << *equivalent << " Details are: " << e.what();
+                    continue;
+                }
+                break;
+            }
+            case BaseTransaction::PublicKeysSharingSourceTransactionType: {
+                try {
+                    auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
+                        kTABuffer,
+                        mNodeUUID,
+                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
+                        mStorageHandler,
+                        mKeysStore,
+                        mLog);
+                    subscribeForProcessingConfirmationMessage(
+                        transaction->processConfirmationMessageSignal);
+                    prepareAndSchedule(
+                        transaction,
+                        false,
+                        true,
+                        true);
+                } catch (NotFoundError &e) {
+                    error() << "There are no subsystems for serialized PublicKeysSharingSourceTransaction "
                             "with equivalent " << *equivalent << " Details are: " << e.what();
                     continue;
                 }
@@ -582,6 +613,15 @@ void TransactionsManager::processMessage(
         } catch (NotFoundError &) {
             launchPublicKeysSharingTargetTransaction(
                 static_pointer_cast<PublicKeyMessage>(message));
+        }
+
+    } else if (message->typeID() == Message::TrustLines_HashConfirmation) {
+        try {
+            mScheduler->tryAttachMessageToTransaction(message);
+        } catch (NotFoundError &) {
+            if (!findSerializedTransactionAndLaunchIt(message)) {
+                warning() << "Can't attach TrustLines_HashConfirmation message to transaction ";
+            }
         }
 
     } else if (message->typeID() == Message::TrustLines_InitialAudit) {
@@ -1243,8 +1283,10 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mVisualInterface.get());
         subscribeForBuildCyclesThreeNodesTransaction(
             transaction->mBuildCycleThreeNodesSignal);
-        subscribeForAuditOnEmptyTrustLine(
-            transaction->mEmptyTrustLineAuditSignal);
+        subscribeForAuditSignal(
+            transaction->mTrustLineAuditSignal);
+        subscribeForPublicKeysSharingSignal(
+            transaction->mPublicKeysSharingSignal);
         prepareAndSchedule(transaction, true, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CoordinatorPaymentTransaction "
@@ -1310,8 +1352,10 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
             transaction->mBuildCycleThreeNodesSignal);
         subscribeForBuildCyclesFourNodesTransaction(
             transaction->mBuildCycleFourNodesSignal);
-        subscribeForAuditOnEmptyTrustLine(
-            transaction->mEmptyTrustLineAuditSignal);
+        subscribeForAuditSignal(
+            transaction->mTrustLineAuditSignal);
+        subscribeForPublicKeysSharingSignal(
+            transaction->mPublicKeysSharingSignal);
         prepareAndSchedule(transaction, false, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for IntermediateNodePaymentTransaction "
@@ -1328,7 +1372,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
 }
 
 void TransactionsManager::launchVotesResponsePaymentsTransaction(
-        VotesStatusRequestMessage::Shared message)
+    VotesStatusRequestMessage::Shared message)
 {
     try {
         prepareAndSchedule(
@@ -1364,8 +1408,10 @@ void TransactionsManager::onCloseCycleTransaction(
             mKeysStore,
             mLog,
             mSubsystemsController);
-        subscribeForAuditOnEmptyTrustLine(
-            transaction->mEmptyTrustLineAuditSignal);
+        subscribeForAuditSignal(
+            transaction->mTrustLineAuditSignal);
+        subscribeForPublicKeysSharingSignal(
+            transaction->mPublicKeysSharingSignal);
         prepareAndSchedule(
             transaction,
             true,
@@ -1394,8 +1440,10 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
             mKeysStore,
             mLog,
             mSubsystemsController);
-        subscribeForAuditOnEmptyTrustLine(
-            transaction->mEmptyTrustLineAuditSignal);
+        subscribeForAuditSignal(
+            transaction->mTrustLineAuditSignal);
+        subscribeForPublicKeysSharingSignal(
+            transaction->mPublicKeysSharingSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -2188,12 +2236,23 @@ void TransactionsManager::subscribeForGatewayNotificationSignal(
             this));
 }
 
-void TransactionsManager::subscribeForAuditOnEmptyTrustLine(
-    BasePaymentTransaction::EmptyTrustLineAudit &signal)
+void TransactionsManager::subscribeForAuditSignal(
+    BasePaymentTransaction::TrustLineAuditSignal &signal)
 {
     signal.connect(
         boost::bind(
-            &TransactionsManager::onAuditOnEmptyTrustLineSlot,
+            &TransactionsManager::onAuditOnTrustLineSlot,
+            this,
+            _1,
+            _2));
+}
+
+void TransactionsManager::subscribeForPublicKeysSharingSignal(
+    BasePaymentTransaction::PublicKeysSharingSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onPublicKeySharingSlot,
             this,
             _1,
             _2));
@@ -2321,7 +2380,7 @@ void TransactionsManager::onGatewayNotificationSlot()
     launchGatewayNotificationSenderTransaction();
 }
 
-void TransactionsManager::onAuditOnEmptyTrustLineSlot(
+void TransactionsManager::onAuditOnTrustLineSlot(
     const NodeUUID &contractorUUID,
     const SerializedEquivalent equivalent)
 {
@@ -2341,12 +2400,43 @@ void TransactionsManager::onAuditOnEmptyTrustLineSlot(
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
 
+        subscribeForSubsidiaryTransactions(
+            transaction->runSubsidiaryTransactionSignal);
+
         // wait for guaranteed finish of contractor payment TA
         mScheduler->postponeTransaction(
             transaction,
-            10000);
+            600000);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for AuditSourceTransaction "
+                "with equivalent " << equivalent << " Details are: " << e.what();
+    }
+}
+
+void TransactionsManager::onPublicKeySharingSlot(
+    const NodeUUID &contractorUUID,
+    const SerializedEquivalent equivalent)
+{
+    try {
+        auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
+            mNodeUUID,
+            contractorUUID,
+            equivalent,
+            mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+            mStorageHandler,
+            mKeysStore,
+            mLog);
+
+        subscribeForProcessingConfirmationMessage(
+            transaction->processConfirmationMessageSignal);
+
+        prepareAndSchedule(
+            transaction,
+            false,
+            false,
+            true);
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for PublicKeysSharingSourceTransaction "
                 "with equivalent " << equivalent << " Details are: " << e.what();
     }
 }
@@ -2547,6 +2637,31 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                     true);
             } catch (NotFoundError &e) {
                 error() << "There are no subsystems for serialized AuditSourceTransaction "
+                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
+                return false;
+            }
+            break;
+        }
+        case BaseTransaction::PublicKeysSharingSourceTransactionType: {
+            try {
+                auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
+                    serializedTransaction,
+                    mNodeUUID,
+                    mEquivalentsSubsystemsRouter->trustLinesManager(
+                        transactionMessage->equivalent()),
+                    mStorageHandler,
+                    mKeysStore,
+                    mLog);
+                transaction->pushContext(message);
+                subscribeForProcessingConfirmationMessage(
+                    transaction->processConfirmationMessageSignal);
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    true,
+                    true);
+            } catch (NotFoundError &e) {
+                error() << "There are no subsystems for serialized PublicKeysSharingSourceTransaction "
                         "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
                 return false;
             }

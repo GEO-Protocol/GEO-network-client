@@ -108,6 +108,7 @@ class TrustLineKeychain{
 public:
     static const size_t kDefaultKeysSetSize = 10;     // 16MB of PubKeys, and 16MB of PKeys.
     static const size_t kMaxKeysSetSize = 1024;
+    static const size_t kMinKeysSetSize = 2;
 
 public:
     /**
@@ -154,7 +155,7 @@ public:
      * I think we should iteratively read keys one by one
      * to prevent huge memory usage by the nodes in DC on the startup.
      */
-    pair<lamport::PublicKey::Shared, bool> publicKey(
+    lamport::PublicKey::Shared publicKey(
         IOTransaction::Shared ioTransaction,
         const KeyNumber number)
         const;
@@ -180,20 +181,23 @@ public:
     /**
      * @brief
      * Returns "true" if internal key storage contains at least "count" of
-     * unused pairs <PKey, PubKey> and corresponding contractor's PubKeys.
+     * unused contractor's PubKeys.
      * Otherwise - returns "false".
      *
      * @throws "RuntimeError" in case of any internal error.
      * Writes corresponding log record before exception throwing.
-     *
-     * todo: Mykola, maybe it would be better to check contractors keys separately,
-     * because all our own keys would be generated sequentially through one operation,
-     * but contractors keys would be written one by one,
-     * so there would be 1024-1 redundant checks of our own keys.
      */
-    bool areKeysReady(
-        IOTransaction::Shared ioTransaction,
-        KeysCount count=kDefaultKeysSetSize) noexcept;
+    bool contractorKeysPresent(
+        IOTransaction::Shared ioTransaction);
+
+    bool ownKeysPresent(
+        IOTransaction::Shared ioTransaction);
+
+    bool allContractorKeysPresent(
+        IOTransaction::Shared ioTransaction);
+
+    bool ownKeysCriticalCount(
+        IOTransaction::Shared ioTransaction);
 
     /**
      * @brief
@@ -229,12 +233,19 @@ public:
         const lamport::Signature::Shared signature,
         const KeyNumber keyNumber);
 
+    void removeUnusedContractorKeys(
+        IOTransaction::Shared ioTransaction);
+
+    void removeUnusedOwnKeys(
+        IOTransaction::Shared ioTransaction);
+
     bool saveOutgoingPaymentReceipt(
         IOTransaction::Shared ioTransaction,
         const AuditNumber auditNumber,
         const TransactionUUID &transactionUUID,
         const KeyNumber ownPublicKeyNumber,
-        const TrustLineAmount &amount);
+        const TrustLineAmount &amount,
+        const lamport::Signature::Shared signature);
 
     bool saveIncomingPaymentReceipt(
         IOTransaction::Shared ioTransaction,
@@ -276,7 +287,7 @@ protected:
 private:
     LoggerStream info() const;
 
-    LoggerStream debug() const;
+    LoggerStream error() const;
 
     LoggerStream warning() const;
 

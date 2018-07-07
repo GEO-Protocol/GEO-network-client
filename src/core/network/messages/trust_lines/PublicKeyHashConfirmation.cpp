@@ -6,7 +6,7 @@ PublicKeyHashConfirmation::PublicKeyHashConfirmation(
     const TransactionUUID &transactionUUID,
     KeyNumber number,
     lamport::KeyHash::Shared hashConfirmation):
-    TransactionMessage(
+    ConfirmationMessage(
         equivalent,
         senderUUID,
         transactionUUID),
@@ -15,19 +15,35 @@ PublicKeyHashConfirmation::PublicKeyHashConfirmation(
 {}
 
 PublicKeyHashConfirmation::PublicKeyHashConfirmation(
+    const SerializedEquivalent equivalent,
+    const NodeUUID &senderUUID,
+    const TransactionUUID &transactionUUID,
+    OperationState state) :
+    ConfirmationMessage(
+        equivalent,
+        senderUUID,
+        transactionUUID,
+        state),
+    mNumber(0),
+    mHashConfirmation(nullptr)
+{}
+
+PublicKeyHashConfirmation::PublicKeyHashConfirmation(
     BytesShared buffer) :
-    TransactionMessage(buffer)
+    ConfirmationMessage(buffer)
 {
-    auto bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    auto bytesBufferOffset = ConfirmationMessage::kOffsetToInheritedBytes();
 
-    memcpy(
-        &mNumber,
-        buffer.get() + bytesBufferOffset,
-        sizeof(KeyNumber));
-    bytesBufferOffset += sizeof(KeyNumber);
+    if (state() == ConfirmationMessage::OK) {
+        memcpy(
+            &mNumber,
+            buffer.get() + bytesBufferOffset,
+            sizeof(KeyNumber));
+        bytesBufferOffset += sizeof(KeyNumber);
 
-    mHashConfirmation = make_shared<lamport::KeyHash>(
-        buffer.get() + bytesBufferOffset);
+        mHashConfirmation = make_shared<lamport::KeyHash>(
+            buffer.get() + bytesBufferOffset);
+    }
 }
 
 const Message::MessageType PublicKeyHashConfirmation::typeID() const
@@ -46,12 +62,13 @@ const lamport::KeyHash::Shared PublicKeyHashConfirmation::hashConfirmation() con
 }
 
 pair<BytesShared, size_t> PublicKeyHashConfirmation::serializeToBytes() const
+    throw (bad_alloc)
 {
-    const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
-    const auto kBufferSize =
-            parentBytesAndCount.second
-            + sizeof(KeyNumber)
-            + lamport::KeyHash::kBytesSize;
+    const auto parentBytesAndCount = ConfirmationMessage::serializeToBytes();
+    auto kBufferSize = parentBytesAndCount.second;
+    if (state() == ConfirmationMessage::OK) {
+        kBufferSize += sizeof(KeyNumber) + lamport::KeyHash::kBytesSize;
+    }
     BytesShared buffer = tryMalloc(kBufferSize);
 
     size_t dataBytesOffset = 0;
@@ -62,16 +79,18 @@ pair<BytesShared, size_t> PublicKeyHashConfirmation::serializeToBytes() const
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
 
-    memcpy(
-        buffer.get() + dataBytesOffset,
-        &mNumber,
-        sizeof(KeyNumber));
-    dataBytesOffset += sizeof(KeyNumber);
+    if (state() == ConfirmationMessage::OK) {
+        memcpy(
+            buffer.get() + dataBytesOffset,
+            &mNumber,
+            sizeof(KeyNumber));
+        dataBytesOffset += sizeof(KeyNumber);
 
-    memcpy(
-        buffer.get() + dataBytesOffset,
-        mHashConfirmation->data(),
-        lamport::KeyHash::kBytesSize);
+        memcpy(
+            buffer.get() + dataBytesOffset,
+            mHashConfirmation->data(),
+            lamport::KeyHash::kBytesSize);
+    }
 
     return make_pair(
         buffer,

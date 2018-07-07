@@ -22,12 +22,12 @@ RequestMessageWithReservations::RequestMessageWithReservations(
     auto parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes();
     auto bytesBufferOffset = buffer.get() + parentMessageOffset;
     //----------------------------------------------------
-    SerializedRecordsCount *finalAmountsConfigurationCount = new (bytesBufferOffset) SerializedRecordsCount;
+    auto *finalAmountsConfigurationCount = new (bytesBufferOffset) SerializedRecordsCount;
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     //-----------------------------------------------------
     mFinalAmountsConfiguration.reserve(*finalAmountsConfigurationCount);
     for (SerializedRecordNumber idx = 0; idx < *finalAmountsConfigurationCount; idx++) {
-        PathID *pathID = new (bytesBufferOffset) PathID;
+        auto *pathID = new (bytesBufferOffset) PathID;
         bytesBufferOffset += sizeof(PathID);
         //---------------------------------------------------
         vector<byte> bufferTrustLineAmount(
@@ -36,11 +36,10 @@ RequestMessageWithReservations::RequestMessageWithReservations(
         bytesBufferOffset += kTrustLineAmountBytesCount;
         //---------------------------------------------------
         TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
-        mFinalAmountsConfiguration.push_back(
-            make_pair(
-                *pathID,
-                make_shared<const TrustLineAmount>(
-                    trustLineAmount)));
+        mFinalAmountsConfiguration.emplace_back(
+            *pathID,
+            make_shared<const TrustLineAmount>(
+                trustLineAmount));
     }
 }
 
@@ -73,7 +72,7 @@ pair<BytesShared, size_t> RequestMessageWithReservations::serializeToBytes() con
     auto bytesBufferOffset = initialOffset + parentBytesAndCount.second;
 
     //----------------------------------------------------
-    SerializedRecordsCount finalAmountsConfigurationCount = (SerializedRecordsCount)mFinalAmountsConfiguration.size();
+    auto finalAmountsConfigurationCount = (SerializedRecordsCount)mFinalAmountsConfiguration.size();
     memcpy(
         bytesBufferOffset,
         &finalAmountsConfigurationCount,

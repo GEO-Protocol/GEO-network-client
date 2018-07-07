@@ -16,7 +16,7 @@ RoutingTableResponseMessage::RoutingTableResponseMessage(
     ConfirmationMessage(buffer)
 {
     size_t bytesBufferOffset = ConfirmationMessage::kOffsetToInheritedBytes();
-    SerializedRecordsCount *equivalentsNumber = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
+    auto *equivalentsNumber = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     for (SerializedRecordNumber idxEq = 0; idxEq < *equivalentsNumber; idxEq++) {
         SerializedEquivalent equivalentTmp;
@@ -25,7 +25,7 @@ RoutingTableResponseMessage::RoutingTableResponseMessage(
             buffer.get() + bytesBufferOffset,
             sizeof(SerializedEquivalent));
         bytesBufferOffset += sizeof(SerializedEquivalent);
-        SerializedRecordsCount *neighborsNumber = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
+        auto *neighborsNumber = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
         bytesBufferOffset += sizeof(SerializedRecordsCount);
         set<NodeUUID> neighbors;
         for (SerializedRecordNumber idx = 0; idx < *neighborsNumber; idx++) {
@@ -33,10 +33,9 @@ RoutingTableResponseMessage::RoutingTableResponseMessage(
             bytesBufferOffset += NodeUUID::kBytesSize;
             neighbors.insert(nodeUUID);
         }
-        mNeighbors.push_back(
-            make_pair(
-                equivalentTmp,
-                neighbors));
+        mNeighbors.emplace_back(
+            equivalentTmp,
+            neighbors);
     }
 }
 
@@ -52,7 +51,7 @@ pair<BytesShared, size_t> RoutingTableResponseMessage::serializeToBytes() const
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(SerializedRecordsCount);
     for (const auto &equivalentAndNeighbors : mNeighbors) {
-        SerializedRecordsCount neighborsSize = (SerializedRecordsCount)equivalentAndNeighbors.second.size();
+        auto neighborsSize = (SerializedRecordsCount)equivalentAndNeighbors.second.size();
         bytesCount += sizeof(SerializedEquivalent) + sizeof(SerializedRecordsCount)
                       + neighborsSize * (NodeUUID::kBytesSize);
     }
@@ -66,7 +65,7 @@ pair<BytesShared, size_t> RoutingTableResponseMessage::serializeToBytes() const
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
 
-    SerializedRecordsCount equivalentsCount = (SerializedRecordsCount)mNeighbors.size();
+    auto equivalentsCount = (SerializedRecordsCount)mNeighbors.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &equivalentsCount,
@@ -80,7 +79,7 @@ pair<BytesShared, size_t> RoutingTableResponseMessage::serializeToBytes() const
             sizeof(SerializedEquivalent));
         dataBytesOffset += sizeof(SerializedEquivalent);
 
-        SerializedRecordsCount neighborsCount = (SerializedRecordsCount)equivalentAndNeighbors.second.size();
+        auto neighborsCount = (SerializedRecordsCount)equivalentAndNeighbors.second.size();
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &neighborsCount,

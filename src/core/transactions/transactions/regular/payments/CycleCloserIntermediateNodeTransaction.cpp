@@ -697,7 +697,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
                 mTrustLines->auditNumber(nodeAndPaymentID.first),
                 mTransactionUUID,
                 signatureAndKeyNumber.second,
-                outgoingReservedAmount)) {
+                outgoingReservedAmount,
+                signatureAndKeyNumber.first)) {
                 sendMessage<FinalAmountsConfigurationResponseMessage>(
                     kMessage->senderUUID,
                     mEquivalent,

@@ -59,6 +59,7 @@
 #include "../transactions/trust_lines/SetIncomingTrustLineTransaction.h"
 #include "../transactions/trust_lines/CloseIncomingTrustLineTransaction.h"
 #include "../transactions/trust_lines/CloseOutgoingTrustLineTransaction.h"
+#include "../transactions/trust_lines/PublicKeysSharingSourceTransaction.h"
 #include "../transactions/trust_lines/PublicKeysSharingTargetTransaction.h"
 #include "../transactions/trust_lines/InitialAuditTargetTransaction.h"
 #include "../transactions/trust_lines/AuditSourceTransaction.h"
@@ -388,8 +389,11 @@ protected:
     void subscribeForGatewayNotificationSignal(
         EquivalentsSubsystemsRouter::GatewayNotificationSignal &signal);
 
-    void subscribeForAuditOnEmptyTrustLine(
-        BasePaymentTransaction::EmptyTrustLineAudit &signal);
+    void subscribeForAuditSignal(
+        BasePaymentTransaction::TrustLineAuditSignal &signal);
+
+    void subscribeForPublicKeysSharingSignal(
+        BasePaymentTransaction::PublicKeysSharingSignal &signal);
 
     // Slots
     void onSubsidiaryTransactionReady(
@@ -431,7 +435,11 @@ protected:
 
     void onGatewayNotificationSlot();
 
-    void onAuditOnEmptyTrustLineSlot(
+    void onAuditOnTrustLineSlot(
+        const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent);
+
+    void onPublicKeySharingSlot(
         const NodeUUID &contractorUUID,
         const SerializedEquivalent equivalent);
 

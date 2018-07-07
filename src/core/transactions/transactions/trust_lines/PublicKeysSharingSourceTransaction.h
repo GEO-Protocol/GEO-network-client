@@ -26,12 +26,21 @@ public:
         Keystore *keystore,
         Logger &logger);
 
+    PublicKeysSharingSourceTransaction(
+        BytesShared buffer,
+        const NodeUUID &nodeUUID,
+        TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        Keystore *keystore,
+        Logger &logger);
+
     TransactionResult::SharedConst run();
 
 protected:
     enum Stages {
         Initialisation = 1,
         SendNextKey = 2,
+        Recovery = 3,
     };
 
 protected: // log
@@ -41,6 +50,10 @@ private:
     TransactionResult::SharedConst runInitialisationStage();
 
     TransactionResult::SharedConst runSendNextKeyStage();
+
+    TransactionResult::SharedConst runRecoveryStage();
+
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     static const uint32_t kWaitMillisecondsForResponse = 3000;

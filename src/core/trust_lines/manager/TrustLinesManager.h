@@ -134,7 +134,7 @@ public:
         TrustLine::TrustLineState state,
         IOTransaction::Shared ioTransaction = nullptr);
 
-    void setTrustLineAuditNumber(
+    void setTrustLineAuditNumberAndMakeActive(
         IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID,
         AuditNumber newAuditNumber);
@@ -301,6 +301,12 @@ public:
         IOTransaction::Shared ioTransaction = nullptr);
 
     bool isTrustLineEmpty(
+        const NodeUUID &contractorUUID);
+
+    bool isTrustLineOverflowed(
+        const NodeUUID &contractorUUID);
+
+    void resetTrustLineTotalReceiptsAmounts(
         const NodeUUID &contractorUUID);
 
     vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;

@@ -46,6 +46,9 @@ public:
     KeysCount availableKeysCnt(
         const TrustLineID trustLineID);
 
+    void removeUnusedKeys(
+        const TrustLineID trustLineID);
+
 private:
     LoggerStream info() const;
 

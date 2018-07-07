@@ -30,29 +30,14 @@ public:
 
     TransactionResult::SharedConst run();
 
-protected:
-    enum Stages {
-        Initialisation = 1,
-        ReceiveNextKey = 2,
-    };
-
 protected: // log
     const string logHeader() const;
-
-private:
-    TransactionResult::SharedConst runInitialisationStage();
-
-    TransactionResult::SharedConst runReceiveNextKeyStage();
-
-private:
-    static const uint32_t kWaitMillisecondsForResponse = 3000;
 
 protected:
     PublicKeyMessage::Shared mMessage;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
-    KeysCount mReceivedKeysCount;
 };
 
 
