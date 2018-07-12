@@ -93,11 +93,6 @@ void ConfirmationRequiredMessagesHandler::tryProcessConfirmation(
                       << confirmationMessage->typeID() << " for equivalent " << queueKey.first;
         }
 
-        if (confirmationMessage->state() == ConfirmationMessage::ContractorBanned) {
-            info() << "Contractor " << queueKey.second << " reject incoming TL for equivalent "
-                   << queueKey.first;
-        }
-
         auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
         ioTransaction->communicatorMessagesQueueHandler()->deleteRecord(
             queueKey.second,
@@ -262,10 +257,6 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<SetIncomingTrustLineFromGatewayMessage>(messageBody));
                 break;
-            case Message::TrustLines_InitialAudit:
-                sendingMessage = static_pointer_cast<TransactionMessage>(
-                    make_shared<InitialAuditMessage>(messageBody));
-                break;
             case Message::TrustLines_Audit:
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<AuditMessage>(messageBody));
@@ -273,6 +264,7 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
             case Message::TrustLines_PublicKey:
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<PublicKeyMessage>(messageBody));
+                break;
             default:
                 mLog.error("ConfirmationRequiredMessagesHandler::deserializeMessages "
                                "invalid message type");

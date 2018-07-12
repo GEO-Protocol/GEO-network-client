@@ -11,20 +11,22 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     Logger &logger)
     noexcept :
 
-    BaseTransaction(
+    BaseTrustLineTransaction(
         BaseTransaction::OpenTrustLineTransaction,
         nodeUUID,
         command->equivalent(),
+        manager,
+        storageHandler,
+        keystore,
         logger),
     mCommand(command),
-    mContractorUUID(command->contractorUUID()),
-    mAmount(command->amount()),
-    mTrustLines(manager),
-    mStorageHandler(storageHandler),
     mSubsystemsController(subsystemsController),
-    mKeysStore(keystore),
     mIAmGateway(iAmGateway)
-{}
+{
+    mContractorUUID = command->contractorUUID();
+    mAmount = command->amount();
+    mAuditNumber = kInitialAuditNumber;
+}
 
 OpenTrustLineTransaction::OpenTrustLineTransaction(
     BytesShared buffer,
@@ -34,13 +36,13 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     Keystore *keystore,
     Logger &logger) :
 
-    BaseTransaction(
+    BaseTrustLineTransaction(
         buffer,
         nodeUUID,
-        logger),
-    mTrustLines(manager),
-    mStorageHandler(storageHandler),
-    mKeysStore(keystore)
+        manager,
+        storageHandler,
+        keystore,
+        logger)
 {
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
     mStep = Stages::Recovery;
@@ -55,17 +57,56 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
         buffer.get() + bytesBufferOffset,
         buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
     mAmount = bytesToTrustLineAmount(amountBytes);
+
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
+        bytesBufferOffset += kTrustLineAmountBytesCount;
+
+        memcpy(
+            &mAuditNumber,
+            buffer.get() + bytesBufferOffset,
+            sizeof(AuditNumber));
+        bytesBufferOffset += sizeof(AuditNumber);
+
+        auto signature = make_shared<lamport::Signature>(
+            buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += lamport::Signature::signatureSize();
+
+        KeyNumber keyNumber;
+        memcpy(
+            &keyNumber,
+            buffer.get() + bytesBufferOffset,
+            sizeof(KeyNumber));
+
+        mOwnSignatureAndKeyNumber = make_pair(
+            signature,
+            keyNumber);
+    }
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::run()
 {
     info() << "step " << mStep;
     switch (mStep) {
-        case Stages::Initialisation: {
+        case Stages::TrustLineInitialisation: {
             return runInitialisationStage();
         }
-        case Stages::ResponseProcessing: {
+        case Stages::TrustLineResponseProcessing: {
             return runResponseProcessingStage();
+        }
+        case Stages::KeysSharingInitialization: {
+            return runPublicKeysSharingInitialisationStage();
+        }
+        case Stages::NextKeyProcessing: {
+            return runPublicKeysSendNextKeyStage();
+        }
+        case Stages::KeysSharingTargetNextKey: {
+            return runReceiveNextKeyStage();
+        }
+        case Stages::AuditInitialisation: {
+            return runAuditInitializationStage();
+        }
+        case Stages::AuditResponseProcessing: {
+            return runAuditResponseProcessingStage();
         }
         case Stages::Recovery: {
             return runRecoveryStage();
@@ -143,7 +184,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitialisationStage(
         throw e;
     }
 
-    mStep = ResponseProcessing;
+    mStep = TrustLineResponseProcessing;
     return resultOK();
 }
 
@@ -190,10 +231,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
         populateHistory(
             ioTransaction,
             TrustLineRecord::Opening);
-
-        // delete this transaction from storage
-        ioTransaction->transactionHandler()->deleteRecord(
-            currentTransactionUUID());
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Attempt to process confirmation from contractor " << mContractorUUID << " failed. "
@@ -202,16 +239,8 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
     }
 
     processConfirmationMessage(message);
-    const auto kTransaction = make_shared<PublicKeysSharingSourceTransaction>(
-        mNodeUUID,
-        mContractorUUID,
-        mEquivalent,
-        mTrustLines,
-        mStorageHandler,
-        mKeysStore,
-        mLog);
-    launchSubsidiaryTransaction(kTransaction);
-    return resultDone();
+    mStep = KeysSharingInitialization;
+    return resultAwakeAsFastAsPossible();
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::runRecoveryStage()
@@ -227,8 +256,21 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runRecoveryStage()
     mTrustLines->open(
         mContractorUUID,
         mAmount);
-    mStep = ResponseProcessing;
+    mStep = TrustLineResponseProcessing;
     return runResponseProcessingStage();
+}
+
+TransactionResult::SharedConst OpenTrustLineTransaction::runReceiveNextKeyStage()
+{
+    info() << "runReceiveNextKeyStage";
+    if (mContext.empty()) {
+        warning() << "No next public key message received. Transaction will be closed, and wait for message";
+        return resultDone();
+    }
+    auto message = popNextMessage<PublicKeyMessage>();
+    mCurrentPublicKey = message->publicKey();
+    mCurrentKeyNumber = message->number();
+    return runPublicKeyReceiverStage();
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::resultOK()
@@ -258,6 +300,12 @@ pair<BytesShared, size_t> OpenTrustLineTransaction::serializeToBytes() const
                         + NodeUUID::kBytesSize
                         + kTrustLineAmountBytesCount;
 
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
+        bytesCount += sizeof(AuditNumber)
+                      + lamport::Signature::signatureSize()
+                      + sizeof(KeyNumber);
+    }
+
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
 
@@ -278,6 +326,27 @@ pair<BytesShared, size_t> OpenTrustLineTransaction::serializeToBytes() const
         dataBytesShared.get() + dataBytesOffset,
         buffer.data(),
         buffer.size());
+
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
+        dataBytesOffset += kTrustLineAmountBytesCount;
+
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            &mAuditNumber,
+            sizeof(AuditNumber));
+        dataBytesOffset += sizeof(AuditNumber);
+
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            mOwnSignatureAndKeyNumber.first->data(),
+            lamport::Signature::signatureSize());
+        dataBytesOffset += lamport::Signature::signatureSize();
+
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            &mOwnSignatureAndKeyNumber.second,
+            sizeof(KeyNumber));
+    }
 
     return make_pair(
         dataBytesShared,

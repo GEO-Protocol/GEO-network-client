@@ -11,7 +11,6 @@
 #include "../../../messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../messages/trust_lines/PublicKeyMessage.h"
 #include "../../../messages/trust_lines/PublicKeyHashConfirmation.h"
-#include "../../../messages/trust_lines/InitialAuditMessage.h"
 #include "../../../messages/trust_lines/AuditMessage.h"
 
 #include "../../../messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"

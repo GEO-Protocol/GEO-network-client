@@ -163,6 +163,7 @@ void TransactionsScheduler::launchTransaction(
         handleTransactionResult(
             transaction,
             result);
+        adjustAwakeningToNextTransaction();
 
     } catch (exception &e) {
         error() << "TA error occurred:"

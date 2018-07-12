@@ -1,9 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_SETINCOMINGTRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_SETINCOMINGTRUSTLINETRANSACTION_H
 
-#include "../base/BaseTransaction.h"
-#include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../io/storage/StorageHandler.h"
+#include "base/BaseTrustLineTransaction.h"
 #include "../../../topology/manager/TopologyTrustLinesManager.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
@@ -29,7 +27,7 @@
  * then incoming trust line to this contractor would be closed.
  */
 class SetIncomingTrustLineTransaction:
-    public BaseTransaction {
+    public BaseTrustLineTransaction {
 
 public:
     typedef shared_ptr<SetIncomingTrustLineTransaction> Shared;
@@ -44,6 +42,7 @@ public:
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
+        Keystore *keystore,
         VisualInterface *visualInterface,
         bool iAmGateway,
         Logger &logger)
@@ -58,10 +57,19 @@ public:
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
+        Keystore *keystore,
         VisualInterface *visualInterface,
         bool iAmGateway,
         Logger &logger)
     noexcept;
+
+    SetIncomingTrustLineTransaction(
+        BytesShared buffer,
+        const NodeUUID &nodeUUID,
+        TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        Keystore *keystore,
+        Logger &logger);
 
     TransactionResult::SharedConst run();
 
@@ -70,14 +78,20 @@ protected: // trust lines history shortcuts
         IOTransaction::Shared ioTransaction,
         TrustLineRecord::TrustLineOperationType operationType);
 
-protected: // log
     const string logHeader() const
         noexcept;
 
+private:
+    TransactionResult::SharedConst runInitializationStage();
+
+    TransactionResult::SharedConst runReceiveAuditStage();
+
+    TransactionResult::SharedConst runRecoveryStage();
+
+    pair<BytesShared, size_t> serializeToBytes() const;
+
 protected:
-    SetIncomingTrustLineMessage::Shared mMessage;
-    TrustLinesManager *mTrustLines;
-    StorageHandler *mStorageHandler;
+    TrustLineAmount mAmount;
     TopologyTrustLinesManager *mTopologyTrustLinesManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;

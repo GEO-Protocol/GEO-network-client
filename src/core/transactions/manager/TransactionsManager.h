@@ -61,7 +61,6 @@
 #include "../transactions/trust_lines/CloseOutgoingTrustLineTransaction.h"
 #include "../transactions/trust_lines/PublicKeysSharingSourceTransaction.h"
 #include "../transactions/trust_lines/PublicKeysSharingTargetTransaction.h"
-#include "../transactions/trust_lines/InitialAuditTargetTransaction.h"
 #include "../transactions/trust_lines/AuditSourceTransaction.h"
 #include "../transactions/trust_lines/AuditTargetTransaction.h"
 
@@ -199,9 +198,6 @@ protected: // Transactions
 
     void launchPublicKeysSharingTargetTransaction(
         PublicKeyMessage::Shared message);
-
-    void launchInitialAuditTargetTransaction(
-        InitialAuditMessage::Shared message);
 
     void launchAuditTargetTransaction(
         AuditMessage::Shared message);

@@ -33,8 +33,7 @@ public:
         TrustLines_Confirmation = 103,
         TrustLines_PublicKey = 104,
         TrustLines_HashConfirmation = 105,
-        TrustLines_InitialAudit = 106,
-        TrustLines_Audit = 107,
+        TrustLines_Audit = 106,
 
         /*
          * Payments messages

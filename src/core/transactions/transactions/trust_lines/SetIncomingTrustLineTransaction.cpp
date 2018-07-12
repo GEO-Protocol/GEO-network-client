@@ -10,20 +10,22 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
+    Keystore *keystore,
     VisualInterface *visualInterface,
     bool iAmGateway,
     Logger &logger)
     noexcept:
 
-    BaseTransaction(
+    BaseTrustLineTransaction(
         BaseTransaction::SetIncomingTrustLineTransaction,
         message->transactionUUID(),
         nodeUUID,
         message->equivalent(),
+        manager,
+        storageHandler,
+        keystore,
         logger),
-    mMessage(message),
-    mTrustLines(manager),
-    mStorageHandler(storageHandler),
+    mAmount(message->amount()),
     mTopologyTrustLinesManager(topologyTrustLinesManager),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
@@ -31,7 +33,10 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     mVisualInterface(visualInterface),
     mIAmGateway(iAmGateway),
     mSenderIsGateway(false)
-{}
+{
+    mContractorUUID = message->senderUUID;
+    mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
+}
 
 SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     const NodeUUID &nodeUUID,
@@ -42,20 +47,22 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
+    Keystore *keystore,
     VisualInterface *visualInterface,
     bool iAmGateway,
     Logger &logger)
     noexcept:
 
-    BaseTransaction(
+    BaseTrustLineTransaction(
         BaseTransaction::SetIncomingTrustLineTransaction,
         message->transactionUUID(),
         nodeUUID,
         message->equivalent(),
+        manager,
+        storageHandler,
+        keystore,
         logger),
-    mMessage(message),
-    mTrustLines(manager),
-    mStorageHandler(storageHandler),
+    mAmount(message->amount()),
     mTopologyTrustLinesManager(topologyTrustLinesManager),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
@@ -63,35 +70,88 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     mVisualInterface(visualInterface),
     mIAmGateway(iAmGateway),
     mSenderIsGateway(true)
-{}
+{
+    mContractorUUID = message->senderUUID;
+    mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
+}
+
+SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
+    BytesShared buffer,
+    const NodeUUID &nodeUUID,
+    TrustLinesManager *manager,
+    StorageHandler *storageHandler,
+    Keystore *keystore,
+    Logger &logger) :
+
+    BaseTrustLineTransaction(
+        buffer,
+        nodeUUID,
+        manager,
+        storageHandler,
+        keystore,
+        logger)
+{
+    auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
+    mStep = Stages::Recovery;
+
+    memcpy(
+        mContractorUUID.data,
+        buffer.get() + bytesBufferOffset,
+        NodeUUID::kBytesSize);
+    bytesBufferOffset += NodeUUID::kBytesSize;
+
+    vector<byte> amountBytes(
+        buffer.get() + bytesBufferOffset,
+        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+    mAmount = bytesToTrustLineAmount(amountBytes);
+}
 
 TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 {
-    info() << "sender: " << mMessage->senderUUID;
-    if (mMessage->senderUUID == mNodeUUID) {
+    info() << mStep;
+    switch (mStep) {
+        case Stages::TrustLineInitialisation: {
+            return runInitializationStage();
+        }
+        case Stages::AuditTarget: {
+            return runReceiveAuditStage();
+        }
+        case Stages::Recovery: {
+            return runRecoveryStage();
+        }
+        default:
+            throw ValueError(logHeader() + "::run: "
+                "wrong value of mStep " + to_string(mStep));
+    }
+}
+
+TransactionResult::SharedConst SetIncomingTrustLineTransaction::runInitializationStage()
+{
+    info() << "sender: " << mContractorUUID;
+    if (mContractorUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
         return resultDone();
     }
 
-    if (!mTrustLines->trustLineIsPresent(mMessage->senderUUID)) {
+    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
         warning() << "Trust line is absent.";
         sendMessage<TrustLineConfirmationMessage>(
-            mMessage->senderUUID,
+            mContractorUUID,
             mEquivalent,
             mNodeUUID,
-            mMessage->transactionUUID(),
+            mTransactionUUID,
             false,
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         return resultDone();
     }
 
-    if (mTrustLines->trustLineState(mMessage->senderUUID) != TrustLine::Active) {
-        warning() << "Invalid TL state " << mTrustLines->trustLineState(mMessage->senderUUID);
+    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Active) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
         sendMessage<TrustLineConfirmationMessage>(
-            mMessage->senderUUID,
+            mContractorUUID,
             mEquivalent,
             mNodeUUID,
-            mMessage->transactionUUID(),
+            mTransactionUUID,
             false,
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         return resultDone();
@@ -103,31 +163,31 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
     auto ioTransaction = mStorageHandler->beginTransaction();
 
     // if contractor in black list we should reject operation with TL
-    if (ioTransaction->blackListHandler()->checkIfNodeExists(mMessage->senderUUID)) {
-        warning() << "Contractor " << mMessage->senderUUID << " is in black list. Transaction rejected";
+    if (ioTransaction->blackListHandler()->checkIfNodeExists(mContractorUUID)) {
+        warning() << "Contractor " << mContractorUUID << " is in black list. Transaction rejected";
         sendMessage<TrustLineConfirmationMessage>(
-            mMessage->senderUUID,
+            mContractorUUID,
             mEquivalent,
             mNodeUUID,
-            mMessage->transactionUUID(),
+            mTransactionUUID,
             false,
             ConfirmationMessage::ContractorBanned);
 
         return resultDone();
     }
 
-    auto previousTL = mTrustLines->trustLineReadOnly(mMessage->senderUUID);
+    auto previousTL = mTrustLines->trustLineReadOnly(mContractorUUID);
     TrustLinesManager::TrustLineOperationResult kOperationResult;
 
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
         kOperationResult = mTrustLines->setIncoming(
-            mMessage->senderUUID,
-            mMessage->amount());
+            mContractorUUID,
+            mAmount);
 
         mTrustLines->setTrustLineState(
-            mMessage->senderUUID,
+            mContractorUUID,
             TrustLine::AuditPending,
             ioTransaction);
 
@@ -136,13 +196,13 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
             populateHistory(ioTransaction, TrustLineRecord::Accepting);
             mTopologyCacheManager->resetInitiatorCache();
             mMaxFlowCacheManager->clearCashes();
-            info() << "Incoming trust line from the node " << mMessage->senderUUID
-                   << " has been successfully initialised with " << mMessage->amount();
+            info() << "Incoming trust line from the node " << mContractorUUID
+                   << " has been successfully initialised with " << mAmount;
 
             if (mSenderIsGateway) {
                 mTrustLines->setContractorAsGateway(
                     ioTransaction,
-                    mMessage->senderUUID,
+                    mContractorUUID,
                     true);
                 info() << "Incoming trust line was opened from gateway";
             }
@@ -153,8 +213,8 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
             populateHistory(ioTransaction, TrustLineRecord::Updating);
             mTopologyCacheManager->resetInitiatorCache();
             mMaxFlowCacheManager->clearCashes();
-            info() << "Incoming trust line from the node " << mMessage->senderUUID
-                   << " has been successfully set to " << mMessage->amount();
+            info() << "Incoming trust line from the node " << mContractorUUID
+                   << " has been successfully set to " << mAmount;
             break;
         }
 
@@ -164,11 +224,11 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
             mTopologyTrustLinesManager->addTrustLine(
                 make_shared<TopologyTrustLine>(
                     mNodeUUID,
-                    mMessage->senderUUID,
+                    mContractorUUID,
                     make_shared<const TrustLineAmount>(0)));
             mTopologyCacheManager->resetInitiatorCache();
             mMaxFlowCacheManager->clearCashes();
-            info() << "Incoming trust line from the node " << mMessage->senderUUID
+            info() << "Incoming trust line from the node " << mContractorUUID
                    << " has been successfully closed.";
             break;
         }
@@ -176,18 +236,26 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         case TrustLinesManager::TrustLineOperationResult::NoChanges: {
             // It is possible, that set trust line request will arrive twice or more times,
             // but only first processed update must be written to the trust lines history.
-            info() << "Incoming trust line from the node " << mMessage->senderUUID
+            info() << "Incoming trust line from the node " << mContractorUUID
                    << " has not been changed.";
             break;
         }
         }
 
+        auto bytesAndCount = serializeToBytes();
+        info() << "Transaction serialized";
+        ioTransaction->transactionHandler()->saveRecord(
+            currentTransactionUUID(),
+            bytesAndCount.first,
+            bytesAndCount.second);
+        info() << "Transaction saved";
+
         // Sending confirmation back.
         sendMessage<TrustLineConfirmationMessage>(
-            mMessage->senderUUID,
+            mContractorUUID,
             mEquivalent,
             mNodeUUID,
-            mMessage->transactionUUID(),
+            mTransactionUUID,
             mIAmGateway,
             ConfirmationMessage::OK);
 
@@ -197,7 +265,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
                 s << VisualResult::IncomingTrustLineOpen << kTokensSeparator
                   << microsecondsSinceUnixEpoch() << kTokensSeparator
                   << currentTransactionUUID() << kTokensSeparator
-                  << mMessage->senderUUID << kCommandsSeparator;
+                  << mContractorUUID << kCommandsSeparator;
                 auto message = s.str();
 
                 try {
@@ -214,7 +282,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
                 s << VisualResult::IncomingTrustLineClose << kTokensSeparator
                   << microsecondsSinceUnixEpoch() << kTokensSeparator
                   << currentTransactionUUID() << kTokensSeparator
-                  << mMessage->senderUUID << kCommandsSeparator;
+                  << mContractorUUID << kCommandsSeparator;
                 auto message = s.str();
 
                 try {
@@ -229,16 +297,19 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         }
 
         info() << "Wait for audit";
-        return resultDone();
+        mStep = AuditTarget;
+        return resultWaitForMessageTypes(
+            {Message::TrustLines_Audit},
+            kWaitMillisecondsForResponse);
 
     } catch (ValueError &) {
-        warning() << "Attempt to set incoming trust line from the node " << mMessage->senderUUID << " failed. "
+        warning() << "Attempt to set incoming trust line from the node " << mContractorUUID << " failed. "
                << "Cannot open TL with zero amount.";
         sendMessage<TrustLineConfirmationMessage>(
-            mMessage->senderUUID,
+            mContractorUUID,
             mEquivalent,
             mNodeUUID,
-            mMessage->transactionUUID(),
+            mTransactionUUID,
             false,
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         return resultDone();
@@ -246,19 +317,12 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
     } catch (IOError &e) {
         ioTransaction->rollback();
         mTrustLines->setIncoming(
-            mMessage->senderUUID,
+            mContractorUUID,
             previousTL->incomingTrustAmount());
         mTrustLines->setTrustLineState(
-            mMessage->senderUUID,
+            mContractorUUID,
             previousTL->state());
-        sendMessage<TrustLineConfirmationMessage>(
-            mMessage->senderUUID,
-            mEquivalent,
-            mNodeUUID,
-            mMessage->transactionUUID(),
-            false,
-            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
-        warning() << "Attempt to set incoming trust line to the node " << mMessage->senderUUID << " failed. "
+        warning() << "Attempt to set incoming trust line to the node " << mContractorUUID << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();
 
@@ -266,6 +330,70 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         // because the TA can't finish properly and no result may be returned.
         throw e;
     }
+}
+
+TransactionResult::SharedConst SetIncomingTrustLineTransaction::runReceiveAuditStage()
+{
+    info() << "runReceiveAuditStage";
+    if (mContext.empty()) {
+        warning() << "No audit message received. Transaction will be closed, and wait for message";
+        return resultDone();
+    }
+    mAuditMessage = popNextMessage<AuditMessage>();
+    return runAuditTargetStage();
+}
+
+TransactionResult::SharedConst SetIncomingTrustLineTransaction::runRecoveryStage()
+{
+    info() << "Recovery";
+    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+        warning() << "Trust line is absent " << mContractorUUID;
+        return resultDone();
+    }
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Modify) {
+        info() << "waiting for audit";
+        mStep = AuditTarget;
+        return resultWaitForMessageTypes(
+            {Message::TrustLines_Audit},
+            kWaitMillisecondsForResponse);
+    } else {
+        warning() << "Invalid TL state for this TA: "
+                  << mTrustLines->trustLineState(mContractorUUID);
+        return resultDone();
+    }
+}
+
+pair<BytesShared, size_t> SetIncomingTrustLineTransaction::serializeToBytes() const
+{
+    const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second
+                        + NodeUUID::kBytesSize
+                        + kTrustLineAmountBytesCount;
+
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
+
+    memcpy(
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second);
+    dataBytesOffset += parentBytesAndCount.second;
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        mContractorUUID.data,
+        NodeUUID::kBytesSize);
+    dataBytesOffset += NodeUUID::kBytesSize;
+
+    vector<byte> buffer = trustLineAmountToBytes(mAmount);
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        buffer.data(),
+        buffer.size());
+
+    return make_pair(
+        dataBytesShared,
+        bytesCount);
 }
 
 const string SetIncomingTrustLineTransaction::logHeader() const
@@ -284,8 +412,8 @@ void SetIncomingTrustLineTransaction::populateHistory(
     auto record = make_shared<TrustLineRecord>(
         mTransactionUUID,
         operationType,
-        mMessage->senderUUID,
-        mMessage->amount());
+        mContractorUUID,
+        mAmount);
 
     ioTransaction->historyStorage()->saveTrustLineRecord(
         record,

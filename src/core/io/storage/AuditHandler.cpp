@@ -141,7 +141,7 @@ const AuditRecord::Shared AuditHandler::getActualAudit(
     TrustLineID trustLineID)
 {
     string query = "SELECT number, incoming_amount, outgoing_amount, balance FROM " + mTableName
-                   + " WHERE trust_line_id = ? ORDER BY number ASC LIMIT 1;";
+                   + " WHERE trust_line_id = ? ORDER BY number DESC LIMIT 1;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {

@@ -36,11 +36,6 @@ bool ConfirmationRequiredMessagesQueue::enqueue(
                 message);
             return true;
         }
-        case Message::TrustLines_InitialAudit: {
-            updateInitialAuditInTheQueue(
-                message);
-            return true;
-        }
         case Message::TrustLines_Audit: {
             updateAuditInTheQueue(
                 message);
@@ -185,31 +180,6 @@ void ConfirmationRequiredMessagesQueue::updateGatewayNotificationInTheQueue(
         const auto kMessage = it->second;
 
         if (kMessage->typeID() == Message::GatewayNotification) {
-            mMessages.erase(it++);
-            signalRemoveMessageFromStorage(
-                mContractorUUID,
-                mEquivalent,
-                kMessage->typeID());
-        } else {
-            ++it;
-        }
-    }
-
-    mMessages[message->transactionUUID()] = message;
-    signalSaveMessageToStorage(
-        mContractorUUID,
-        message);
-}
-
-void ConfirmationRequiredMessagesQueue::updateInitialAuditInTheQueue(
-    TransactionMessage::Shared message)
-{
-    // Only one InitialAuditMessage should be in the queue in one moment of time.
-    // queue must contains only newest one message, all other must be removed.
-    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
-        const auto kMessage = it->second;
-
-        if (kMessage->typeID() == Message::TrustLines_InitialAudit) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,

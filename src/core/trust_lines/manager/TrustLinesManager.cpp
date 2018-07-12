@@ -28,6 +28,7 @@ void TrustLinesManager::loadTrustLinesFromStorage()
         kTrustLine->setAuditNumber(auditRecord->auditNumber());
         kTrustLine->setIncomingTrustAmount(auditRecord->incomingAmount());
         kTrustLine->setOutgoingTrustAmount(auditRecord->outgoingAmount());
+        info() << "audit number " << auditRecord->auditNumber();
 
         auto incomingReceiptsAmounts = ioTransaction->incomingPaymentReceiptHandler()->auditAmounts(
             kTrustLine->trustLineID(),

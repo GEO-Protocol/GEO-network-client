@@ -1,17 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_AUDITSOURCETRANSACTION_H
 #define GEO_NETWORK_CLIENT_AUDITSOURCETRANSACTION_H
 
-#include "../base/BaseTransaction.h"
-#include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../crypto/keychain.h"
-#include "../../../crypto/lamportkeys.h"
+#include "base/BaseTrustLineTransaction.h"
 
-#include "../../../network/messages/trust_lines/AuditMessage.h"
-#include "PublicKeysSharingSourceTransaction.h"
-
-using namespace crypto;
-
-class AuditSourceTransaction : public BaseTransaction {
+class AuditSourceTransaction : public BaseTrustLineTransaction {
 
 public:
     typedef shared_ptr<AuditSourceTransaction> Shared;
@@ -36,39 +28,13 @@ public:
 
     TransactionResult::SharedConst run();
 
-protected:
-    enum Stages {
-        Initialisation = 1,
-        ResponseProcessing = 2,
-        Recovery = 3,
-    };
-
 protected: // log
     const string logHeader() const;
 
 private:
-    TransactionResult::SharedConst runInitialisationStage();
-
-    TransactionResult::SharedConst runResponseProcessingStage();
-
     TransactionResult::SharedConst runRecoveryStage();
 
     pair<BytesShared, size_t> serializeToBytes() const override;
-
-    pair<BytesShared, size_t> getOwnSerializedAuditData();
-
-    pair<BytesShared, size_t> getContractorSerializedAuditData();
-
-private:
-    static const uint32_t kWaitMillisecondsForResponse = 60000;
-
-private:
-    NodeUUID mContractorUUID;
-    TrustLinesManager *mTrustLines;
-    StorageHandler *mStorageHandler;
-    Keystore *mKeysStore;
-    pair<lamport::Signature::Shared, KeyNumber> mOwnSignatureAndKeyNumber;
-    AuditNumber mAuditNumber;
 };
 
 

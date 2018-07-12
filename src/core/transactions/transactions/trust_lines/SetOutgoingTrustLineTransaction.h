@@ -1,19 +1,14 @@
 #ifndef GEO_NETWORK_CLIENT_SETOUTGOINGTRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_SETOUTGOINGTRUSTLINETRANSACTION_H
 
-#include "../base/BaseTransaction.h"
-#include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "base/BaseTrustLineTransaction.h"
 #include "../../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
-#include "../../../io/storage/StorageHandler.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
-#include "../../../crypto/keychain.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
-#include "AuditSourceTransaction.h"
-#include "PublicKeysSharingSourceTransaction.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 #include "../../../interface/visual_interface/interface/VisualInterface.h"
 #include "../../../interface/visual_interface/visual/VisualResult.h"
@@ -32,7 +27,7 @@
  * then outgoing trust line to this contractor would be closed.
  */
 class SetOutgoingTrustLineTransaction:
-    public BaseTransaction {
+    public BaseTrustLineTransaction {
 
 public:
     typedef shared_ptr<SetOutgoingTrustLineTransaction> Shared;
@@ -63,13 +58,6 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
-    enum Stages {
-        Initialisation = 1,
-        ResponseProcessing = 2,
-        Recovery = 3,
-    };
-
-protected:
     TransactionResult::SharedConst resultOK();
 
     TransactionResult::SharedConst resultForbiddenRun();
@@ -94,19 +82,12 @@ private:
 
     pair<BytesShared, size_t> serializeToBytes() const override;
 
-private:
-    static const uint32_t kWaitMillisecondsForResponse = 60000;
-
 protected:
     SetOutgoingTrustLineCommand::Shared mCommand;
-    NodeUUID mContractorUUID;
     TrustLineAmount mAmount;
-    TrustLinesManager *mTrustLines;
-    StorageHandler *mStorageHandler;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
     SubsystemsController *mSubsystemsController;
-    Keystore *mKeysStore;
     VisualInterface *mVisualInterface;
     bool mIAmGateway;
 

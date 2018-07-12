@@ -51,10 +51,8 @@ public:
         CloseOutgoingTrustLineTransactionType = 105,
         PublicKeysSharingSourceTransactionType = 106,
         PublicKeysSharingTargetTransactionType = 107,
-        InitialAuditSourceTransactionType = 108,
-        InitialAuditTargetTransactionType = 109,
-        AuditSourceTransactionType = 110,
-        AuditTargetTransactionType = 111,
+        AuditSourceTransactionType = 108,
+        AuditTargetTransactionType = 109,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction = 200,
