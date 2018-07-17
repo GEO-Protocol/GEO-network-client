@@ -202,6 +202,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == EquivalentListCommand::identifier()) {
+            command = new EquivalentListCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == SubsystemsInfluenceCommand::identifier()) {
             return newCommand<SubsystemsInfluenceCommand>(
                 uuid,

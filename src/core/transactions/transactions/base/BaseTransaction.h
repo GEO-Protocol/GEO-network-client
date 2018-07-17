@@ -83,6 +83,7 @@ public:
         ContractorsList = 500,
         TrustlinesList = 501,
         TrustLineOne = 502,
+        EquivalentsList = 503,
 
         // TotalBalances
         TotalBalancesTransactionType = 600,

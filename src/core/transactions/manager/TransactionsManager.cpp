@@ -288,6 +288,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<GetTrustLineCommand>(
                 command));
 
+    } else if (command->identifier() == EquivalentListCommand::identifier()){
+        launchGetEquivalentListTransaction(
+            static_pointer_cast<EquivalentListCommand>(
+                command));
+
     // BlackList Commands
     } else if (command->identifier() == AddNodeToBlackListCommand::identifier()){
 
@@ -1555,6 +1560,20 @@ void TransactionsManager::launchGetTrustLineTransaction(
             false,
             false);
     }
+}
+
+void TransactionsManager::launchGetEquivalentListTransaction(
+    EquivalentListCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<GetEquivalentListTransaction>(
+            mNodeUUID,
+            command,
+            mEquivalentsSubsystemsRouter,
+            mLog),
+        true,
+        false,
+        false);
 }
 
 void TransactionsManager::launchAddNodeToBlackListTransaction(
