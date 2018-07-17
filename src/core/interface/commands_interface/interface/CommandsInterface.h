@@ -18,6 +18,7 @@
 #include "../commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../commands/trust_lines_list/GetTrustLineCommand.h"
+#include "../commands/trust_lines_list/EquivalentListCommand.h"
 #include "../commands/subsystems_controller/SubsystemsInfluenceCommand.h"
 #include "../commands/blacklist/AddNodeToBlackListCommand.h"
 #include "../commands/blacklist/CheckIfNodeInBlackListCommand.h"
@@ -89,8 +90,6 @@ public:
     static const size_t kUUIDHexRepresentationSize = 36;
     static const size_t kMinCommandSize = kUUIDHexRepresentationSize + 2;
     static const size_t kAverageCommandIdentifierLength = 15;
-//    static const char kCommandsSeparator = '\n';
-//    static const char kTokensSeparator = '\t';
 
 protected:
 

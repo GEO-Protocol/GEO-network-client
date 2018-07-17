@@ -18,16 +18,18 @@ set(SOURCE_FILES
         commands/payments/CreditUsageCommand.cpp
         commands/payments/CreditUsageCommand.h
 
-        commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.cpp
         commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h
+        commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.cpp
+        commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h
+        commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.cpp
 
-        commands/total_balances/TotalBalancesCommand.cpp
         commands/total_balances/TotalBalancesCommand.h
+        commands/total_balances/TotalBalancesCommand.cpp
 
-        commands/history/HistoryPaymentsCommand.cpp
         commands/history/HistoryPaymentsCommand.h
-        commands/history/HistoryTrustLinesCommand.cpp
+        commands/history/HistoryPaymentsCommand.cpp
         commands/history/HistoryTrustLinesCommand.h
+        commands/history/HistoryTrustLinesCommand.cpp
         commands/history/HistoryWithContractorCommand.h
         commands/history/HistoryWithContractorCommand.cpp
         commands/history/HistoryAdditionalPaymentsCommand.h
@@ -45,8 +47,8 @@ set(SOURCE_FILES
         commands/subsystems_controller/SubsystemsInfluenceCommand.h
         commands/subsystems_controller/SubsystemsInfluenceCommand.cpp
 
-        commands/blacklist/AddNodeToBlackListCommand.cpp
         commands/blacklist/AddNodeToBlackListCommand.h
+        commands/blacklist/AddNodeToBlackListCommand.cpp
 
         commands/blacklist/RemoveNodeFromBlackListCommand.h
         commands/blacklist/RemoveNodeFromBlackListCommand.cpp
@@ -60,8 +62,8 @@ set(SOURCE_FILES
         commands/transactions/PaymentTransactionByCommandUUIDCommand.h
         commands/transactions/PaymentTransactionByCommandUUIDCommand.cpp
 
-        commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h
-        commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.cpp)
+        commands/trust_lines_list/EquivalentListCommand.h
+        commands/trust_lines_list/EquivalentListCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

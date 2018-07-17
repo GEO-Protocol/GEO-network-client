@@ -100,6 +100,7 @@
 #include "../transactions/trustlines_list/GetFirstLevelContractorsTransaction.h"
 #include "../transactions/trustlines_list/GetFirstLevelContractorsBalancesTransaction.h"
 #include "../transactions/trustlines_list/GetFirstLevelContractorBalanceTransaction.h"
+#include "../transactions/trustlines_list/GetEquivalentListTransaction.h"
 
 #include "../transactions/blacklist/AddNodeToBlackListTransaction.h"
 #include "../transactions/blacklist/CheckIfNodeInBlackListTransaction.h"
@@ -314,6 +315,9 @@ protected: // Transactions
 
     void launchGetTrustLineTransaction(
         GetTrustLineCommand::Shared command);
+
+    void launchGetEquivalentListTransaction(
+        EquivalentListCommand::Shared command);
 
     /*
      * BlackList
