@@ -8,7 +8,6 @@
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
-#include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 #include "../../../interface/visual_interface/interface/VisualInterface.h"
 #include "../../../interface/visual_interface/visual/VisualResult.h"
@@ -45,6 +44,7 @@ public:
         Keystore *keystore,
         VisualInterface *visualInterface,
         bool iAmGateway,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger)
         noexcept;
 
@@ -60,6 +60,7 @@ public:
         Keystore *keystore,
         VisualInterface *visualInterface,
         bool iAmGateway,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger)
     noexcept;
 
@@ -69,6 +70,7 @@ public:
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
     TransactionResult::SharedConst run();

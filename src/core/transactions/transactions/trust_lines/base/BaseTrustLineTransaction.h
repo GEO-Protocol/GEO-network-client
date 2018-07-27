@@ -6,6 +6,9 @@
 #include "../../../../crypto/keychain.h"
 #include "../../../../crypto/lamportkeys.h"
 
+#include "../../../../subsystems_controller/TrustLinesInfluenceController.h"
+
+#include "../../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../../network/messages/trust_lines/AuditMessage.h"
 #include "../../../../network/messages/trust_lines/PublicKeyMessage.h"
 #include "../../../../network/messages/trust_lines/PublicKeyHashConfirmation.h"
@@ -22,6 +25,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &log);
 
     BaseTrustLineTransaction(
@@ -32,6 +36,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &log);
 
     BaseTrustLineTransaction(
@@ -40,6 +45,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &log);
 
 protected:
@@ -77,8 +83,11 @@ protected:
         IOTransaction::Shared ioTransaction,
         TrustLineKeychain *keyChain);
 
-    virtual TransactionResult::SharedConst sendErrorConfirmation(
-        ConfirmationMessage::OperationState errorState){};
+    TransactionResult::SharedConst sendAuditErrorConfirmation(
+        ConfirmationMessage::OperationState errorState);
+
+    TransactionResult::SharedConst sendTrustLineErrorConfirmation(
+        ConfirmationMessage::OperationState errorState);
 
 protected:
     pair<BytesShared, size_t> getOwnSerializedAuditData();
@@ -86,8 +95,6 @@ protected:
     pair<BytesShared, size_t> getContractorSerializedAuditData();
 
 protected:
-    static const AuditNumber kInitialAuditNumber = 0;
-
     static const uint32_t kWaitMillisecondsForResponse = 60000;
 
 protected:
@@ -103,6 +110,8 @@ protected:
 
     KeyNumber mCurrentKeyNumber;
     lamport::PublicKey::Shared mCurrentPublicKey;
+
+    TrustLinesInfluenceController *mTrustLinesInfluenceController;
 };
 
 

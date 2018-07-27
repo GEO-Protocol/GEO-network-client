@@ -64,8 +64,8 @@ AmountReservation::ConstShared AmountReservationsHandler::reserve(
 AmountReservation::ConstShared AmountReservationsHandler::updateReservation(
     const NodeUUID &trustLineContractor,
     const AmountReservation::ConstShared reservation,
-    const TrustLineAmount &newAmount) {
-
+    const TrustLineAmount &newAmount)
+{
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(reservation != nullptr);
 #endif
@@ -101,8 +101,8 @@ AmountReservation::ConstShared AmountReservationsHandler::updateReservation(
 
 void AmountReservationsHandler::free(
     const NodeUUID &trustLineContractor,
-    const AmountReservation::ConstShared reservation) {
-
+    const AmountReservation::ConstShared reservation)
+{
     try {
         auto iterator = mReservations.find(trustLineContractor);
         if (iterator == mReservations.end()) {
@@ -140,8 +140,8 @@ void AmountReservationsHandler::free(
 ConstSharedTrustLineAmount AmountReservationsHandler::totalReserved(
     const NodeUUID &trustLineContractor,
     const AmountReservation::ReservationDirection direction,
-    const TransactionUUID *transactionUUID) const {
-
+    const TransactionUUID *transactionUUID) const
+{
     SharedTrustLineAmount amount(new TrustLineAmount(0));
 
     auto reservationsVector = reservations(trustLineContractor, transactionUUID);
@@ -182,8 +182,8 @@ ConstSharedTrustLineAmount AmountReservationsHandler::totalReservedOnTrustLine(
  */
 vector<AmountReservation::ConstShared> AmountReservationsHandler::reservations(
     const NodeUUID &trustLineContractor,
-    const TransactionUUID *transactionUUID) const {
-
+    const TransactionUUID *transactionUUID) const
+{
     try {
         auto iterator = mReservations.find(trustLineContractor);
         if (iterator == mReservations.end()){
@@ -217,10 +217,10 @@ vector<AmountReservation::ConstShared> AmountReservationsHandler::reservations(
     }
 }
 
-bool AmountReservationsHandler::isReservationPresent(const NodeUUID &trustLineContractor) const {
-    if (mReservations.find(trustLineContractor) == mReservations.end())
-        return false;
-    return true;
+bool AmountReservationsHandler::isReservationsPresent(
+    const NodeUUID &trustLineContractor) const
+{
+    return mReservations.find(trustLineContractor) != mReservations.end();
 }
 
 const vector<AmountReservation::ConstShared> AmountReservationsHandler::contractorReservations(

@@ -43,7 +43,7 @@ public:
         const TrustLineBalance &nodeBalance,
         bool isContractorGateway,
         TrustLineState state = Init,
-        AuditNumber auditNumber = 0);
+        AuditNumber auditNumber = kInitialAuditNumber);
 
     TrustLine(
         const NodeUUID &nodeUUID,
@@ -120,6 +120,9 @@ public:
     friend bool operator== (
         const TrustLine &contractor1,
         const TrustLine &contractor2);
+
+public:
+    static const AuditNumber kInitialAuditNumber = 0;
 
 private:
     NodeUUID mContractorNodeUUID;

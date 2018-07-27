@@ -8,7 +8,7 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
         uuid,
         identifier())
 {
-    if (commandBuffer.size() == 0) {
+    if (commandBuffer.empty()) {
         throw ValueError(
             "SubsystemsInfluenceCommand: can't parse command."
             "Received command buffer is too short.");

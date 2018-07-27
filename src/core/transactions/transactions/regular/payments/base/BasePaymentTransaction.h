@@ -409,8 +409,9 @@ protected:
     // max length of transaction path
     static const auto kMaxPathLength = 7;
 
-    //
     static const uint32_t kWaitMillisecondsToTryRecoverAgain = 30000;
+
+    static const PaymentNodeID kCoordinatorPaymentNodeID = 0;
 
 public:
     // signal for launching transaction of building cycles on three nodes

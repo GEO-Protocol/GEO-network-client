@@ -108,6 +108,11 @@ int Core::initSubsystems()
         return initCode;
     }
 
+    initCode = initTrustLinesInfluenceController();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initEquivalentsSubsystemsRouter(
         equivalentsOnWhichIAmIsGateway);
     if (initCode != 0) {
@@ -239,7 +244,8 @@ int Core::initTransactionsManager()
             mStorageHandler.get(),
             mKeysStore.get(),
             *mLog,
-            mSubsystemsController.get());
+            mSubsystemsController.get(),
+            mTrustLinesInfluenceController.get());
         info() << "Transactions handler is successfully initialised";
         return 0;
 
@@ -285,6 +291,19 @@ int Core::initSubsystemsController()
         mSubsystemsController = make_unique<SubsystemsController>(
             *mLog);
         info() << "Subsystems controller is successfully initialized";
+        return 0;
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initTrustLinesInfluenceController()
+{
+    try {
+        mTrustLinesInfluenceController = make_unique<TrustLinesInfluenceController>(
+            *mLog);
+        info() << "Trust Lines Influence controller is successfully initialized";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
@@ -400,6 +419,18 @@ void Core::onCommandReceivedSlot (
         return;
     }
 
+#ifdef TESTS
+    if (command->identifier() == TrustLinesInfluenceCommand::identifier()) {
+        auto trustLinesInfluenceCommand = static_pointer_cast<TrustLinesInfluenceCommand>(command);
+        mTrustLinesInfluenceController->setFlags(trustLinesInfluenceCommand->flags());
+        mTrustLinesInfluenceController->setForbiddenReceiveMessageType(
+            trustLinesInfluenceCommand->forbiddenReceiveMessageType());
+        mTrustLinesInfluenceController->setCountForbiddenReceivedMessages(
+            trustLinesInfluenceCommand->countForbiddenReceivedMessages());
+        return;
+    }
+#endif
+
     try {
         mTransactionsManager->processCommand(command);
 
@@ -415,6 +446,14 @@ void Core::onMessageReceivedSlot(
     if (not mSubsystemsController->isNetworkOn()) {
         // Ignore incoming message in case if network was disabled.
         debug() << "Ignore process incoming message";
+        return;
+    }
+#endif
+
+#ifdef TESTS
+    if (mTrustLinesInfluenceController->checkReceivedMessage(message->typeID())) {
+        // Ignore incoming message of forbidden type
+        debug() << "Ignore processing incoming message of forbidden type " << message->typeID();
         return;
     }
 #endif

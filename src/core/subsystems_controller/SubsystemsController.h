@@ -9,6 +9,7 @@
 #include <thread>
 
 class SubsystemsController {
+
 public:
     SubsystemsController(
         Logger &log);

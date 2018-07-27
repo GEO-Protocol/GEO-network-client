@@ -134,9 +134,7 @@ void IOTransaction::commit()
     info() << "commit";
 #endif
     if (!mIsTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "transaction don't commit it was rollbacked";
-#endif
+        warning() << "transaction don't commit, because it wasn't started";
         return;
     }
     string query = "COMMIT TRANSACTION;";
@@ -151,6 +149,7 @@ void IOTransaction::commit()
     if (rc != SQLITE_DONE) {
         throw IOError("IOTransaction::commit: Run query; sqlite error: " + to_string(rc));
     }
+    mIsTransactionBegin = false;
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "transaction commit";
 #endif
@@ -178,6 +177,13 @@ void IOTransaction::rollback()
 #endif
     mIsTransactionBegin = false;
 }
+
+#ifdef TESTS
+void IOTransaction::commitForTesting()
+{
+    commit();
+}
+#endif
 
 LoggerStream IOTransaction::info() const
 {

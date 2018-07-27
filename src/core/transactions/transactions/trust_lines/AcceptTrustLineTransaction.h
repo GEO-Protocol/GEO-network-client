@@ -4,7 +4,6 @@
 #include "base/BaseTrustLineTransaction.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
-#include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 
 class AcceptTrustLineTransaction : public BaseTrustLineTransaction {
@@ -21,6 +20,7 @@ public:
         SubsystemsController *subsystemsController,
         Keystore *keystore,
         bool iAmGateway,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger)
     noexcept;
 
@@ -32,6 +32,7 @@ public:
         SubsystemsController *subsystemsController,
         Keystore *keystore,
         bool iAmGateway,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger)
     noexcept;
 
@@ -41,6 +42,7 @@ public:
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
     TransactionResult::SharedConst run();

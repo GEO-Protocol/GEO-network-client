@@ -14,7 +14,8 @@ public:
     enum OperationState {
         OK = 1,
         ErrorShouldBeRemovedFromQueue = 2,
-        ContractorBanned = 3
+        ContractorBanned = 3,
+        ReservationsPresentOnTrustLine = 4,
     };
 
 public:

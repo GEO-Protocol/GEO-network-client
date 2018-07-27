@@ -1258,12 +1258,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     mSubsystemsController->testForbidSendMessageOnFinalAmountClarificationStage();
 #endif
 
-    PaymentNodeID coordinatorPaymentNodeID = 0;
     mPaymentNodesIds.insert(
         make_pair(
             mNodeUUID,
-            coordinatorPaymentNodeID));
-    PaymentNodeID currentNodeID = 1;
+            kCoordinatorPaymentNodeID));
+    PaymentNodeID currentNodeID = kCoordinatorPaymentNodeID + 1;
     for (auto const &nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
         mPaymentNodesIds.insert(
             make_pair(
@@ -1595,7 +1594,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
-        mPaymentNodesIds.size());
+        mPaymentNodesIds.size() - 1);
     mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
     mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif

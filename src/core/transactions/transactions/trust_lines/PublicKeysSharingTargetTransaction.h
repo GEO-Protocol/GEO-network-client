@@ -15,6 +15,7 @@ public:
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
     TransactionResult::SharedConst run();

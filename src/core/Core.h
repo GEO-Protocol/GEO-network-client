@@ -22,6 +22,7 @@
 #include <boost/signals2.hpp>
 
 #include "subsystems_controller/SubsystemsController.h"
+#include "subsystems_controller/TrustLinesInfluenceController.h"
 
 #include <sodium.h>
 #include <sys/prctl.h>
@@ -68,6 +69,8 @@ private:
     int initStorageHandler();
 
     int initSubsystemsController();
+
+    int initTrustLinesInfluenceController();
 
     int initKeysStore();
 
@@ -141,6 +144,7 @@ protected:
     unique_ptr<TransactionsManager> mTransactionsManager;
     unique_ptr<StorageHandler> mStorageHandler;
     unique_ptr<SubsystemsController> mSubsystemsController;
+    unique_ptr<TrustLinesInfluenceController> mTrustLinesInfluenceController;
     unique_ptr<EquivalentsSubsystemsRouter> mEquivalentsSubsystemsRouter;
     unique_ptr<Keystore> mKeysStore;
 };

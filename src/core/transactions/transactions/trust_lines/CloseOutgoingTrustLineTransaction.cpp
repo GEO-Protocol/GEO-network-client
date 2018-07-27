@@ -8,6 +8,7 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     Keystore* keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger)
     noexcept:
 
@@ -19,6 +20,7 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
         manager,
         storageHandler,
         keystore,
+        trustLinesInfluenceController,
         logger),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager)
@@ -33,6 +35,7 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
 
     BaseTrustLineTransaction(
@@ -41,6 +44,7 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
         manager,
         storageHandler,
         keystore,
+        trustLinesInfluenceController,
         logger)
 {
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
@@ -50,6 +54,19 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
         mContractorUUID.data,
         buffer.get() + bytesBufferOffset,
         NodeUUID::kBytesSize);
+    bytesBufferOffset += NodeUUID::kBytesSize;
+
+    memcpy(
+        &mAuditNumber,
+        buffer.get() + bytesBufferOffset,
+        sizeof(AuditNumber));
+
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
+        bytesBufferOffset += sizeof(AuditNumber);
+
+        auto *keyNumber = new (buffer.get() + bytesBufferOffset) KeyNumber;
+        mCurrentKeyNumber = (KeyNumber) *keyNumber;
+    }
 }
 
 TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
@@ -61,6 +78,12 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
         }
         case Stages::AuditTarget: {
             return runReceiveAuditStage();
+        }
+        case Stages::KeysSharingInitialization: {
+            return runPublicKeysSharingInitialisationStage();
+        }
+        case Stages::NextKeyProcessing: {
+            return runPublicKeysSendNextKeyStage();
         }
         case Stages::Recovery: {
             return runRecoveryStage();
@@ -82,26 +105,14 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runInitializat
 
     if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
         warning() << "Trust line is absent.";
-        sendMessage<TrustLineConfirmationMessage>(
-            mContractorUUID,
-            mEquivalent,
-            mNodeUUID,
-            mTransactionUUID,
-            false,
+        return sendTrustLineErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
-        return resultDone();
     }
 
     if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Active) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
-        sendMessage<TrustLineConfirmationMessage>(
-            mContractorUUID,
-            mEquivalent,
-            mNodeUUID,
-            mTransactionUUID,
-            false,
+        return sendTrustLineErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
-        return resultDone();
     }
 
     // Trust line must be created (or updated) in the internal storage.
@@ -134,6 +145,11 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runInitializat
             bytesAndCount.second);
         info() << "Transaction saved";
 
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
+#endif
+
         // Sending confirmation back.
         sendMessage<TrustLineConfirmationMessage>(
             mContractorUUID,
@@ -142,12 +158,6 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runInitializat
             mTransactionUUID,
             false,
             ConfirmationMessage::OK);
-
-        info() << "Wait for audit";
-        mStep = AuditTarget;
-        return resultWaitForMessageTypes(
-            {Message::TrustLines_Audit},
-            kWaitMillisecondsForResponse);
 
     } catch (IOError &e) {
         ioTransaction->rollback();
@@ -165,6 +175,12 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runInitializat
         // because the TA can't finish properly and no result may be returned.
         throw e;
     }
+
+    info() << "Wait for audit";
+    mStep = AuditTarget;
+    return resultWaitForMessageTypes(
+        {Message::TrustLines_Audit},
+        kWaitMillisecondsForResponse);
 }
 
 TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runReceiveAuditStage()
@@ -185,24 +201,47 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runRecoverySta
         warning() << "Trust line is absent " << mContractorUUID;
         return resultDone();
     }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Modify) {
-        info() << "waiting for audit";
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
+        info() << "Audit pending stage";
+        mTrustLines->closeOutgoing(mContractorUUID);
         mStep = AuditTarget;
-        return resultWaitForMessageTypes(
-            {Message::TrustLines_Audit},
-            kWaitMillisecondsForResponse);
-    } else {
-        warning() << "Invalid TL state for this TA: "
-                  << mTrustLines->trustLineState(mContractorUUID);
-        return resultDone();
+        return runReceiveAuditStage();
     }
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
+        info() << "Keys pending state, current key number " << mCurrentKeyNumber;
+        auto keyChain = mKeysStore->keychain(mTrustLines->trustLineID(mContractorUUID));
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        try {
+            mCurrentPublicKey = keyChain.publicKey(
+                ioTransaction,
+                mCurrentKeyNumber);
+            if (mCurrentPublicKey == nullptr) {
+                warning() << "Can't get own public key with number " << mCurrentKeyNumber;
+                return resultDone();
+            }
+            mStep = NextKeyProcessing;
+        } catch (IOError &e) {
+            ioTransaction->rollback();
+            error() << "Can't get own public key from storage. Details: " << e.what();
+            return resultDone();
+        }
+        return resultAwakeAsFastAsPossible();
+    }
+
+    warning() << "Invalid TL state for this TA: "
+              << mTrustLines->trustLineState(mContractorUUID);
+    return resultDone();
 }
 
 pair<BytesShared, size_t> CloseOutgoingTrustLineTransaction::serializeToBytes() const
 {
     const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize;
+                        + NodeUUID::kBytesSize
+                        + sizeof(AuditNumber);
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
+        bytesCount += sizeof(KeyNumber);
+    }
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -217,6 +256,21 @@ pair<BytesShared, size_t> CloseOutgoingTrustLineTransaction::serializeToBytes() 
         dataBytesShared.get() + dataBytesOffset,
         mContractorUUID.data,
         NodeUUID::kBytesSize);
+    dataBytesOffset += NodeUUID::kBytesSize;
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &mAuditNumber,
+        sizeof(AuditNumber));
+
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
+        dataBytesOffset += sizeof(AuditNumber);
+
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            &mCurrentKeyNumber,
+            sizeof(KeyNumber));
+    }
 
     return make_pair(
         dataBytesShared,

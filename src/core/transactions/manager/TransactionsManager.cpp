@@ -13,31 +13,33 @@ TransactionsManager::TransactionsManager(
     StorageHandler *storageHandler,
     Keystore *keystore,
     Logger &logger,
-    SubsystemsController *subsystemsController) :
+    SubsystemsController *subsystemsController,
+    TrustLinesInfluenceController *trustLinesInfluenceController) :
 
-        mNodeUUID(nodeUUID),
-        mIOService(IOService),
-        mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
-        mResourcesManager(resourcesManager),
-        mResultsInterface(resultsInterface),
-        mStorageHandler(storageHandler),
-        mKeysStore(keystore),
-        mLog(logger),
-        mSubsystemsController(subsystemsController),
+    mNodeUUID(nodeUUID),
+    mIOService(IOService),
+    mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
+    mResourcesManager(resourcesManager),
+    mResultsInterface(resultsInterface),
+    mStorageHandler(storageHandler),
+    mKeysStore(keystore),
+    mLog(logger),
+    mSubsystemsController(subsystemsController),
+    mTrustLinesInfluenceController(trustLinesInfluenceController),
 
-        mScheduler(
-            new TransactionsScheduler(
-                mIOService,
-                mLog)),
+    mScheduler(
+        new TransactionsScheduler(
+            mIOService,
+            mLog)),
 
-        mEquivalentsCyclesSubsystemsRouter(
-            new EquivalentsCyclesSubsystemsRouter(
-                mNodeUUID,
-                mScheduler.get(),
-                mSubsystemsController,
-                mIOService,
-                mEquivalentsSubsystemsRouter->equivalents(),
-                mLog))
+    mEquivalentsCyclesSubsystemsRouter(
+        new EquivalentsCyclesSubsystemsRouter(
+            mNodeUUID,
+            mScheduler.get(),
+            mSubsystemsController,
+            mIOService,
+            mEquivalentsSubsystemsRouter->equivalents(),
+            mLog))
 {
     subscribeForCommandResult(
         mScheduler->commandResultIsReadySignal);
@@ -237,6 +239,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mKeysStore,
+                        mTrustLinesInfluenceController,
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
@@ -260,6 +263,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mKeysStore,
+                        mTrustLinesInfluenceController,
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
@@ -283,6 +287,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mKeysStore,
+                        mTrustLinesInfluenceController,
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
@@ -306,6 +311,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mKeysStore,
+                        mTrustLinesInfluenceController,
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
@@ -329,6 +335,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mKeysStore,
+                        mTrustLinesInfluenceController,
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
@@ -352,6 +359,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mKeysStore,
+                        mTrustLinesInfluenceController,
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
@@ -375,6 +383,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mKeysStore,
+                        mTrustLinesInfluenceController,
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
@@ -390,6 +399,30 @@ void TransactionsManager::loadTransactionsFromStorage()
                 }
                 break;
             }
+            case BaseTransaction::AuditTargetTransactionType: {
+                try {
+                    auto transaction = make_shared<AuditTargetTransaction>(
+                        kTABuffer,
+                        mNodeUUID,
+                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
+                        mStorageHandler,
+                        mKeysStore,
+                        mTrustLinesInfluenceController,
+                        mLog);
+                    subscribeForProcessingConfirmationMessage(
+                        transaction->processConfirmationMessageSignal);
+                    prepareAndSchedule(
+                        transaction,
+                        false,
+                        false,
+                        true);
+                } catch (NotFoundError &e) {
+                    error() << "There are no subsystems for serialized AuditTargetTransaction "
+                            "with equivalent " << *equivalent << " Details are: " << e.what();
+                    continue;
+                }
+                break;
+            }
             case BaseTransaction::PublicKeysSharingSourceTransactionType: {
                 try {
                     auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
@@ -398,6 +431,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mKeysStore,
+                        mTrustLinesInfluenceController,
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
@@ -416,7 +450,7 @@ void TransactionsManager::loadTransactionsFromStorage()
             default: {
                 throw RuntimeError(
                     "TrustLinesManager::loadTransactions. "
-                        "Unexpected transaction type identifier.");
+                        "Unexpected transaction type identifier " + to_string(transactionTypeId));
             }
         }
 
@@ -530,7 +564,7 @@ void TransactionsManager::processCommand(
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
-                "Unexpected command identifier.");
+                "Unexpected command identifier " + command->identifier());
     }
 }
 
@@ -738,6 +772,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mSubsystemsController,
             mKeysStore,
             mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
+            mTrustLinesInfluenceController,
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
@@ -763,6 +798,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
                 mKeysStore,
                 mVisualInterface.get(),
                 mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
+                mTrustLinesInfluenceController,
                 mLog);
             subscribeForProcessingConfirmationMessage(
                 transaction->processConfirmationMessageSignal);
@@ -780,6 +816,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
                 mSubsystemsController,
                 mKeysStore,
                 mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
+                mTrustLinesInfluenceController,
                 mLog);
             subscribeForProcessingConfirmationMessage(
                 transaction->processConfirmationMessageSignal);
@@ -817,6 +854,7 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
             mSubsystemsController,
             mKeysStore,
+            mTrustLinesInfluenceController,
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
@@ -849,16 +887,20 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
                << message->equivalent();
         mEquivalentsSubsystemsRouter->initNewEquivalent(message->equivalent());
         mEquivalentsCyclesSubsystemsRouter->initNewEquivalent(message->equivalent());
+        auto transaction = make_shared<AcceptTrustLineTransaction>(
+            mNodeUUID,
+            message,
+            mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+            mStorageHandler,
+            mSubsystemsController,
+            mKeysStore,
+            mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
+            mTrustLinesInfluenceController,
+            mLog);
+        subscribeForProcessingConfirmationMessage(
+            transaction->processConfirmationMessageSignal);
         prepareAndSchedule(
-            make_shared<AcceptTrustLineTransaction>(
-                mNodeUUID,
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mStorageHandler,
-                mSubsystemsController,
-                mKeysStore,
-                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
-                mLog),
+            transaction,
             true,
             false,
             true);
@@ -867,34 +909,42 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
     try {
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent());
         if (trustLinesManager->trustLineIsPresent(message->senderUUID)) {
+            auto transaction = make_shared<SetIncomingTrustLineTransaction>(
+                mNodeUUID,
+                message,
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mStorageHandler,
+                mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
+                mSubsystemsController,
+                mKeysStore,
+                mVisualInterface.get(),
+                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
+                mTrustLinesInfluenceController,
+                mLog);
+            subscribeForProcessingConfirmationMessage(
+                transaction->processConfirmationMessageSignal);
             prepareAndSchedule(
-                make_shared<SetIncomingTrustLineTransaction>(
-                    mNodeUUID,
-                    message,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                    mStorageHandler,
-                    mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
-                    mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
-                    mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
-                    mSubsystemsController,
-                    mKeysStore,
-                    mVisualInterface.get(),
-                    mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
-                    mLog),
+                transaction,
                 true,
                 false,
                 true);
         } else {
+            auto transaction = make_shared<AcceptTrustLineTransaction>(
+                mNodeUUID,
+                message,
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mStorageHandler,
+                mSubsystemsController,
+                mKeysStore,
+                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
+                mTrustLinesInfluenceController,
+                mLog);
+            subscribeForProcessingConfirmationMessage(
+                transaction->processConfirmationMessageSignal);
             prepareAndSchedule(
-                make_shared<AcceptTrustLineTransaction>(
-                    mNodeUUID,
-                    message,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                    mStorageHandler,
-                    mSubsystemsController,
-                    mKeysStore,
-                    mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
-                    mLog),
+                transaction,
                 true,
                 false,
                 true);
@@ -915,16 +965,20 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
                << message->equivalent();
         mEquivalentsSubsystemsRouter->initNewEquivalent(message->equivalent());
         mEquivalentsCyclesSubsystemsRouter->initNewEquivalent(message->equivalent());
+        auto transaction = make_shared<AcceptTrustLineTransaction>(
+            mNodeUUID,
+            message,
+            mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+            mStorageHandler,
+            mSubsystemsController,
+            mKeysStore,
+            mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
+            mTrustLinesInfluenceController,
+            mLog);
+        subscribeForProcessingConfirmationMessage(
+            transaction->processConfirmationMessageSignal);
         prepareAndSchedule(
-            make_shared<AcceptTrustLineTransaction>(
-                mNodeUUID,
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mStorageHandler,
-                mSubsystemsController,
-                mKeysStore,
-                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
-                mLog),
+            transaction,
             true,
             false,
             true);
@@ -933,34 +987,42 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
     try {
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent());
         if (trustLinesManager->trustLineIsPresent(message->senderUUID)) {
+            auto transaction = make_shared<SetIncomingTrustLineTransaction>(
+                mNodeUUID,
+                message,
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mStorageHandler,
+                mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
+                mSubsystemsController,
+                mKeysStore,
+                mVisualInterface.get(),
+                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
+                mTrustLinesInfluenceController,
+                mLog);
+            subscribeForProcessingConfirmationMessage(
+                transaction->processConfirmationMessageSignal);
             prepareAndSchedule(
-                make_shared<SetIncomingTrustLineTransaction>(
-                    mNodeUUID,
-                    message,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                    mStorageHandler,
-                    mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
-                    mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
-                    mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
-                    mSubsystemsController,
-                    mKeysStore,
-                    mVisualInterface.get(),
-                    mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
-                    mLog),
+                transaction,
                 true,
                 false,
                 true);
         } else {
+            auto transaction = make_shared<AcceptTrustLineTransaction>(
+                mNodeUUID,
+                message,
+                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mStorageHandler,
+                mSubsystemsController,
+                mKeysStore,
+                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
+                mTrustLinesInfluenceController,
+                mLog);
+            subscribeForProcessingConfirmationMessage(
+                transaction->processConfirmationMessageSignal);
             prepareAndSchedule(
-                make_shared<AcceptTrustLineTransaction>(
-                    mNodeUUID,
-                    message,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                    mStorageHandler,
-                    mSubsystemsController,
-                    mKeysStore,
-                    mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
-                    mLog),
+                transaction,
                 true,
                 false,
                 true);
@@ -975,16 +1037,20 @@ void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
     CloseOutgoingTrustLineMessage::Shared message)
 {
     try {
+        auto transaction = make_shared<CloseOutgoingTrustLineTransaction>(
+            mNodeUUID,
+            message,
+            mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+            mStorageHandler,
+            mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
+            mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
+            mKeysStore,
+            mTrustLinesInfluenceController,
+            mLog);
+        subscribeForProcessingConfirmationMessage(
+            transaction->processConfirmationMessageSignal);
         prepareAndSchedule(
-            make_shared<CloseOutgoingTrustLineTransaction>(
-                mNodeUUID,
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mStorageHandler,
-                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
-                mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
-                mKeysStore,
-                mLog),
+            transaction,
             true,
             false,
             true);
@@ -1005,6 +1071,7 @@ void TransactionsManager::launchPublicKeysSharingTargetTransaction(
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mStorageHandler,
                 mKeysStore,
+                mTrustLinesInfluenceController,
                 mLog),
             true,
             true,
@@ -1019,14 +1086,18 @@ void TransactionsManager::launchAuditTargetTransaction(
     AuditMessage::Shared message)
 {
     try {
+        auto transaction = make_shared<AuditTargetTransaction>(
+            mNodeUUID,
+            message,
+            mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+            mStorageHandler,
+            mKeysStore,
+            mTrustLinesInfluenceController,
+            mLog);
+        subscribeForProcessingConfirmationMessage(
+            transaction->processConfirmationMessageSignal);
         prepareAndSchedule(
-            make_shared<AuditTargetTransaction>(
-                mNodeUUID,
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mStorageHandler,
-                mKeysStore,
-                mLog),
+            transaction,
             true,
             true,
             true);
@@ -2435,6 +2506,7 @@ void TransactionsManager::onAuditOnTrustLineSlot(
             mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
             mStorageHandler,
             mKeysStore,
+            mTrustLinesInfluenceController,
             mLog);
 
         subscribeForOutgoingMessages(
@@ -2446,10 +2518,10 @@ void TransactionsManager::onAuditOnTrustLineSlot(
         subscribeForSubsidiaryTransactions(
             transaction->runSubsidiaryTransactionSignal);
 
-        // wait for guaranteed finish of contractor payment TA
+        // wait for finish of contractor payment TA
         mScheduler->postponeTransaction(
             transaction,
-            600000);
+            500);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for AuditSourceTransaction "
                 "with equivalent " << equivalent << " Details are: " << e.what();
@@ -2468,6 +2540,7 @@ void TransactionsManager::onPublicKeySharingSlot(
             mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
             mStorageHandler,
             mKeysStore,
+            mTrustLinesInfluenceController,
             mLog);
 
         subscribeForProcessingConfirmationMessage(
@@ -2475,7 +2548,7 @@ void TransactionsManager::onPublicKeySharingSlot(
 
         prepareAndSchedule(
             transaction,
-            false,
+            true,
             false,
             true);
     } catch (NotFoundError &e) {
@@ -2569,6 +2642,7 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                         transactionMessage->equivalent()),
                     mStorageHandler,
                     mKeysStore,
+                    mTrustLinesInfluenceController,
                     mLog);
                 transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
@@ -2594,6 +2668,7 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                         transactionMessage->equivalent()),
                     mStorageHandler,
                     mKeysStore,
+                    mTrustLinesInfluenceController,
                     mLog);
                 transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
@@ -2619,6 +2694,7 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                         transactionMessage->equivalent()),
                     mStorageHandler,
                     mKeysStore,
+                    mTrustLinesInfluenceController,
                     mLog);
                 transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
@@ -2644,7 +2720,9 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                         transactionMessage->equivalent()),
                     mStorageHandler,
                     mKeysStore,
+                    mTrustLinesInfluenceController,
                     mLog);
+                transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
                     transaction->processConfirmationMessageSignal);
                 prepareAndSchedule(
@@ -2668,6 +2746,7 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                         transactionMessage->equivalent()),
                     mStorageHandler,
                     mKeysStore,
+                    mTrustLinesInfluenceController,
                     mLog);
                 transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
@@ -2693,7 +2772,9 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                         transactionMessage->equivalent()),
                     mStorageHandler,
                     mKeysStore,
+                    mTrustLinesInfluenceController,
                     mLog);
+                transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
                     transaction->processConfirmationMessageSignal);
                 prepareAndSchedule(
@@ -2717,6 +2798,7 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                         transactionMessage->equivalent()),
                     mStorageHandler,
                     mKeysStore,
+                    mTrustLinesInfluenceController,
                     mLog);
                 transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
@@ -2733,6 +2815,32 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
             }
             break;
         }
+        case BaseTransaction::AuditTargetTransactionType: {
+            try {
+                auto transaction = make_shared<AuditTargetTransaction>(
+                    serializedTransaction,
+                    mNodeUUID,
+                    mEquivalentsSubsystemsRouter->trustLinesManager(
+                        transactionMessage->equivalent()),
+                    mStorageHandler,
+                    mKeysStore,
+                    mTrustLinesInfluenceController,
+                    mLog);
+                transaction->pushContext(message);
+                subscribeForProcessingConfirmationMessage(
+                    transaction->processConfirmationMessageSignal);
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    true,
+                    true);
+            } catch (NotFoundError &e) {
+                error() << "There are no subsystems for serialized AuditTargetTransaction "
+                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
+                return false;
+            }
+            break;
+        }
         case BaseTransaction::PublicKeysSharingSourceTransactionType: {
             try {
                 auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
@@ -2742,6 +2850,7 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                         transactionMessage->equivalent()),
                     mStorageHandler,
                     mKeysStore,
+                    mTrustLinesInfluenceController,
                     mLog);
                 transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
@@ -2821,7 +2930,7 @@ void TransactionsManager::onSerializeTransaction(
         default: {
             throw RuntimeError(
                 "TrustLinesManager::onSerializeTransaction. "
-                    "Unexpected transaction type identifier.");
+                    "Unexpected transaction type identifier " + to_string(kTransactionTypeId));
         }
     }
 }

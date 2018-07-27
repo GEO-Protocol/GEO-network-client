@@ -7,6 +7,7 @@ AuditSourceTransaction::AuditSourceTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
     BaseTrustLineTransaction(
         BaseTransaction::AuditSourceTransactionType,
@@ -15,6 +16,7 @@ AuditSourceTransaction::AuditSourceTransaction(
         manager,
         storageHandler,
         keystore,
+        trustLinesInfluenceController,
         logger)
 {
     mStep = Stages::AuditInitialisation;
@@ -28,6 +30,7 @@ AuditSourceTransaction::AuditSourceTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
 
     BaseTrustLineTransaction(
@@ -36,6 +39,7 @@ AuditSourceTransaction::AuditSourceTransaction(
         manager,
         storageHandler,
         keystore,
+        trustLinesInfluenceController,
         logger)
 {
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
@@ -51,21 +55,31 @@ AuditSourceTransaction::AuditSourceTransaction(
         &mAuditNumber,
         buffer.get() + bytesBufferOffset,
         sizeof(AuditNumber));
-    bytesBufferOffset += sizeof(AuditNumber);
 
-    auto signature = make_shared<lamport::Signature>(
-        buffer.get() + bytesBufferOffset);
-    bytesBufferOffset += lamport::Signature::signatureSize();
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
+        bytesBufferOffset += sizeof(AuditNumber);
 
-    KeyNumber keyNumber;
-    memcpy(
-        &keyNumber,
-        buffer.get() + bytesBufferOffset,
-        sizeof(KeyNumber));
+        auto signature = make_shared<lamport::Signature>(
+            buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += lamport::Signature::signatureSize();
 
-    mOwnSignatureAndKeyNumber = make_pair(
-        signature,
-        keyNumber);
+        KeyNumber keyNumber;
+        memcpy(
+            &keyNumber,
+            buffer.get() + bytesBufferOffset,
+            sizeof(KeyNumber));
+
+        mOwnSignatureAndKeyNumber = make_pair(
+            signature,
+            keyNumber);
+    }
+
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
+        bytesBufferOffset += sizeof(AuditNumber);
+
+        auto *keyNumber = new (buffer.get() + bytesBufferOffset) KeyNumber;
+        mCurrentKeyNumber = (KeyNumber) *keyNumber;
+    }
 }
 
 TransactionResult::SharedConst AuditSourceTransaction::run()
@@ -76,6 +90,12 @@ TransactionResult::SharedConst AuditSourceTransaction::run()
         }
         case Stages::AuditResponseProcessing: {
             return runAuditResponseProcessingStage();
+        }
+        case Stages::KeysSharingInitialization: {
+            return runPublicKeysSharingInitialisationStage();
+        }
+        case Stages::NextKeyProcessing: {
+            return runPublicKeysSendNextKeyStage();
         }
         case Stages::Recovery: {
             return runRecoveryStage();
@@ -93,13 +113,34 @@ TransactionResult::SharedConst AuditSourceTransaction::runRecoveryStage()
         warning() << "Trust line is absent.";
         return resultDone();
     }
-    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::AuditPending) {
-        warning() << "Invalid TL state for this TA state: "
-                  << mTrustLines->trustLineState(mContractorUUID);
-        return resultDone();
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
+        info() << "Audit pending stage";
+        mStep = AuditResponseProcessing;
+        return runAuditResponseProcessingStage();
     }
-    mStep = AuditResponseProcessing;
-    return runAuditResponseProcessingStage();
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
+        info() << "Keys pending state, current key number " << mCurrentKeyNumber;
+        auto keyChain = mKeysStore->keychain(mTrustLines->trustLineID(mContractorUUID));
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        try {
+            mCurrentPublicKey = keyChain.publicKey(
+                ioTransaction,
+                mCurrentKeyNumber);
+            if (mCurrentPublicKey == nullptr) {
+                warning() << "Can't get own public key with number " << mCurrentKeyNumber;
+                return resultDone();
+            }
+            mStep = NextKeyProcessing;
+        } catch (IOError &e) {
+            ioTransaction->rollback();
+            error() << "Can't get own public key from storage. Details: " << e.what();
+            return resultDone();
+        }
+        return resultAwakeAsFastAsPossible();
+    }
+    warning() << "Invalid TL state for this TA state: "
+              << mTrustLines->trustLineState(mContractorUUID);
+    return resultDone();
 }
 
 pair<BytesShared, size_t> AuditSourceTransaction::serializeToBytes() const
@@ -107,9 +148,15 @@ pair<BytesShared, size_t> AuditSourceTransaction::serializeToBytes() const
     const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
                         + NodeUUID::kBytesSize
-                        + sizeof(AuditNumber)
-                        + lamport::Signature::signatureSize()
-                        + sizeof(KeyNumber);
+                        + sizeof(AuditNumber);
+
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
+        bytesCount += lamport::Signature::signatureSize()
+                      + sizeof(KeyNumber);
+    }
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
+        bytesCount += sizeof(KeyNumber);
+    }
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -130,18 +177,30 @@ pair<BytesShared, size_t> AuditSourceTransaction::serializeToBytes() const
         dataBytesShared.get() + dataBytesOffset,
         &mAuditNumber,
         sizeof(AuditNumber));
-    dataBytesOffset += sizeof(AuditNumber);
 
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mOwnSignatureAndKeyNumber.first->data(),
-        lamport::Signature::signatureSize());
-    dataBytesOffset += lamport::Signature::signatureSize();
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
+        dataBytesOffset += sizeof(AuditNumber);
 
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &mOwnSignatureAndKeyNumber.second,
-        sizeof(KeyNumber));
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            mOwnSignatureAndKeyNumber.first->data(),
+            lamport::Signature::signatureSize());
+        dataBytesOffset += lamport::Signature::signatureSize();
+
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            &mOwnSignatureAndKeyNumber.second,
+            sizeof(KeyNumber));
+    }
+
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
+        dataBytesOffset += sizeof(AuditNumber);
+
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            &mCurrentKeyNumber,
+            sizeof(KeyNumber));
+    }
 
     return make_pair(
         dataBytesShared,

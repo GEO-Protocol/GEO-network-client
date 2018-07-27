@@ -4,7 +4,6 @@
 #include "base/BaseTrustLineTransaction.h"
 #include "../../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
 #include "../../../network/messages/trust_lines/CloseOutgoingTrustLineMessage.h"
-#include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../topology/manager/TopologyTrustLinesManager.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
@@ -26,6 +25,7 @@ public:
         MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
         Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger)
     noexcept;
 
@@ -47,6 +47,7 @@ public:
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
     TransactionResult::SharedConst run();

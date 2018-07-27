@@ -36,7 +36,7 @@ TrustLine::TrustLine(
     mOutgoingTrustAmount(kZeroAmount()),
     mBalance(kZeroBalance()),
     mIsContractorGateway(isContractorGateway),
-    mCurrentAudit(0),
+    mCurrentAudit(kInitialAuditNumber),
     mState(state),
     mTotalIncomingReceiptsAmount(kZeroAmount()),
     mTotalOutgoingReceiptsAmount(kZeroAmount())

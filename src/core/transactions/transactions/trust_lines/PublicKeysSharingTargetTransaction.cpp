@@ -6,6 +6,7 @@ PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
     BaseTrustLineTransaction(
         BaseTransaction::PublicKeysSharingTargetTransactionType,
@@ -15,6 +16,7 @@ PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
         manager,
         storageHandler,
         keystore,
+        trustLinesInfluenceController,
         logger)
 {
     mContractorUUID = message->senderUUID;

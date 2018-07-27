@@ -37,7 +37,7 @@ public:
     ConstSharedTrustLineAmount totalReservedOnTrustLine(
         const NodeUUID &trustLineContractor) const;
 
-    bool isReservationPresent(
+    bool isReservationsPresent(
         const NodeUUID &trustLineContractor) const;
 
     const vector<AmountReservation::ConstShared> contractorReservations(

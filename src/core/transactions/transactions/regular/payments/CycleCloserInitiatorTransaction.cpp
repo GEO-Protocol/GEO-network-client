@@ -1068,12 +1068,11 @@ bool CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
     const TrustLineAmount &finalPathAmount)
 {
     debug() << "sendFinalPathConfiguration";
-    PaymentNodeID coordinatorPaymentNodeID = 0;
     mPaymentNodesIds.insert(
         make_pair(
             mNodeUUID,
-            coordinatorPaymentNodeID));
-    PaymentNodeID currentNodeID = 1;
+            kCoordinatorPaymentNodeID));
+    PaymentNodeID currentNodeID = kCoordinatorPaymentNodeID + 1;
     for (const auto &intermediateNode : mPathStats->path()->intermediateUUIDs()) {
         mPaymentNodesIds.insert(
             make_pair(

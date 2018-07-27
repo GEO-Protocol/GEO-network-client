@@ -333,7 +333,7 @@ TransactionResult::SharedConst BasePaymentTransaction::processParticipantsVotesM
     }
     info() << "All signatures are appropriate";
 
-    PaymentNodeID coordinatorID = 0;
+    PaymentNodeID coordinatorID = kCoordinatorPaymentNodeID;
     auto coordinatorSign = mParticipantsSignatures[coordinatorID];
     auto coordinatorPublicKey = mParticipantsPublicKeys[coordinatorID];
     auto coordinatorSerializedVotesData = getSerializedParticipantsVotesData(
@@ -863,13 +863,12 @@ TransactionResult::SharedConst BasePaymentTransaction::runPrepareListNodesToChec
     debug() << "runPrepareListNodesToCheckNodes";
     // Add all nodes that could be asked for Votes Status.
     // Ignore self and Coordinator Node. Coordinator will be asked first
-    PaymentNodeID coordinatorPaymentNodeID = 0;
     auto kCoordinatorUUID = NodeUUID::empty();
     for(const auto &kNodeUUIDAndPaymentNodeID: mPaymentNodesIds) {
         if (kNodeUUIDAndPaymentNodeID.first == mNodeUUID) {
             continue;
         }
-        if (kNodeUUIDAndPaymentNodeID.second == coordinatorPaymentNodeID) {
+        if (kNodeUUIDAndPaymentNodeID.second == kCoordinatorPaymentNodeID) {
             kCoordinatorUUID = kNodeUUIDAndPaymentNodeID.first;
             continue;
         }

@@ -869,12 +869,21 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
     IOTransaction::Shared ioTransaction)
 {
     debug() << "savePaymentOperationIntoHistory";
+    auto coordinatorNodeUUID = NodeUUID::empty();
+    for(const auto &kNodeUUIDAndPaymentNodeID: mPaymentNodesIds) {
+        if (kNodeUUIDAndPaymentNodeID.second == kCoordinatorPaymentNodeID) {
+            coordinatorNodeUUID = kNodeUUIDAndPaymentNodeID.first;
+            break;
+        }
+    }
+    if (coordinatorNodeUUID == NodeUUID::empty()) {
+        warning() << "Can't identify coordinator node UUID";
+    }
     ioTransaction->historyStorage()->savePaymentRecord(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::IncomingPaymentType,
-            // todo : in recovery we don't have this message, need replace on something else
-            mMessage->senderUUID,
+            coordinatorNodeUUID,
             mCommittedAmount,
             *mTrustLines->totalBalance().get()),
         mEquivalent);

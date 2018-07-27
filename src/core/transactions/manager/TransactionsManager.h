@@ -11,6 +11,7 @@
 #include "../../io/storage/StorageHandler.h"
 #include "../../logger/Logger.h"
 #include "../../subsystems_controller/SubsystemsController.h"
+#include "../../subsystems_controller/TrustLinesInfluenceController.h"
 #include "../../interface/visual_interface/interface/VisualInterface.h"
 #include "../../interface/visual_interface/visual/VisualResult.h"
 #include "../../crypto/keychain.h"
@@ -142,7 +143,8 @@ public:
         StorageHandler *storageHandler,
         Keystore *keystore,
         Logger &logger,
-        SubsystemsController *subsystemsController);
+        SubsystemsController *subsystemsController,
+        TrustLinesInfluenceController *trustLinesInfluenceController);
 
     void processCommand(
         BaseUserCommand::Shared command);
@@ -477,6 +479,7 @@ private:
     Logger &mLog;
 
     SubsystemsController *mSubsystemsController;
+    TrustLinesInfluenceController *mTrustLinesInfluenceController;
     unique_ptr<VisualInterface> mVisualInterface;
 
     unique_ptr<TransactionsScheduler> mScheduler;

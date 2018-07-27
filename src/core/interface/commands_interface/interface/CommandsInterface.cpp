@@ -212,6 +212,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == TrustLinesInfluenceCommand::identifier()) {
+            return newCommand<TrustLinesInfluenceCommand>(
+                uuid,
+                buffer);
+
             // Black list command
         } else if (identifier == AddNodeToBlackListCommand::identifier()) {
             return newCommand<AddNodeToBlackListCommand>(
@@ -241,7 +246,7 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
         } else {
             throw RuntimeError(
                 "CommandsParser::tryParseCommand: "
-                    "unexpected command identifier received.");
+                    "unexpected command identifier received. " + identifier);
         }
 
     } catch (bad_alloc &) {

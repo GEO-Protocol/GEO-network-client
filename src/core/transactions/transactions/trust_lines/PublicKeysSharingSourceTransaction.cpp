@@ -7,6 +7,7 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
     BaseTrustLineTransaction(
         BaseTransaction::PublicKeysSharingSourceTransactionType,
@@ -15,6 +16,7 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
         manager,
         storageHandler,
         keystore,
+        trustLinesInfluenceController,
         logger)
 {
     mContractorUUID = contractorUUID;
@@ -28,6 +30,7 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
 
     BaseTrustLineTransaction(
@@ -36,6 +39,7 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
         manager,
         storageHandler,
         keystore,
+        trustLinesInfluenceController,
         logger)
 {
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
@@ -47,10 +51,11 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
         NodeUUID::kBytesSize);
     bytesBufferOffset += NodeUUID::kBytesSize;
 
-    auto publicKey = make_shared<lamport::PublicKey>(
-        buffer.get() + bytesBufferOffset);
-    mCurrentPublicKey = publicKey;
-    bytesBufferOffset += mCurrentPublicKey->keySize();
+    memcpy(
+        &mAuditNumber,
+        buffer.get() + bytesBufferOffset,
+        sizeof(AuditNumber));
+    bytesBufferOffset += sizeof(AuditNumber);
 
     auto *keyNumber = new (buffer.get() + bytesBufferOffset) KeyNumber;
     mCurrentKeyNumber = (KeyNumber) *keyNumber;
@@ -81,13 +86,29 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runRecoverySt
         warning() << "Trust line is absent " << mContractorUUID;
         return resultDone();
     }
-    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::KeysPending) {
-        warning() << "Invalid TL state for this TA state: "
-                  << mTrustLines->trustLineState(mContractorUUID);
-        return resultDone();
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
+        info() << "Keys pending state, current key number " << mCurrentKeyNumber;
+        auto keyChain = mKeysStore->keychain(mTrustLines->trustLineID(mContractorUUID));
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        try {
+            mCurrentPublicKey = keyChain.publicKey(
+                ioTransaction,
+                mCurrentKeyNumber);
+            if (mCurrentPublicKey == nullptr) {
+                warning() << "Can't get own public key with number " << mCurrentKeyNumber;
+                return resultDone();
+            }
+        } catch (IOError &e) {
+            ioTransaction->rollback();
+            error() << "Can't get own public key from storage. Details: " << e.what();
+            return resultDone();
+        }
+        mStep = NextKeyProcessing;
+        return resultAwakeAsFastAsPossible();
     }
-    mStep = NextKeyProcessing;
-    return runPublicKeysSendNextKeyStage();
+    warning() << "Invalid TL state for this TA state: "
+              << mTrustLines->trustLineState(mContractorUUID);
+    return resultDone();
 }
 
 pair<BytesShared, size_t> PublicKeysSharingSourceTransaction::serializeToBytes() const
@@ -95,7 +116,6 @@ pair<BytesShared, size_t> PublicKeysSharingSourceTransaction::serializeToBytes()
     const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
                         + NodeUUID::kBytesSize
-                        + lamport::PublicKey::keySize()
                         + sizeof(KeyNumber);
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -113,12 +133,11 @@ pair<BytesShared, size_t> PublicKeysSharingSourceTransaction::serializeToBytes()
         NodeUUID::kBytesSize);
     dataBytesOffset += NodeUUID::kBytesSize;
 
-    // todo save only key number and read public key from storage on recovery stage
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
-        mCurrentPublicKey->data(),
-        mCurrentPublicKey->keySize());
-    dataBytesOffset += mCurrentPublicKey->keySize();
+        &mAuditNumber,
+        sizeof(AuditNumber));
+    dataBytesOffset += sizeof(AuditNumber);
 
     memcpy(
         dataBytesShared.get() + dataBytesOffset,

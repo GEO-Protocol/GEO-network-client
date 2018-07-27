@@ -64,6 +64,10 @@ public:
 
     void rollback();
 
+#ifdef TESTS
+    void commitForTesting();
+#endif
+
 private:
 
     void commit();

@@ -283,13 +283,13 @@ public:
     vector<AmountReservation::ConstShared> reservationsFromContractor(
         const NodeUUID &contractorUUID) const;
 
+    bool isReservationsPresentOnTrustLine(
+        const NodeUUID &contractorUUID) const;
+
     const bool trustLineIsPresent (
         const NodeUUID &contractorUUID) const;
 
     const bool trustLineIsActive(
-        const NodeUUID &contractorUUID) const;
-
-    const bool reservationIsPresent(
         const NodeUUID &contractorUUID) const;
 
     void updateTrustLine(

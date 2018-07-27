@@ -7,6 +7,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &log) :
 
     BaseTransaction(
@@ -16,7 +17,8 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
         log),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
-    mKeysStore(keystore)
+    mKeysStore(keystore),
+    mTrustLinesInfluenceController(trustLinesInfluenceController)
 {}
 
 BaseTrustLineTransaction::BaseTrustLineTransaction(
@@ -27,6 +29,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &log) :
 
     BaseTransaction(
@@ -37,7 +40,8 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
         log),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
-    mKeysStore(keystore)
+    mKeysStore(keystore),
+    mTrustLinesInfluenceController(trustLinesInfluenceController)
 {}
 
 BaseTrustLineTransaction::BaseTrustLineTransaction(
@@ -46,6 +50,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &log):
     BaseTransaction(
         buffer,
@@ -53,7 +58,8 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
         log),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
-    mKeysStore(keystore)
+    mKeysStore(keystore),
+    mTrustLinesInfluenceController(trustLinesInfluenceController)
 {}
 
 TransactionResult::SharedConst BaseTrustLineTransaction::runAuditInitializationStage()
@@ -96,6 +102,13 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditInitializationS
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
+
+#ifdef TESTS
+    mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
+    ioTransaction->commitForTesting();
+    mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
+#endif
+
     mStep = AuditResponseProcessing;
     return resultWaitForMessageTypes(
         {Message::TrustLines_Audit},
@@ -104,8 +117,9 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditInitializationS
 
 TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcessingStage()
 {
+    info() << "runAuditResponseProcessingStage";
     if (mContext.empty()) {
-        warning() << "No audit confirmation message received";
+        warning() << "No audit confirmation message received. Transaction will be closed, and wait for message";
         return resultDone();
     }
 
@@ -121,6 +135,16 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
         // todo : need correct reaction
         return resultDone();
     }
+
+    if (message->state() == ConfirmationMessage::ReservationsPresentOnTrustLine) {
+        info() << "Contractor's TL is not ready for audit yet";
+        // message on communicator queue, wait for audit response after reservations committing or cancelling
+        // todo add timeout or count failed attempts for running conflict resolver TA
+        return resultWaitForMessageTypes(
+            {Message::TrustLines_Audit},
+            kWaitMillisecondsForResponse);
+    }
+
     processConfirmationMessage(message);
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
@@ -152,14 +176,10 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
         }
         info() << "Signature is correct";
 
-        if (mAuditNumber == 0) {
-            updateTrustLineStateAfterInitialAudit(
-                ioTransaction);
-        } else {
-            updateTrustLineStateAfterNextAudit(
-                ioTransaction,
-                &keyChain);
-        }
+#ifdef TETST
+        mTrustLinesInfluenceController->testThrowExceptionOnAuditResponseProcessingStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnAuditResponseProcessingStage();
+#endif
 
         keyChain.saveAudit(
             ioTransaction,
@@ -173,6 +193,17 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
             mTrustLines->outgoingTrustAmount(
                 mContractorUUID),
             mTrustLines->balance(mContractorUUID));
+
+        if (mAuditNumber == TrustLine::kInitialAuditNumber) {
+            updateTrustLineStateAfterInitialAudit(
+                ioTransaction);
+        } else {
+            updateTrustLineStateAfterNextAudit(
+                ioTransaction,
+                &keyChain);
+        }
+        info() << "TL state updated";
+
         // delete this transaction from storage
         ioTransaction->transactionHandler()->deleteRecord(
             currentTransactionUUID());
@@ -196,17 +227,17 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
 
 TransactionResult::SharedConst BaseTrustLineTransaction::runAuditTargetStage()
 {
-    info() << "Audit initialized by " << mContractorUUID;
+    info() << "runAuditTargetStage by " << mContractorUUID;
     if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
         warning() << "Trust Line is absent";
-        return sendErrorConfirmation(
+        return sendAuditErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
 
     if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::AuditPending) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
         // todo set TL state into conflict
-        return sendErrorConfirmation(
+        return sendAuditErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
 
@@ -224,7 +255,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditTargetStage()
                 mAuditMessage->keyNumber())) {
             warning() << "Contractor didn't sign message correct";
             // todo set TL state into conflict
-            return sendErrorConfirmation(
+            return sendAuditErrorConfirmation(
                 ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         }
         info() << "Signature is correct";
@@ -234,15 +265,10 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditTargetStage()
         throw e;
     }
 
-    if (mAuditNumber == 0) {
-        updateTrustLineStateAfterInitialAudit(
-            ioTransaction);
-    } else {
-        updateTrustLineStateAfterNextAudit(
-            ioTransaction,
-            &keyChain);
-    }
-    info() << "TL state updated";
+#ifdef TESTS
+    mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
+    mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
+#endif
 
     auto serializedAuditData = getOwnSerializedAuditData();
     try {
@@ -263,6 +289,16 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditTargetStage()
             mTrustLines->outgoingTrustAmount(
                 mContractorUUID),
             mTrustLines->balance(mContractorUUID));
+
+        if (mAuditNumber == TrustLine::kInitialAuditNumber) {
+            updateTrustLineStateAfterInitialAudit(
+                ioTransaction);
+        } else {
+            updateTrustLineStateAfterNextAudit(
+                ioTransaction,
+                &keyChain);
+        }
+        info() << "TL state updated";
 
         // delete this transaction from storage
         ioTransaction->transactionHandler()->deleteRecord(
@@ -293,6 +329,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditTargetStage()
 void BaseTrustLineTransaction::updateTrustLineStateAfterInitialAudit(
     IOTransaction::Shared ioTransaction)
 {
+    info() << "updateTrustLineStateAfterInitialAudit";
     try {
         mTrustLines->setTrustLineState(
             mContractorUUID,
@@ -309,6 +346,7 @@ void BaseTrustLineTransaction::updateTrustLineStateAfterNextAudit(
     IOTransaction::Shared ioTransaction,
     TrustLineKeychain *keyChain)
 {
+    info() << "updateTrustLineStateAfterNextAudit";
     try{
         mTrustLines->setTrustLineAuditNumberAndMakeActive(
             ioTransaction,
@@ -339,7 +377,7 @@ void BaseTrustLineTransaction::updateTrustLineStateAfterNextAudit(
 
 TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSharingInitialisationStage()
 {
-    info() << "runInitialisationStage with " << mContractorUUID;
+    info() << "runPublicKeysSharingInitialisationStage with " << mContractorUUID;
 
     if (mContractorUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
@@ -398,6 +436,13 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSharingIni
         mCurrentKeyNumber,
         mCurrentPublicKey);
     info() << "Send key number: " << mCurrentKeyNumber;
+
+#ifdef TESTS
+    mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingStage();
+    ioTransaction->commitForTesting();
+    mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingStage();
+#endif
+
     mStep = NextKeyProcessing;
     return resultWaitForMessageTypes(
         {Message::TrustLines_HashConfirmation},
@@ -424,7 +469,6 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
         return resultDone();
     }
 
-    processConfirmationMessage(message);
     if (message->state() != ConfirmationMessage::OK) {
         warning() << "Contractor didn't accept public key. Response code: " << message->state();
         // todo run reset keys sharing TA
@@ -438,6 +482,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
     }
 
     info() << "Key number: " << mCurrentKeyNumber << " confirmed";
+    processConfirmationMessage(message);
     mCurrentKeyNumber++;
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineID(mContractorUUID));
@@ -445,7 +490,14 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
         info() << "all keys confirmed";
         auto ioTransaction = mStorageHandler->beginTransaction();
         try {
-            if (mAuditNumber == kInitialAuditNumber) {
+            if (mAuditNumber == TrustLine::kInitialAuditNumber) {
+                auto bytesAndCount = serializeToBytes();
+                info() << "Transaction serialized";
+                ioTransaction->transactionHandler()->saveRecord(
+                    currentTransactionUUID(),
+                    bytesAndCount.first,
+                    bytesAndCount.second);
+                info() << "Transaction saved";
                 if (keyChain.contractorKeysPresent(ioTransaction)) {
                     mTrustLines->setTrustLineState(
                         mContractorUUID,
@@ -482,16 +534,16 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
     }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
-    mCurrentPublicKey = keyChain.publicKey(
-        ioTransaction,
-        mCurrentKeyNumber);
-    if (mCurrentPublicKey == nullptr) {
-        warning() << "There are no data for keyNumber " << mCurrentKeyNumber;
-        // todo run reset keys sharing TA
-        return resultDone();
-    }
-
     try {
+        mCurrentPublicKey = keyChain.publicKey(
+            ioTransaction,
+            mCurrentKeyNumber);
+        if (mCurrentPublicKey == nullptr) {
+            warning() << "There are no data for keyNumber " << mCurrentKeyNumber;
+            // todo run reset keys sharing TA
+            return resultDone();
+        }
+
         auto bytesAndCount = serializeToBytes();
         info() << "Transaction serialized";
         ioTransaction->transactionHandler()->saveRecord(
@@ -513,6 +565,13 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
         mCurrentKeyNumber,
         mCurrentPublicKey);
     info() << "Send key number: " << mCurrentKeyNumber;
+
+#ifdef TESTS
+    mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingProcessingResponseStage();
+    ioTransaction->commitForTesting();
+    mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingProcessingResponseStage();
+#endif
+
     return resultWaitForMessageTypes(
         {Message::TrustLines_HashConfirmation},
         kWaitMillisecondsForResponse);
@@ -520,7 +579,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
 
 TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverStage()
 {
-    info() << "runPublicKeyReceiverStage with " << mContractorUUID;
+    info() << "runPublicKeyReceiverStage";
     info() << "Receive key number: " << mCurrentKeyNumber << " from " << mContractorUUID;
 
     if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
@@ -540,7 +599,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
     try {
         if (mCurrentKeyNumber == 0) {
             info() << "init key number";
-            if (mAuditNumber == kInitialAuditNumber) {
+            if (mAuditNumber == TrustLine::kInitialAuditNumber) {
                 if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Init
                     and mTrustLines->trustLineState(mContractorUUID) != TrustLine::KeysPending) {
                     warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID)
@@ -575,6 +634,12 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
             ioTransaction,
             mCurrentKeyNumber,
             mCurrentPublicKey);
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingReceiverStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingReceiverStage();
+#endif
+
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't store contractor public key. Details " << e.what();
@@ -600,7 +665,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
         // todo check if count of keys are equal on both sides: source and target
         // maybe add new message
         try {
-            if (mAuditNumber == kInitialAuditNumber) {
+            if (mAuditNumber == TrustLine::kInitialAuditNumber) {
                 if (keyChain.ownKeysPresent(ioTransaction)) {
                     mTrustLines->setTrustLineState(
                         mContractorUUID,
@@ -619,6 +684,9 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
                     mContractorUUID,
                     TrustLine::Active,
                     ioTransaction);
+                // delete this transaction from storage
+                ioTransaction->transactionHandler()->deleteRecord(
+                    currentTransactionUUID());
                 info() << "TL is ready for using";
                 return resultDone();
             }
@@ -631,6 +699,31 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
     return resultWaitForMessageTypes(
         {Message::TrustLines_PublicKey},
         kWaitMillisecondsForResponse);
+}
+
+TransactionResult::SharedConst BaseTrustLineTransaction::sendAuditErrorConfirmation(
+    ConfirmationMessage::OperationState errorState)
+{
+    sendMessage<AuditMessage>(
+        mContractorUUID,
+        mEquivalent,
+        mNodeUUID,
+        currentTransactionUUID(),
+        errorState);
+    return resultDone();
+}
+
+TransactionResult::SharedConst BaseTrustLineTransaction::sendTrustLineErrorConfirmation(
+    ConfirmationMessage::OperationState errorState)
+{
+    sendMessage<TrustLineConfirmationMessage>(
+        mContractorUUID,
+        mEquivalent,
+        mNodeUUID,
+        mTransactionUUID,
+        false,
+        errorState);
+    return resultDone();
 }
 
 pair<BytesShared, size_t> BaseTrustLineTransaction::getOwnSerializedAuditData()

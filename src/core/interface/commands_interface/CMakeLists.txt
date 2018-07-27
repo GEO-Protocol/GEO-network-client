@@ -46,6 +46,8 @@ set(SOURCE_FILES
 
         commands/subsystems_controller/SubsystemsInfluenceCommand.h
         commands/subsystems_controller/SubsystemsInfluenceCommand.cpp
+        commands/subsystems_controller/TrustLinesInfluenceCommand.h
+        commands/subsystems_controller/TrustLinesInfluenceCommand.cpp
 
         commands/blacklist/AddNodeToBlackListCommand.h
         commands/blacklist/AddNodeToBlackListCommand.cpp
