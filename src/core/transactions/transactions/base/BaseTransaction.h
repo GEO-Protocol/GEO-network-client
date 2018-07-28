@@ -36,6 +36,10 @@ public:
     typedef uint16_t SerializedStep;
 
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
+    typedef signals::signal<void(
+            TransactionMessage::Shared,
+            const NodeUUID&,
+            Message::MessageType)> SendMessageWithCachingSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
     typedef signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
 
@@ -214,6 +218,19 @@ protected:
             addressee);
     }
 
+    template <typename MessageType, typename... Args>
+    inline void sendMessageWithCaching(
+        const NodeUUID &addressee,
+        Message::MessageType incomingMessageTypeFilter,
+        Args&&... args) const
+    {
+        const auto message = make_shared<MessageType>(args...);
+        sendMessageWithCachingSignal(
+            message,
+            addressee,
+            incomingMessageTypeFilter);
+    }
+
     void processConfirmationMessage(
         const ConfirmationMessage::Shared confirmationMessage)
     {
@@ -266,6 +283,7 @@ protected:
 
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
+    mutable SendMessageWithCachingSignal sendMessageWithCachingSignal;
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
     mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;
 

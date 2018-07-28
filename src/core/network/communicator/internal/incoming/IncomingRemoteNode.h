@@ -61,7 +61,7 @@ protected:
     // todo: ensure reserve usage
     vector<byte> mBuffer;
 
-    // It is expected, that incoming bytes flow from the network, may containsseveral messages at once.
+    // It is expected, that incoming bytes flow from the network, may contains several messages at once.
     // There is non-zero probability, that whole bytes sequence would be processed in one read cycle,
     // so there are several messages, may be collected at once.
     //

@@ -8,6 +8,7 @@
 #include "internal/incoming/IncomingMessagesHandler.h"
 #include "internal/queue/ConfirmationRequiredMessagesHandler.h"
 #include "internal/queue/ConfirmationNotStronglyRequiredMessagesHandler.h"
+#include "internal/queue/ConfirmationResponseMessagesHandler.h"
 #include "../../io/storage/StorageHandler.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "internal/uuid2address/UUID2Address.h"
@@ -49,6 +50,12 @@ public:
         const NodeUUID &kContractorUUID)
         noexcept;
 
+    void sendMessageWithCacheSaving (
+        const TransactionMessage::Shared kMessage,
+        const NodeUUID &kContractorUUID,
+        Message::MessageType incomingMessageTypeFilter)
+        noexcept;
+
     void processConfirmationMessage(
         ConfirmationMessage::Shared confirmationMessage);
 
@@ -79,6 +86,9 @@ protected:
     LoggerStream info() const
     noexcept;
 
+    LoggerStream debug() const
+    noexcept;
+
     LoggerStream error() const
     noexcept;
 
@@ -96,6 +106,7 @@ protected:
     unique_ptr<OutgoingMessagesHandler> mOutgoingMessagesHandler;
     unique_ptr<ConfirmationRequiredMessagesHandler> mConfirmationRequiredMessagesHandler;
     unique_ptr<ConfirmationNotStronglyRequiredMessagesHandler> mConfirmationNotStronglyRequiredMessagesHandler;
+    unique_ptr<ConfirmationResponseMessagesHandler> mConfirmationResponseMessagesHandler;
 };
 
 

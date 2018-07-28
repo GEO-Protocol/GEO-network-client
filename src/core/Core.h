@@ -96,6 +96,11 @@ private:
         Message::Shared message,
         const NodeUUID &contractorUUID);
 
+    void onMessageSendWithCachingSlot(
+        TransactionMessage::Shared message,
+        const NodeUUID &contractorUUID,
+        Message::MessageType incomingMessageTypeFilter);
+
     void onProcessConfirmationMessageSlot(
         ConfirmationMessage::Shared confirmationMessage);
 

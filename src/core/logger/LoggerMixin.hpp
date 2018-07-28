@@ -5,7 +5,7 @@
 
 
 /**
- * This class implements simlpe logging extension
+ * This class implements simple logging extension
  * for the classes, to which it would be mixed.
  */
 class LoggerMixin {

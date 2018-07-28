@@ -152,12 +152,22 @@ public:
         return false;
     }
 
+    virtual const bool isDestinationMessage() const
+    {
+        return false;
+    }
+
     virtual const bool isAddToConfirmationRequiredMessagesHandler() const
     {
         return false;
     }
 
     virtual const bool isAddToConfirmationNotStronglyRequiredMessagesHandler() const
+    {
+        return false;
+    }
+
+    virtual const bool isCheckCachedResponse() const
     {
         return false;
     }

@@ -26,6 +26,8 @@ public:
     const NodeUUID &destinationUUID() const
     noexcept;
 
+    const bool isDestinationMessage() const override;
+
 protected:
     const size_t kOffsetToInheritedBytes() const
     noexcept;

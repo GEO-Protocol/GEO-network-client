@@ -131,6 +131,10 @@ namespace signals = boost::signals2;
 class TransactionsManager {
 public:
     signals::signal<void(Message::Shared, const NodeUUID&)> transactionOutgoingMessageReadySignal;
+    signals::signal<void(
+            TransactionMessage::Shared,
+            const NodeUUID&,
+            Message::MessageType)> transactionOutgoingMessageWithCachingReadySignal;
     signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
 
 public:
@@ -361,6 +365,9 @@ protected:
     void subscribeForOutgoingMessages(
         BaseTransaction::SendMessageSignal &signal);
 
+    void subscribeForOutgoingMessagesWithCaching(
+        BaseTransaction::SendMessageWithCachingSignal &signal);
+
     void subscribeForCommandResult(
         TransactionsScheduler::CommandResultSignal &signal);
 
@@ -404,6 +411,11 @@ protected:
     void onTransactionOutgoingMessageReady(
         Message::Shared message,
         const NodeUUID &contractorUUID);
+
+    void onTransactionOutgoingMessageWithCachingReady(
+        TransactionMessage::Shared message,
+        const NodeUUID &contractorUUID,
+        Message::MessageType incomingMessageTypeFilter);
 
     void onCommandResultReady(
         CommandResult::SharedConst result);

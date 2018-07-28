@@ -358,6 +358,14 @@ void Core::connectCommunicatorSignals()
             _1,
             _2));
 
+    mTransactionsManager->transactionOutgoingMessageWithCachingReadySignal.connect(
+        boost::bind(
+            &Core::onMessageSendWithCachingSlot,
+            this,
+            _1,
+            _2,
+            _3));
+
     mTransactionsManager->ProcessConfirmationMessageSignal.connect(
         boost::bind(
             &Core::onProcessConfirmationMessageSlot,
@@ -494,6 +502,30 @@ void Core::onMessageSendSlot(
         mCommunicator->sendMessage(
             message,
             contractorUUID);
+
+    } catch (exception &e) {
+        mLog->logException("Core", e);
+    }
+}
+
+void Core::onMessageSendWithCachingSlot(
+    TransactionMessage::Shared message,
+    const NodeUUID &contractorUUID,
+    Message::MessageType incomingMessageTypeFilter)
+{
+#ifdef TESTS
+    if (not mSubsystemsController->isNetworkOn()) {
+        // Ignore outgoing message in case if network was disabled.
+        debug() << "Ignore send message";
+        return;
+    }
+#endif
+
+    try {
+        mCommunicator->sendMessageWithCacheSaving(
+            message,
+            contractorUUID,
+            incomingMessageTypeFilter);
 
     } catch (exception &e) {
         mLog->logException("Core", e);

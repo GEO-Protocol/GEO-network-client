@@ -27,10 +27,15 @@ DestinationMessage::DestinationMessage(
         NodeUUID::kBytesSize);
 }
 
-const NodeUUID &DestinationMessage::destinationUUID() const
+const NodeUUID& DestinationMessage::destinationUUID() const
 noexcept
 {
     return mDestinationUUID;
+}
+
+const bool DestinationMessage::isDestinationMessage() const
+{
+    return true;
 }
 
 /*

@@ -199,8 +199,9 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::runInitializationStag
         mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
 #endif
 
-        sendMessage<TrustLineConfirmationMessage>(
+        sendMessageWithCaching<TrustLineConfirmationMessage>(
             mContractorUUID,
+            Message::TrustLines_SetIncoming,
             mEquivalent,
             mNodeUUID,
             mTransactionUUID,

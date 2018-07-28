@@ -28,7 +28,7 @@ bool IncomingRemoteNode::isBanned () const
  */
 Message::Shared IncomingRemoteNode::popNextMessage()
 {
-    if (not mCollectedMessages.size())
+    if (mCollectedMessages.empty())
         return Message::Shared(nullptr);
 
     const auto kMessage = *(prev(mCollectedMessages.cend()));
@@ -43,7 +43,7 @@ Message::Shared IncomingRemoteNode::popNextMessage()
  */
 void IncomingRemoteNode::dropOutdatedChannels()
 {
-    if (mChannels.size() == 0) {
+    if (mChannels.empty()) {
         return;
     }
 
@@ -72,7 +72,7 @@ void IncomingRemoteNode::dropOutdatedChannels()
 
     if (totalOutdateChannels == mChannels.size()) {
         // In case if all channels of the node are outdated -
-        // it would much more efficient to clear whoule map at once
+        // it would much more efficient to clear whole map at once
         // (with only one memory reallocation)
         mChannels.clear();
 
@@ -244,7 +244,9 @@ bool IncomingRemoteNode::tryCollectNextPacket ()
 
     const auto kFlagAndMessage = channel->tryCollectMessage();
     if (kFlagAndMessage.first) {
+        debug() << "Collected message of type " << kFlagAndMessage.second->typeID();
         mCollectedMessages.push_back(kFlagAndMessage.second);
+        mChannels.erase(kChannelIndex);
     }
 
     // Return true if one more potential packet is present in buffer.

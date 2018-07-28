@@ -78,3 +78,8 @@ const bool SetIncomingTrustLineMessage::isAddToConfirmationRequiredMessagesHandl
 {
     return true;
 }
+
+const bool SetIncomingTrustLineMessage::isCheckCachedResponse() const
+{
+    return true;
+}

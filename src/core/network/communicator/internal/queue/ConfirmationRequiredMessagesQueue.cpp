@@ -19,36 +19,39 @@ bool ConfirmationRequiredMessagesQueue::enqueue(
         case Message::TrustLines_SetIncoming: {
             updateTrustLineNotificationInTheQueue(
                 message);
-            return true;
+            break;
         }
         case Message::TrustLines_CloseOutgoing: {
             updateTrustLineCloseNotificationInTheQueue(
                 message);
-            return true;
+            break;
         }
         case Message::GatewayNotification: {
             updateGatewayNotificationInTheQueue(
                 message);
-            return true;
+            break;
         }
         case Message::TrustLines_SetIncomingFromGateway: {
             updateTrustLineFromGatewayNotificationInTheQueue(
                 message);
-            return true;
+            break;
         }
         case Message::TrustLines_Audit: {
             updateAuditInTheQueue(
                 message);
-            return true;
+            break;
         }
         case Message::TrustLines_PublicKey: {
             updatePublicKeyInTheQueue(
                 message);
-            return true;
+            break;
         }
         default:
             return false;
     }
+    resetInternalTimeout();
+    mNextSendingAttemptDateTime = utc_now() + boost::posix_time::seconds(mNextTimeoutSeconds);
+    return true;
 }
 
 bool ConfirmationRequiredMessagesQueue::tryProcessConfirmation(

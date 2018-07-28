@@ -899,9 +899,11 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
+        subscribeForOutgoingMessagesWithCaching(
+            transaction->sendMessageWithCachingSignal);
         prepareAndSchedule(
             transaction,
-            true,
+            false,
             false,
             true);
         return;
@@ -927,7 +929,7 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
                 transaction->processConfirmationMessageSignal);
             prepareAndSchedule(
                 transaction,
-                true,
+                false,
                 false,
                 true);
         } else {
@@ -943,9 +945,11 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
                 mLog);
             subscribeForProcessingConfirmationMessage(
                 transaction->processConfirmationMessageSignal);
+            subscribeForOutgoingMessagesWithCaching(
+                transaction->sendMessageWithCachingSignal);
             prepareAndSchedule(
                 transaction,
-                true,
+                false,
                 false,
                 true);
         }
@@ -2248,6 +2252,18 @@ void TransactionsManager::subscribeForOutgoingMessages(
             _2));
 }
 
+void TransactionsManager::subscribeForOutgoingMessagesWithCaching(
+    BaseTransaction::SendMessageWithCachingSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onTransactionOutgoingMessageWithCachingReady,
+            this,
+            _1,
+            _2,
+            _3));
+}
+
 void TransactionsManager::subscribeForSerializeTransaction(
     TransactionsScheduler::SerializeTransactionSignal &signal)
 {
@@ -2379,6 +2395,17 @@ void TransactionsManager::onTransactionOutgoingMessageReady(
     transactionOutgoingMessageReadySignal(
         message,
         contractorUUID);
+}
+
+void TransactionsManager::onTransactionOutgoingMessageWithCachingReady(
+    TransactionMessage::Shared message,
+    const NodeUUID &contractorUUID,
+    Message::MessageType incomingMessageTypeFilter)
+{
+    transactionOutgoingMessageWithCachingReadySignal(
+        message,
+        contractorUUID,
+        incomingMessageTypeFilter);
 }
 
 /*!

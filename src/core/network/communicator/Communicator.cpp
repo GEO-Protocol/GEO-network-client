@@ -57,6 +57,10 @@ Communicator::Communicator(
     mConfirmationNotStronglyRequiredMessagesHandler(
         make_unique<ConfirmationNotStronglyRequiredMessagesHandler>(
             IOService,
+            logger)),
+
+    mConfirmationResponseMessagesHandler(
+        make_unique<ConfirmationResponseMessagesHandler>(
             logger))
 {
     // Direct signals chaining.
@@ -124,7 +128,7 @@ void Communicator::beginAcceptMessages()
  * Internal transactions logic must take care about the case when message was lost.
  *
  * This method also doesn't reports any internal errors.
- * In case if some internal errors would occure - all of them would be only logged.
+ * In case if some internal errors would occur - all of them would be only logged.
  *
  *
  * @param message - message that must be sent to the remote node.
@@ -147,6 +151,22 @@ void Communicator::sendMessage (
             contractorUUID,
             message);
     }
+
+    mOutgoingMessagesHandler->sendMessage(
+        message,
+        contractorUUID);
+}
+
+void Communicator::sendMessageWithCacheSaving(
+    const TransactionMessage::Shared message,
+    const NodeUUID &contractorUUID,
+    Message::MessageType incomingMessageTypeFilter)
+    noexcept
+{
+    mConfirmationResponseMessagesHandler->addCachedMessage(
+        contractorUUID,
+        message,
+        incomingMessageTypeFilter);
 
     mOutgoingMessagesHandler->sendMessage(
         message,
@@ -190,7 +210,7 @@ void Communicator::onMessageReceived(
 
     // these messages are inherited from DestinationMessage
     // and should be checked if they were delivered on address
-    else if (message->typeID() >= 100 && message->typeID() <= 102) {
+    else if (message->isDestinationMessage()) {
         const auto kDestinationMessage =
             static_pointer_cast<DestinationMessage>(message);
         if (kDestinationMessage->destinationUUID() != mNodeUUID) {
@@ -203,11 +223,25 @@ void Communicator::onMessageReceived(
         }
     }
 
+    if (message->isCheckCachedResponse()) {
+        auto incomingTransactionMessage = static_pointer_cast<TransactionMessage>(message);
+        auto cachedResponse = mConfirmationResponseMessagesHandler->getCachedMessage(incomingTransactionMessage);
+        if (cachedResponse != nullptr) {
+            sendMessage(
+                cachedResponse,
+                incomingTransactionMessage->senderUUID);
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+            debug() << "send cached response";
+#endif
+            return;
+        }
+    }
+
     // In case if received message is of type "confirmation message" -
     // then it must not be transferred for further processing.
     // Instead of that, it must be transferred for processing into
     // confirmation required messages handler.
-    else if (message->typeID() == Message::System_Confirmation) {
+    if (message->typeID() == Message::System_Confirmation) {
         mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
             static_pointer_cast<ConfirmationMessage>(message));
         return;
@@ -259,6 +293,12 @@ LoggerStream Communicator::info() const
 noexcept
 {
     return mLog.info(logHeader());
+}
+
+LoggerStream Communicator::debug() const
+noexcept
+{
+    return mLog.debug(logHeader());
 }
 
 LoggerStream Communicator::error() const
