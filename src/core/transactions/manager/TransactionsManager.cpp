@@ -683,13 +683,22 @@ void TransactionsManager::processMessage(
         launchSetIncomingTrustLineTransaction(
             static_pointer_cast<SetIncomingTrustLineMessage>(message));
 
-    } else if (message->typeID() == Message::TrustLines_SetIncomingFromGateway) {
-        launchSetIncomingTrustLineTransaction(
-            static_pointer_cast<SetIncomingTrustLineFromGatewayMessage>(message));
+    } else if (message->typeID() == Message::TrustLines_SetIncomingInitial) {
+        launchAcceptTrustLineTransaction(
+            static_pointer_cast<SetIncomingTrustLineInitialMessage>(message));
 
     } else if (message->typeID() == Message::TrustLines_CloseOutgoing) {
         launchCloseOutgoingTrustLineTransaction(
             static_pointer_cast<CloseOutgoingTrustLineMessage>(message));
+
+    } else if (message->typeID() == Message::TrustLines_Confirmation) {
+        try {
+            mScheduler->tryAttachMessageToTransaction(message);
+        } catch (NotFoundError &) {
+            if (!findSerializedTransactionAndLaunchIt(message)) {
+                warning() << "Can't attach TrustLinesConfirmation message to transaction ";
+            }
+        }
 
     } else if (message->typeID() == Message::TrustLines_PublicKey) {
         try {
@@ -721,15 +730,14 @@ void TransactionsManager::processMessage(
             }
         }
 
-    } else if (message->typeID() == Message::TrustLines_Confirmation) {
+    } else if (message->typeID() == Message::TrustLines_AuditConfirmation) {
         try {
             mScheduler->tryAttachMessageToTransaction(message);
         } catch (NotFoundError &) {
             if (!findSerializedTransactionAndLaunchIt(message)) {
-                warning() << "Can't attach TrustLinesConfirmation message to transaction ";
+                warning() << "Can't attach TrustLines_AuditConfirmation message to transaction ";
             }
         }
-
 
     /*
      * Gateway notification & RoutingTable
@@ -797,7 +805,6 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
                 mSubsystemsController,
                 mKeysStore,
                 mVisualInterface.get(),
-                mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
                 mTrustLinesInfluenceController,
                 mLog);
             subscribeForProcessingConfirmationMessage(
@@ -881,91 +888,39 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
     SetIncomingTrustLineMessage::Shared message)
 {
     try {
-        mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent());
-    } catch (NotFoundError &e) {
-        info() << "launchSetIncomingTrustLineTransaction: init new equivalent "
-               << message->equivalent();
-        mEquivalentsSubsystemsRouter->initNewEquivalent(message->equivalent());
-        mEquivalentsCyclesSubsystemsRouter->initNewEquivalent(message->equivalent());
-        auto transaction = make_shared<AcceptTrustLineTransaction>(
+        auto transaction = make_shared<SetIncomingTrustLineTransaction>(
             mNodeUUID,
             message,
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
             mStorageHandler,
+            mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
+            mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
+            mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
             mSubsystemsController,
             mKeysStore,
-            mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
+            mVisualInterface.get(),
             mTrustLinesInfluenceController,
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
-        subscribeForOutgoingMessagesWithCaching(
-            transaction->sendMessageWithCachingSignal);
         prepareAndSchedule(
             transaction,
             false,
             false,
             true);
-        return;
-    }
-    try {
-        auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent());
-        if (trustLinesManager->trustLineIsPresent(message->senderUUID)) {
-            auto transaction = make_shared<SetIncomingTrustLineTransaction>(
-                mNodeUUID,
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mStorageHandler,
-                mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
-                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
-                mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
-                mSubsystemsController,
-                mKeysStore,
-                mVisualInterface.get(),
-                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
-                mTrustLinesInfluenceController,
-                mLog);
-            subscribeForProcessingConfirmationMessage(
-                transaction->processConfirmationMessageSignal);
-            prepareAndSchedule(
-                transaction,
-                false,
-                false,
-                true);
-        } else {
-            auto transaction = make_shared<AcceptTrustLineTransaction>(
-                mNodeUUID,
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mStorageHandler,
-                mSubsystemsController,
-                mKeysStore,
-                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
-                mTrustLinesInfluenceController,
-                mLog);
-            subscribeForProcessingConfirmationMessage(
-                transaction->processConfirmationMessageSignal);
-            subscribeForOutgoingMessagesWithCaching(
-                transaction->sendMessageWithCachingSignal);
-            prepareAndSchedule(
-                transaction,
-                false,
-                false,
-                true);
-        }
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for SetIncomingTrustLineTransaction "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
-void TransactionsManager::launchSetIncomingTrustLineTransaction(
-    SetIncomingTrustLineFromGatewayMessage::Shared message)
+void TransactionsManager::launchAcceptTrustLineTransaction(
+    SetIncomingTrustLineInitialMessage::Shared message)
 {
     try {
         mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent());
     } catch (NotFoundError &e) {
-        info() << "launchSetIncomingTrustLineTransaction from gateway: init new equivalent "
+        info() << "launchAcceptTrustLineTransaction: init new equivalent "
                << message->equivalent();
         mEquivalentsSubsystemsRouter->initNewEquivalent(message->equivalent());
         mEquivalentsCyclesSubsystemsRouter->initNewEquivalent(message->equivalent());
@@ -983,57 +938,10 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
             transaction->processConfirmationMessageSignal);
         prepareAndSchedule(
             transaction,
-            true,
+            false,
             false,
             true);
         return;
-    }
-    try {
-        auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent());
-        if (trustLinesManager->trustLineIsPresent(message->senderUUID)) {
-            auto transaction = make_shared<SetIncomingTrustLineTransaction>(
-                mNodeUUID,
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mStorageHandler,
-                mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
-                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
-                mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
-                mSubsystemsController,
-                mKeysStore,
-                mVisualInterface.get(),
-                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
-                mTrustLinesInfluenceController,
-                mLog);
-            subscribeForProcessingConfirmationMessage(
-                transaction->processConfirmationMessageSignal);
-            prepareAndSchedule(
-                transaction,
-                true,
-                false,
-                true);
-        } else {
-            auto transaction = make_shared<AcceptTrustLineTransaction>(
-                mNodeUUID,
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mStorageHandler,
-                mSubsystemsController,
-                mKeysStore,
-                mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
-                mTrustLinesInfluenceController,
-                mLog);
-            subscribeForProcessingConfirmationMessage(
-                transaction->processConfirmationMessageSignal);
-            prepareAndSchedule(
-                transaction,
-                true,
-                false,
-                true);
-        }
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for SetIncomingTrustLineTransaction from gateway "
-                "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -2054,6 +1962,7 @@ void TransactionsManager::launchAddNodeToBlackListTransaction(
                 mStorageHandler,
                 mEquivalentsSubsystemsRouter,
                 mSubsystemsController,
+                mTrustLinesInfluenceController,
                 mKeysStore,
                 mLog),
             true,
@@ -2594,12 +2503,16 @@ void TransactionsManager::prepareAndSchedule(
     bool subsidiaryTransactionSubscribe,
     bool outgoingMessagesSubscribe)
 {
-    if (outgoingMessagesSubscribe)
+    if (outgoingMessagesSubscribe) {
         subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
-    if (subsidiaryTransactionSubscribe)
+        subscribeForOutgoingMessagesWithCaching(
+            transaction->sendMessageWithCachingSignal);
+    }
+    if (subsidiaryTransactionSubscribe) {
         subscribeForSubsidiaryTransactions(
             transaction->runSubsidiaryTransactionSignal);
+    }
 
     while (true) {
         try {

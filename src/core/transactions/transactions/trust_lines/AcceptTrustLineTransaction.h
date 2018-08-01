@@ -2,8 +2,7 @@
 #define GEO_NETWORK_CLIENT_ACCEPTTRUSTLINETRANSACTION_H
 
 #include "base/BaseTrustLineTransaction.h"
-#include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
-#include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
+#include "../../../network/messages/trust_lines/SetIncomingTrustLineInitialMessage.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 
 class AcceptTrustLineTransaction : public BaseTrustLineTransaction {
@@ -14,19 +13,7 @@ public:
 public:
     AcceptTrustLineTransaction(
         const NodeUUID &nodeUUID,
-        SetIncomingTrustLineMessage::Shared message,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        SubsystemsController *subsystemsController,
-        Keystore *keystore,
-        bool iAmGateway,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger)
-    noexcept;
-
-    AcceptTrustLineTransaction(
-        const NodeUUID &nodeUUID,
-        SetIncomingTrustLineFromGatewayMessage::Shared message,
+        SetIncomingTrustLineInitialMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         SubsystemsController *subsystemsController,

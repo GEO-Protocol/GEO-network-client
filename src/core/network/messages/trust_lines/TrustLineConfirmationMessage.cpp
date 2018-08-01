@@ -4,7 +4,7 @@ TrustLineConfirmationMessage::TrustLineConfirmationMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    bool gateway,
+    bool isContractorGateway,
     const OperationState state) :
 
     ConfirmationMessage(
@@ -12,7 +12,7 @@ TrustLineConfirmationMessage::TrustLineConfirmationMessage(
         senderUUID,
         transactionUUID,
         state),
-    mGateway(gateway)
+    mIsContractorGateway(isContractorGateway)
 {}
 
 TrustLineConfirmationMessage::TrustLineConfirmationMessage(
@@ -23,7 +23,7 @@ TrustLineConfirmationMessage::TrustLineConfirmationMessage(
     size_t bytesBufferOffset = ConfirmationMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     memcpy(
-        &mGateway,
+        &mIsContractorGateway,
         buffer.get() + bytesBufferOffset,
         sizeof(byte));
 }
@@ -33,9 +33,9 @@ const Message::MessageType TrustLineConfirmationMessage::typeID() const
     return Message::TrustLines_Confirmation;
 }
 
-const bool TrustLineConfirmationMessage::gateway() const
+const bool TrustLineConfirmationMessage::isContractorGateway() const
 {
-    return mGateway;
+    return mIsContractorGateway;
 }
 
 pair<BytesShared, size_t> TrustLineConfirmationMessage::serializeToBytes() const
@@ -58,7 +58,7 @@ pair<BytesShared, size_t> TrustLineConfirmationMessage::serializeToBytes() const
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
-        &mGateway,
+        &mIsContractorGateway,
         sizeof(byte));
     //----------------------------------------------------
     return make_pair(

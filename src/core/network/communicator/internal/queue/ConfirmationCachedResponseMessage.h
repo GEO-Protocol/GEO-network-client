@@ -2,6 +2,8 @@
 #define GEO_NETWORK_CLIENT_CONFIRMATIONCACHEDRESPONSEMESSAGE_H
 
 #include "../../../messages/base/transaction/TransactionMessage.h"
+#include "../../../messages/trust_lines/PublicKeyMessage.h"
+#include "../../../messages/trust_lines/PublicKeyHashConfirmation.h"
 
 class ConfirmationCachedResponseMessage {
 

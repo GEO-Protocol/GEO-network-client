@@ -15,6 +15,8 @@ public:
     const MessageType typeID() const;
 
     const bool isAddToConfirmationRequiredMessagesHandler() const;
+
+    const bool isCheckCachedResponse() const override;
 };
 
 

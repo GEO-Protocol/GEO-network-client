@@ -111,7 +111,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditInitializationS
 
     mStep = AuditResponseProcessing;
     return resultWaitForMessageTypes(
-        {Message::TrustLines_Audit},
+        {Message::TrustLines_AuditConfirmation},
         kWaitMillisecondsForResponse);
 }
 
@@ -123,7 +123,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
         return resultDone();
     }
 
-    auto message = popNextMessage<AuditMessage>();
+    auto message = popNextMessage<AuditResponseMessage>();
     info() << "Contractor send audit message";
     if (message->senderUUID != mContractorUUID) {
         warning() << "Receive message from different sender: " << message->senderUUID;
@@ -141,7 +141,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
         // message on communicator queue, wait for audit response after reservations committing or cancelling
         // todo add timeout or count failed attempts for running conflict resolver TA
         return resultWaitForMessageTypes(
-            {Message::TrustLines_Audit},
+            {Message::TrustLines_AuditConfirmation},
             kWaitMillisecondsForResponse);
     }
 
@@ -310,8 +310,9 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditTargetStage()
     }
     info() << "All data saved. Now TL is ready for using";
 
-    sendMessage<AuditMessage>(
+    sendMessageWithCaching<AuditResponseMessage>(
         mContractorUUID,
+        Message::TrustLines_Audit,
         mEquivalent,
         mNodeUUID,
         currentTransactionUUID(),
@@ -583,14 +584,9 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
     info() << "Receive key number: " << mCurrentKeyNumber << " from " << mContractorUUID;
 
     if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
-        sendMessage<PublicKeyHashConfirmation>(
-            mContractorUUID,
-            mEquivalent,
-            mNodeUUID,
-            mTransactionUUID,
-            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         warning() << "Trust line is absent.";
-        return resultDone();
+        return sendKeyErrorConfirmation(
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
@@ -620,14 +616,9 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
                 ioTransaction);
         } else {
             if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::KeysPending) {
-                sendMessage<PublicKeyHashConfirmation>(
-                    mContractorUUID,
-                    mEquivalent,
-                    mNodeUUID,
-                    mTransactionUUID,
-                    ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
                 warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
-                return resultDone();
+                return sendKeyErrorConfirmation(
+                    ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
             }
         }
         keyChain.setContractorPublicKey(
@@ -643,17 +634,12 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't store contractor public key. Details " << e.what();
-        sendMessage<PublicKeyHashConfirmation>(
-            mContractorUUID,
-            mEquivalent,
-            mNodeUUID,
-            mTransactionUUID,
-            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         throw e;
     }
     info() << "Key saved, send hash confirmation";
-    sendMessage<PublicKeyHashConfirmation>(
+    sendMessageWithCaching<PublicKeyHashConfirmation>(
         mContractorUUID,
+        Message::TrustLines_PublicKey,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,
@@ -701,18 +687,6 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
         kWaitMillisecondsForResponse);
 }
 
-TransactionResult::SharedConst BaseTrustLineTransaction::sendAuditErrorConfirmation(
-    ConfirmationMessage::OperationState errorState)
-{
-    sendMessage<AuditMessage>(
-        mContractorUUID,
-        mEquivalent,
-        mNodeUUID,
-        currentTransactionUUID(),
-        errorState);
-    return resultDone();
-}
-
 TransactionResult::SharedConst BaseTrustLineTransaction::sendTrustLineErrorConfirmation(
     ConfirmationMessage::OperationState errorState)
 {
@@ -722,6 +696,30 @@ TransactionResult::SharedConst BaseTrustLineTransaction::sendTrustLineErrorConfi
         mNodeUUID,
         mTransactionUUID,
         false,
+        errorState);
+    return resultDone();
+}
+
+TransactionResult::SharedConst BaseTrustLineTransaction::sendKeyErrorConfirmation(
+    ConfirmationMessage::OperationState errorState)
+{
+    sendMessage<PublicKeyHashConfirmation>(
+        mContractorUUID,
+        mEquivalent,
+        mNodeUUID,
+        mTransactionUUID,
+        errorState);
+    return resultDone();
+}
+
+TransactionResult::SharedConst BaseTrustLineTransaction::sendAuditErrorConfirmation(
+    ConfirmationMessage::OperationState errorState)
+{
+    sendMessage<AuditResponseMessage>(
+        mContractorUUID,
+        mEquivalent,
+        mNodeUUID,
+        currentTransactionUUID(),
         errorState);
     return resultDone();
 }

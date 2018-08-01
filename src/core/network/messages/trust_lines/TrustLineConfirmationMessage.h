@@ -13,7 +13,7 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        bool gateway,
+        bool isContractorGateway,
         const OperationState state);
 
     TrustLineConfirmationMessage(
@@ -21,13 +21,13 @@ public:
 
     const MessageType typeID() const;
 
-    const bool gateway() const;
+    const bool isContractorGateway() const;
 
     pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc);
 
 private:
-    bool mGateway;
+    bool mIsContractorGateway;
 };
 
 

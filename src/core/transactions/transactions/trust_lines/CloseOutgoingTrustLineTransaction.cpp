@@ -151,8 +151,9 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runInitializat
 #endif
 
         // Sending confirmation back.
-        sendMessage<TrustLineConfirmationMessage>(
+        sendMessageWithCaching<TrustLineConfirmationMessage>(
             mContractorUUID,
+            Message::TrustLines_CloseOutgoing,
             mEquivalent,
             mNodeUUID,
             mTransactionUUID,

@@ -11,7 +11,6 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     SubsystemsController *subsystemsController,
     Keystore *keystore,
     VisualInterface *visualInterface,
-    bool iAmGateway,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger)
     noexcept :
@@ -30,8 +29,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController),
-    mVisualInterface(visualInterface),
-    mIAmGateway(iAmGateway)
+    mVisualInterface(visualInterface)
 {
     mContractorUUID = mCommand->contractorUUID();
     mPreviousState = TrustLine::Active;
@@ -228,23 +226,13 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitialisatio
         // Notifying remote node about trust line state changed.
         // Network communicator knows, that this message must be forced to be delivered,
         // so the TA itself might finish without any response from the remote node.
-        if (mIAmGateway) {
-            sendMessage<SetIncomingTrustLineFromGatewayMessage>(
-                mContractorUUID,
-                mEquivalent,
-                mNodeUUID,
-                mTransactionUUID,
-                mContractorUUID,
-                mAmount);
-        } else {
-            sendMessage<SetIncomingTrustLineMessage>(
-                mContractorUUID,
-                mEquivalent,
-                mNodeUUID,
-                mTransactionUUID,
-                mContractorUUID,
-                mAmount);
-        }
+        sendMessage<SetIncomingTrustLineMessage>(
+            mContractorUUID,
+            mEquivalent,
+            mNodeUUID,
+            mTransactionUUID,
+            mContractorUUID,
+            mAmount);
 
         if (mSubsystemsController->isWriteVisualResults()) {
             if (mOperationResult == TrustLinesManager::TrustLineOperationResult::Opened) {
@@ -331,7 +319,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
         return resultDone();
     }
     auto message = popNextMessage<TrustLineConfirmationMessage>();
-    info() << "contractor " << message->senderUUID << " confirmed opening TL. gateway: " << message->gateway();
+    info() << "contractor " << message->senderUUID << " confirmed opening TL. gateway: " << message->isContractorGateway();
     if (message->senderUUID != mContractorUUID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
@@ -356,13 +344,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
             ioTransaction->transactionHandler()->deleteRecord(
                 currentTransactionUUID());
             return resultDone();
-        }
-
-        if (message->gateway()) {
-            mTrustLines->setContractorAsGateway(
-                ioTransaction,
-                mContractorUUID,
-                true);
         }
 
 #ifdef TESTS

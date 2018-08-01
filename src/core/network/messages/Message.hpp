@@ -25,15 +25,14 @@ public:
         /*
          * Trust lines
          */
-        // these messages has destination uuid, that's why they should be checked on communicator
-        // and their types should be added on Communicator::onMessageReceived if condition
-        TrustLines_SetIncoming = 100,
-        TrustLines_CloseOutgoing = 101,
-        TrustLines_SetIncomingFromGateway = 102,
-        TrustLines_Confirmation = 103,
-        TrustLines_PublicKey = 104,
-        TrustLines_HashConfirmation = 105,
-        TrustLines_Audit = 106,
+        TrustLines_SetIncoming = 101,
+        TrustLines_SetIncomingInitial = 102,
+        TrustLines_CloseOutgoing = 103,
+        TrustLines_Confirmation = 104,
+        TrustLines_PublicKey = 105,
+        TrustLines_HashConfirmation = 106,
+        TrustLines_Audit = 107,
+        TrustLines_AuditConfirmation = 108,
 
         /*
          * Payments messages

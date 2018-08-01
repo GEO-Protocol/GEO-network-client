@@ -2,7 +2,7 @@
 
 AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     const NodeUUID &nodeUUID,
-    SetIncomingTrustLineMessage::Shared message,
+    SetIncomingTrustLineInitialMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     SubsystemsController *subsystemsController,
@@ -24,38 +24,7 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
         logger),
     mSubsystemsController(subsystemsController),
     mIAmGateway(iAmGateway),
-    mSenderIsGateway(false)
-{
-    mContractorUUID = message->senderUUID;
-    mAmount = message->amount();
-    mAuditNumber = TrustLine::kInitialAuditNumber;
-}
-
-AcceptTrustLineTransaction::AcceptTrustLineTransaction(
-    const NodeUUID &nodeUUID,
-    SetIncomingTrustLineFromGatewayMessage::Shared message,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    SubsystemsController *subsystemsController,
-    Keystore *keystore,
-    bool iAmGateway,
-    TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger)
-    noexcept:
-
-    BaseTrustLineTransaction(
-        BaseTransaction::AcceptTrustLineTransaction,
-        message->transactionUUID(),
-        nodeUUID,
-        message->equivalent(),
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger),
-    mSubsystemsController(subsystemsController),
-    mIAmGateway(iAmGateway),
-    mSenderIsGateway(true)
+    mSenderIsGateway(message->isContractorGateway())
 {
     mContractorUUID = message->senderUUID;
     mAmount = message->amount();
@@ -201,7 +170,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::runInitializationStag
 
         sendMessageWithCaching<TrustLineConfirmationMessage>(
             mContractorUUID,
-            Message::TrustLines_SetIncoming,
+            Message::TrustLines_SetIncomingInitial,
             mEquivalent,
             mNodeUUID,
             mTransactionUUID,

@@ -167,23 +167,14 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitialisationStage(
         // Notifying remote node about trust line state changed.
         // Network communicator knows, that this message must be forced to be delivered,
         // so the TA itself might finish without any response from the remote node.
-        if (mIAmGateway) {
-            sendMessage<SetIncomingTrustLineFromGatewayMessage>(
-                mContractorUUID,
-                mEquivalent,
-                mNodeUUID,
-                mTransactionUUID,
-                mContractorUUID,
-                mAmount);
-        } else {
-            sendMessage<SetIncomingTrustLineMessage>(
-                mContractorUUID,
-                mEquivalent,
-                mNodeUUID,
-                mTransactionUUID,
-                mContractorUUID,
-                mAmount);
-        }
+        sendMessage<SetIncomingTrustLineInitialMessage>(
+            mContractorUUID,
+            mEquivalent,
+            mNodeUUID,
+            mTransactionUUID,
+            mContractorUUID,
+            mAmount,
+            mIAmGateway);
     } catch (IOError &e) {
         ioTransaction->rollback();
         mTrustLines->removeTrustLine(
@@ -209,7 +200,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
         return resultDone();
     }
     auto message = popNextMessage<TrustLineConfirmationMessage>();
-    info() << "contractor " << message->senderUUID << " send response on opening TL. gateway: " << message->gateway();
+    info() << "contractor " << message->senderUUID << " send response on opening TL. gateway: " << message->isContractorGateway();
     if (message->senderUUID != mContractorUUID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
@@ -242,7 +233,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
             mContractorUUID,
             TrustLine::KeysPending,
             ioTransaction);
-        if (message->gateway()) {
+        if (message->isContractorGateway()) {
             mTrustLines->setContractorAsGateway(
                 ioTransaction,
                 mContractorUUID,

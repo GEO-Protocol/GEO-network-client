@@ -6,6 +6,7 @@ AddNodeToBlackListTransaction::AddNodeToBlackListTransaction(
     StorageHandler *storageHandler,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     SubsystemsController *subsystemsController,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Keystore *keystore,
     Logger &logger):
     BaseTransaction(
@@ -17,6 +18,7 @@ AddNodeToBlackListTransaction::AddNodeToBlackListTransaction(
     mStorageHandler(storageHandler),
     mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
     mSubsystemsController(subsystemsController),
+    mTrustLinesInfluenceController(trustLinesInfluenceController),
     mKeysStore(keystore)
 {}
 
@@ -54,6 +56,7 @@ TransactionResult::SharedConst AddNodeToBlackListTransaction::run()
             mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
             mKeysStore,
+            mTrustLinesInfluenceController,
             mLog);
         launchSubsidiaryTransaction(kTransaction);
         info() << "CloseIncomingTrustLineTransaction with " << kContractor

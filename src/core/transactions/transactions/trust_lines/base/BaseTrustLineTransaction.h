@@ -10,6 +10,7 @@
 
 #include "../../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../../network/messages/trust_lines/AuditMessage.h"
+#include "../../../../network/messages/trust_lines/AuditResponseMessage.h"
 #include "../../../../network/messages/trust_lines/PublicKeyMessage.h"
 #include "../../../../network/messages/trust_lines/PublicKeyHashConfirmation.h"
 
@@ -83,10 +84,13 @@ protected:
         IOTransaction::Shared ioTransaction,
         TrustLineKeychain *keyChain);
 
-    TransactionResult::SharedConst sendAuditErrorConfirmation(
+    TransactionResult::SharedConst sendTrustLineErrorConfirmation(
         ConfirmationMessage::OperationState errorState);
 
-    TransactionResult::SharedConst sendTrustLineErrorConfirmation(
+    TransactionResult::SharedConst sendKeyErrorConfirmation(
+        ConfirmationMessage::OperationState errorState);
+
+    TransactionResult::SharedConst sendAuditErrorConfirmation(
         ConfirmationMessage::OperationState errorState);
 
 protected:

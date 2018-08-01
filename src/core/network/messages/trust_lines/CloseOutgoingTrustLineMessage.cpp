@@ -9,3 +9,8 @@ const bool CloseOutgoingTrustLineMessage::isAddToConfirmationRequiredMessagesHan
 {
     return true;
 }
+
+const bool CloseOutgoingTrustLineMessage::isCheckCachedResponse() const
+{
+    return true;
+}

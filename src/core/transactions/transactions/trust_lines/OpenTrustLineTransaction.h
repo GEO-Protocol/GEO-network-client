@@ -4,8 +4,7 @@
 #include "base/BaseTrustLineTransaction.h"
 #include "../../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
-#include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
-#include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
+#include "../../../network/messages/trust_lines/SetIncomingTrustLineInitialMessage.h"
 
 class OpenTrustLineTransaction : public BaseTrustLineTransaction {
 

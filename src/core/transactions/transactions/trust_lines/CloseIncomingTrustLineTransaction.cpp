@@ -44,6 +44,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
     BaseTrustLineTransaction(
         BaseTransaction::CloseIncomingTrustLineTransactionType,
@@ -52,7 +53,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
         manager,
         storageHandler,
         keystore,
-        nullptr,
+        trustLinesInfluenceController,
         logger),
     mTopologyTrustLinesManager(topologyTrustLinesManager),
     mTopologyCacheManager(topologyCacheManager),
@@ -60,6 +61,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
 {
     mContractorUUID = contractorUUID;
     mStep = Stages::AddToBlackList;
+    mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
 }
 
 CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(

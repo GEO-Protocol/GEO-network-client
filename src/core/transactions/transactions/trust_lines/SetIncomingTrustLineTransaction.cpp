@@ -12,7 +12,6 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     SubsystemsController *subsystemsController,
     Keystore *keystore,
     VisualInterface *visualInterface,
-    bool iAmGateway,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger)
     noexcept:
@@ -32,48 +31,7 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController),
-    mVisualInterface(visualInterface),
-    mIAmGateway(iAmGateway),
-    mSenderIsGateway(false)
-{
-    mContractorUUID = message->senderUUID;
-    mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
-}
-
-SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
-    const NodeUUID &nodeUUID,
-    SetIncomingTrustLineFromGatewayMessage::Shared message,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    TopologyTrustLinesManager *topologyTrustLinesManager,
-    TopologyCacheManager *topologyCacheManager,
-    MaxFlowCacheManager *maxFlowCacheManager,
-    SubsystemsController *subsystemsController,
-    Keystore *keystore,
-    VisualInterface *visualInterface,
-    bool iAmGateway,
-    TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger)
-    noexcept:
-
-    BaseTrustLineTransaction(
-        BaseTransaction::SetIncomingTrustLineTransaction,
-        message->transactionUUID(),
-        nodeUUID,
-        message->equivalent(),
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger),
-    mAmount(message->amount()),
-    mTopologyTrustLinesManager(topologyTrustLinesManager),
-    mTopologyCacheManager(topologyCacheManager),
-    mMaxFlowCacheManager(maxFlowCacheManager),
-    mSubsystemsController(subsystemsController),
-    mVisualInterface(visualInterface),
-    mIAmGateway(iAmGateway),
-    mSenderIsGateway(true)
+    mVisualInterface(visualInterface)
 {
     mContractorUUID = message->senderUUID;
     mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
@@ -212,14 +170,6 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::runInitializatio
             mMaxFlowCacheManager->clearCashes();
             info() << "Incoming trust line from the node " << mContractorUUID
                    << " has been successfully initialised with " << mAmount;
-
-            if (mSenderIsGateway) {
-                mTrustLines->setContractorAsGateway(
-                    ioTransaction,
-                    mContractorUUID,
-                    true);
-                info() << "Incoming trust line was opened from gateway";
-            }
             break;
         }
 
@@ -270,12 +220,13 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::runInitializatio
 #endif
 
         // Sending confirmation back.
-        sendMessage<TrustLineConfirmationMessage>(
+        sendMessageWithCaching<TrustLineConfirmationMessage>(
             mContractorUUID,
+            Message::TrustLines_SetIncoming,
             mEquivalent,
             mNodeUUID,
             mTransactionUUID,
-            mIAmGateway,
+            false,
             ConfirmationMessage::OK);
 
         if (mSubsystemsController->isWriteVisualResults()) {

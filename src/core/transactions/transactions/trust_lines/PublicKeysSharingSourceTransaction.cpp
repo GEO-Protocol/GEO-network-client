@@ -116,6 +116,7 @@ pair<BytesShared, size_t> PublicKeysSharingSourceTransaction::serializeToBytes()
     const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
                         + NodeUUID::kBytesSize
+                        + sizeof(AuditNumber)
                         + sizeof(KeyNumber);
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);

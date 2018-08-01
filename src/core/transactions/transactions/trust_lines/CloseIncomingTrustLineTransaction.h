@@ -39,6 +39,7 @@ public:
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
     CloseIncomingTrustLineTransaction(

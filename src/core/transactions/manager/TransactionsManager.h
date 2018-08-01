@@ -197,8 +197,8 @@ protected: // Transactions
     void launchSetIncomingTrustLineTransaction(
         SetIncomingTrustLineMessage::Shared message);
 
-    void launchSetIncomingTrustLineTransaction(
-        SetIncomingTrustLineFromGatewayMessage::Shared message);
+    void launchAcceptTrustLineTransaction(
+        SetIncomingTrustLineInitialMessage::Shared message);
 
     void launchCloseOutgoingTrustLineTransaction(
         CloseOutgoingTrustLineMessage::Shared message);

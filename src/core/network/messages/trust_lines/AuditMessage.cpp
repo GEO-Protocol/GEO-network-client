@@ -6,7 +6,7 @@ AuditMessage::AuditMessage(
     const TransactionUUID &transactionUUID,
     const KeyNumber keyNumber,
     const lamport::Signature::Shared signature):
-    ConfirmationMessage(
+    TransactionMessage(
          equivalent,
          senderUUID,
          transactionUUID),
@@ -15,34 +15,19 @@ AuditMessage::AuditMessage(
 {}
 
 AuditMessage::AuditMessage(
-    const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
-    const TransactionUUID &transactionUUID,
-    OperationState state) :
-    ConfirmationMessage(
-        equivalent,
-        senderUUID,
-        transactionUUID,
-        state),
-    mSignature(nullptr)
-{}
-
-AuditMessage::AuditMessage(
     BytesShared buffer) :
-    ConfirmationMessage(buffer)
+    TransactionMessage(buffer)
 {
-    auto bytesBufferOffset = ConfirmationMessage::kOffsetToInheritedBytes();
+    auto bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
-    if (state() == ConfirmationMessage::OK) {
-        memcpy(
-            &mKeyNumber,
-            buffer.get() + bytesBufferOffset,
-            sizeof(KeyNumber));
-        bytesBufferOffset += sizeof(KeyNumber);
+    memcpy(
+        &mKeyNumber,
+        buffer.get() + bytesBufferOffset,
+        sizeof(KeyNumber));
+    bytesBufferOffset += sizeof(KeyNumber);
 
-        mSignature = make_shared<lamport::Signature>(
-            buffer.get() + bytesBufferOffset);
-    }
+    mSignature = make_shared<lamport::Signature>(
+        buffer.get() + bytesBufferOffset);
 }
 
 const Message::MessageType AuditMessage::typeID() const
@@ -65,14 +50,18 @@ const bool AuditMessage::isAddToConfirmationRequiredMessagesHandler() const
     return true;
 }
 
+const bool AuditMessage::isCheckCachedResponse() const
+{
+    return true;
+}
+
 pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
     throw (bad_alloc)
 {
-    const auto parentBytesAndCount = ConfirmationMessage::serializeToBytes();
-    auto kBufferSize = parentBytesAndCount.second;
-    if (state() == ConfirmationMessage::OK) {
-        kBufferSize += sizeof(KeyNumber) + mSignature->signatureSize();
-    }
+    const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+    auto kBufferSize = parentBytesAndCount.second
+                       + sizeof(KeyNumber)
+                       + mSignature->signatureSize();
     BytesShared buffer = tryMalloc(kBufferSize);
 
     size_t dataBytesOffset = 0;
@@ -83,18 +72,16 @@ pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
 
-    if (state() == ConfirmationMessage::OK) {
-        memcpy(
-            buffer.get() + dataBytesOffset,
-            &mKeyNumber,
-            sizeof(KeyNumber));
-        dataBytesOffset += sizeof(KeyNumber);
+    memcpy(
+        buffer.get() + dataBytesOffset,
+        &mKeyNumber,
+        sizeof(KeyNumber));
+    dataBytesOffset += sizeof(KeyNumber);
 
-        memcpy(
-            buffer.get() + dataBytesOffset,
-            mSignature->data(),
-            mSignature->signatureSize());
-    }
+    memcpy(
+        buffer.get() + dataBytesOffset,
+        mSignature->data(),
+        mSignature->signatureSize());
 
     return make_pair(
         buffer,

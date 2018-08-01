@@ -7,6 +7,7 @@
 #include "../../../equivalents/EquivalentsSubsystemsRouter.h"
 #include "../trust_lines/CloseIncomingTrustLineTransaction.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
+#include "../../../subsystems_controller/TrustLinesInfluenceController.h"
 #include "../../../crypto/keychain.h"
 
 
@@ -23,6 +24,7 @@ public:
         StorageHandler *storageHandler,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         SubsystemsController *subsystemsController,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Keystore *keystore,
         Logger &logger);
 
@@ -43,6 +45,7 @@ private:
     StorageHandler *mStorageHandler;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     SubsystemsController *mSubsystemsController;
+    TrustLinesInfluenceController *mTrustLinesInfluenceController;
     Keystore *mKeysStore;
 };
 
