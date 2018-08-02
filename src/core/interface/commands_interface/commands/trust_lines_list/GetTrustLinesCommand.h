@@ -19,6 +19,10 @@ public:
 
     static const string &identifier();
 
+    const size_t from() const;
+
+    const size_t count() const;
+
     const SerializedEquivalent equivalent() const;
 
     CommandResult::SharedConst resultOk(
@@ -26,6 +30,8 @@ public:
 
 private:
     SerializedEquivalent mEquivalent;
+    size_t mFrom;
+    size_t mCount;
 };
 
 #endif //GEO_NETWORK_CLIENT_FIRSTLEVELCONTRACTORSBALANCESCOMMAND_H
