@@ -150,16 +150,6 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runInitializat
         mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
 #endif
 
-        // Sending confirmation back.
-        sendMessageWithCaching<TrustLineConfirmationMessage>(
-            mContractorUUID,
-            Message::TrustLines_CloseOutgoing,
-            mEquivalent,
-            mNodeUUID,
-            mTransactionUUID,
-            false,
-            ConfirmationMessage::OK);
-
     } catch (IOError &e) {
         ioTransaction->rollback();
         // return closed TL
@@ -176,6 +166,16 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runInitializat
         // because the TA can't finish properly and no result may be returned.
         throw e;
     }
+
+    // Sending confirmation back.
+    sendMessageWithCaching<TrustLineConfirmationMessage>(
+        mContractorUUID,
+        Message::TrustLines_CloseOutgoing,
+        mEquivalent,
+        mNodeUUID,
+        mTransactionUUID,
+        false,
+        ConfirmationMessage::OK);
 
     info() << "Wait for audit";
     mStep = AuditTarget;

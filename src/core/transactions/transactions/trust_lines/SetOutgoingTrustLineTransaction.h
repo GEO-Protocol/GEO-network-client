@@ -63,6 +63,8 @@ protected:
 
     TransactionResult::SharedConst resultProtocolError();
 
+    TransactionResult::SharedConst resultUnexpectedError();
+
 protected: // trust lines history shortcuts
     void populateHistory(
         IOTransaction::Shared ioTransaction,

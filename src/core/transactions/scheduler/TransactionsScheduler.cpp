@@ -2,9 +2,11 @@
 
 TransactionsScheduler::TransactionsScheduler(
     as::io_service &IOService,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
 
     mIOService(IOService),
+    mTrustLinesInfluenceController(trustLinesInfluenceController),
     mLog(logger),
 
     mTransactions(new map<BaseTransaction::Shared, TransactionState::SharedConst>()),
@@ -138,6 +140,12 @@ void TransactionsScheduler::tryAttachResourceToTransaction(
 void TransactionsScheduler::launchTransaction(
     BaseTransaction::Shared transaction)
 {
+#ifdef TESTS
+    if (mTrustLinesInfluenceController->isTerminateProcessOnScheduler()) {
+        debug() << "terminateProcessOnScheduler";
+        exit(100);
+    }
+#endif
     try {
         const auto kTAType = transaction->transactionType();
         if (kTAType >= BaseTransaction::CoordinatorPaymentTransaction

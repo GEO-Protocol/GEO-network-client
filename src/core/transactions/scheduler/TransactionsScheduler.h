@@ -20,6 +20,8 @@
 #include "../../common/exceptions/RuntimeError.h"
 #include "../../logger/Logger.h"
 
+#include "../../subsystems_controller/TrustLinesInfluenceController.h"
+
 #include <boost/asio.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/bind.hpp>
@@ -47,6 +49,7 @@ public:
 public:
     TransactionsScheduler(
         as::io_service &IOService,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
     void run();
@@ -159,6 +162,8 @@ private:
 
     unique_ptr<as::steady_timer> mProcessingTimer;
     unique_ptr<map<BaseTransaction::Shared, TransactionState::SharedConst>> mTransactions;
+
+    TrustLinesInfluenceController *mTrustLinesInfluenceController;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H

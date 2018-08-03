@@ -30,6 +30,7 @@ TransactionsManager::TransactionsManager(
     mScheduler(
         new TransactionsScheduler(
             mIOService,
+            mTrustLinesInfluenceController,
             mLog)),
 
     mEquivalentsCyclesSubsystemsRouter(

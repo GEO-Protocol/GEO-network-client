@@ -81,6 +81,11 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditInitializationS
             serializedAuditData.first,
             serializedAuditData.second);
 
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
+#endif
+
         auto bytesAndCount = serializeToBytes();
         info() << "Transaction serialized";
         ioTransaction->transactionHandler()->saveRecord(
@@ -102,12 +107,6 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditInitializationS
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
-
-#ifdef TESTS
-    mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
-    ioTransaction->commitForTesting();
-    mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
-#endif
 
     mStep = AuditResponseProcessing;
     return resultWaitForMessageTypes(
@@ -210,14 +209,10 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't check signature, update TL on storage or save Audit. Details: " << e.what();
-        return resultDone();
+        throw e;
     }
+
     info() << "All data saved. Now TL is ready for using";
-    sendMessage<ConfirmationMessage>(
-        mContractorUUID,
-        mEquivalent,
-        mNodeUUID,
-        mTransactionUUID);
     if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
         mStep = KeysSharingInitialization;
         return resultAwakeAsFastAsPossible();
@@ -265,17 +260,17 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditTargetStage()
         throw e;
     }
 
-#ifdef TESTS
-    mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
-    mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
-#endif
-
     auto serializedAuditData = getOwnSerializedAuditData();
     try {
         mOwnSignatureAndKeyNumber = keyChain.sign(
             ioTransaction,
             serializedAuditData.first,
             serializedAuditData.second);
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
+#endif
 
         keyChain.saveAudit(
             ioTransaction,
@@ -422,6 +417,12 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSharingIni
             currentTransactionUUID(),
             bytesAndCount.first,
             bytesAndCount.second);
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingStage();
+#endif
+
         info() << "Transaction saved";
     } catch (IOError &e) {
         ioTransaction->rollback();
@@ -437,12 +438,6 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSharingIni
         mCurrentKeyNumber,
         mCurrentPublicKey);
     info() << "Send key number: " << mCurrentKeyNumber;
-
-#ifdef TESTS
-    mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingStage();
-    ioTransaction->commitForTesting();
-    mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingStage();
-#endif
 
     mStep = NextKeyProcessing;
     return resultWaitForMessageTypes(
@@ -551,6 +546,12 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
             currentTransactionUUID(),
             bytesAndCount.first,
             bytesAndCount.second);
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingProcessingResponseStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingProcessingResponseStage();
+#endif
+
         info() << "Transaction saved";
     } catch (IOError &e) {
         ioTransaction->rollback();
@@ -566,12 +567,6 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
         mCurrentKeyNumber,
         mCurrentPublicKey);
     info() << "Send key number: " << mCurrentKeyNumber;
-
-#ifdef TESTS
-    mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingProcessingResponseStage();
-    ioTransaction->commitForTesting();
-    mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingProcessingResponseStage();
-#endif
 
     return resultWaitForMessageTypes(
         {Message::TrustLines_HashConfirmation},

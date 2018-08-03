@@ -178,13 +178,6 @@ void IOTransaction::rollback()
     mIsTransactionBegin = false;
 }
 
-#ifdef TESTS
-void IOTransaction::commitForTesting()
-{
-    commit();
-}
-#endif
-
 LoggerStream IOTransaction::info() const
 {
     return mLog.info(logHeader());

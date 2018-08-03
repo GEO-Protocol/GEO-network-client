@@ -51,6 +51,8 @@ public:
 
     void testTerminateProcessOnAuditResponseProcessingStage();
 
+    bool isTerminateProcessOnScheduler();
+
 protected:
     LoggerStream info() const;
 
@@ -72,6 +74,7 @@ private:
     bool mThrowExceptionOnKeysSharingReceiverStage;
     bool mThrowExceptionOnAuditStage;
     bool mThrowExceptionOnAuditResponseProcessingStage;
+
     bool mTerminateProcessOnTLModifyingStage;
     bool mTerminateProcessOnTLProcessingResponseStage;
     bool mTerminateProcessOnKeysSharingStage;
@@ -79,6 +82,8 @@ private:
     bool mTerminateProcessOnKeysSharingReceiverStage;
     bool mTerminateProcessOnAuditStage;
     bool mTerminateProcessOnAuditResponseProcessingStage;
+
+    bool mTerminateProcessOnScheduler;
 
     Logger &mLog;
 };

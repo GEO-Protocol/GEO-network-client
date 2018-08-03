@@ -29,6 +29,7 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     mContractorUUID = message->senderUUID;
     mAmount = message->amount();
     mAuditNumber = TrustLine::kInitialAuditNumber;
+    mCurrentKeyNumber = 0;
 }
 
 AcceptTrustLineTransaction::AcceptTrustLineTransaction(
@@ -168,20 +169,6 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::runInitializationStag
         mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
 #endif
 
-        sendMessageWithCaching<TrustLineConfirmationMessage>(
-            mContractorUUID,
-            Message::TrustLines_SetIncomingInitial,
-            mEquivalent,
-            mNodeUUID,
-            mTransactionUUID,
-            mIAmGateway,
-            ConfirmationMessage::OK);
-
-        mStep = KeysSharingTargetNextKey;
-        return resultWaitForMessageTypes(
-            {Message::TrustLines_PublicKey},
-            kWaitMillisecondsForResponse);
-
     } catch (IOError &e) {
         ioTransaction->rollback();
         mTrustLines->trustLines().erase(mContractorUUID);
@@ -193,6 +180,20 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::runInitializationStag
         // because the TA can't finish properly and no result may be returned.
         throw e;
     }
+
+    sendMessageWithCaching<TrustLineConfirmationMessage>(
+        mContractorUUID,
+        Message::TrustLines_SetIncomingInitial,
+        mEquivalent,
+        mNodeUUID,
+        mTransactionUUID,
+        mIAmGateway,
+        ConfirmationMessage::OK);
+
+    mStep = KeysSharingTargetNextKey;
+    return resultWaitForMessageTypes(
+        {Message::TrustLines_PublicKey},
+        kWaitMillisecondsForResponse);
 }
 
 TransactionResult::SharedConst AcceptTrustLineTransaction::runReceiveNextKeyStage()

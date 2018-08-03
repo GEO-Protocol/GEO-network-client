@@ -21,6 +21,7 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
 {
     mContractorUUID = contractorUUID;
     mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
+    mCurrentKeyNumber = 0;
     mStep = KeysSharingInitialization;
 }
 

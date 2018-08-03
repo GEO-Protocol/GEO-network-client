@@ -28,6 +28,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mContractorUUID = command->contractorUUID();
     mAmount = command->amount();
     mAuditNumber = TrustLine::kInitialAuditNumber;
+    mCurrentKeyNumber = 0;
 }
 
 OpenTrustLineTransaction::OpenTrustLineTransaction(
@@ -164,30 +165,30 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitialisationStage(
             bytesAndCount.second);
         info() << "Transaction saved";
 
-        // Notifying remote node about trust line state changed.
-        // Network communicator knows, that this message must be forced to be delivered,
-        // so the TA itself might finish without any response from the remote node.
-        sendMessage<SetIncomingTrustLineInitialMessage>(
-            mContractorUUID,
-            mEquivalent,
-            mNodeUUID,
-            mTransactionUUID,
-            mContractorUUID,
-            mAmount,
-            mIAmGateway);
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
+#endif
+
     } catch (IOError &e) {
         ioTransaction->rollback();
         mTrustLines->removeTrustLine(
             mContractorUUID);
         error() << "Error during saving TA. Details: " << e.what();
-        throw e;
+        return resultUnexpectedError();
     }
 
-#ifdef TESTS
-    mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
-    ioTransaction->commitForTesting();
-    mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
-#endif
+    // Notifying remote node about trust line state changed.
+    // Network communicator knows, that this message must be forced to be delivered,
+    // so the TA itself might finish without any response from the remote node.
+    sendMessage<SetIncomingTrustLineInitialMessage>(
+        mContractorUUID,
+        mEquivalent,
+        mNodeUUID,
+        mTransactionUUID,
+        mContractorUUID,
+        mAmount,
+        mIAmGateway);
 
     mStep = TrustLineResponseProcessing;
     return resultOK();
@@ -341,6 +342,12 @@ TransactionResult::SharedConst OpenTrustLineTransaction::resultProtocolError()
 {
     return transactionResultFromCommand(
         mCommand->responseProtocolError());
+}
+
+TransactionResult::SharedConst OpenTrustLineTransaction::resultUnexpectedError()
+{
+    return transactionResultFromCommand(
+        mCommand->responseUnexpectedError());
 }
 
 pair<BytesShared, size_t> OpenTrustLineTransaction::serializeToBytes() const

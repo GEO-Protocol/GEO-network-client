@@ -219,16 +219,6 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::runInitializatio
         mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
 #endif
 
-        // Sending confirmation back.
-        sendMessageWithCaching<TrustLineConfirmationMessage>(
-            mContractorUUID,
-            Message::TrustLines_SetIncoming,
-            mEquivalent,
-            mNodeUUID,
-            mTransactionUUID,
-            false,
-            ConfirmationMessage::OK);
-
         if (mSubsystemsController->isWriteVisualResults()) {
             if (kOperationResult == TrustLinesManager::TrustLineOperationResult::Opened) {
                 stringstream s;
@@ -288,6 +278,16 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::runInitializatio
         // because the TA can't finish properly and no result may be returned.
         throw e;
     }
+
+    // Sending confirmation back.
+    sendMessageWithCaching<TrustLineConfirmationMessage>(
+        mContractorUUID,
+        Message::TrustLines_SetIncoming,
+        mEquivalent,
+        mNodeUUID,
+        mTransactionUUID,
+        false,
+        ConfirmationMessage::OK);
 
     info() << "Wait for audit";
     mStep = AuditTarget;

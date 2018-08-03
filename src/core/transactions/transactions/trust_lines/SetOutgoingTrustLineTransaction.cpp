@@ -223,16 +223,10 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitialisatio
             }
         }
 
-        // Notifying remote node about trust line state changed.
-        // Network communicator knows, that this message must be forced to be delivered,
-        // so the TA itself might finish without any response from the remote node.
-        sendMessage<SetIncomingTrustLineMessage>(
-            mContractorUUID,
-            mEquivalent,
-            mNodeUUID,
-            mTransactionUUID,
-            mContractorUUID,
-            mAmount);
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
+#endif
 
         if (mSubsystemsController->isWriteVisualResults()) {
             if (mOperationResult == TrustLinesManager::TrustLineOperationResult::Opened) {
@@ -296,16 +290,19 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitialisatio
                   << "IO transaction can't be completed. "
                   << "Details are: " << e.what();
 
-        // Rethrowing the exception,
-        // because the TA can't finish properly and no result may be returned.
-        throw e;
+        return resultUnexpectedError();
     }
 
-#ifdef TESTS
-    mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
-    ioTransaction->commitForTesting();
-    mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
-#endif
+    // Notifying remote node about trust line state changed.
+    // Network communicator knows, that this message must be forced to be delivered,
+    // so the TA itself might finish without any response from the remote node.
+    sendMessage<SetIncomingTrustLineMessage>(
+        mContractorUUID,
+        mEquivalent,
+        mNodeUUID,
+        mTransactionUUID,
+        mContractorUUID,
+        mAmount);
 
     mStep = TrustLineResponseProcessing;
     return resultOK();
@@ -454,6 +451,12 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::resultProtocolEr
 {
     return transactionResultFromCommand(
         mCommand->responseProtocolError());
+}
+
+TransactionResult::SharedConst SetOutgoingTrustLineTransaction::resultUnexpectedError()
+{
+    return transactionResultFromCommand(
+        mCommand->responseUnexpectedError());
 }
 
 pair<BytesShared, size_t> SetOutgoingTrustLineTransaction::serializeToBytes() const
