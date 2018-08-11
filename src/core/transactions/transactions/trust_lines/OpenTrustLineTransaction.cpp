@@ -16,6 +16,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
         BaseTransaction::OpenTrustLineTransaction,
         nodeUUID,
         command->equivalent(),
+        command->contractorUUID(),
         manager,
         storageHandler,
         keystore,
@@ -25,7 +26,6 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mSubsystemsController(subsystemsController),
     mIAmGateway(iAmGateway)
 {
-    mContractorUUID = command->contractorUUID();
     mAmount = command->amount();
     mAuditNumber = TrustLine::kInitialAuditNumber;
     mCurrentKeyNumber = 0;
@@ -96,14 +96,14 @@ TransactionResult::SharedConst OpenTrustLineTransaction::run()
 {
     info() << "step " << mStep;
     switch (mStep) {
-        case Stages::TrustLineInitialisation: {
-            return runInitialisationStage();
+        case Stages::TrustLineInitialization: {
+            return runInitializationStage();
         }
         case Stages::TrustLineResponseProcessing: {
             return runResponseProcessingStage();
         }
         case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitialisationStage();
+            return runPublicKeysSharingInitializationStage();
         }
         case Stages::NextKeyProcessing: {
             return runPublicKeysSendNextKeyStage();
@@ -111,7 +111,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::run()
         case Stages::KeysSharingTargetNextKey: {
             return runReceiveNextKeyStage();
         }
-        case Stages::AuditInitialisation: {
+        case Stages::AuditInitialization: {
             return runAuditInitializationStage();
         }
         case Stages::AuditResponseProcessing: {
@@ -126,7 +126,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::run()
     }
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::runInitialisationStage()
+TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage()
 {
     if (!mSubsystemsController->isRunTrustLineTransactions()) {
         debug() << "It is forbidden run trust line transactions";

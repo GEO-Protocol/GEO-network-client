@@ -138,7 +138,7 @@ public:
 
 protected:
     enum Stages {
-        Coordinator_Initialisation = 1,
+        Coordinator_Initialization = 1,
         Coordinator_ReceiverResourceProcessing,
         Coordinator_ReceiverResponseProcessing,
         Coordinator_AmountReservation,

@@ -17,6 +17,7 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
         message->transactionUUID(),
         nodeUUID,
         message->equivalent(),
+        message->senderUUID,
         manager,
         storageHandler,
         keystore,
@@ -26,7 +27,6 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     mIAmGateway(iAmGateway),
     mSenderIsGateway(message->isContractorGateway())
 {
-    mContractorUUID = message->senderUUID;
     mAmount = message->amount();
     mAuditNumber = TrustLine::kInitialAuditNumber;
     mCurrentKeyNumber = 0;
@@ -79,14 +79,14 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 {
     info() << mStep;
     switch (mStep) {
-        case Stages::TrustLineInitialisation: {
+        case Stages::TrustLineInitialization: {
             return runInitializationStage();
         }
         case Stages::KeysSharingTargetNextKey: {
             return runReceiveNextKeyStage();
         }
         case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitialisationStage();
+            return runPublicKeysSharingInitializationStage();
         }
         case Stages::NextKeyProcessing: {
             return runPublicKeysSendNextKeyStage();

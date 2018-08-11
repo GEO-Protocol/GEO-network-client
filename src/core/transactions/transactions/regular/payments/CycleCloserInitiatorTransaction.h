@@ -67,7 +67,7 @@ protected:
     /**
      * check if cycle is valid and current node has enough amount to close it
      */
-    TransactionResult::SharedConst runInitialisationStage();
+    TransactionResult::SharedConst runInitializationStage();
 
     /**
      * process the reservation of transaction amount on cycle path

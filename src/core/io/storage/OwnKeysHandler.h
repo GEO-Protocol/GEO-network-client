@@ -35,9 +35,18 @@ public:
         const KeyNumber number,
         const lamport::Signature::Shared signature);
 
+    void invalidKeyByHash(
+        const TrustLineID trustLineID,
+        const lamport::KeyHash::Shared keyHash,
+        const lamport::Signature::Shared signature);
+
     const lamport::PublicKey::Shared getPublicKey(
         const TrustLineID trustLineID,
         const KeyNumber keyNumber);
+
+    const lamport::PublicKey::Shared getPublicKeyByHash(
+        const TrustLineID trustLineID,
+        const lamport::KeyHash::Shared keyHash);
 
     const lamport::KeyHash::Shared getPublicKeyHash(
         const TrustLineID trustLineID,

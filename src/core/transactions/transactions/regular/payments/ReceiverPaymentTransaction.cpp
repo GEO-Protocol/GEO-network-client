@@ -62,7 +62,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
         debug() << "mStep: " << mStep;
         switch (mStep) {
             case Stages::Receiver_CoordinatorRequestApproving:
-                return runInitialisationStage();
+                return runInitializationStage();
 
             case Stages::Receiver_AmountReservationsProcessing:
                 return runAmountReservationStage();
@@ -104,7 +104,7 @@ const string ReceiverPaymentTransaction::logHeader() const
     return s.str();
 }
 
-TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStage()
+TransactionResult::SharedConst ReceiverPaymentTransaction::runInitializationStage()
 {
     const auto kCoordinator = mMessage->senderUUID;
     debug() << "Operation for " << mMessage->amount() << " initialised by the (" << kCoordinator << ")";
@@ -148,7 +148,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
                 message.c_str(),
                 message.size());
         } catch (IOError &e) {
-            error() << "ReceiverPaymentTransaction::runInitialisationStage: "
+            error() << "ReceiverPaymentTransaction::runInitializationStage: "
                             "Error occurred when visual result has accepted. Details: " << e.message();
         }
     }

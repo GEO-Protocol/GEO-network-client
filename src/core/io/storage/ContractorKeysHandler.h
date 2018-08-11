@@ -29,9 +29,17 @@ public:
         const TrustLineID trustLineID,
         const KeyNumber number);
 
+    void invalidKeyByHash(
+        const TrustLineID trustLineID,
+        const KeyHash::Shared keyHash);
+
     PublicKey::Shared keyByNumber(
         const TrustLineID trustLineID,
         const KeyNumber number);
+
+    PublicKey::Shared keyByHash(
+        const TrustLineID trustLineID,
+        const KeyHash::Shared keyHash);
 
     const KeyHash::Shared keyHashByNumber(
         const TrustLineID trustLineID,

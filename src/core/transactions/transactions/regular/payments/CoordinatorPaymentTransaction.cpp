@@ -36,7 +36,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     mPreviousRejectedTrustLinesCount(0),
     mVisualInterface(visualInterface)
 {
-    mStep = Stages::Coordinator_Initialisation;
+    mStep = Stages::Coordinator_Initialization;
 }
 
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
@@ -75,8 +75,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
         debug() << "run: stage: " << mStep;
         try {
             switch (mStep) {
-                case Stages::Coordinator_Initialisation:
-                    return runPaymentInitialisationStage();
+                case Stages::Coordinator_Initialization:
+                    return runPaymentInitializationStage();
 
                 case Stages::Coordinator_ReceiverResourceProcessing:
                     return runPathsResourceProcessingStage();
@@ -121,7 +121,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
 }
 
 
-TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitialisationStage ()
+TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitializationStage()
 {
     if (!mSubsystemsController->isRunPaymentTransactions()) {
         debug() << "It is forbidden run payment transactions";
@@ -163,7 +163,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
                 message.c_str(),
                 message.size());
         } catch (IOError &e) {
-            error() << "CoordinatorPaymentTransaction::runPaymentInitialisationStage: "
+            error() << "CoordinatorPaymentTransaction::runPaymentInitializationStage: "
                             "Error occurred when visual result has accepted. Details: " << e.message();
         }
     }

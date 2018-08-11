@@ -64,6 +64,8 @@
 #include "../transactions/trust_lines/PublicKeysSharingTargetTransaction.h"
 #include "../transactions/trust_lines/AuditSourceTransaction.h"
 #include "../transactions/trust_lines/AuditTargetTransaction.h"
+#include "../transactions/trust_lines/ConflictResolverInitiatorTransaction.h"
+#include "../transactions/trust_lines/ConflictResolverContractorTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -208,6 +210,9 @@ protected: // Transactions
 
     void launchAuditTargetTransaction(
         AuditMessage::Shared message);
+
+    void launchConflictResolveContractorTransaction(
+        ConflictResolverMessage::Shared message);
 
     /*
      * Max flow transactions

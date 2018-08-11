@@ -28,11 +28,15 @@ set(SOURCE_FILES
     AuditSourceTransaction.h
     AuditSourceTransaction.cpp
     AuditTargetTransaction.h
-    AuditTargetTransaction.cpp)
+    AuditTargetTransaction.cpp
+
+    ConflictResolverInitiatorTransaction.h
+    ConflictResolverInitiatorTransaction.cpp
+    ConflictResolverContractorTransaction.h
+    ConflictResolverContractorTransaction.cpp)
 
 add_library(transactions__trustlines ${SOURCE_FILES})
 target_link_libraries(transactions__trustlines
     transactions__base
     common
-    exceptions
-    network__messages)
+    exceptions)

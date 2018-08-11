@@ -296,6 +296,10 @@ public:
         IOTransaction::Shared ioTransaction,
         TrustLine::Shared trustLine);
 
+    void updateTrustLineFromStorage(
+        const NodeUUID &contractorUUID,
+        IOTransaction::Shared ioTransaction);
+
     void removeTrustLine(
         const NodeUUID &contractorUUID,
         IOTransaction::Shared ioTransaction = nullptr);

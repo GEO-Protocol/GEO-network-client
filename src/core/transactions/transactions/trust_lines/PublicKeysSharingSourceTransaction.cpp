@@ -13,13 +13,13 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
         BaseTransaction::PublicKeysSharingSourceTransactionType,
         nodeUUID,
         equivalent,
+        contractorUUID,
         manager,
         storageHandler,
         keystore,
         trustLinesInfluenceController,
         logger)
 {
-    mContractorUUID = contractorUUID;
     mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
     mCurrentKeyNumber = 0;
     mStep = KeysSharingInitialization;
@@ -66,7 +66,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::run()
 {
     switch (mStep) {
         case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitialisationStage();
+            return runPublicKeysSharingInitializationStage();
         }
         case Stages::NextKeyProcessing: {
             return runPublicKeysSendNextKeyStage();

@@ -146,6 +146,41 @@ void ContractorKeysHandler::invalidKey(
     }
 }
 
+void ContractorKeysHandler::invalidKeyByHash(
+    const TrustLineID trustLineID,
+    const KeyHash::Shared keyHash)
+{
+    string query = "UPDATE " + mTableName + " SET is_valid = 0 WHERE trust_line_id = ? AND number = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::invalidKeyByHash: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::invalidKeyByHash: "
+                          "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 2, keyHash->data(), (int)KeyHash::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::invalidKeyByHash: "
+                          "Bad binding of Number; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc != SQLITE_DONE) {
+        throw IOError("ContractorKeysHandler::invalidKeyByHash: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+
+    if (sqlite3_changes(mDataBase) == 0) {
+        throw ValueError("No data were changed");
+    }
+}
+
 PublicKey::Shared ContractorKeysHandler::keyByNumber(
     const TrustLineID trustLineID,
     const KeyNumber number)
@@ -179,6 +214,42 @@ PublicKey::Shared ContractorKeysHandler::keyByNumber(
         sqlite3_finalize(stmt);
         throw NotFoundError("ContractorKeysHandler::keyByNumber: "
                             "There are now records with requested number");
+    }
+}
+
+PublicKey::Shared ContractorKeysHandler::keyByHash(
+    const TrustLineID trustLineID,
+    const KeyHash::Shared keyHash)
+{
+    string query = "SELECT public_key FROM " + mTableName
+                   + " WHERE trust_line_id = ? AND hash = ? AND is_valid = 1;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::keyByHash: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::keyByHash: "
+                          "Bad binding of trustLineID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 2, keyHash->data(), (int)KeyHash::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::keyByHash: "
+                          "Bad binding of Hash; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        auto result = make_shared<PublicKey>((byte*)sqlite3_column_blob(stmt, 0));
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        return result;
+    } else {
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        throw NotFoundError("ContractorKeysHandler::keyByHash: "
+                                "There are now records with requested hash");
     }
 }
 

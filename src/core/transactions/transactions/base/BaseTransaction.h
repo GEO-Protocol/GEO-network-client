@@ -57,6 +57,8 @@ public:
         PublicKeysSharingTargetTransactionType = 107,
         AuditSourceTransactionType = 108,
         AuditTargetTransactionType = 109,
+        ConflictResolverInitiatorTransactionType = 110,
+        ConflictResolverContractorTransactionType = 111,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction = 200,

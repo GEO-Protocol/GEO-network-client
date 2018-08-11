@@ -6,6 +6,8 @@
 #include "../logger/Logger.h"
 #include "../transactions/transactions/base/TransactionUUID.h"
 #include "../io/storage/IOTransaction.h"
+#include "../io/storage/record/audit/AuditRecord.h"
+#include "../io/storage/record/audit/ReceiptRecord.h"
 
 #include <boost/noncopyable.hpp>
 #include <vector>
@@ -265,6 +267,54 @@ public:
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);
+
+    AuditRecord::Shared actualFullAudit(
+        IOTransaction::Shared ioTransaction);
+
+    bool checkOwnConflictedSignature(
+        IOTransaction::Shared ioTransaction,
+        BytesShared data,
+        const size_t size,
+        const lamport::Signature::Shared ownSignature,
+        lamport::KeyHash::Shared ownKeyHash);
+
+    bool checkContractorConflictedSignature(
+        IOTransaction::Shared ioTransaction,
+        BytesShared data,
+        const size_t size,
+        const lamport::Signature::Shared contractorSignature,
+        lamport::KeyHash::Shared contractorKeyHash);
+
+    vector<ReceiptRecord::Shared> incomingReceipts(
+        IOTransaction::Shared ioTransaction,
+        AuditNumber auditNumber);
+
+    vector<ReceiptRecord::Shared> outgoingReceipts(
+        IOTransaction::Shared ioTransaction,
+        AuditNumber auditNumber);
+
+    bool checkConflictedIncomingReceipt(
+        IOTransaction::Shared ioTransaction,
+        BytesShared data,
+        const size_t size,
+        const lamport::Signature::Shared ownSignature,
+        lamport::KeyHash::Shared ownKeyHash);
+
+    bool checkConflictedOutgoingReceipt(
+        IOTransaction::Shared ioTransaction,
+        BytesShared data,
+        const size_t size,
+        const lamport::Signature::Shared ownSignature,
+        lamport::KeyHash::Shared ownKeyHash);
+
+    void acceptAudit(
+        IOTransaction::Shared ioTransaction,
+        AuditRecord::Shared auditRecord);
+
+    void acceptReceipts(
+        IOTransaction::Shared ioTransaction,
+        vector<ReceiptRecord::Shared> contractorIncomingReceipts,
+        vector<ReceiptRecord::Shared> contractorOutgoingReceipts);
 
 protected:
     /**

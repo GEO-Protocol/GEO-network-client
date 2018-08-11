@@ -13,14 +13,14 @@ AuditSourceTransaction::AuditSourceTransaction(
         BaseTransaction::AuditSourceTransactionType,
         nodeUUID,
         equivalent,
+        contractorUUID,
         manager,
         storageHandler,
         keystore,
         trustLinesInfluenceController,
         logger)
 {
-    mStep = Stages::AuditInitialisation;
-    mContractorUUID = contractorUUID;
+    mStep = Stages::AuditInitialization;
     mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
 }
 
@@ -85,14 +85,14 @@ AuditSourceTransaction::AuditSourceTransaction(
 TransactionResult::SharedConst AuditSourceTransaction::run()
 {
     switch (mStep) {
-        case Stages::AuditInitialisation: {
+        case Stages::AuditInitialization: {
             return runAuditInitializationStage();
         }
         case Stages::AuditResponseProcessing: {
             return runAuditResponseProcessingStage();
         }
         case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitialisationStage();
+            return runPublicKeysSharingInitializationStage();
         }
         case Stages::NextKeyProcessing: {
             return runPublicKeysSendNextKeyStage();

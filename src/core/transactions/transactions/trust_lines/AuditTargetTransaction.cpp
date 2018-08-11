@@ -13,13 +13,13 @@ AuditTargetTransaction::AuditTargetTransaction(
         message->transactionUUID(),
         nodeUUID,
         message->equivalent(),
+        message->senderUUID,
         manager,
         storageHandler,
         keystore,
         trustLinesInfluenceController,
         logger)
 {
-    mContractorUUID = message->senderUUID;
     mAuditNumber = mTrustLines->auditNumber(message->senderUUID) + 1;
     mAuditMessage = message;
     mStep = Stages::AuditTarget;
@@ -76,7 +76,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             return runInitializationStage();
         }
         case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitialisationStage();
+            return runPublicKeysSharingInitializationStage();
         }
         case Stages::NextKeyProcessing: {
             return runPublicKeysSendNextKeyStage();

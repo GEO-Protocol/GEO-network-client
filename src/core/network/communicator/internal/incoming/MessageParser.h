@@ -13,6 +13,8 @@
 #include "../../../messages/trust_lines/PublicKeyHashConfirmation.h"
 #include "../../../messages/trust_lines/AuditMessage.h"
 #include "../../../messages/trust_lines/AuditResponseMessage.h"
+#include "../../../messages/trust_lines/ConflictResolverMessage.h"
+#include "../../../messages/trust_lines/ConflictResolverResponseMessage.h"
 
 #include "../../../messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"

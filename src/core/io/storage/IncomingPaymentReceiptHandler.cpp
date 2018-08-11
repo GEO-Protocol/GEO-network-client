@@ -166,6 +166,57 @@ vector<TrustLineAmount> IncomingPaymentReceiptHandler::auditAmounts(
     return result;
 }
 
+vector<ReceiptRecord::Shared> IncomingPaymentReceiptHandler::receiptsByAuditNumber(
+    const TrustLineID trustLineID,
+    const AuditNumber auditNumber)
+{
+    vector<ReceiptRecord::Shared> result;
+    sqlite3_stmt *stmt;
+    string query = "SELECT amount, transaction_uuid, contractor_public_key_hash, contractor_signature FROM "
+                   + mTableName + " WHERE trust_line_id = ? AND audit_number = ?";
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("IncomingPaymentReceiptHandler::receiptsByAuditNumber: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("IncomingPaymentReceiptHandler::receiptsByAuditNumber: "
+                          "Bad binding of TrustLineID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 2, auditNumber);
+    if (rc != SQLITE_OK) {
+        throw IOError("IncomingPaymentReceiptHandler::receiptsByAuditNumber: "
+                          "Bad binding of AuditNumber; sqlite error: " + to_string(rc));
+    }
+    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+
+        auto amountBytes = (byte*)sqlite3_column_blob(stmt, 0);
+        vector<byte> incomingAmountBufferBytes(
+            amountBytes,
+            amountBytes + kTrustLineAmountBytesCount);
+
+        TransactionUUID transactionUUID((uint8_t*)sqlite3_column_blob(stmt, 1));
+
+        auto contractorKeyHash = make_shared<lamport::KeyHash>(
+            (byte*)sqlite3_column_blob(stmt, 2));
+
+        auto contractorSignature = make_shared<lamport::Signature>(
+            (byte*)sqlite3_column_blob(stmt, 3));
+
+        result.push_back(make_shared<ReceiptRecord>(
+            auditNumber,
+            transactionUUID,
+            bytesToTrustLineAmount(
+                incomingAmountBufferBytes),
+            contractorKeyHash,
+            contractorSignature));
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
 LoggerStream IncomingPaymentReceiptHandler::info() const
 {
     return mLog.info(logHeader());

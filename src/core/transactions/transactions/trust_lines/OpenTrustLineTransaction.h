@@ -53,7 +53,7 @@ protected: // trust lines history shortcuts
     noexcept;
 
 private:
-    TransactionResult::SharedConst runInitialisationStage();
+    TransactionResult::SharedConst runInitializationStage();
 
     TransactionResult::SharedConst runResponseProcessingStage();
 

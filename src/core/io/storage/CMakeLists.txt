@@ -9,6 +9,8 @@ set(SOURCE_FILES
         record/payment/PaymentRecord.cpp
         record/audit/AuditRecord.h
         record/audit/AuditRecord.cpp
+        record/audit/ReceiptRecord.h
+        record/audit/ReceiptRecord.cpp
 
         StorageHandler.h
         StorageHandler.cpp

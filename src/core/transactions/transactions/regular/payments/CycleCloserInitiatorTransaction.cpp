@@ -27,7 +27,7 @@ noexcept :
         subsystemsController),
     mCyclesManager(cyclesManager)
 {
-    mStep = Stages::Coordinator_Initialisation;
+    mStep = Stages::Coordinator_Initialization;
     mPathStats = make_unique<PathStats>(path);
 }
 
@@ -63,8 +63,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
 {
     try {
         switch (mStep) {
-            case Stages::Coordinator_Initialisation:
-                return runInitialisationStage();
+            case Stages::Coordinator_Initialization:
+                return runInitializationStage();
 
             case Stages::Coordinator_AmountReservation:
                 return runAmountReservationStage();
@@ -98,9 +98,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
     }
 }
 
-TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisationStage()
+TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitializationStage()
 {
-    debug() << "runInitialisationStage";
+    debug() << "runInitializationStage";
     // Firstly check if paths is valid cycle
     checkPath(
         mPathStats->path());

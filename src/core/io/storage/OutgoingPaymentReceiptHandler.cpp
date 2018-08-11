@@ -158,6 +158,54 @@ vector<TrustLineAmount> OutgoingPaymentReceiptHandler::auditAmounts(
     return result;
 }
 
+vector<ReceiptRecord::Shared> OutgoingPaymentReceiptHandler::receiptsByAuditNumber(
+    const TrustLineID trustLineID,
+    const AuditNumber auditNumber)
+{
+    vector<ReceiptRecord::Shared> result;
+    sqlite3_stmt *stmt;
+    string query = "SELECT amount, transaction_uuid, own_public_key_hash FROM " + mTableName
+                   + " WHERE trust_line_id = ? AND audit_number = ?";
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("OutgoingPaymentReceiptHandler::receiptsByAuditNumber: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("OutgoingPaymentReceiptHandler::receiptsByAuditNumber: "
+                          "Bad binding of TrustLineID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 2, auditNumber);
+    if (rc != SQLITE_OK) {
+        throw IOError("OutgoingPaymentReceiptHandler::receiptsByAuditNumber: "
+                          "Bad binding of AuditNumber; sqlite error: " + to_string(rc));
+    }
+    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+
+        auto amountBytes = (byte*)sqlite3_column_blob(stmt, 0);
+        vector<byte> incomingAmountBufferBytes(
+            amountBytes,
+            amountBytes + kTrustLineAmountBytesCount);
+
+        TransactionUUID transactionUUID((uint8_t*)sqlite3_column_blob(stmt, 1));
+
+        auto ownKeyHash = make_shared<lamport::KeyHash>(
+            (byte*)sqlite3_column_blob(stmt, 2));
+
+        result.push_back(make_shared<ReceiptRecord>(
+            auditNumber,
+            transactionUUID,
+            bytesToTrustLineAmount(
+                incomingAmountBufferBytes),
+            ownKeyHash,
+            nullptr));
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
 LoggerStream OutgoingPaymentReceiptHandler::info() const
 {
     return mLog.info(logHeader());

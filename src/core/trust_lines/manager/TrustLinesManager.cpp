@@ -59,7 +59,7 @@ void TrustLinesManager::loadTrustLinesFromStorage()
             kTrustLine->setTotalOutgoingReceiptsAmount(
                 totalOutgoingReceiptsAmount);
 
-        } catch (NotFoundError) {
+        } catch (NotFoundError&) {
             info() << "init TL in storage with contractor " << kTrustLine->contractorNodeUUID();
         }
 
@@ -629,6 +629,60 @@ void TrustLinesManager::removeTrustLine(
             contractorUUID,
             mEquivalent);
     }
+}
+
+void TrustLinesManager::updateTrustLineFromStorage(
+    const NodeUUID &contractorUUID,
+    IOTransaction::Shared ioTransaction)
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            logHeader() + "::removeTrustLine: "
+                "There is no trust line to the contractor.");
+    }
+
+    auto kTrustLine = mTrustLines[contractorUUID];
+    try {
+        auto auditRecord = ioTransaction->auditHandler()->getActualAudit(
+            kTrustLine->trustLineID());
+        kTrustLine->setAuditNumber(auditRecord->auditNumber());
+        kTrustLine->setIncomingTrustAmount(auditRecord->incomingAmount());
+        kTrustLine->setOutgoingTrustAmount(auditRecord->outgoingAmount());
+        info() << "audit number " << auditRecord->auditNumber();
+
+        auto incomingReceiptsAmounts = ioTransaction->incomingPaymentReceiptHandler()->auditAmounts(
+            kTrustLine->trustLineID(),
+            auditRecord->auditNumber());
+        TrustLineAmount totalIncomingReceiptsAmount = TrustLine::kZeroAmount();
+        for (const auto &incomingReceiptAmount : incomingReceiptsAmounts) {
+            totalIncomingReceiptsAmount = totalIncomingReceiptsAmount + incomingReceiptAmount;
+        }
+        auto outgoingReceiptsAmounts = ioTransaction->outgoingPaymentReceiptHandler()->auditAmounts(
+            kTrustLine->trustLineID(),
+            auditRecord->auditNumber());
+        TrustLineAmount totalOutgoingReceiptsAmount = TrustLine::kZeroAmount();
+        for (const auto &outgoingReceiptAmount : outgoingReceiptsAmounts) {
+            totalOutgoingReceiptsAmount = totalOutgoingReceiptsAmount + outgoingReceiptAmount;
+        }
+        TrustLineBalance balance = auditRecord->balance() + totalIncomingReceiptsAmount - totalOutgoingReceiptsAmount;
+        kTrustLine->setBalance(balance);
+
+        if (auditRecord->balance() > TrustLine::kZeroBalance()) {
+            totalIncomingReceiptsAmount = totalIncomingReceiptsAmount + TrustLineAmount(auditRecord->balance());
+        } else {
+            totalOutgoingReceiptsAmount = totalOutgoingReceiptsAmount + TrustLineAmount(abs(auditRecord->balance()));
+        }
+
+        kTrustLine->setTotalIncomingReceiptsAmount(
+            totalIncomingReceiptsAmount);
+        kTrustLine->setTotalOutgoingReceiptsAmount(
+            totalOutgoingReceiptsAmount);
+
+    } catch (NotFoundError&) {
+        info() << "init TL in storage with contractor " << kTrustLine->contractorNodeUUID();
+    }
+
+    mTrustLines[kTrustLine->contractorNodeUUID()] = kTrustLine;
 }
 
 /**

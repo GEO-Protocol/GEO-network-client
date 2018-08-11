@@ -4,6 +4,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     const TransactionType type,
     const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
+    const NodeUUID &contractorUUID,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Keystore *keystore,
@@ -15,6 +16,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
         currentNodeUUID,
         equivalent,
         log),
+    mContractorUUID(contractorUUID),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
@@ -26,6 +28,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     const TransactionUUID &transactionUUID,
     const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
+    const NodeUUID &contractorUUID,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Keystore *keystore,
@@ -38,6 +41,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
         currentNodeUUID,
         equivalent,
         log),
+    mContractorUUID(contractorUUID),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
@@ -64,7 +68,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
 
 TransactionResult::SharedConst BaseTrustLineTransaction::runAuditInitializationStage()
 {
-    info() << "runAuditInitialisationStage Contractor " << mContractorUUID;
+    info() << "runAuditInitializationStage Contractor " << mContractorUUID;
     if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::AuditPending) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
         // todo implement actual reaction
@@ -156,7 +160,23 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
             // delete this transaction from storage
             ioTransaction->transactionHandler()->deleteRecord(
                 currentTransactionUUID());
-            // todo run conflict resolver TA
+
+            mTrustLines->setTrustLineState(
+                mContractorUUID,
+                TrustLine::ConflictResolving,
+                ioTransaction);
+            auto conflictResolverTransaction = make_shared<ConflictResolverInitiatorTransaction>(
+                mNodeUUID,
+                mEquivalent,
+                mContractorUUID,
+                mTrustLines,
+                mStorageHandler,
+                mKeysStore,
+                mTrustLinesInfluenceController,
+                mLog);
+            info() << "Launch ConflictResolverInitiatorTransaction signal";
+            launchSubsidiaryTransaction(
+                conflictResolverTransaction);
             return resultDone();
         }
 
@@ -231,7 +251,6 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditTargetStage()
 
     if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::AuditPending) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
-        // todo set TL state into conflict
         return sendAuditErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
@@ -249,7 +268,6 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditTargetStage()
                 mAuditMessage->signature(),
                 mAuditMessage->keyNumber())) {
             warning() << "Contractor didn't sign message correct";
-            // todo set TL state into conflict
             return sendAuditErrorConfirmation(
                 ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         }
@@ -371,9 +389,9 @@ void BaseTrustLineTransaction::updateTrustLineStateAfterNextAudit(
     }
 }
 
-TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSharingInitialisationStage()
+TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSharingInitializationStage()
 {
-    info() << "runPublicKeysSharingInitialisationStage with " << mContractorUUID;
+    info() << "runPublicKeysSharingInitializationStage with " << mContractorUUID;
 
     if (mContractorUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
@@ -653,7 +671,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
                         TrustLine::AuditPending,
                         ioTransaction);
                     info() << "Start initial audit";
-                    mStep = AuditInitialisation;
+                    mStep = AuditInitialization;
                     return resultAwakeAsFastAsPossible();
                 } else {
                     info() << "Start sharing own keys";

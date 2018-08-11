@@ -6,6 +6,7 @@
 #include "../../transactions/transactions/base/TransactionUUID.h"
 #include "../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../crypto/lamportscheme.h"
+#include "record/audit/ReceiptRecord.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -28,6 +29,10 @@ public:
         const Signature::Shared contractorSignature);
 
     vector<TrustLineAmount> auditAmounts(
+        const TrustLineID trustLineID,
+        const AuditNumber auditNumber);
+
+    vector<ReceiptRecord::Shared> receiptsByAuditNumber(
         const TrustLineID trustLineID,
         const AuditNumber auditNumber);
 

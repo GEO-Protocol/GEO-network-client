@@ -21,7 +21,12 @@ set(SOURCE_FILES
         AuditMessage.h
         AuditMessage.cpp
         AuditResponseMessage.h
-        AuditResponseMessage.cpp)
+        AuditResponseMessage.cpp
+
+        ConflictResolverMessage.h
+        ConflictResolverMessage.cpp
+        ConflictResolverResponseMessage.h
+        ConflictResolverResponseMessage.cpp)
 
 add_library(messages__trust_lines ${SOURCE_FILES})
 target_link_libraries(messages__trust_lines

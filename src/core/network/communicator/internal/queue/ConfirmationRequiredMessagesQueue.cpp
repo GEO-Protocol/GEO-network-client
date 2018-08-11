@@ -46,6 +46,9 @@ bool ConfirmationRequiredMessagesQueue::enqueue(
                 message);
             break;
         }
+        case Message::TrustLines_ConflictResolver:
+            updateConflictResolverInTheQueue(
+                message);
         default:
             return false;
     }
@@ -233,6 +236,31 @@ void ConfirmationRequiredMessagesQueue::updatePublicKeyInTheQueue(
         const auto kMessage = it->second;
 
         if (kMessage->typeID() == Message::TrustLines_PublicKey) {
+            mMessages.erase(it++);
+            signalRemoveMessageFromStorage(
+                mContractorUUID,
+                mEquivalent,
+                kMessage->typeID());
+        } else {
+            ++it;
+        }
+    }
+
+    mMessages[message->transactionUUID()] = message;
+    signalSaveMessageToStorage(
+        mContractorUUID,
+        message);
+}
+
+void ConfirmationRequiredMessagesQueue::updateConflictResolverInTheQueue(
+    TransactionMessage::Shared message)
+{
+    // Only one ConflictResolverMessage should be in the queue in one moment of time.
+    // queue must contains only newest one message, all other must be removed.
+    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
+        const auto kMessage = it->second;
+
+        if (kMessage->typeID() == Message::TrustLines_ConflictResolver) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,

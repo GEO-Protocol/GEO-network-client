@@ -14,6 +14,8 @@
 #include "../../../../network/messages/trust_lines/PublicKeyMessage.h"
 #include "../../../../network/messages/trust_lines/PublicKeyHashConfirmation.h"
 
+#include "../ConflictResolverInitiatorTransaction.h"
+
 class BaseTrustLineTransaction : public BaseTransaction {
 
 public:
@@ -23,6 +25,7 @@ public:
         const TransactionType type,
         const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
+        const NodeUUID &contractorUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -34,6 +37,7 @@ public:
         const TransactionUUID &transactionUUID,
         const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
+        const NodeUUID &contractorUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -51,9 +55,9 @@ public:
 
 protected:
     enum Stages {
-        TrustLineInitialisation = 1,
+        TrustLineInitialization = 1,
         TrustLineResponseProcessing = 2,
-        AuditInitialisation = 3,
+        AuditInitialization = 3,
         AuditResponseProcessing = 4,
         AuditTarget = 5,
         KeysSharingInitialization = 6,
@@ -65,7 +69,7 @@ protected:
     };
 
 protected:
-    TransactionResult::SharedConst runPublicKeysSharingInitialisationStage();
+    TransactionResult::SharedConst runPublicKeysSharingInitializationStage();
 
     TransactionResult::SharedConst runPublicKeysSendNextKeyStage();
 

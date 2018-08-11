@@ -13,13 +13,13 @@ PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
         message->transactionUUID(),
         nodeUUID,
         message->equivalent(),
+        message->senderUUID,
         manager,
         storageHandler,
         keystore,
         trustLinesInfluenceController,
         logger)
 {
-    mContractorUUID = message->senderUUID;
     mCurrentKeyNumber = message->number();
     mCurrentPublicKey = message->publicKey();
     mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
@@ -37,7 +37,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::run()
             return runReceiveNextKeyStage();
         }
         case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitialisationStage();
+            return runPublicKeysSharingInitializationStage();
         }
         case Stages::NextKeyProcessing: {
             return runPublicKeysSendNextKeyStage();

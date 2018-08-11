@@ -55,6 +55,12 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::TrustLines_AuditConfirmation:
             return messageCollected<AuditResponseMessage>(buffer);
 
+        case Message::TrustLines_ConflictResolver:
+            return messageCollected<ConflictResolverMessage>(buffer);
+
+        case Message::TrustLines_ConflictResolverConfirmation:
+            return messageCollected<ConflictResolverResponseMessage>(buffer);
+
 
         /*
          * Payment operations messages

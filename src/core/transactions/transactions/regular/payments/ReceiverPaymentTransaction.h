@@ -49,7 +49,7 @@ protected:
      * reaction on initialization request from coordinator node,
      * check if transaction can be runned and send response message
      */
-    TransactionResult::SharedConst runInitialisationStage();
+    TransactionResult::SharedConst runInitializationStage();
 
     /**
      * reaction on reservation request message from previous node on processed path

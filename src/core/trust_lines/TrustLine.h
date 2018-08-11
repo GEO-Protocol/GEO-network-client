@@ -32,6 +32,8 @@ public:
         AuditPending = 4,
         Active = 5,
         Archived = 6,
+        Conflict = 7,
+        ConflictResolving = 8,
     };
 
 public:

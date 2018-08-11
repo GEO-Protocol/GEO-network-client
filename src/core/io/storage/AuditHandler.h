@@ -25,14 +25,17 @@ public:
         AuditNumber number,
         TrustLineID trustLineID,
         lamport::KeyHash::Shared ownKeyHash,
-        lamport::Signature::Shared ownSign,
+        lamport::Signature::Shared ownSignature,
         lamport::KeyHash::Shared contractorKeyHash,
-        lamport::Signature::Shared contractorSign,
+        lamport::Signature::Shared contractorSignature,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);
 
     const AuditRecord::Shared getActualAudit(
+        TrustLineID trustLineID);
+
+    const AuditRecord::Shared getActualAuditFull(
         TrustLineID trustLineID);
 
 private:

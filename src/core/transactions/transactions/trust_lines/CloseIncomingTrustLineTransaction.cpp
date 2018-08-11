@@ -18,6 +18,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
         BaseTransaction::CloseIncomingTrustLineTransactionType,
         nodeUUID,
         command->equivalent(),
+        command->contractorUUID(),
         manager,
         storageHandler,
         keystore,
@@ -29,7 +30,6 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController)
 {
-    mContractorUUID = mCommand->contractorUUID();
     mPreviousState = TrustLine::Active;
     mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
 }
@@ -50,6 +50,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
         BaseTransaction::CloseIncomingTrustLineTransactionType,
         nodeUUID,
         equivalent,
+        contractorUUID,
         manager,
         storageHandler,
         keystore,
@@ -59,7 +60,6 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager)
 {
-    mContractorUUID = contractorUUID;
     mStep = Stages::AddToBlackList;
     mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
 }
@@ -136,20 +136,20 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
 {
     switch (mStep) {
-        case Stages::TrustLineInitialisation: {
-            return runInitialisationStage();
+        case Stages::TrustLineInitialization: {
+            return runInitializationStage();
         }
         case Stages::TrustLineResponseProcessing: {
             return runResponseProcessingStage();
         }
-        case Stages::AuditInitialisation: {
+        case Stages::AuditInitialization: {
             return runAuditInitializationStage();
         }
         case Stages::AuditResponseProcessing: {
             return runAuditResponseProcessingStage();
         }
         case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitialisationStage();
+            return runPublicKeysSharingInitializationStage();
         }
         case Stages::NextKeyProcessing: {
             return runPublicKeysSendNextKeyStage();
@@ -166,7 +166,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
     }
 }
 
-TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitialisationStage()
+TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializationStage()
 {
     if (!mSubsystemsController->isRunTrustLineTransactions()) {
         debug() << "It is forbidden run trust line transactions";
@@ -319,7 +319,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
     }
 
     processConfirmationMessage(message);
-    mStep = AuditInitialisation;
+    mStep = AuditInitialization;
     return resultAwakeAsFastAsPossible();
 }
 

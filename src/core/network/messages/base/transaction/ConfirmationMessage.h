@@ -16,6 +16,9 @@ public:
         ErrorShouldBeRemovedFromQueue = 2,
         ContractorBanned = 3,
         ReservationsPresentOnTrustLine = 4,
+        Audit_Reject = 5,
+        Audit_Invalid = 6,
+        Audit_KeyNotFound = 7,
     };
 
 public:

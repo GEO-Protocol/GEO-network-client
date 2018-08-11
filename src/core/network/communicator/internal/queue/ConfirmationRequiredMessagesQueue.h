@@ -9,6 +9,7 @@
 #include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
 #include "../../../messages/trust_lines/AuditMessage.h"
 #include "../../../messages/trust_lines/PublicKeyMessage.h"
+#include "../../../messages/trust_lines/ConflictResolverMessage.h"
 
 #include <boost/signals2.hpp>
 
@@ -97,6 +98,9 @@ protected: // messages handlers
         TransactionMessage::Shared message);
 
     void updatePublicKeyInTheQueue(
+        TransactionMessage::Shared message);
+
+    void updateConflictResolverInTheQueue(
         TransactionMessage::Shared message);
 
 protected:

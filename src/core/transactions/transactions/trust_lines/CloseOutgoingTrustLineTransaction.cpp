@@ -17,6 +17,7 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
         message->transactionUUID(),
         nodeUUID,
         message->equivalent(),
+        message->senderUUID,
         manager,
         storageHandler,
         keystore,
@@ -25,7 +26,6 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager)
 {
-    mContractorUUID = message->senderUUID;
     mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
 }
 
@@ -73,14 +73,14 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
 {
     info() << mStep;
     switch (mStep) {
-        case Stages::TrustLineInitialisation: {
+        case Stages::TrustLineInitialization: {
             return runInitializationStage();
         }
         case Stages::AuditTarget: {
             return runReceiveAuditStage();
         }
         case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitialisationStage();
+            return runPublicKeysSharingInitializationStage();
         }
         case Stages::NextKeyProcessing: {
             return runPublicKeysSendNextKeyStage();

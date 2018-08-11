@@ -83,7 +83,7 @@ protected:
      * check conditions if transaction can be run
      * send request for building payment paths
      */
-    TransactionResult::SharedConst runPaymentInitialisationStage ();
+    TransactionResult::SharedConst runPaymentInitializationStage();
 
     /**
      * process the result of building paths

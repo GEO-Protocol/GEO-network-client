@@ -19,6 +19,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
         BaseTransaction::SetOutgoingTrustLineTransaction,
         nodeUUID,
         command->equivalent(),
+        command->contractorUUID(),
         manager,
         storageHandler,
         keystore,
@@ -31,7 +32,6 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     mSubsystemsController(subsystemsController),
     mVisualInterface(visualInterface)
 {
-    mContractorUUID = mCommand->contractorUUID();
     mPreviousState = TrustLine::Active;
     mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
 }
@@ -114,20 +114,20 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
 TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
 {
     switch (mStep) {
-        case Stages::TrustLineInitialisation: {
-            return runInitialisationStage();
+        case Stages::TrustLineInitialization: {
+            return runInitializationStage();
         }
         case Stages::TrustLineResponseProcessing: {
             return runResponseProcessingStage();
         }
-        case Stages::AuditInitialisation: {
+        case Stages::AuditInitialization: {
             return runAuditInitializationStage();
         }
         case Stages::AuditResponseProcessing: {
             return runAuditResponseProcessingStage();
         }
         case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitialisationStage();
+            return runPublicKeysSharingInitializationStage();
         }
         case Stages::NextKeyProcessing: {
             return runPublicKeysSendNextKeyStage();
@@ -141,9 +141,9 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
     }
 }
 
-TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitialisationStage()
+TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializationStage()
 {
-    info() << "runInitialisationStage " << mContractorUUID << " " << mAmount;
+    info() << "runInitializationStage " << mContractorUUID << " " << mAmount;
     if (!mSubsystemsController->isRunTrustLineTransactions()) {
         debug() << "It is forbidden run trust line transactions";
         return resultForbiddenRun();
@@ -382,7 +382,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
         throw e;
     }
 
-    mStep = AuditInitialisation;
+    mStep = AuditInitialization;
     return resultAwakeAsFastAsPossible();
 }
 

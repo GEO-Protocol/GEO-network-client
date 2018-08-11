@@ -271,7 +271,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     prepareAndSchedule(
                         transaction,
                         false,
-                        true,
+                        false,
                         true);
                 } catch (NotFoundError &e) {
                     error() << "There are no subsystems for serialized AcceptTrustLineTransaction "
@@ -319,7 +319,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     prepareAndSchedule(
                         transaction,
                         false,
-                        true,
+                        false,
                         true);
                 } catch (NotFoundError &e) {
                     error() << "There are no subsystems for serialized SetIncomingTrustLineTransaction "
@@ -367,7 +367,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     prepareAndSchedule(
                         transaction,
                         false,
-                        true,
+                        false,
                         true);
                 } catch (NotFoundError &e) {
                     error() << "There are no subsystems for serialized CloseOutgoingTrustLineTransaction "
@@ -439,10 +439,34 @@ void TransactionsManager::loadTransactionsFromStorage()
                     prepareAndSchedule(
                         transaction,
                         false,
-                        true,
+                        false,
                         true);
                 } catch (NotFoundError &e) {
                     error() << "There are no subsystems for serialized PublicKeysSharingSourceTransaction "
+                            "with equivalent " << *equivalent << " Details are: " << e.what();
+                    continue;
+                }
+                break;
+            }
+            case BaseTransaction::ConflictResolverInitiatorTransactionType: {
+                try {
+                    auto transaction = make_shared<ConflictResolverInitiatorTransaction>(
+                        kTABuffer,
+                        mNodeUUID,
+                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
+                        mStorageHandler,
+                        mKeysStore,
+                        mTrustLinesInfluenceController,
+                        mLog);
+                    subscribeForProcessingConfirmationMessage(
+                        transaction->processConfirmationMessageSignal);
+                    prepareAndSchedule(
+                        transaction,
+                        false,
+                        true,
+                        true);
+                } catch (NotFoundError &e) {
+                    error() << "There are no subsystems for serialized ConflictResolverInitiatorTransaction "
                             "with equivalent " << *equivalent << " Details are: " << e.what();
                     continue;
                 }
@@ -740,6 +764,19 @@ void TransactionsManager::processMessage(
             }
         }
 
+    } else if (message->typeID() == Message::TrustLines_ConflictResolver) {
+        launchConflictResolveContractorTransaction(
+            static_pointer_cast<ConflictResolverMessage>(message));
+
+    } else if (message->typeID() == Message::TrustLines_ConflictResolverConfirmation) {
+        try {
+            mScheduler->tryAttachMessageToTransaction(message);
+        } catch (NotFoundError &) {
+            if (!findSerializedTransactionAndLaunchIt(message)) {
+                warning() << "Can't attach TrustLines_ConflictResolverConfirmation message to transaction ";
+            }
+        }
+
     /*
      * Gateway notification & RoutingTable
      */
@@ -964,7 +1001,7 @@ void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
             transaction->processConfirmationMessageSignal);
         prepareAndSchedule(
             transaction,
-            true,
+            false,
             false,
             true);
     } catch (NotFoundError &e) {
@@ -986,8 +1023,8 @@ void TransactionsManager::launchPublicKeysSharingTargetTransaction(
                 mKeysStore,
                 mTrustLinesInfluenceController,
                 mLog),
-            true,
-            true,
+            false,
+            false,
             true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for PublicKeysSharingTargetTransaction "
@@ -1011,11 +1048,36 @@ void TransactionsManager::launchAuditTargetTransaction(
             transaction->processConfirmationMessageSignal);
         prepareAndSchedule(
             transaction,
-            true,
-            true,
+            false,
+            false,
             true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for AuditTargetTransaction "
+                "with equivalent " << message->equivalent() << " Details are: " << e.what();
+    }
+}
+
+void TransactionsManager::launchConflictResolveContractorTransaction(
+    ConflictResolverMessage::Shared message)
+{
+    try {
+        auto transaction = make_shared<ConflictResolverContractorTransaction>(
+            mNodeUUID,
+            message,
+            mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+            mStorageHandler,
+            mKeysStore,
+            mTrustLinesInfluenceController,
+            mLog);
+        subscribeForProcessingConfirmationMessage(
+            transaction->processConfirmationMessageSignal);
+        prepareAndSchedule(
+            transaction,
+            false,
+            true,
+            true);
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for ConflictResolverContractorTransaction "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
@@ -2617,7 +2679,7 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                 prepareAndSchedule(
                     transaction,
                     false,
-                    true,
+                    false,
                     true);
             } catch (NotFoundError &e) {
                 error() << "There are no subsystems for serialized AcceptTrustLineTransaction "
@@ -2669,7 +2731,7 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                 prepareAndSchedule(
                     transaction,
                     false,
-                    true,
+                    false,
                     true);
             } catch (NotFoundError &e) {
                 error() << "There are no subsystems for serialized SetIncomingTrustLineTransaction "
@@ -2721,7 +2783,7 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                 prepareAndSchedule(
                     transaction,
                     false,
-                    true,
+                    false,
                     true);
             } catch (NotFoundError &e) {
                 error() << "There are no subsystems for serialized CloseOutgoingTrustLineTransaction "
@@ -2773,7 +2835,7 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                 prepareAndSchedule(
                     transaction,
                     false,
-                    true,
+                    false,
                     true);
             } catch (NotFoundError &e) {
                 error() << "There are no subsystems for serialized AuditTargetTransaction "
@@ -2799,7 +2861,7 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                 prepareAndSchedule(
                     transaction,
                     false,
-                    true,
+                    false,
                     true);
             } catch (NotFoundError &e) {
                 error() << "There are no subsystems for serialized PublicKeysSharingSourceTransaction "
