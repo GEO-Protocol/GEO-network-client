@@ -49,6 +49,7 @@ bool ConfirmationRequiredMessagesQueue::enqueue(
         case Message::TrustLines_ConflictResolver:
             updateConflictResolverInTheQueue(
                 message);
+            break;
         default:
             return false;
     }

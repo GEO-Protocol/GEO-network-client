@@ -489,6 +489,11 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
         return resultDone();
     }
 
+    if (message->number() < mCurrentKeyNumber) {
+        info() << "message key number " << message->number() << " is less than current. ignore it";
+        return resultContinuePreviousState();
+    }
+
     if (message->number() != mCurrentKeyNumber || *message->hashConfirmation() != *mCurrentPublicKey->hash()) {
         warning() << "Number " << message->number() << " or Hash is incorrect";
         // todo run reset keys sharing TA

@@ -962,6 +962,9 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
                << message->equivalent();
         mEquivalentsSubsystemsRouter->initNewEquivalent(message->equivalent());
         mEquivalentsCyclesSubsystemsRouter->initNewEquivalent(message->equivalent());
+    }
+
+    try {
         auto transaction = make_shared<AcceptTrustLineTransaction>(
             mNodeUUID,
             message,
@@ -979,7 +982,9 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
             false,
             false,
             true);
-        return;
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for AcceptTrustLineTransaction "
+                   "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 

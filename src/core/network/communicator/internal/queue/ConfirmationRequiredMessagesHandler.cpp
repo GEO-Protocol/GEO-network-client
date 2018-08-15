@@ -268,6 +268,7 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
             case Message::TrustLines_ConflictResolver:
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<ConflictResolverMessage>(messageBody));
+                break;
             default:
                 mLog.error("ConfirmationRequiredMessagesHandler::deserializeMessages "
                                "invalid message type");
