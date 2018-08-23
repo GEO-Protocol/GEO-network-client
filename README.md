@@ -1,4 +1,4 @@
-# GEO Project
+# GEO Network
 Stack of `open-source`, `lightweight`, `low-level` protocols for `decentralised` `p2p` `multihop` financial cooperation.
 
 The main goal of a project is to provide solution for sending payments directly, and indirectly (through middleware participants), even across different payment networks with different infrastructures, safely and in a predictable manner.
@@ -30,21 +30,21 @@ Protocol | Purpose | Brief| State
 
 * **Minimalism** — provided solutions strives to be as simple as possible, and to solve one and only one problem. In case if the project needs solution for another one problem — new research branch should be open. We believe, that good modularity will play crucial role in efficient crypt-analising and protocols popularisation. 
 
-* **Lightweightness** — all present protocols are capable to perform well on modern cellphones, and/or IoT devices, thus extends the frontier of modern p2p systems.
+* **Lightweightness** — all present protocols are capable to perform well on modern cellphones, and/or IoT devices, thus extends the frontier of today's p2p systems.
 
 
 ## Commisions
-The GEO Project provides open protocol suite for sending payments across different ledgers. It doesn't imply attendees to charge any protocol-fixed commissions, and doesn't provide any low-level primitives for this process (for example, any network-relevant token). But, the attendees are free to set custom requirements for payment processing. One important notice here, that routing protocol is now not able (yet) to choose the cheapest path in the network. 
+The GEO Network provides open protocol suite for sending payments across different ledgers. It doesn't imply attendees to charge any protocol-fixed commissions, and doesn't provide any low-level primitives for this process (for example, any network-relevant token). But, the attendees are free to set custom requirements for payment processing. One important notice here, that routing protocol is now not able (yet) to choose the cheapest path in the network. 
 
 
 ## Related projects
-* **[geo-pay.net](https://geo-pay.net)** — first payment service, built on top of GEO Project technologies.
+* **[geo-pay.net](https://geo-pay.net)** — first payment service, built on top of GEO Network technologies.
 
 
 ## Contribution
-**- Why should I contribute to GEO Project?**
+**- Why should I contribute to GEO Network?**
 
-GEO Projects make it easier for people to transfer assets through the Internet in the p2p manner, without (or with significantly less) commissions, fast, and in a predictable manner. Unlike many other decentralised payment systems, it is able to process significant transactions flow and to distribute it through the whole network. Also, the project itself aims to be ready for post-quantum epoch, and looks for stronger cryptography than most of other decentralised systems.
+GEO Network make it easier for people to transfer assets through the Internet in the p2p manner, without (or with significantly less) commissions, fast, and in a predictable manner. Unlike many other decentralised payment systems, it is able to process significant transactions flow and to distribute it through the whole network. Also, the project itself aims to be ready for post-quantum epoch, and looks for stronger cryptography than most of other decentralised systems.
 
 **- How I can help?**
 
