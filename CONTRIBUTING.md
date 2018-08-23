@@ -1,4 +1,4 @@
-# Contributing to GEO Project
+# Contributing to GEO Protocol
 
 When contributing to this repository, please consider to discuss the change you wish to make via issue,
 or any other method with contributors of this repository before making a change.
