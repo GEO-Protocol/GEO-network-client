@@ -4,11 +4,6 @@ Stack of `open-source`, `lightweight`, `low-level` protocols for `decentralised`
 The main goal of a project is to provide solution for sending payments directly, and indirectly (through middleware participants), even across different payment networks with different infrastructures, safely and in a predictable manner.
 Our mission is to provide base protocols for decentralised financial cooperation, that would power the Financial Internet, as TCP does for the Internet itself.
 
-[<img src="https://camo.githubusercontent.com/aebd3cdcab53bdc6fbd1362bcc78a0812677c627/68747470733a2f2f706174726f6c617669612e6769746875622e696f2f74656c656772616d2d62616467652f666f6c6c6f772e706e67">](https://t.me/geopeopleeng) — International Community. 
-
-[<img src="https://camo.githubusercontent.com/aebd3cdcab53bdc6fbd1362bcc78a0812677c627/68747470733a2f2f706174726f6c617669612e6769746875622e696f2f74656c656772616d2d62616467652f666f6c6c6f772e706e67">](http://t.me/geopeoplegroup) — Ukrainian Community.
-
-
 ## Summary
 Protocol | Purpose | Brief| State
 --- | --- | --- | ---
