@@ -37,6 +37,10 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
 protected:
+    const size_t kOffsetToInheritedBytes() const
+    noexcept;
+
+protected:
     TrustLineAmount mAmount;
 };
 

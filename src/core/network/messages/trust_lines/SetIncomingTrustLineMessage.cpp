@@ -83,3 +83,14 @@ const bool SetIncomingTrustLineMessage::isCheckCachedResponse() const
 {
     return true;
 }
+
+const size_t SetIncomingTrustLineMessage::kOffsetToInheritedBytes() const
+    noexcept
+{
+    static const auto kOffset =
+            DestinationMessage::kOffsetToInheritedBytes()
+            + kTrustLineAmountBytesCount;
+
+    return kOffset;
+}
+
