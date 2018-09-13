@@ -24,17 +24,33 @@ TransactionResult::SharedConst GetFirstLevelContractorsBalancesTransaction::run(
 {
     const auto kNeighborsCount = mTrustLinesManager->trustLines().size();
     stringstream ss;
-    ss << to_string(kNeighborsCount);
-    for (const auto &kNodeUUIDAndTrustline: mTrustLinesManager->trustLines()) {
+    if (mCommand->from() > kNeighborsCount - 1) {
+        ss << "0";
+    } else {
         // todo discuss if exclude non active TLs
-        ss << kTokensSeparator;
-        ss << kNodeUUIDAndTrustline.first;
-        ss << kTokensSeparator;
-        ss << kNodeUUIDAndTrustline.second->incomingTrustAmount();
-        ss << kTokensSeparator;
-        ss << kNodeUUIDAndTrustline.second->outgoingTrustAmount();
-        ss << kTokensSeparator;
-        ss << kNodeUUIDAndTrustline.second->balance();
+        auto resultRecordsCount = min(mCommand->count(), kNeighborsCount - mCommand->from());
+        ss << to_string(resultRecordsCount);
+        size_t recordIdx = 0;
+        size_t currentRecordsCount = 0;
+        for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()) {
+            if (recordIdx < mCommand->from()) {
+                recordIdx++;
+                continue;
+            }
+            recordIdx++;
+            ss << kTokensSeparator;
+            ss << kNodeUUIDAndTrustLine.first;
+            ss << kTokensSeparator;
+            ss << kNodeUUIDAndTrustLine.second->incomingTrustAmount();
+            ss << kTokensSeparator;
+            ss << kNodeUUIDAndTrustLine.second->outgoingTrustAmount();
+            ss << kTokensSeparator;
+            ss << kNodeUUIDAndTrustLine.second->balance();
+            currentRecordsCount++;
+            if (currentRecordsCount == mCommand->count()) {
+                break;
+            }
+        }
     }
     ss << kCommandsSeparator;
     string kResultInfo = ss.str();
