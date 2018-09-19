@@ -23,6 +23,7 @@ public:
     EquivalentsSubsystemsRouter(
         NodeUUID &nodeUUID,
         StorageHandler *storageHandler,
+        Keystore *keystore,
         as::io_service &ioService,
         vector<SerializedEquivalent> &equivalentsIAmGateway,
         Logger &logger);
@@ -79,6 +80,7 @@ private:
     map<SerializedEquivalent, bool> mIAmGateways;
     as::io_service &mIOService;
     StorageHandler *mStorageHandler;
+    Keystore *mKeysStore;
     Logger &mLogger;
     vector<SerializedEquivalent> mEquivalents;
     map<SerializedEquivalent, unique_ptr<TrustLinesManager>> mTrustLinesManagers;

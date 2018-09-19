@@ -28,7 +28,7 @@ public:
         const TrustLineAmount &amount,
         const Signature::Shared contractorSignature);
 
-    vector<TrustLineAmount> auditAmounts(
+    vector<pair<TransactionUUID, TrustLineAmount>> auditAmounts(
         const TrustLineID trustLineID,
         const AuditNumber auditNumber);
 

@@ -408,6 +408,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
 
     mParticipantsSignatures.clear();
 
+#ifdef TESTS
+    mSubsystemsController->testThrowExceptionOnVoteStage();
+    mSubsystemsController->testTerminateProcessOnVoteStage();
+#endif
+
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantVote,

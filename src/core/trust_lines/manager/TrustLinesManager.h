@@ -17,6 +17,7 @@
 // TODO: remove storage handler include (IO transactions must be transferred as arguments)
 #include "../../io/storage/StorageHandler.h"
 #include "../../io/storage/IOTransaction.h"
+#include "../../crypto/keychain.h"
 
 #include <boost/crc.hpp>
 #include <boost/signals2.hpp>
@@ -53,6 +54,7 @@ public:
     TrustLinesManager(
         const SerializedEquivalent equivalent,
         StorageHandler *storageHandler,
+        Keystore *keyStore,
         Logger &logger);
 
     void open(
@@ -388,6 +390,7 @@ private:
 
     unique_ptr<AmountReservationsHandler> mAmountReservationsHandler;
     StorageHandler *mStorageHandler;
+    Keystore *mKeysStore;
     Logger &mLogger;
 };
 

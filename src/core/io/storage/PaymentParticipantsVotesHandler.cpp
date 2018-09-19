@@ -135,6 +135,31 @@ map<PaymentNodeID, lamport::Signature::Shared> PaymentParticipantsVotesHandler::
     return result;
 }
 
+bool PaymentParticipantsVotesHandler::isTransactionCommitted(
+    const TransactionUUID &transactionUUID)
+{
+    string query = "SELECT transaction_uuid FROM "
+                   + mTableName + " WHERE transaction_uuid = ? LIMIT 1";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PaymentParticipantsVotesHandler::isTransactionCommitted: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("PaymentParticipantsVotesHandler::isTransactionCommitted: "
+                          "Bad binding of transactionUUID; sqlite error: " + to_string(rc));
+    }
+
+    bool result = (sqlite3_step(stmt) == SQLITE_ROW);
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
 LoggerStream PaymentParticipantsVotesHandler::info() const
 {
     return mLog.info(logHeader());

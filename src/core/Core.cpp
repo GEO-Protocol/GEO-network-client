@@ -113,13 +113,13 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initEquivalentsSubsystemsRouter(
-        equivalentsOnWhichIAmIsGateway);
+    initCode = initKeysStore();
     if (initCode != 0) {
         return initCode;
     }
 
-    initCode = initKeysStore();
+    initCode = initEquivalentsSubsystemsRouter(
+        equivalentsOnWhichIAmIsGateway);
     if (initCode != 0) {
         return initCode;
     }
@@ -208,6 +208,7 @@ int Core::initEquivalentsSubsystemsRouter(
         mEquivalentsSubsystemsRouter = make_unique<EquivalentsSubsystemsRouter>(
             mNodeUUID,
             mStorageHandler.get(),
+            mKeysStore.get(),
             mIOService,
             equivalentIAmGateway,
             *mLog);

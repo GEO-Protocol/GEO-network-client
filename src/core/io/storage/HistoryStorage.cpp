@@ -189,7 +189,7 @@ void HistoryStorage::saveTrustLineRecord(
         throw IOError("HistoryStorage::insert trustline: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 1, record->operationUUID().data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 1, record->operationUUID().data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert trustline: "
                           "Bad binding of OperationUUID; sqlite error: " + to_string(rc));
@@ -280,7 +280,7 @@ void HistoryStorage::savePaymentMainOutgoingRecord(
                           "Bad query; sqlite error: " + to_string(rc));
     }
 
-    rc = sqlite3_bind_blob(stmt, 1, record->operationUUID().data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 1, record->operationUUID().data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert main payment: "
                           "Bad binding of OperationUUID; sqlite error: " + to_string(rc));
@@ -320,7 +320,7 @@ void HistoryStorage::savePaymentMainOutgoingRecord(
                           "Bad binding of RecordBody bytes count; sqlite error: " + to_string(rc));
     }
 
-    rc = sqlite3_bind_blob(stmt, 7, record->commandUUID().data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 7, record->commandUUID().data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert main payment: "
                           "Bad binding of commandUUID; sqlite error: " + to_string(rc));
@@ -353,7 +353,7 @@ void HistoryStorage::savePaymentMainIncomingRecord(
                           "Bad query; sqlite error: " + to_string(rc));
     }
 
-    rc = sqlite3_bind_blob(stmt, 1, record->operationUUID().data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 1, record->operationUUID().data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert main payment: "
                           "Bad binding of OperationUUID; sqlite error: " + to_string(rc));
@@ -419,7 +419,7 @@ void HistoryStorage::savePaymentAdditionalRecord(
         throw IOError("HistoryStorage::insert additional payment: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 1, record->operationUUID().data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 1, record->operationUUID().data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert additional payment: "
                           "Bad binding of OperationUUID; sqlite error: " + to_string(rc));
@@ -440,15 +440,15 @@ void HistoryStorage::savePaymentAdditionalRecord(
         throw IOError("HistoryStorage::insert additional payment: "
                           "Bad binding of RecordType; sqlite error: " + to_string(rc));
     }
-    auto serializedPymentRecordAndSize = serializedPaymentAdditionalRecordBody(
+    auto serializedPaymentRecordAndSize = serializedPaymentAdditionalRecordBody(
         record);
-    rc = sqlite3_bind_blob(stmt, 5, serializedPymentRecordAndSize.first.get(),
-                           (int) serializedPymentRecordAndSize.second, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 5, serializedPaymentRecordAndSize.first.get(),
+                           (int) serializedPaymentRecordAndSize.second, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert additional payment: "
                           "Bad binding of RecordBody; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 6, (int) serializedPymentRecordAndSize.second);
+    rc = sqlite3_bind_int(stmt, 6, (int) serializedPaymentRecordAndSize.second);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert additional payment: "
                           "Bad binding of RecordBody bytes count; sqlite error: " + to_string(rc));
@@ -969,7 +969,7 @@ vector<PaymentRecord::Shared> HistoryStorage::paymentRecordsByCommandUUID(
                           "Bad binding of RecordType; sqlite error: " + to_string(rc));
     }
 
-    rc = sqlite3_bind_blob(stmt, 2, commandUUID.data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 2, commandUUID.data, CommandUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::paymentRecordsByCommandUUID: "
                           "Bad binding of commandUUID; sqlite error: " + to_string(rc));
@@ -999,7 +999,7 @@ bool HistoryStorage::whetherOperationWasConducted(
                           "Bad query; sqlite error: " + to_string(rc));
     }
 
-    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::whetherOperationWasConducted: "
                           "Bad binding of transactionUUID; sqlite error: " + to_string(rc));

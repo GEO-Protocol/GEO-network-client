@@ -42,9 +42,6 @@ protected:
         const NodeUUID &contractorUUID,
         const GEOEpochTimestamp geoEpochTimestamp);
 
-public:
-    static const size_t kOperationUUIDBytesSize = 16;
-
 private:
     RecordType mRecordType;
     TransactionUUID mOperationUUID;

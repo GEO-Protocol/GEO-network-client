@@ -375,6 +375,38 @@ namespace crypto {
             contractorKeyNumber);
     }
 
+    TrustLineAmount TrustLineKeychain::incomingCommittedReceiptsAmountsSum(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber)
+    {
+        TrustLineAmount result = TrustLine::kZeroAmount();
+        auto incomingReceiptsAmounts = ioTransaction->incomingPaymentReceiptHandler()->auditAmounts(
+            mTrustLineID,
+            auditNumber);
+        for (const auto &incomingReceiptAmount : incomingReceiptsAmounts) {
+            if (ioTransaction->paymentParticipantsVotesHandler()->isTransactionCommitted(incomingReceiptAmount.first)) {
+                result = result + incomingReceiptAmount.second;
+            }
+        }
+        return result;
+    }
+
+    TrustLineAmount TrustLineKeychain::outgoingCommittedReceiptsAmountsSum(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber)
+    {
+        TrustLineAmount result = TrustLine::kZeroAmount();
+        auto outgoingReceiptsAmounts = ioTransaction->outgoingPaymentReceiptHandler()->auditAmounts(
+            mTrustLineID,
+            auditNumber);
+        for (const auto &outgoingReceiptAmount : outgoingReceiptsAmounts) {
+            if (ioTransaction->paymentParticipantsVotesHandler()->isTransactionCommitted(outgoingReceiptAmount.first)) {
+                result = result + outgoingReceiptAmount.second;
+            }
+        }
+        return result;
+    }
+
     AuditRecord::Shared TrustLineKeychain::actualFullAudit(
         IOTransaction::Shared ioTransaction)
     {

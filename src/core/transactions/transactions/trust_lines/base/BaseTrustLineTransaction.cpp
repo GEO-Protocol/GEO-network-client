@@ -618,13 +618,15 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
                     and mTrustLines->trustLineState(mContractorUUID) != TrustLine::KeysPending) {
                     warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID)
                               << " for init TL. Waiting for state updating";
-                    return resultDone();
+                    return sendKeyErrorConfirmation(
+                        ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
                 }
             } else {
                 if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Active) {
                     warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID)
                               << ". Waiting for state updating";
-                    return resultDone();
+                    return sendKeyErrorConfirmation(
+                        ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
                 }
             }
             keyChain.removeUnusedContractorKeys(ioTransaction);

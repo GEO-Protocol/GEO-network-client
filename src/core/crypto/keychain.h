@@ -268,6 +268,14 @@ public:
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);
 
+    TrustLineAmount incomingCommittedReceiptsAmountsSum(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber);
+
+    TrustLineAmount outgoingCommittedReceiptsAmountsSum(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber);
+
     AuditRecord::Shared actualFullAudit(
         IOTransaction::Shared ioTransaction);
 

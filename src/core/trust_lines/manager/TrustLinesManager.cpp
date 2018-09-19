@@ -4,10 +4,12 @@
 TrustLinesManager::TrustLinesManager(
     const SerializedEquivalent equivalent,
     StorageHandler *storageHandler,
+    Keystore *keyStore,
     Logger &logger):
 
     mEquivalent(equivalent),
     mStorageHandler(storageHandler),
+    mKeysStore(keyStore),
     mLogger(logger),
     mAmountReservationsHandler(
         make_unique<AmountReservationsHandler>())
@@ -31,20 +33,13 @@ void TrustLinesManager::loadTrustLinesFromStorage()
             kTrustLine->setOutgoingTrustAmount(auditRecord->outgoingAmount());
             info() << "audit number " << auditRecord->auditNumber();
 
-            auto incomingReceiptsAmounts = ioTransaction->incomingPaymentReceiptHandler()->auditAmounts(
-                kTrustLine->trustLineID(),
+            auto keyChain = mKeysStore->keychain(kTrustLine->trustLineID());
+            auto totalIncomingReceiptsAmount = keyChain.incomingCommittedReceiptsAmountsSum(
+                ioTransaction,
                 auditRecord->auditNumber());
-            TrustLineAmount totalIncomingReceiptsAmount = TrustLine::kZeroAmount();
-            for (const auto &incomingReceiptAmount : incomingReceiptsAmounts) {
-                totalIncomingReceiptsAmount = totalIncomingReceiptsAmount + incomingReceiptAmount;
-            }
-            auto outgoingReceiptsAmounts = ioTransaction->outgoingPaymentReceiptHandler()->auditAmounts(
-                kTrustLine->trustLineID(),
+            auto totalOutgoingReceiptsAmount = keyChain.outgoingCommittedReceiptsAmountsSum(
+                ioTransaction,
                 auditRecord->auditNumber());
-            TrustLineAmount totalOutgoingReceiptsAmount = TrustLine::kZeroAmount();
-            for (const auto &outgoingReceiptAmount : outgoingReceiptsAmounts) {
-                totalOutgoingReceiptsAmount = totalOutgoingReceiptsAmount + outgoingReceiptAmount;
-            }
             TrustLineBalance balance = auditRecord->balance() + totalIncomingReceiptsAmount - totalOutgoingReceiptsAmount;
             kTrustLine->setBalance(balance);
 
@@ -297,7 +292,7 @@ const TrustLineAmount &TrustLinesManager::incomingTrustAmount(
 {
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-            logHeader() + "::incomingTrustAmountDespiteReservations: "
+            logHeader() + "::incomingTrustAmount: "
                 "There is no trust line to contractor " + contractorUUID.stringUUID());
     }
 
@@ -309,7 +304,7 @@ const TrustLineAmount &TrustLinesManager::outgoingTrustAmount(
 {
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-            logHeader() + "::outgoingTrustAmountDespiteReservations: "
+            logHeader() + "::outgoingTrustAmount: "
                 "There is no trust line to contractor " + contractorUUID.stringUUID());
     }
 
@@ -321,7 +316,7 @@ const TrustLineBalance &TrustLinesManager::balance(
 {
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-            logHeader() + "::outgoingTrustAmountDespiteResevations: "
+            logHeader() + "::balance: "
                 "There is no trust line to contractor " + contractorUUID.stringUUID());
     }
 
@@ -650,20 +645,13 @@ void TrustLinesManager::updateTrustLineFromStorage(
         kTrustLine->setOutgoingTrustAmount(auditRecord->outgoingAmount());
         info() << "audit number " << auditRecord->auditNumber();
 
-        auto incomingReceiptsAmounts = ioTransaction->incomingPaymentReceiptHandler()->auditAmounts(
-            kTrustLine->trustLineID(),
+        auto keyChain = mKeysStore->keychain(kTrustLine->trustLineID());
+        TrustLineAmount totalIncomingReceiptsAmount = keyChain.incomingCommittedReceiptsAmountsSum(
+            ioTransaction,
             auditRecord->auditNumber());
-        TrustLineAmount totalIncomingReceiptsAmount = TrustLine::kZeroAmount();
-        for (const auto &incomingReceiptAmount : incomingReceiptsAmounts) {
-            totalIncomingReceiptsAmount = totalIncomingReceiptsAmount + incomingReceiptAmount;
-        }
-        auto outgoingReceiptsAmounts = ioTransaction->outgoingPaymentReceiptHandler()->auditAmounts(
-            kTrustLine->trustLineID(),
+        TrustLineAmount totalOutgoingReceiptsAmount = keyChain.outgoingCommittedReceiptsAmountsSum(
+            ioTransaction,
             auditRecord->auditNumber());
-        TrustLineAmount totalOutgoingReceiptsAmount = TrustLine::kZeroAmount();
-        for (const auto &outgoingReceiptAmount : outgoingReceiptsAmounts) {
-            totalOutgoingReceiptsAmount = totalOutgoingReceiptsAmount + outgoingReceiptAmount;
-        }
         TrustLineBalance balance = auditRecord->balance() + totalIncomingReceiptsAmount - totalOutgoingReceiptsAmount;
         kTrustLine->setBalance(balance);
 

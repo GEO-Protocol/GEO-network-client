@@ -31,6 +31,9 @@ public:
     map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures(
         const TransactionUUID &transactionUUID);
 
+    bool isTransactionCommitted(
+        const TransactionUUID &transactionUUID);
+
 private:
     LoggerStream info() const;
 

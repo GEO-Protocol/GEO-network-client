@@ -120,13 +120,13 @@ void OutgoingPaymentReceiptHandler::saveRecord(
     }
 }
 
-vector<TrustLineAmount> OutgoingPaymentReceiptHandler::auditAmounts(
+vector<pair<TransactionUUID, TrustLineAmount>> OutgoingPaymentReceiptHandler::auditAmounts(
     const TrustLineID trustLineID,
     const AuditNumber auditNumber)
 {
-    vector<TrustLineAmount> result;
+    vector<pair<TransactionUUID, TrustLineAmount>> result;
     sqlite3_stmt *stmt;
-    string query = "SELECT amount FROM " + mTableName + " WHERE trust_line_id = ? AND audit_number = ?";
+    string query = "SELECT transaction_uuid, amount FROM " + mTableName + " WHERE trust_line_id = ? AND audit_number = ?";
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::auditAmounts: "
@@ -144,14 +144,19 @@ vector<TrustLineAmount> OutgoingPaymentReceiptHandler::auditAmounts(
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
 
-        auto amountBytes = (byte*)sqlite3_column_blob(stmt, 0);
-        vector<byte> incomingAmountBufferBytes(
+        TransactionUUID transactionUUID(
+            (byte*)sqlite3_column_blob(stmt, 0));
+
+        auto amountBytes = (byte*)sqlite3_column_blob(stmt, 1);
+        vector<byte> amountBufferBytes(
             amountBytes,
             amountBytes + kTrustLineAmountBytesCount);
+        auto amount = bytesToTrustLineAmount(
+            amountBufferBytes);
 
-        result.push_back(
-            bytesToTrustLineAmount(
-                incomingAmountBufferBytes));
+        result.emplace_back(
+            transactionUUID,
+            amount);
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
