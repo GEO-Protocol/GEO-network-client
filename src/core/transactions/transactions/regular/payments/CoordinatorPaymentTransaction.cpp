@@ -1484,6 +1484,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
     BasePaymentTransaction::runThreeNodesCyclesTransactions();
     BasePaymentTransaction::runFourNodesCyclesTransactions();
 #ifdef TESTS
+    mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
+        mPaymentNodesIds.size() - 1);
     mSubsystemsController->testSleepOnVoteConsistencyStage(
         maxNetworkDelay(
             mPaymentNodesIds.size() + 2));
@@ -1598,8 +1600,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
     }
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
-        mPaymentNodesIds.size() - 1);
     mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
     mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif

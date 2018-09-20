@@ -538,22 +538,23 @@ void BasePaymentTransaction::commit(
                     mEquivalent);
                 info() << "Audit signal";
             }
-        } else {
-            if (mTrustLines->isTrustLineOverflowed(kNodeUUIDAndReservations.first)) {
-                mTrustLines->setTrustLineState(
+        } else if (mTrustLines->isTrustLineOverflowed(kNodeUUIDAndReservations.first)) {
+            mTrustLines->setTrustLineState(
+                kNodeUUIDAndReservations.first,
+                TrustLine::AuditPending,
+                ioTransaction);
+            info() << "TL become overflowed";
+            // if TL become overflowed, it is necessary to run Audit TA.
+            // AuditSource TA run on node which pay
+            if (reservationDirection == AmountReservation::Outgoing) {
+                mTrustLineAuditSignal(
                     kNodeUUIDAndReservations.first,
-                    TrustLine::AuditPending,
-                    ioTransaction);
-                info() << "TL become overflowed";
-                // if TL become overflowed, it is necessary to run Audit TA.
-                // AuditSource TA run on node which pay
-                if (reservationDirection == AmountReservation::Outgoing) {
-                    mTrustLineAuditSignal(
-                        kNodeUUIDAndReservations.first,
-                        mEquivalent);
-                    info() << "Audit signal";
-                }
+                    mEquivalent);
+                info() << "Audit signal";
             }
+        } else {
+            // if both cases AuditSignal and PublicKeysSharingSignal occur simultaneously,
+            // AuditSignal run and Audit Transaction and it include changing keys procedure
             auto keyChain = mKeysStore->keychain(
                 mTrustLines->trustLineID(
                     kNodeUUIDAndReservations.first));

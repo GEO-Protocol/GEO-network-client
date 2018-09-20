@@ -250,7 +250,7 @@ void SubsystemsController::testForbidSendMessageOnFinalAmountClarificationStage(
 }
 
 void SubsystemsController::testForbidSendMessageToNextNodeOnVoteStage(
-        uint32_t countForbiddenMessages)
+    uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageToNextNodeOnVoteStage) {
         debug() << "ForbidSendMessageToNextNodeOnVoteStage";

@@ -844,6 +844,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
             continue;
         }
 
+#ifdef TESTS
+        mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage(mPaymentNodesIds.size() - 2);
+#endif
+
         if (mReservations.find(nodeAndPaymentID.first) == mReservations.end()) {
             info() << "Send public key hash to " << nodeAndPaymentID.first;
             sendMessage<TransactionPublicKeyHashMessage>(
