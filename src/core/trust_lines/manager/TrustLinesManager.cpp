@@ -31,7 +31,6 @@ void TrustLinesManager::loadTrustLinesFromStorage()
             kTrustLine->setAuditNumber(auditRecord->auditNumber());
             kTrustLine->setIncomingTrustAmount(auditRecord->incomingAmount());
             kTrustLine->setOutgoingTrustAmount(auditRecord->outgoingAmount());
-            info() << "audit number " << auditRecord->auditNumber();
 
             auto keyChain = mKeysStore->keychain(kTrustLine->trustLineID());
             auto totalIncomingReceiptsAmount = keyChain.incomingCommittedReceiptsAmountsSum(

@@ -252,6 +252,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         return resultContinuePreviousState();
     }
 
+#ifdef TESTS
+    mSubsystemsController->testThrowExceptionOnVoteStage();
+    mSubsystemsController->testTerminateProcessOnVoteStage();
+#endif
+
     {
         debug() << "Serializing transaction";
         auto ioTransaction = mStorageHandler->beginTransaction();
@@ -275,8 +280,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     mTransactionIsVoted = true;
 
 #ifdef TESTS
-    mSubsystemsController->testThrowExceptionOnVoteStage();
-    mSubsystemsController->testTerminateProcessOnVoteStage();
     mSubsystemsController->testForbidSendMessageToCoordinatorOnVoteStage();
     mSubsystemsController->testSleepOnVoteConsistencyStage(
         maxNetworkDelay(
