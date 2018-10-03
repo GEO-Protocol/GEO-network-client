@@ -76,7 +76,7 @@ void AuditHandler::saveAudit(
     rc = sqlite3_bind_int(stmt, 1, number);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::saveAudit: "
-                          "Bad binding of ID; sqlite error: " + to_string(rc));
+                          "Bad binding of Audit Number; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_int(stmt, 2, trustLineID);
     if (rc != SQLITE_OK) {

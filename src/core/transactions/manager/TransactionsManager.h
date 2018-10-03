@@ -66,6 +66,7 @@
 #include "../transactions/trust_lines/AuditTargetTransaction.h"
 #include "../transactions/trust_lines/ConflictResolverInitiatorTransaction.h"
 #include "../transactions/trust_lines/ConflictResolverContractorTransaction.h"
+#include "../transactions/trust_lines/CheckTrustLineAfterPaymentTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -403,11 +404,8 @@ protected:
     void subscribeForGatewayNotificationSignal(
         EquivalentsSubsystemsRouter::GatewayNotificationSignal &signal);
 
-    void subscribeForAuditSignal(
-        BasePaymentTransaction::TrustLineAuditSignal &signal);
-
-    void subscribeForPublicKeysSharingSignal(
-        BasePaymentTransaction::PublicKeysSharingSignal &signal);
+    void subscribeForTrustLineActionSignal(
+        BasePaymentTransaction::TrustLineActionSignal &signal);
 
     // Slots
     void onSubsidiaryTransactionReady(
@@ -454,13 +452,10 @@ protected:
 
     void onGatewayNotificationSlot();
 
-    void onAuditOnTrustLineSlot(
+    void onTrustLineActionSlot(
         const NodeUUID &contractorUUID,
-        const SerializedEquivalent equivalent);
-
-    void onPublicKeySharingSlot(
-        const NodeUUID &contractorUUID,
-        const SerializedEquivalent equivalent);
+        const SerializedEquivalent equivalent,
+        bool isActionInitiator);
 
 protected:
     void prepareAndSchedule(

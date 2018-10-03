@@ -1115,6 +1115,64 @@ const TrustLineID TrustLinesManager::nextFreeID(
     return prevElement + 1;
 }
 
+TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterPayment(
+    const NodeUUID &contractorUUID,
+    bool isActionInitiator)
+{
+    info() << "checkTrustLineAfterPayment";
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            logHeader() + "::checkTrustLineAfterPayment: "
+                "No trust line with the contractor is present.");
+    }
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (isTrustLineEmpty(contractorUUID)) {
+        setTrustLineState(
+            contractorUUID,
+            TrustLine::AuditPending,
+            ioTransaction);
+        info() << "TL become empty";
+        // if TL become empty, it is necessary to run Audit TA.
+        // AuditSource TA run on node which pay
+        if (isActionInitiator) {
+            info() << "Audit signal";
+            return TrustLineActionType::Audit;
+        } else {
+            return TrustLineActionType::NoActions;
+        }
+    } else if (isTrustLineOverflowed(contractorUUID)) {
+        // todo : add audit rules
+        setTrustLineState(
+            contractorUUID,
+            TrustLine::AuditPending,
+            ioTransaction);
+        info() << "TL become overflowed";
+        // if TL become overflowed, it is necessary to run Audit TA.
+        // AuditSource TA run on node which pay
+        if (isActionInitiator) {
+            info() << "Audit signal";
+            return TrustLineActionType::Audit;
+        } else {
+            return TrustLineActionType::NoActions;
+        }
+    } else {
+        // if both cases AuditSignal and PublicKeysSharingSignal occur simultaneously,
+        // AuditSignal run and Audit Transaction and it include changing keys procedure
+        auto keyChain = mKeysStore->keychain(
+            trustLineID(
+                contractorUUID));
+        if (keyChain.ownKeysCriticalCount(ioTransaction)) {
+            setTrustLineState(
+                contractorUUID,
+                TrustLine::KeysPending,
+                ioTransaction);
+            info() << "Public key sharing signal";
+            return TrustLineActionType::KeysSharing;
+        }
+    }
+    return TrustLineActionType::NoActions;
+}
+
 const string TrustLinesManager::logHeader() const
     noexcept
 {

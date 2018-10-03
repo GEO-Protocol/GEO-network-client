@@ -62,14 +62,7 @@ public:
                 set<NodeUUID> &creditorUUID,
                 const SerializedEquivalent equivalent)>
             BuildCycleFourNodesSignal;
-    typedef signals::signal<void(
-                const NodeUUID&,
-                const SerializedEquivalent)>
-            TrustLineAuditSignal;
-    typedef signals::signal<void(
-                const NodeUUID&,
-                const SerializedEquivalent)>
-            PublicKeysSharingSignal;
+    typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent, bool)> TrustLineActionSignal;
 
 public:
     BasePaymentTransaction(
@@ -420,11 +413,8 @@ public:
     // signal for launching transaction of building cycles on four nodes
     mutable BuildCycleFourNodesSignal mBuildCycleFourNodesSignal;
 
-    // signal for launching audit transaction on empty TL
-    mutable TrustLineAuditSignal mTrustLineAuditSignal;
-
-    // signal for generating and sharing public keys
-    mutable PublicKeysSharingSignal mPublicKeysSharingSignal;
+    // signal for checking TL after payment on audit or keys sharing cases
+    mutable TrustLineActionSignal mTrustLineActionSignal;
 
 protected:
     TrustLinesManager *mTrustLines;

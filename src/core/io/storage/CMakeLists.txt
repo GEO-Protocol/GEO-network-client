@@ -48,7 +48,9 @@ set(SOURCE_FILES
         OutgoingPaymentReceiptHandler.h
         OutgoingPaymentReceiptHandler.cpp
         PaymentParticipantsVotesHandler.h
-        PaymentParticipantsVotesHandler.cpp)
+        PaymentParticipantsVotesHandler.cpp
+        AuditRulesHandler.h
+        AuditRulesHandler.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

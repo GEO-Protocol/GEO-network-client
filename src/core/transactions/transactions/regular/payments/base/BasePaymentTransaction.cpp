@@ -527,51 +527,10 @@ void BasePaymentTransaction::commit(
                 kNodeUUIDAndReservations.first,
                 kPathIDAndReservation.second);
         }
-        if (mTrustLines->isTrustLineEmpty(kNodeUUIDAndReservations.first)) {
-            mTrustLines->setTrustLineState(
-                kNodeUUIDAndReservations.first,
-                TrustLine::AuditPending,
-                ioTransaction);
-            info() << "TL become empty";
-            // if TL become empty, it is necessary to run Audit TA.
-            // AuditSource TA run on node which pay
-            if (reservationDirection == AmountReservation::Outgoing) {
-                mTrustLineAuditSignal(
-                    kNodeUUIDAndReservations.first,
-                    mEquivalent);
-                info() << "Audit signal";
-            }
-        } else if (mTrustLines->isTrustLineOverflowed(kNodeUUIDAndReservations.first)) {
-            mTrustLines->setTrustLineState(
-                kNodeUUIDAndReservations.first,
-                TrustLine::AuditPending,
-                ioTransaction);
-            info() << "TL become overflowed";
-            // if TL become overflowed, it is necessary to run Audit TA.
-            // AuditSource TA run on node which pay
-            if (reservationDirection == AmountReservation::Outgoing) {
-                mTrustLineAuditSignal(
-                    kNodeUUIDAndReservations.first,
-                    mEquivalent);
-                info() << "Audit signal";
-            }
-        } else {
-            // if both cases AuditSignal and PublicKeysSharingSignal occur simultaneously,
-            // AuditSignal run and Audit Transaction and it include changing keys procedure
-            auto keyChain = mKeysStore->keychain(
-                mTrustLines->trustLineID(
-                    kNodeUUIDAndReservations.first));
-            if (keyChain.ownKeysCriticalCount(ioTransaction)) {
-                mTrustLines->setTrustLineState(
-                    kNodeUUIDAndReservations.first,
-                    TrustLine::KeysPending,
-                    ioTransaction);
-                mPublicKeysSharingSignal(
-                    kNodeUUIDAndReservations.first,
-                    mEquivalent);
-                info() << "Public key sharing signal";
-            }
-        }
+        mTrustLineActionSignal(
+            kNodeUUIDAndReservations.first,
+            mEquivalent,
+            reservationDirection == AmountReservation::Outgoing);
     }
 
     // delete transaction references on dropped reservations

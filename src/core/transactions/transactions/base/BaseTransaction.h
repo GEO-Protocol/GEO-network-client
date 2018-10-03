@@ -59,6 +59,7 @@ public:
         AuditTargetTransactionType = 109,
         ConflictResolverInitiatorTransactionType = 110,
         ConflictResolverContractorTransactionType = 111,
+        CheckTrustLineAfterPaymentTransactionType = 112,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction = 200,

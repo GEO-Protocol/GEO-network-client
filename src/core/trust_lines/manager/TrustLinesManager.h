@@ -13,6 +13,7 @@
 #include "../../common/exceptions/PreconditionFailedError.h"
 #include "../../logger/Logger.h"
 #include "../../payments/reservations/AmountReservationsHandler.h"
+#include "../audit_rules/AuditRuleCountPayments.h"
 
 // TODO: remove storage handler include (IO transactions must be transferred as arguments)
 #include "../../io/storage/StorageHandler.h"
@@ -48,6 +49,12 @@ public:
         Updated,
         Closed,
         NoChanges,
+    };
+
+    enum TrustLineActionType {
+        NoActions,
+        Audit,
+        KeysSharing,
     };
 
 public:
@@ -358,6 +365,10 @@ public:
     vector<NodeUUID> getFirstLevelNodesForCycles(
         TrustLineBalance maxFlow);
 
+    TrustLineActionType checkTrustLineAfterPayment(
+        const NodeUUID &contractorUUID,
+        bool isActionInitiator);
+
     // TODO remove after testing
     void printRTs();
 
@@ -387,6 +398,8 @@ protected: // log shortcuts
 private:
     unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>> mTrustLines;
     SerializedEquivalent mEquivalent;
+
+    unordered_map<NodeUUID, BaseAuditRule::Shared, boost::hash<boost::uuids::uuid>> mAuditRules;
 
     unique_ptr<AmountReservationsHandler> mAmountReservationsHandler;
     StorageHandler *mStorageHandler;
