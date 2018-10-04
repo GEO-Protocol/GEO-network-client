@@ -148,7 +148,6 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
             kWaitMillisecondsForResponse);
     }
 
-    processConfirmationMessage(message);
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineID(mContractorUUID));
@@ -160,6 +159,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
             // delete this transaction from storage
             ioTransaction->transactionHandler()->deleteRecord(
                 currentTransactionUUID());
+            processConfirmationMessage(message);
 
             mTrustLines->setTrustLineState(
                 mContractorUUID,
@@ -190,12 +190,13 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
             // delete this transaction from storage
             ioTransaction->transactionHandler()->deleteRecord(
                 currentTransactionUUID());
+            processConfirmationMessage(message);
             // todo run conflict resolver TA
             return resultDone();
         }
         info() << "Signature is correct";
 
-#ifdef TETST
+#ifdef TESTS
         mTrustLinesInfluenceController->testThrowExceptionOnAuditResponseProcessingStage();
         mTrustLinesInfluenceController->testTerminateProcessOnAuditResponseProcessingStage();
 #endif
@@ -226,6 +227,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
         // delete this transaction from storage
         ioTransaction->transactionHandler()->deleteRecord(
             currentTransactionUUID());
+        processConfirmationMessage(message);
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't check signature, update TL on storage or save Audit. Details: " << e.what();

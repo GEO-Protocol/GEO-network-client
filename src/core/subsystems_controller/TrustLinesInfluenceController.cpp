@@ -135,6 +135,7 @@ void TrustLinesInfluenceController::testThrowExceptionOnKeysSharingReceiverStage
 void TrustLinesInfluenceController::testThrowExceptionOnAuditStage()
 {
     if (mThrowExceptionOnAuditStage) {
+        mThrowExceptionOnAuditStage = false;
         if (mForbiddenReceiveMessageType == Message::Debug) {
             throw IOError("testThrowExceptionOnAuditStage IO");
         } else {
@@ -146,6 +147,7 @@ void TrustLinesInfluenceController::testThrowExceptionOnAuditStage()
 void TrustLinesInfluenceController::testThrowExceptionOnAuditResponseProcessingStage()
 {
     if (mThrowExceptionOnAuditResponseProcessingStage) {
+        mThrowExceptionOnAuditResponseProcessingStage = false;
         if (mForbiddenReceiveMessageType == Message::Debug) {
             throw IOError("testThrowExceptionOnAuditResponseProcessingStage IO");
         } else {
