@@ -34,6 +34,10 @@ public:
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
+protected:
+    const size_t kOffsetToInheritedBytes() const
+    noexcept;
+
 private:
     KeyNumber mNumber;
     lamport::PublicKey::Shared mPublicKey;

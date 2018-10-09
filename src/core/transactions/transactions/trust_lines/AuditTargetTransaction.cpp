@@ -56,17 +56,6 @@ AuditTargetTransaction::AuditTargetTransaction(
         &mAuditNumber,
         buffer.get() + bytesBufferOffset,
         sizeof(AuditNumber));
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
-        //todo implement reaction on this case
-    }
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        bytesBufferOffset += sizeof(AuditNumber);
-
-        auto *keyNumber = new (buffer.get() + bytesBufferOffset) KeyNumber;
-        mCurrentKeyNumber = (KeyNumber) *keyNumber;
-    }
 }
 
 TransactionResult::SharedConst AuditTargetTransaction::run()
@@ -74,12 +63,6 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
     switch (mStep) {
         case Stages::AuditTarget: {
             return runInitializationStage();
-        }
-        case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitializationStage();
-        }
-        case Stages::NextKeyProcessing: {
-            return runPublicKeysSendNextKeyStage();
         }
         case Stages::Recovery: {
             return runRecoveryStage();
@@ -114,26 +97,6 @@ TransactionResult::SharedConst AuditTargetTransaction::runRecoveryStage()
         warning() << "Trust line is absent.";
         return resultDone();
     }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        info() << "Keys pending state, current key number " << mCurrentKeyNumber;
-        auto keyChain = mKeysStore->keychain(mTrustLines->trustLineID(mContractorUUID));
-        auto ioTransaction = mStorageHandler->beginTransaction();
-        try {
-            mCurrentPublicKey = keyChain.publicKey(
-                ioTransaction,
-                mCurrentKeyNumber);
-            if (mCurrentPublicKey == nullptr) {
-                warning() << "Can't get own public key with number " << mCurrentKeyNumber;
-                return resultDone();
-            }
-            mStep = NextKeyProcessing;
-        } catch (IOError &e) {
-            ioTransaction->rollback();
-            error() << "Can't get own public key from storage. Details: " << e.what();
-            return resultDone();
-        }
-        return resultAwakeAsFastAsPossible();
-    }
     warning() << "Invalid TL state for this TA state: "
               << mTrustLines->trustLineState(mContractorUUID);
     return resultDone();
@@ -145,10 +108,6 @@ pair<BytesShared, size_t> AuditTargetTransaction::serializeToBytes() const
     size_t bytesCount = parentBytesAndCount.second
                         + NodeUUID::kBytesSize
                         + sizeof(AuditNumber);
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        bytesCount += sizeof(KeyNumber);
-    }
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -169,15 +128,6 @@ pair<BytesShared, size_t> AuditTargetTransaction::serializeToBytes() const
         dataBytesShared.get() + dataBytesOffset,
         &mAuditNumber,
         sizeof(AuditNumber));
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        dataBytesOffset += sizeof(AuditNumber);
-
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &mCurrentKeyNumber,
-            sizeof(KeyNumber));
-    }
 
     return make_pair(
         dataBytesShared,

@@ -29,6 +29,7 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
 {
     mAmount = message->amount();
     mAuditNumber = TrustLine::kInitialAuditNumber;
+    mContractorKeysCount = 0;
     mCurrentKeyNumber = 0;
 }
 
@@ -70,6 +71,10 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
             mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
         bytesBufferOffset += kTrustLineAmountBytesCount;
 
+        auto *contractorKeysCount = new (buffer.get() + bytesBufferOffset) KeysCount;
+        mContractorKeysCount = (KeysCount) *contractorKeysCount;
+        bytesBufferOffset += sizeof(KeysCount);
+
         auto *keyNumber = new (buffer.get() + bytesBufferOffset) KeyNumber;
         mCurrentKeyNumber = (KeyNumber) *keyNumber;
     }
@@ -81,6 +86,9 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     switch (mStep) {
         case Stages::TrustLineInitialization: {
             return runInitializationStage();
+        }
+        case Stages::KeysSharingTargetInitialization: {
+            return runReceiveFirstKeyStage();
         }
         case Stages::KeysSharingTargetNextKey: {
             return runReceiveNextKeyStage();
@@ -190,15 +198,34 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::runInitializationStag
         mIAmGateway,
         ConfirmationMessage::OK);
 
-    mStep = KeysSharingTargetNextKey;
+    mStep = KeysSharingTargetInitialization;
     return resultWaitForMessageTypes(
-        {Message::TrustLines_PublicKey},
+        {Message::TrustLines_PublicKeysSharingInit},
         kWaitMillisecondsForResponse);
+}
+
+TransactionResult::SharedConst AcceptTrustLineTransaction::runReceiveFirstKeyStage()
+{
+    info() << "runReceiveFirstKeyStage";
+    if (mContext.empty()) {
+        warning() << "No next public key init message received. Transaction will be closed, and wait for message";
+        return resultDone();
+    }
+    auto message = popNextMessage<PublicKeysSharingInitMessage>();
+    mContractorKeysCount = message->keysCount();
+    mCurrentPublicKey = message->publicKey();
+    mCurrentKeyNumber = message->number();
+    mShouldPopPublicKeyMessage = false;
+    return runPublicKeyReceiverInitStage();
 }
 
 TransactionResult::SharedConst AcceptTrustLineTransaction::runReceiveNextKeyStage()
 {
     info() << "runReceiveNextKeyStage";
+    if (!mShouldPopPublicKeyMessage) {
+        mShouldPopPublicKeyMessage = true;
+        return runPublicKeyReceiverStage();
+    }
     if (mContext.empty()) {
         warning() << "No next public key message received. Transaction will be closed, and wait for message";
         return resultDone();
@@ -232,8 +259,8 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::runRecoveryStage()
         mTrustLines->setIncoming(
             mContractorUUID,
             mAmount);
-        mStep = KeysSharingTargetNextKey;
-        return runReceiveNextKeyStage();
+        mStep = KeysSharingTargetInitialization;
+        return runReceiveFirstKeyStage();
     }
     if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
         info() << "Keys pending stage";
@@ -283,7 +310,7 @@ pair<BytesShared, size_t> AcceptTrustLineTransaction::serializeToBytes() const
 
     if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Init or
             mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        bytesCount += sizeof(KeyNumber);
+        bytesCount += sizeof(KeysCount) + sizeof(KeyNumber);
     }
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -310,6 +337,12 @@ pair<BytesShared, size_t> AcceptTrustLineTransaction::serializeToBytes() const
     if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Init or
             mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
         dataBytesOffset += kTrustLineAmountBytesCount;
+
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            &mContractorKeysCount,
+            sizeof(KeysCount));
+        dataBytesOffset += sizeof(KeysCount);
 
         memcpy(
             dataBytesShared.get() + dataBytesOffset,

@@ -188,9 +188,10 @@ namespace crypto {
     }
 
     bool TrustLineKeychain::allContractorKeysPresent(
-        IOTransaction::Shared ioTransaction)
+        IOTransaction::Shared ioTransaction,
+        KeysCount contractorKeysCount)
     {
-        return ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID) == kDefaultKeysSetSize;
+        return ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID) == contractorKeysCount;
     }
 
     bool TrustLineKeychain::ownKeysCriticalCount(

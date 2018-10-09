@@ -29,12 +29,13 @@ public:
         TrustLines_SetIncomingInitial = 102,
         TrustLines_CloseOutgoing = 103,
         TrustLines_Confirmation = 104,
-        TrustLines_PublicKey = 105,
-        TrustLines_HashConfirmation = 106,
-        TrustLines_Audit = 107,
-        TrustLines_AuditConfirmation = 108,
-        TrustLines_ConflictResolver = 109,
-        TrustLines_ConflictResolverConfirmation = 110,
+        TrustLines_PublicKeysSharingInit = 105,
+        TrustLines_PublicKey = 106,
+        TrustLines_HashConfirmation = 107,
+        TrustLines_Audit = 108,
+        TrustLines_AuditConfirmation = 109,
+        TrustLines_ConflictResolver = 110,
+        TrustLines_ConflictResolverConfirmation = 111,
 
         /*
          * Payments messages

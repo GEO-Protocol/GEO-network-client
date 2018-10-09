@@ -20,7 +20,8 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
-    mTrustLinesInfluenceController(trustLinesInfluenceController)
+    mTrustLinesInfluenceController(trustLinesInfluenceController),
+    mShouldPopPublicKeyMessage(true)
 {}
 
 BaseTrustLineTransaction::BaseTrustLineTransaction(
@@ -45,7 +46,8 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
-    mTrustLinesInfluenceController(trustLinesInfluenceController)
+    mTrustLinesInfluenceController(trustLinesInfluenceController),
+    mShouldPopPublicKeyMessage(true)
 {}
 
 BaseTrustLineTransaction::BaseTrustLineTransaction(
@@ -63,7 +65,8 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
-    mTrustLinesInfluenceController(trustLinesInfluenceController)
+    mTrustLinesInfluenceController(trustLinesInfluenceController),
+    mShouldPopPublicKeyMessage(true)
 {}
 
 TransactionResult::SharedConst BaseTrustLineTransaction::runAuditInitializationStage()
@@ -236,8 +239,13 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditResponseProcess
 
     info() << "All data saved. Now TL is ready for using";
     if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        mStep = KeysSharingInitialization;
-        return resultAwakeAsFastAsPossible();
+        mTrustLines->setTrustLineState(
+            mContractorUUID,
+            TrustLine::Active);
+        info() << "Public Keys Sharing Signal";
+        mPublicKeysSharingSignal(
+            mContractorUUID,
+            mEquivalent);
     }
     return resultDone();
 }
@@ -251,7 +259,8 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditTargetStage()
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
 
-    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::AuditPending) {
+    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::AuditPending
+            and mTrustLines->trustLineState(mContractorUUID) != TrustLine::Active) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
         return sendAuditErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
@@ -336,8 +345,13 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runAuditTargetStage()
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
 
     if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        mStep = KeysSharingInitialization;
-        return resultAwakeAsFastAsPossible();
+        mTrustLines->setTrustLineState(
+            mContractorUUID,
+            TrustLine::Active);
+        info() << "Public Keys Sharing Signal";
+        mPublicKeysSharingSignal(
+            mContractorUUID,
+            mEquivalent);
     }
     return resultDone();
 }
@@ -380,8 +394,7 @@ void BaseTrustLineTransaction::updateTrustLineStateAfterNextAudit(
         } else if (keyChain->ownKeysCriticalCount(ioTransaction)) {
             mTrustLines->setTrustLineState(
                 mContractorUUID,
-                TrustLine::KeysPending,
-                ioTransaction);
+                TrustLine::KeysPending);
             info() << "Start sharing own keys";
         }
     } catch (IOError &e) {
@@ -400,7 +413,9 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSharingIni
         return resultDone();
     }
 
-    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::KeysPending) {
+    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::KeysPending
+            and mTrustLines->trustLineState(mContractorUUID) != TrustLine::Init
+            and mTrustLines->trustLineState(mContractorUUID) != TrustLine::Active) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
         return resultDone();
     }
@@ -450,11 +465,12 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSharingIni
         throw e;
     }
 
-    sendMessage<PublicKeyMessage>(
+    sendMessage<PublicKeysSharingInitMessage>(
         mContractorUUID,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,
+        crypto::TrustLineKeychain::kDefaultKeysSetSize,
         mCurrentKeyNumber,
         mCurrentPublicKey);
     info() << "Send key number: " << mCurrentKeyNumber;
@@ -503,7 +519,6 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
     }
 
     info() << "Key number: " << mCurrentKeyNumber << " confirmed";
-    processConfirmationMessage(message);
     mCurrentKeyNumber++;
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineID(mContractorUUID));
@@ -519,6 +534,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
                     bytesAndCount.first,
                     bytesAndCount.second);
                 info() << "Transaction saved";
+                processConfirmationMessage(message);
                 if (keyChain.contractorKeysPresent(ioTransaction)) {
                     mTrustLines->setTrustLineState(
                         mContractorUUID,
@@ -531,9 +547,9 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
                         kWaitMillisecondsForResponse);
                 } else {
                     info() << "Waiting for contractor public keys";
-                    mStep = KeysSharingTargetNextKey;
+                    mStep = KeysSharingTargetInitialization;
                     return resultWaitForMessageTypes(
-                        {Message::TrustLines_PublicKey},
+                        {Message::TrustLines_PublicKeysSharingInit},
                         kWaitMillisecondsForResponse);
                 }
             } else {
@@ -544,6 +560,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
                 // delete this transaction from storage
                 ioTransaction->transactionHandler()->deleteRecord(
                     currentTransactionUUID());
+                processConfirmationMessage(message);
                 info() << "TL is ready for using";
             }
         } catch (IOError &e) {
@@ -578,6 +595,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
 #endif
 
         info() << "Transaction saved";
+        processConfirmationMessage(message);
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't serialize TA. Details " << e.what();
@@ -598,6 +616,57 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeysSendNextKe
         kWaitMillisecondsForResponse);
 }
 
+TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverInitStage()
+{
+    info() << "runPublicKeyReceiverInitStage";
+    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+        warning() << "Trust line is absent.";
+        return sendKeyErrorConfirmation(
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+    }
+
+    // todo check contractor keys count
+    info() << "Contractor keys count " << mContractorKeysCount;
+
+    if (mAuditNumber == TrustLine::kInitialAuditNumber) {
+        if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Init
+            and mTrustLines->trustLineState(mContractorUUID) != TrustLine::KeysPending
+            and mTrustLines->trustLineState(mContractorUUID) != TrustLine::Active) {
+            warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID)
+                      << " for init TL. Waiting for state updating";
+            return sendKeyErrorConfirmation(
+                ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+        }
+    } else {
+        if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Active
+                and mTrustLines->trustLineState(mContractorUUID) != TrustLine::KeysPending) {
+            warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID)
+                      << ". Waiting for state updating";
+            return sendKeyErrorConfirmation(
+                ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+        }
+    }
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorUUID));
+    keyChain.removeUnusedContractorKeys(ioTransaction);
+    mTrustLines->setTrustLineState(
+        mContractorUUID,
+        TrustLine::KeysPending,
+        ioTransaction);
+
+    auto bytesAndCount = serializeToBytes();
+    info() << "Transaction serialized";
+    ioTransaction->transactionHandler()->saveRecord(
+        currentTransactionUUID(),
+        bytesAndCount.first,
+        bytesAndCount.second);
+    info() << "Transaction saved";
+
+    mStep = KeysSharingTargetNextKey;
+    return resultAwakeAsFastAsPossible();
+}
+
 TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverStage()
 {
     info() << "runPublicKeyReceiverStage";
@@ -613,35 +682,11 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
     auto keyChain = mKeysStore->keychain(
             mTrustLines->trustLineID(mContractorUUID));
     try {
-        if (mCurrentKeyNumber == 0) {
-            info() << "init key number";
-            if (mAuditNumber == TrustLine::kInitialAuditNumber) {
-                if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Init
-                    and mTrustLines->trustLineState(mContractorUUID) != TrustLine::KeysPending) {
-                    warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID)
-                              << " for init TL. Waiting for state updating";
-                    return sendKeyErrorConfirmation(
-                        ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
-                }
-            } else {
-                if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Active) {
-                    warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID)
-                              << ". Waiting for state updating";
-                    return sendKeyErrorConfirmation(
-                        ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
-                }
-            }
-            keyChain.removeUnusedContractorKeys(ioTransaction);
-            mTrustLines->setTrustLineState(
-                mContractorUUID,
-                TrustLine::KeysPending,
-                ioTransaction);
-        } else {
-            if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::KeysPending) {
-                warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
-                return sendKeyErrorConfirmation(
-                    ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
-            }
+        if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::KeysPending
+            and mTrustLines->trustLineState(mContractorUUID) != TrustLine::Active) {
+            warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
+            return sendKeyErrorConfirmation(
+                ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         }
         keyChain.setContractorPublicKey(
             ioTransaction,
@@ -653,25 +698,42 @@ TransactionResult::SharedConst BaseTrustLineTransaction::runPublicKeyReceiverSta
         mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingReceiverStage();
 #endif
 
+        auto bytesAndCount = serializeToBytes();
+        info() << "Transaction serialized";
+        ioTransaction->transactionHandler()->saveRecord(
+            currentTransactionUUID(),
+            bytesAndCount.first,
+            bytesAndCount.second);
+        info() << "Transaction saved";
+
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't store contractor public key. Details " << e.what();
         throw e;
     }
     info() << "Key saved, send hash confirmation";
-    sendMessageWithCaching<PublicKeyHashConfirmation>(
-        mContractorUUID,
-        Message::TrustLines_PublicKey,
-        mEquivalent,
-        mNodeUUID,
-        mTransactionUUID,
-        mCurrentKeyNumber,
-        mCurrentPublicKey->hash());
+    if (mCurrentKeyNumber == 0) {
+        sendMessageWithCaching<PublicKeyHashConfirmation>(
+            mContractorUUID,
+            Message::TrustLines_PublicKeysSharingInit,
+            mEquivalent,
+            mNodeUUID,
+            mTransactionUUID,
+            mCurrentKeyNumber,
+            mCurrentPublicKey->hash());
+    } else {
+        sendMessageWithCaching<PublicKeyHashConfirmation>(
+            mContractorUUID,
+            Message::TrustLines_PublicKey,
+            mEquivalent,
+            mNodeUUID,
+            mTransactionUUID,
+            mCurrentKeyNumber,
+            mCurrentPublicKey->hash());
+    }
 
-    if (keyChain.allContractorKeysPresent(ioTransaction)) {
+    if (keyChain.allContractorKeysPresent(ioTransaction, mContractorKeysCount)) {
         info() << "All keys received";
-        // todo check if count of keys are equal on both sides: source and target
-        // maybe add new message
         try {
             if (mAuditNumber == TrustLine::kInitialAuditNumber) {
                 if (keyChain.ownKeysPresent(ioTransaction)) {

@@ -80,6 +80,7 @@ bool TrustLinesInfluenceController::checkReceivedMessage(
 void TrustLinesInfluenceController::testThrowExceptionOnTLModifyingStage()
 {
     if (mThrowExceptionOnTLModifyingStage) {
+        mThrowExceptionOnTLModifyingStage = false;
         if (mForbiddenReceiveMessageType == Message::Debug) {
             throw IOError("Test IO exception on TL modifying stage");
         } else {
@@ -91,6 +92,7 @@ void TrustLinesInfluenceController::testThrowExceptionOnTLModifyingStage()
 void TrustLinesInfluenceController::testThrowExceptionOnTLProcessingResponseStage()
 {
     if (mThrowExceptionOnTLProcessingResponseStage) {
+        mThrowExceptionOnTLProcessingResponseStage = false;
         if (mForbiddenReceiveMessageType == Message::Debug) {
             throw IOError("Test IO exception on TL response processing stage");
         } else {
@@ -102,6 +104,7 @@ void TrustLinesInfluenceController::testThrowExceptionOnTLProcessingResponseStag
 void TrustLinesInfluenceController::testThrowExceptionOnKeysSharingStage()
 {
     if (mThrowExceptionOnKeysSharingStage) {
+        mThrowExceptionOnKeysSharingStage = false;
         if (mForbiddenReceiveMessageType == Message::Debug) {
             throw IOError("testThrowExceptionOnKeysSharingStage IO");
         } else {
@@ -113,6 +116,7 @@ void TrustLinesInfluenceController::testThrowExceptionOnKeysSharingStage()
 void TrustLinesInfluenceController::testThrowExceptionOnKeysSharingProcessingResponseStage()
 {
     if (mThrowExceptionOnKeysSharingResponseProcessingStage) {
+        mThrowExceptionOnKeysSharingResponseProcessingStage = false;
         if (mForbiddenReceiveMessageType == Message::Debug) {
             throw IOError("testThrowExceptionOnKeysSharingProcessingResponseStage IO");
         } else {
@@ -124,6 +128,7 @@ void TrustLinesInfluenceController::testThrowExceptionOnKeysSharingProcessingRes
 void TrustLinesInfluenceController::testThrowExceptionOnKeysSharingReceiverStage()
 {
     if (mThrowExceptionOnKeysSharingReceiverStage) {
+        mThrowExceptionOnKeysSharingReceiverStage = false;
         if (mForbiddenReceiveMessageType == Message::Debug) {
             throw IOError("testThrowExceptionOnKeysSharingReceiverStage IO");
         } else {

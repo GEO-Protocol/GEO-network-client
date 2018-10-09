@@ -11,15 +11,21 @@
 #include "../../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../../network/messages/trust_lines/AuditMessage.h"
 #include "../../../../network/messages/trust_lines/AuditResponseMessage.h"
+#include "../../../../network/messages/trust_lines/PublicKeysSharingInitMessage.h"
 #include "../../../../network/messages/trust_lines/PublicKeyMessage.h"
 #include "../../../../network/messages/trust_lines/PublicKeyHashConfirmation.h"
 
 #include "../ConflictResolverInitiatorTransaction.h"
 
+namespace signals = boost::signals2;
+
 class BaseTrustLineTransaction : public BaseTransaction {
 
 public:
     typedef shared_ptr<BaseTrustLineTransaction> Shared;
+
+public:
+    typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent)> PublicKeysSharingSignal;
 
     BaseTrustLineTransaction(
         const TransactionType type,
@@ -73,6 +79,8 @@ protected:
 
     TransactionResult::SharedConst runPublicKeysSendNextKeyStage();
 
+    TransactionResult::SharedConst runPublicKeyReceiverInitStage();
+
     TransactionResult::SharedConst runPublicKeyReceiverStage();
 
     TransactionResult::SharedConst runAuditInitializationStage();
@@ -102,6 +110,10 @@ protected:
 
     pair<BytesShared, size_t> getContractorSerializedAuditData();
 
+public:
+    // signal for launching transaction of public keys sharing
+    mutable PublicKeysSharingSignal mPublicKeysSharingSignal;
+
 protected:
     static const uint32_t kWaitMillisecondsForResponse = 60000;
 
@@ -116,10 +128,16 @@ protected:
 
     AuditMessage::Shared mAuditMessage;
 
+    KeysCount mContractorKeysCount;
     KeyNumber mCurrentKeyNumber;
     lamport::PublicKey::Shared mCurrentPublicKey;
 
     TrustLinesInfluenceController *mTrustLinesInfluenceController;
+
+    // this field is used for logic with receiving Public keys (first and next)
+    // when logic with ioTransaction as parameter in run.. methods (for processing Exceptions) will be applied,
+    // this field can be removed
+    bool mShouldPopPublicKeyMessage;
 };
 
 

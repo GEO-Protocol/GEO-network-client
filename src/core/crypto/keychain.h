@@ -196,7 +196,8 @@ public:
         IOTransaction::Shared ioTransaction);
 
     bool allContractorKeysPresent(
-        IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction,
+        KeysCount contractorKeysCount=kDefaultKeysSetSize);
 
     bool ownKeysCriticalCount(
         IOTransaction::Shared ioTransaction);

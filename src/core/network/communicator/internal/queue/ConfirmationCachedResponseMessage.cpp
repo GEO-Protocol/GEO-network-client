@@ -20,6 +20,13 @@ TransactionMessage::Shared ConfirmationCachedResponseMessage::getCachedMessage(
             return mCachedMessage;
         }
 
+    } else if (incomingMessage->typeID() == Message::TrustLines_PublicKeysSharingInit) {
+        auto incomingPublicKeysSharingInitMessage = static_pointer_cast<PublicKeysSharingInitMessage>(incomingMessage);
+        auto cachedPublicKeyResponseMessage = static_pointer_cast<PublicKeyHashConfirmation>(mCachedMessage);
+        if (incomingPublicKeysSharingInitMessage->transactionUUID() == mCachedMessage->transactionUUID()) {
+            return mCachedMessage;
+        }
+
     } else if (incomingMessage->typeID() == Message::TrustLines_PublicKey) {
         auto incomingPublicKeyMessage = static_pointer_cast<PublicKeyMessage>(incomingMessage);
         auto cachedPublicKeyResponseMessage = static_pointer_cast<PublicKeyHashConfirmation>(mCachedMessage);

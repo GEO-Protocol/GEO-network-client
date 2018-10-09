@@ -89,3 +89,13 @@ pair<BytesShared, size_t> PublicKeyMessage::serializeToBytes() const
         buffer,
         kBufferSize);
 }
+
+const size_t PublicKeyMessage::kOffsetToInheritedBytes() const
+    noexcept
+{
+    static const auto kOffset =
+            TransactionMessage::kOffsetToInheritedBytes()
+            + sizeof(KeyNumber)
+            + mPublicKey->keySize();
+    return kOffset;
+}

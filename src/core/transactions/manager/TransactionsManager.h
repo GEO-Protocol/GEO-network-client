@@ -207,7 +207,7 @@ protected: // Transactions
         CloseOutgoingTrustLineMessage::Shared message);
 
     void launchPublicKeysSharingTargetTransaction(
-        PublicKeyMessage::Shared message);
+        PublicKeysSharingInitMessage::Shared message);
 
     void launchAuditTargetTransaction(
         AuditMessage::Shared message);
@@ -407,6 +407,9 @@ protected:
     void subscribeForTrustLineActionSignal(
         BasePaymentTransaction::TrustLineActionSignal &signal);
 
+    void subscribeForKeysSharingSignal(
+        BaseTrustLineTransaction::PublicKeysSharingSignal &signal);
+
     // Slots
     void onSubsidiaryTransactionReady(
         BaseTransaction::Shared transaction);
@@ -456,6 +459,10 @@ protected:
         const NodeUUID &contractorUUID,
         const SerializedEquivalent equivalent,
         bool isActionInitiator);
+
+    void onPublicKeysSharingSlot(
+        const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent);
 
 protected:
     void prepareAndSchedule(

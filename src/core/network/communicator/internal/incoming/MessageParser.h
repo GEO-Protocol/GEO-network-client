@@ -9,6 +9,7 @@
 #include "../../../messages/trust_lines/SetIncomingTrustLineInitialMessage.h"
 #include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 #include "../../../messages/trust_lines/TrustLineConfirmationMessage.h"
+#include "../../../messages/trust_lines/PublicKeysSharingInitMessage.h"
 #include "../../../messages/trust_lines/PublicKeyMessage.h"
 #include "../../../messages/trust_lines/PublicKeyHashConfirmation.h"
 #include "../../../messages/trust_lines/AuditMessage.h"

@@ -46,6 +46,8 @@ protected: // log
 private:
     TransactionResult::SharedConst runInitializationStage();
 
+    TransactionResult::SharedConst runReceiveFirstKeyStage();
+
     TransactionResult::SharedConst runReceiveNextKeyStage();
 
     TransactionResult::SharedConst runReceiveAuditStage();

@@ -54,14 +54,8 @@ public:
     typedef shared_ptr<BasePaymentTransaction> Shared;
 
 public:
-    typedef signals::signal<void(
-                set<NodeUUID> &creditorUUID,
-                const SerializedEquivalent equivalent)>
-            BuildCycleThreeNodesSignal;
-    typedef signals::signal<void(
-                set<NodeUUID> &creditorUUID,
-                const SerializedEquivalent equivalent)>
-            BuildCycleFourNodesSignal;
+    typedef signals::signal<void(set<NodeUUID>&, const SerializedEquivalent)> BuildCycleThreeNodesSignal;
+    typedef signals::signal<void(set<NodeUUID>&, const SerializedEquivalent)> BuildCycleFourNodesSignal;
     typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent, bool)> TrustLineActionSignal;
 
 public:

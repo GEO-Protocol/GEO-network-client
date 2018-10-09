@@ -11,7 +11,16 @@ public:
 public:
     PublicKeysSharingTargetTransaction(
         const NodeUUID &nodeUUID,
-        PublicKeyMessage::Shared message,
+        PublicKeysSharingInitMessage::Shared message,
+        TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
+        Logger &logger);
+
+    PublicKeysSharingTargetTransaction(
+        BytesShared buffer,
+        const NodeUUID &nodeUUID,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -25,6 +34,10 @@ protected: // log
 
 private:
     TransactionResult::SharedConst runReceiveNextKeyStage();
+
+    TransactionResult::SharedConst runRecoveryStage();
+
+    pair<BytesShared, size_t> serializeToBytes() const override;
 };
 
 

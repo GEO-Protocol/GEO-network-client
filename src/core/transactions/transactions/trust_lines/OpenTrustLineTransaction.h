@@ -59,6 +59,8 @@ private:
 
     TransactionResult::SharedConst runRecoveryStage();
 
+    TransactionResult::SharedConst runReceiveFirstKeyStage();
+
     TransactionResult::SharedConst runReceiveNextKeyStage();
 
     pair<BytesShared, size_t> serializeToBytes() const override;

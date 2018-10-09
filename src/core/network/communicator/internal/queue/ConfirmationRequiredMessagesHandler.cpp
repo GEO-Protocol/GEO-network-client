@@ -261,6 +261,10 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<AuditMessage>(messageBody));
                 break;
+            case Message::TrustLines_PublicKeysSharingInit:
+                sendingMessage = static_pointer_cast<TransactionMessage>(
+                    make_shared<PublicKeysSharingInitMessage>(messageBody));
+                break;
             case Message::TrustLines_PublicKey:
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<PublicKeyMessage>(messageBody));

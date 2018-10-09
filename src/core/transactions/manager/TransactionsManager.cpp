@@ -286,6 +286,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
+                    subscribeForKeysSharingSignal(
+                        transaction->mPublicKeysSharingSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -310,6 +312,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
+                    subscribeForKeysSharingSignal(
+                        transaction->mPublicKeysSharingSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -334,6 +338,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
+                    subscribeForKeysSharingSignal(
+                        transaction->mPublicKeysSharingSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -358,6 +364,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
+                    subscribeForKeysSharingSignal(
+                        transaction->mPublicKeysSharingSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -382,6 +390,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
+                    subscribeForKeysSharingSignal(
+                        transaction->mPublicKeysSharingSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -406,6 +416,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mLog);
                     subscribeForProcessingConfirmationMessage(
                         transaction->processConfirmationMessageSignal);
+                    subscribeForKeysSharingSignal(
+                        transaction->mPublicKeysSharingSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -437,6 +449,30 @@ void TransactionsManager::loadTransactionsFromStorage()
                         true);
                 } catch (NotFoundError &e) {
                     error() << "There are no subsystems for serialized PublicKeysSharingSourceTransaction "
+                            "with equivalent " << *equivalent << " Details are: " << e.what();
+                    continue;
+                }
+                break;
+            }
+            case BaseTransaction::PublicKeysSharingTargetTransactionType: {
+                try {
+                    auto transaction = make_shared<PublicKeysSharingTargetTransaction>(
+                        kTABuffer,
+                        mNodeUUID,
+                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
+                        mStorageHandler,
+                        mKeysStore,
+                        mTrustLinesInfluenceController,
+                        mLog);
+                    subscribeForProcessingConfirmationMessage(
+                        transaction->processConfirmationMessageSignal);
+                    prepareAndSchedule(
+                        transaction,
+                        false,
+                        false,
+                        true);
+                } catch (NotFoundError &e) {
+                    error() << "There are no subsystems for serialized PublicKeysSharingTargetTransaction "
                             "with equivalent " << *equivalent << " Details are: " << e.what();
                     continue;
                 }
@@ -719,14 +755,23 @@ void TransactionsManager::processMessage(
             }
         }
 
+    }else if (message->typeID() == Message::TrustLines_PublicKeysSharingInit) {
+        try {
+            mScheduler->tryAttachMessageToTransaction(message);
+        } catch (NotFoundError &) {
+            if (!findSerializedTransactionAndLaunchIt(message)) {
+                launchPublicKeysSharingTargetTransaction(
+                    static_pointer_cast<PublicKeysSharingInitMessage>(message));
+            }
+        }
+
     } else if (message->typeID() == Message::TrustLines_PublicKey) {
         try {
             mScheduler->tryAttachMessageToTransaction(message);
 
         } catch (NotFoundError &) {
             if (!findSerializedTransactionAndLaunchIt(message)) {
-                launchPublicKeysSharingTargetTransaction(
-                    static_pointer_cast<PublicKeyMessage>(message));
+                warning() << "Can't attach PublicKey message to transaction ";
             }
         }
 
@@ -841,6 +886,8 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
                 mLog);
             subscribeForProcessingConfirmationMessage(
                 transaction->processConfirmationMessageSignal);
+            subscribeForKeysSharingSignal(
+                transaction->mPublicKeysSharingSignal);
             prepareAndSchedule(
                 transaction,
                 true,
@@ -897,6 +944,8 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
+        subscribeForKeysSharingSignal(
+            transaction->mPublicKeysSharingSignal);
         prepareAndSchedule(
             transaction,
             true,
@@ -935,6 +984,8 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
+        subscribeForKeysSharingSignal(
+            transaction->mPublicKeysSharingSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -998,6 +1049,8 @@ void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
+        subscribeForKeysSharingSignal(
+            transaction->mPublicKeysSharingSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -1010,7 +1063,7 @@ void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
 }
 
 void TransactionsManager::launchPublicKeysSharingTargetTransaction(
-    PublicKeyMessage::Shared message)
+    PublicKeysSharingInitMessage::Shared message)
 {
     try {
         prepareAndSchedule(
@@ -1045,6 +1098,8 @@ void TransactionsManager::launchAuditTargetTransaction(
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
+        subscribeForKeysSharingSignal(
+            transaction->mPublicKeysSharingSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -2343,6 +2398,17 @@ void TransactionsManager::subscribeForTrustLineActionSignal(
             _3));
 }
 
+void TransactionsManager::subscribeForKeysSharingSignal(
+    BaseTrustLineTransaction::PublicKeysSharingSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onPublicKeysSharingSlot,
+            this,
+            _1,
+            _2));
+}
+
 void TransactionsManager::onTransactionOutgoingMessageReady(
     Message::Shared message,
     const NodeUUID &contractorUUID)
@@ -2507,6 +2573,38 @@ void TransactionsManager::onTrustLineActionSlot(
     }
 }
 
+void TransactionsManager::onPublicKeysSharingSlot(
+    const NodeUUID &contractorUUID,
+    const SerializedEquivalent equivalent)
+{
+    try {
+        auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+        auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
+            mNodeUUID,
+            contractorUUID,
+            equivalent,
+            trustLinesManager,
+            mStorageHandler,
+            mKeysStore,
+            mTrustLinesInfluenceController,
+            mLog);
+
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        subscribeForProcessingConfirmationMessage(
+            transaction->processConfirmationMessageSignal);
+
+        // wait for finish of contractor audit TA
+        mScheduler->postponeTransaction(
+            transaction,
+            500);
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for onPublicKeysSharingSlot "
+                "with equivalent " << equivalent << " Details are: " << e.what();
+    }
+}
+
 /**
  *
  * @throws bad_alloc;
@@ -2653,6 +2751,8 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                 transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
                     transaction->processConfirmationMessageSignal);
+                subscribeForKeysSharingSignal(
+                    transaction->mPublicKeysSharingSignal);
                 prepareAndSchedule(
                     transaction,
                     false,
@@ -2679,6 +2779,8 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                 transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
                     transaction->processConfirmationMessageSignal);
+                subscribeForKeysSharingSignal(
+                    transaction->mPublicKeysSharingSignal);
                 prepareAndSchedule(
                     transaction,
                     false,
@@ -2705,6 +2807,8 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                 transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
                     transaction->processConfirmationMessageSignal);
+                subscribeForKeysSharingSignal(
+                    transaction->mPublicKeysSharingSignal);
                 prepareAndSchedule(
                     transaction,
                     false,
@@ -2731,6 +2835,8 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                 transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
                     transaction->processConfirmationMessageSignal);
+                subscribeForKeysSharingSignal(
+                    transaction->mPublicKeysSharingSignal);
                 prepareAndSchedule(
                     transaction,
                     false,
@@ -2757,6 +2863,8 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                 transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
                     transaction->processConfirmationMessageSignal);
+                subscribeForKeysSharingSignal(
+                    transaction->mPublicKeysSharingSignal);
                 prepareAndSchedule(
                     transaction,
                     false,
@@ -2783,6 +2891,8 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                 transaction->pushContext(message);
                 subscribeForProcessingConfirmationMessage(
                     transaction->processConfirmationMessageSignal);
+                subscribeForKeysSharingSignal(
+                    transaction->mPublicKeysSharingSignal);
                 prepareAndSchedule(
                     transaction,
                     false,
@@ -2816,6 +2926,32 @@ bool TransactionsManager::findSerializedTransactionAndLaunchIt(
                     true);
             } catch (NotFoundError &e) {
                 error() << "There are no subsystems for serialized PublicKeysSharingSourceTransaction "
+                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
+                return false;
+            }
+            break;
+        }
+        case BaseTransaction::PublicKeysSharingTargetTransactionType: {
+            try {
+                auto transaction = make_shared<PublicKeysSharingTargetTransaction>(
+                    serializedTransaction,
+                    mNodeUUID,
+                    mEquivalentsSubsystemsRouter->trustLinesManager(
+                        transactionMessage->equivalent()),
+                    mStorageHandler,
+                    mKeysStore,
+                    mTrustLinesInfluenceController,
+                    mLog);
+                transaction->pushContext(message);
+                subscribeForProcessingConfirmationMessage(
+                    transaction->processConfirmationMessageSignal);
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
+            } catch (NotFoundError &e) {
+                error() << "There are no subsystems for serialized PublicKeysSharingTargetTransaction "
                         "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
                 return false;
             }

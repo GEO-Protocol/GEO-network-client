@@ -43,6 +43,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::TrustLines_Confirmation:
             return messageCollected<TrustLineConfirmationMessage>(buffer);
 
+        case Message::TrustLines_PublicKeysSharingInit:
+            return messageCollected<PublicKeysSharingInitMessage>(buffer);
+
         case Message::TrustLines_PublicKey:
             return messageCollected<PublicKeyMessage>(buffer);
 

@@ -102,13 +102,6 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
             signature,
             keyNumber);
     }
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        bytesBufferOffset += sizeof(AuditNumber);
-
-        auto *keyNumber = new (buffer.get() + bytesBufferOffset) KeyNumber;
-        mCurrentKeyNumber = (KeyNumber) *keyNumber;
-    }
 }
 
 TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
@@ -125,12 +118,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
         }
         case Stages::AuditResponseProcessing: {
             return runAuditResponseProcessingStage();
-        }
-        case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitializationStage();
-        }
-        case Stages::NextKeyProcessing: {
-            return runPublicKeysSendNextKeyStage();
         }
         case Stages::Recovery: {
             return runRecoveryStage();
@@ -407,26 +394,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runRecoveryStage
         mStep = AuditResponseProcessing;
         return runAuditResponseProcessingStage();
     }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        info() << "Keys pending state, current key number " << mCurrentKeyNumber;
-        auto keyChain = mKeysStore->keychain(mTrustLines->trustLineID(mContractorUUID));
-        auto ioTransaction = mStorageHandler->beginTransaction();
-        try {
-            mCurrentPublicKey = keyChain.publicKey(
-                ioTransaction,
-                mCurrentKeyNumber);
-            if (mCurrentPublicKey == nullptr) {
-                warning() << "Can't get own public key with number " << mCurrentKeyNumber;
-                return resultDone();
-            }
-            mStep = NextKeyProcessing;
-        } catch (IOError &e) {
-            ioTransaction->rollback();
-            error() << "Can't get own public key from storage. Details: " << e.what();
-            return resultDone();
-        }
-        return resultAwakeAsFastAsPossible();
-    }
 
     warning() << "Invalid TL state for this TA: "
               << mTrustLines->trustLineState(mContractorUUID);
@@ -471,9 +438,6 @@ pair<BytesShared, size_t> SetOutgoingTrustLineTransaction::serializeToBytes() co
     if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
         bytesCount += lamport::Signature::signatureSize()
                       + sizeof(KeyNumber);
-    }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        bytesCount += sizeof(KeyNumber);
     }
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -528,15 +492,6 @@ pair<BytesShared, size_t> SetOutgoingTrustLineTransaction::serializeToBytes() co
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &mOwnSignatureAndKeyNumber.second,
-            sizeof(KeyNumber));
-    }
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        dataBytesOffset += sizeof(AuditNumber);
-
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &mCurrentKeyNumber,
             sizeof(KeyNumber));
     }
 

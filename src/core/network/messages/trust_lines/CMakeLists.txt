@@ -9,6 +9,8 @@ set(SOURCE_FILES
         CloseOutgoingTrustLineMessage.h
         CloseOutgoingTrustLineMessage.cpp
 
+        PublicKeysSharingInitMessage.h
+        PublicKeysSharingInitMessage.cpp
         PublicKeyMessage.h
         PublicKeyMessage.cpp
 

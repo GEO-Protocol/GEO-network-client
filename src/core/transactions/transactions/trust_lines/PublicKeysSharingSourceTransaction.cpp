@@ -52,14 +52,10 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
         NodeUUID::kBytesSize);
     bytesBufferOffset += NodeUUID::kBytesSize;
 
-    memcpy(
-        &mAuditNumber,
-        buffer.get() + bytesBufferOffset,
-        sizeof(AuditNumber));
-    bytesBufferOffset += sizeof(AuditNumber);
-
     auto *keyNumber = new (buffer.get() + bytesBufferOffset) KeyNumber;
     mCurrentKeyNumber = (KeyNumber) *keyNumber;
+
+    mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
 }
 
 TransactionResult::SharedConst PublicKeysSharingSourceTransaction::run()
@@ -87,7 +83,8 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runRecoverySt
         warning() << "Trust line is absent " << mContractorUUID;
         return resultDone();
     }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending
+            or mTrustLines->trustLineState(mContractorUUID) == TrustLine::Active) {
         info() << "Keys pending state, current key number " << mCurrentKeyNumber;
         auto keyChain = mKeysStore->keychain(mTrustLines->trustLineID(mContractorUUID));
         auto ioTransaction = mStorageHandler->beginTransaction();
@@ -117,7 +114,6 @@ pair<BytesShared, size_t> PublicKeysSharingSourceTransaction::serializeToBytes()
     const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
                         + NodeUUID::kBytesSize
-                        + sizeof(AuditNumber)
                         + sizeof(KeyNumber);
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -134,12 +130,6 @@ pair<BytesShared, size_t> PublicKeysSharingSourceTransaction::serializeToBytes()
         mContractorUUID.data,
         NodeUUID::kBytesSize);
     dataBytesOffset += NodeUUID::kBytesSize;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &mAuditNumber,
-        sizeof(AuditNumber));
-    dataBytesOffset += sizeof(AuditNumber);
 
     memcpy(
         dataBytesShared.get() + dataBytesOffset,

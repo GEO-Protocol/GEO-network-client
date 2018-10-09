@@ -41,6 +41,11 @@ bool ConfirmationRequiredMessagesQueue::enqueue(
                 message);
             break;
         }
+        case Message::TrustLines_PublicKeysSharingInit: {
+            updatePublicKeysSharingInitInTheQueue(
+                message);
+            break;
+        }
         case Message::TrustLines_PublicKey: {
             updatePublicKeyInTheQueue(
                 message);
@@ -212,6 +217,31 @@ void ConfirmationRequiredMessagesQueue::updateAuditInTheQueue(
         const auto kMessage = it->second;
 
         if (kMessage->typeID() == Message::TrustLines_Audit) {
+            mMessages.erase(it++);
+            signalRemoveMessageFromStorage(
+                mContractorUUID,
+                mEquivalent,
+                kMessage->typeID());
+        } else {
+            ++it;
+        }
+    }
+
+    mMessages[message->transactionUUID()] = message;
+    signalSaveMessageToStorage(
+        mContractorUUID,
+        message);
+}
+
+void ConfirmationRequiredMessagesQueue::updatePublicKeysSharingInitInTheQueue(
+    TransactionMessage::Shared message)
+{
+    // Only one PublicKeysSharingInitMessage should be in the queue in one moment of time.
+    // queue must contains only newest one message, all other must be removed.
+    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
+        const auto kMessage = it->second;
+
+        if (kMessage->typeID() == Message::TrustLines_PublicKeysSharingInit) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,
