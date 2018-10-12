@@ -19,24 +19,15 @@ public:
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
-    AuditSourceTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger);
-
     TransactionResult::SharedConst run();
 
 protected: // log
     const string logHeader() const;
 
 private:
-    TransactionResult::SharedConst runRecoveryStage();
+    TransactionResult::SharedConst runInitializationStage();
 
-    pair<BytesShared, size_t> serializeToBytes() const override;
+    TransactionResult::SharedConst runResponseProcessingStage();
 };
 
 

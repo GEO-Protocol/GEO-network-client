@@ -1,6 +1,6 @@
-#include "CheckTrustLineAfterPaymentTransaction.h"
+#include "CheckTrustLineTransaction.h"
 
-CheckTrustLineAfterPaymentTransaction::CheckTrustLineAfterPaymentTransaction(
+CheckTrustLineTransaction::CheckTrustLineTransaction(
     const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     const NodeUUID &contractorUUID,
@@ -23,10 +23,10 @@ CheckTrustLineAfterPaymentTransaction::CheckTrustLineAfterPaymentTransaction(
     mTrustLinesInfluenceController(trustLinesInfluenceController)
 {}
 
-TransactionResult::SharedConst CheckTrustLineAfterPaymentTransaction::run()
+TransactionResult::SharedConst CheckTrustLineTransaction::run()
 {
     info() << "run";
-    auto action = mTrustLinesManager->checkTrustLineAfterPayment(
+    auto action = mTrustLinesManager->checkTrustLineAfterTransaction(
         mContractorUUID,
         mIsActionInitiator);
     switch (action) {
@@ -65,7 +65,7 @@ TransactionResult::SharedConst CheckTrustLineAfterPaymentTransaction::run()
     return resultDone();
 }
 
-const string CheckTrustLineAfterPaymentTransaction::logHeader() const
+const string CheckTrustLineTransaction::logHeader() const
     noexcept
 {
     stringstream s;

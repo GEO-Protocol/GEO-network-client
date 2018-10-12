@@ -24,15 +24,6 @@ public:
         Logger &logger)
         noexcept;
 
-    CloseOutgoingTrustLineTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger);
-
     TransactionResult::SharedConst run();
 
 protected: // trust lines history shortcuts
@@ -43,18 +34,13 @@ protected: // trust lines history shortcuts
     const string logHeader() const
         noexcept;
 
-private:
-    TransactionResult::SharedConst runInitializationStage();
-
-    TransactionResult::SharedConst runReceiveAuditStage();
-
-    TransactionResult::SharedConst runRecoveryStage();
-
-    pair<BytesShared, size_t> serializeToBytes() const;
-
 protected:
+    CloseOutgoingTrustLineMessage::Shared mMessage;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
+
+    TrustLineAmount mPreviousOutgoingAmount;
+    TrustLine::TrustLineState mPreviousState;
 };
 
 

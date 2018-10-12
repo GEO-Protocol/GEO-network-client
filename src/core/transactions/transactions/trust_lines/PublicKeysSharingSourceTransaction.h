@@ -1,9 +1,18 @@
 #ifndef GEO_NETWORK_CLIENT_PUBLICKEYSSHARINGSOURCETRANSACTION_H
 #define GEO_NETWORK_CLIENT_PUBLICKEYSSHARINGSOURCETRANSACTION_H
 
-#include "base/BaseTrustLineTransaction.h"
+#include "../base/BaseTransaction.h"
+#include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../crypto/keychain.h"
+#include "../../../crypto/lamportkeys.h"
 
-class PublicKeysSharingSourceTransaction : public BaseTrustLineTransaction {
+#include "../../../subsystems_controller/TrustLinesInfluenceController.h"
+
+#include "../../../network/messages/trust_lines/PublicKeysSharingInitMessage.h"
+#include "../../../network/messages/trust_lines/PublicKeyMessage.h"
+#include "../../../network/messages/trust_lines/PublicKeyHashConfirmation.h"
+
+class PublicKeysSharingSourceTransaction : public BaseTransaction {
 
 public:
     typedef shared_ptr<PublicKeysSharingSourceTransaction> Shared;
@@ -19,24 +28,35 @@ public:
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
-    PublicKeysSharingSourceTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger);
-
     TransactionResult::SharedConst run();
+
+protected:
+    enum Stages {
+        Initialization = 1,
+        ResponseProcessing = 2,
+    };
 
 protected: // log
     const string logHeader() const;
 
 private:
-    TransactionResult::SharedConst runRecoveryStage();
+    TransactionResult::SharedConst runPublicKeysSharingInitializationStage();
 
-    pair<BytesShared, size_t> serializeToBytes() const override;
+    TransactionResult::SharedConst runPublicKeysSendNextKeyStage();
+
+protected:
+    static const uint32_t kWaitMillisecondsForResponse = 60000;
+
+private:
+    TrustLinesManager *mTrustLines;
+    StorageHandler *mStorageHandler;
+    Keystore *mKeysStore;
+
+    NodeUUID mContractorUUID;
+    KeyNumber mCurrentKeyNumber;
+    lamport::PublicKey::Shared mCurrentPublicKey;
+
+    TrustLinesInfluenceController *mTrustLinesInfluenceController;
 };
 
 

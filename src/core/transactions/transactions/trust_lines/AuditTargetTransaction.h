@@ -18,26 +18,16 @@ public:
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
-    AuditTargetTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger);
-
     TransactionResult::SharedConst run();
 
 protected: // log
     const string logHeader() const;
 
+public:
+    mutable PublicKeysSharingSignal publicKeysSharingSignal;
+
 private:
-    TransactionResult::SharedConst runInitializationStage();
-
-    TransactionResult::SharedConst runRecoveryStage();
-
-    pair<BytesShared, size_t> serializeToBytes() const override;
+    AuditMessage::Shared mMessage;
 };
 
 

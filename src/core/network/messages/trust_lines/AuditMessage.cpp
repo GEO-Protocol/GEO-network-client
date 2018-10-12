@@ -4,21 +4,23 @@ AuditMessage::AuditMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
+    const NodeUUID &destinationUUID,
     const KeyNumber keyNumber,
     const lamport::Signature::Shared signature):
-    TransactionMessage(
-         equivalent,
-         senderUUID,
-         transactionUUID),
+    DestinationMessage(
+        equivalent,
+        senderUUID,
+        transactionUUID,
+        destinationUUID),
     mSignature(signature),
     mKeyNumber(keyNumber)
 {}
 
 AuditMessage::AuditMessage(
     BytesShared buffer) :
-    TransactionMessage(buffer)
+    DestinationMessage(buffer)
 {
-    auto bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    auto bytesBufferOffset = DestinationMessage::kOffsetToInheritedBytes();
 
     memcpy(
         &mKeyNumber,
@@ -56,9 +58,8 @@ const bool AuditMessage::isCheckCachedResponse() const
 }
 
 pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
-    const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+    const auto parentBytesAndCount = DestinationMessage::serializeToBytes();
     auto kBufferSize = parentBytesAndCount.second
                        + sizeof(KeyNumber)
                        + mSignature->signatureSize();
@@ -86,4 +87,14 @@ pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
     return make_pair(
         buffer,
         kBufferSize);
+}
+
+const size_t AuditMessage::kOffsetToInheritedBytes() const
+    noexcept
+{
+    static const auto kOffset =
+            DestinationMessage::kOffsetToInheritedBytes()
+            + sizeof(KeyNumber)
+            + mSignature->signatureSize();
+    return kOffset;
 }

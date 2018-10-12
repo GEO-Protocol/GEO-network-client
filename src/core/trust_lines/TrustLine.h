@@ -27,13 +27,11 @@ public:
 public:
     enum TrustLineState {
         Init = 1,
-        Modify = 2,
-        KeysPending = 3,
-        AuditPending = 4,
-        Active = 5,
-        Archived = 6,
-        Conflict = 7,
-        ConflictResolving = 8,
+        Active = 2,
+        AuditPending = 3,
+        Archived = 4,
+        Conflict = 5,
+        ConflictResolving = 6,
     };
 
 public:
@@ -111,6 +109,12 @@ public:
     void setContractorAsGateway(
         bool contractorAsGateway);
 
+    void setIsOwnKeysPresent(
+        bool isOwnKeysPresent);
+
+    void setIsContractorKeysPresent(
+        bool isContractorKeysPresent);
+
     static const TrustLineBalance& kZeroBalance();
 
     static const TrustLineAmount& kZeroAmount();
@@ -137,6 +141,8 @@ private:
     bool mIsContractorGateway;
     TrustLineState mState;
     AuditNumber mCurrentAudit;
+    bool mIsOwnKeysPresent;
+    bool mIsContractorKeysPresent;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINE_H

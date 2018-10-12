@@ -1,12 +1,11 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_SETTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_SETTRUSTLINEMESSAGE_H
 
-#include "../base/transaction/DestinationMessage.h"
+#include "AuditMessage.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
 
-
 class SetIncomingTrustLineMessage:
-    public DestinationMessage {
+    public AuditMessage {
 
 public:
     typedef shared_ptr<SetIncomingTrustLineMessage> Shared;
@@ -16,7 +15,9 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &sender,
         const TransactionUUID &transactionUUID,
-        const NodeUUID &destinationMessage,
+        const NodeUUID &destinationUUID,
+        const KeyNumber keyNumber,
+        const lamport::Signature::Shared signature,
         const TrustLineAmount &amount)
         noexcept;
 
@@ -34,7 +35,7 @@ public:
 
     const bool isCheckCachedResponse() const override;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
     const size_t kOffsetToInheritedBytes() const

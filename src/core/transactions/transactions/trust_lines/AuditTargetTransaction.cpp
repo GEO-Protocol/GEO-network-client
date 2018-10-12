@@ -18,120 +18,124 @@ AuditTargetTransaction::AuditTargetTransaction(
         storageHandler,
         keystore,
         trustLinesInfluenceController,
-        logger)
+        logger),
+    mMessage(message)
 {
     mAuditNumber = mTrustLines->auditNumber(message->senderUUID) + 1;
-    mAuditMessage = message;
-    mStep = Stages::AuditTarget;
-}
-
-AuditTargetTransaction::AuditTargetTransaction(
-    BytesShared buffer,
-    const NodeUUID &nodeUUID,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    Keystore *keystore,
-    TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger) :
-
-    BaseTrustLineTransaction(
-        buffer,
-        nodeUUID,
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger)
-{
-    auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
-    mStep = Stages::Recovery;
-
-    memcpy(
-        mContractorUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
-
-    memcpy(
-        &mAuditNumber,
-        buffer.get() + bytesBufferOffset,
-        sizeof(AuditNumber));
 }
 
 TransactionResult::SharedConst AuditTargetTransaction::run()
 {
-    switch (mStep) {
-        case Stages::AuditTarget: {
-            return runInitializationStage();
-        }
-        case Stages::Recovery: {
-            return runRecoveryStage();
-        }
-        default:
-            throw ValueError(logHeader() + "::run: "
-                    "wrong value of mStep " + to_string(mStep));
+    info() << "sender: " << mContractorUUID;
+    if (mContractorUUID == mNodeUUID) {
+        warning() << "Attempt to launch transaction against itself was prevented.";
+        return resultDone();
     }
-}
 
-TransactionResult::SharedConst AuditTargetTransaction::runInitializationStage()
-{
-    info() << "runInitializationStage";
     if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
-        warning() << "Trust Line is absent";
+        warning() << "Trust line is absent.";
         return sendAuditErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
 
-    if (mTrustLines->isReservationsPresentOnTrustLine(mContractorUUID)) {
-        info() << "there are reservations on TL";
+    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Active) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
         return sendAuditErrorConfirmation(
-            ConfirmationMessage::ReservationsPresentOnTrustLine);
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
-    return runAuditTargetStage();
-}
 
-TransactionResult::SharedConst AuditTargetTransaction::runRecoveryStage()
-{
-    info() << "Recovery";
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
-        warning() << "Trust line is absent.";
-        return resultDone();
+    // Trust line must be created (or updated) in the internal storage.
+    // Also, history record must be written about this operation.
+    // Both writes must be done atomically, so the IO transaction is used.
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorUUID));
+    auto contractorSerializedAuditData = getContractorSerializedAuditData();
+
+    try {
+        // note: io transaction would commit automatically on destructor call.
+        // there is no need to call commit manually.
+        mTrustLines->setTrustLineState(
+            mContractorUUID,
+            TrustLine::AuditPending);
+        if (!keyChain.checkSign(
+                ioTransaction,
+                contractorSerializedAuditData.first,
+                contractorSerializedAuditData.second,
+                mMessage->signature(),
+                mMessage->keyNumber())) {
+            warning() << "Contractor didn't sign message correct";
+            return sendAuditErrorConfirmation(
+                ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+        }
+        info() << "Signature is correct";
+
+        auto serializedAuditData = getOwnSerializedAuditData();
+        mOwnSignatureAndKeyNumber = keyChain.sign(
+            ioTransaction,
+            serializedAuditData.first,
+            serializedAuditData.second);
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
+#endif
+
+        keyChain.saveAudit(
+            ioTransaction,
+            mAuditNumber,
+            mOwnSignatureAndKeyNumber.second,
+            mOwnSignatureAndKeyNumber.first,
+            mMessage->keyNumber(),
+            mMessage->signature(),
+            mTrustLines->incomingTrustAmount(
+                mContractorUUID),
+            mTrustLines->outgoingTrustAmount(
+                mContractorUUID),
+            mTrustLines->balance(mContractorUUID));
+
+        mTrustLines->setTrustLineAuditNumberAndMakeActive(
+            mContractorUUID,
+            mAuditNumber);
+        mTrustLines->resetTrustLineTotalReceiptsAmounts(
+            mContractorUUID);
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
+#endif
+
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        mTrustLines->setTrustLineState(
+            mContractorUUID,
+            TrustLine::Active);
+        warning() << "Attempt to set incoming trust line to the node " << mContractorUUID << " failed. "
+                  << "IO transaction can't be completed. "
+                  << "Details are: " << e.what();
+
+        // Rethrowing the exception,
+        // because the TA can't finish properly and no result may be returned.
+        throw e;
     }
-    warning() << "Invalid TL state for this TA state: "
-              << mTrustLines->trustLineState(mContractorUUID);
+
+    // Sending confirmation back.
+    sendMessageWithCaching<AuditResponseMessage>(
+        mContractorUUID,
+        Message::TrustLines_Audit,
+        mEquivalent,
+        mNodeUUID,
+        currentTransactionUUID(),
+        mOwnSignatureAndKeyNumber.second,
+        mOwnSignatureAndKeyNumber.first);
+    info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
+
+    trustLineActionSignal(
+        mContractorUUID,
+        mEquivalent,
+        false);
+
     return resultDone();
-}
-
-pair<BytesShared, size_t> AuditTargetTransaction::serializeToBytes() const
-{
-    const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
-    size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize
-                        + sizeof(AuditNumber);
-
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    dataBytesOffset += parentBytesAndCount.second;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize);
-    dataBytesOffset += NodeUUID::kBytesSize;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &mAuditNumber,
-        sizeof(AuditNumber));
-
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
 }
 
 const string AuditTargetTransaction::logHeader() const

@@ -224,260 +224,6 @@ void TransactionsManager::loadTransactionsFromStorage()
                 }
                 break;
             }
-            case BaseTransaction::OpenTrustLineTransaction: {
-                // todo it is possible that no subsystems for current equivalent.
-                // on this case subsystems for equivalent should be init
-                try {
-                    auto transaction = make_shared<OpenTrustLineTransaction>(
-                        kTABuffer,
-                        mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mKeysStore,
-                        mTrustLinesInfluenceController,
-                        mLog);
-                    subscribeForProcessingConfirmationMessage(
-                        transaction->processConfirmationMessageSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        true,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized OpenTrustLineTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
-            case BaseTransaction::AcceptTrustLineTransaction: {
-                try {
-                    auto transaction = make_shared<AcceptTrustLineTransaction>(
-                        kTABuffer,
-                        mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mKeysStore,
-                        mTrustLinesInfluenceController,
-                        mLog);
-                    subscribeForProcessingConfirmationMessage(
-                        transaction->processConfirmationMessageSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        false,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized AcceptTrustLineTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
-            case BaseTransaction::SetOutgoingTrustLineTransaction: {
-                try {
-                    auto transaction = make_shared<SetOutgoingTrustLineTransaction>(
-                        kTABuffer,
-                        mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mKeysStore,
-                        mTrustLinesInfluenceController,
-                        mLog);
-                    subscribeForProcessingConfirmationMessage(
-                        transaction->processConfirmationMessageSignal);
-                    subscribeForKeysSharingSignal(
-                        transaction->mPublicKeysSharingSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        true,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized SetOutgoingTrustLineTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
-            case BaseTransaction::SetIncomingTrustLineTransaction: {
-                try {
-                    auto transaction = make_shared<SetIncomingTrustLineTransaction>(
-                        kTABuffer,
-                        mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mKeysStore,
-                        mTrustLinesInfluenceController,
-                        mLog);
-                    subscribeForProcessingConfirmationMessage(
-                        transaction->processConfirmationMessageSignal);
-                    subscribeForKeysSharingSignal(
-                        transaction->mPublicKeysSharingSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        false,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized SetIncomingTrustLineTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
-            case BaseTransaction::CloseIncomingTrustLineTransactionType: {
-                try {
-                    auto transaction = make_shared<CloseIncomingTrustLineTransaction>(
-                        kTABuffer,
-                        mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mKeysStore,
-                        mTrustLinesInfluenceController,
-                        mLog);
-                    subscribeForProcessingConfirmationMessage(
-                        transaction->processConfirmationMessageSignal);
-                    subscribeForKeysSharingSignal(
-                        transaction->mPublicKeysSharingSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        true,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized CloseIncomingTrustLineTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
-            case BaseTransaction::CloseOutgoingTrustLineTransactionType: {
-                try {
-                    auto transaction = make_shared<CloseOutgoingTrustLineTransaction>(
-                        kTABuffer,
-                        mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mKeysStore,
-                        mTrustLinesInfluenceController,
-                        mLog);
-                    subscribeForProcessingConfirmationMessage(
-                        transaction->processConfirmationMessageSignal);
-                    subscribeForKeysSharingSignal(
-                        transaction->mPublicKeysSharingSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        false,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized CloseOutgoingTrustLineTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
-            case BaseTransaction::AuditSourceTransactionType: {
-                try {
-                    auto transaction = make_shared<AuditSourceTransaction>(
-                        kTABuffer,
-                        mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mKeysStore,
-                        mTrustLinesInfluenceController,
-                        mLog);
-                    subscribeForProcessingConfirmationMessage(
-                        transaction->processConfirmationMessageSignal);
-                    subscribeForKeysSharingSignal(
-                        transaction->mPublicKeysSharingSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        true,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized AuditSourceTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
-            case BaseTransaction::AuditTargetTransactionType: {
-                try {
-                    auto transaction = make_shared<AuditTargetTransaction>(
-                        kTABuffer,
-                        mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mKeysStore,
-                        mTrustLinesInfluenceController,
-                        mLog);
-                    subscribeForProcessingConfirmationMessage(
-                        transaction->processConfirmationMessageSignal);
-                    subscribeForKeysSharingSignal(
-                        transaction->mPublicKeysSharingSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        false,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized AuditTargetTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
-            case BaseTransaction::PublicKeysSharingSourceTransactionType: {
-                try {
-                    auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
-                        kTABuffer,
-                        mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mKeysStore,
-                        mTrustLinesInfluenceController,
-                        mLog);
-                    subscribeForProcessingConfirmationMessage(
-                        transaction->processConfirmationMessageSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        false,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized PublicKeysSharingSourceTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
-            case BaseTransaction::PublicKeysSharingTargetTransactionType: {
-                try {
-                    auto transaction = make_shared<PublicKeysSharingTargetTransaction>(
-                        kTABuffer,
-                        mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mKeysStore,
-                        mTrustLinesInfluenceController,
-                        mLog);
-                    subscribeForProcessingConfirmationMessage(
-                        transaction->processConfirmationMessageSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        false,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized PublicKeysSharingTargetTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
             case BaseTransaction::ConflictResolverInitiatorTransactionType: {
                 try {
                     auto transaction = make_shared<ConflictResolverInitiatorTransaction>(
@@ -518,8 +264,12 @@ void TransactionsManager::processCommand(
     // ToDo: sort calls in the call probability order.
     // For example, max flows calculations would be called much often, then credit usage transactions.
     // So, why we are checking trust lines commands first, and max flow is only in the middle of the check sequence?
+    if (command->identifier() == InitTrustLineCommand::identifier()) {
+        launchInitTrustLineTransaction(
+            static_pointer_cast<InitTrustLineCommand>(
+                command));
 
-    if (command->identifier() == SetOutgoingTrustLineCommand::identifier()) {
+    } else if (command->identifier() == SetOutgoingTrustLineCommand::identifier()) {
         launchSetOutgoingTrustLineTransaction(
             static_pointer_cast<SetOutgoingTrustLineCommand>(
                 command));
@@ -738,83 +488,25 @@ void TransactionsManager::processMessage(
         launchSetIncomingTrustLineTransaction(
             static_pointer_cast<SetIncomingTrustLineMessage>(message));
 
-    } else if (message->typeID() == Message::TrustLines_SetIncomingInitial) {
+    } else if (message->typeID() == Message::TrustLines_Initial) {
         launchAcceptTrustLineTransaction(
-            static_pointer_cast<SetIncomingTrustLineInitialMessage>(message));
+            static_pointer_cast<TrustLineInitialMessage>(message));
 
     } else if (message->typeID() == Message::TrustLines_CloseOutgoing) {
         launchCloseOutgoingTrustLineTransaction(
             static_pointer_cast<CloseOutgoingTrustLineMessage>(message));
 
-    } else if (message->typeID() == Message::TrustLines_Confirmation) {
-        try {
-            mScheduler->tryAttachMessageToTransaction(message);
-        } catch (NotFoundError &) {
-            if (!findSerializedTransactionAndLaunchIt(message)) {
-                warning() << "Can't attach TrustLinesConfirmation message to transaction ";
-            }
-        }
-
-    }else if (message->typeID() == Message::TrustLines_PublicKeysSharingInit) {
-        try {
-            mScheduler->tryAttachMessageToTransaction(message);
-        } catch (NotFoundError &) {
-            if (!findSerializedTransactionAndLaunchIt(message)) {
-                launchPublicKeysSharingTargetTransaction(
-                    static_pointer_cast<PublicKeysSharingInitMessage>(message));
-            }
-        }
-
-    } else if (message->typeID() == Message::TrustLines_PublicKey) {
-        try {
-            mScheduler->tryAttachMessageToTransaction(message);
-
-        } catch (NotFoundError &) {
-            if (!findSerializedTransactionAndLaunchIt(message)) {
-                warning() << "Can't attach PublicKey message to transaction ";
-            }
-        }
-
-    } else if (message->typeID() == Message::TrustLines_HashConfirmation) {
-        try {
-            mScheduler->tryAttachMessageToTransaction(message);
-        } catch (NotFoundError &) {
-            if (!findSerializedTransactionAndLaunchIt(message)) {
-                warning() << "Can't attach TrustLines_HashConfirmation message to transaction ";
-            }
-        }
+    } else if (message->typeID() == Message::TrustLines_PublicKeysSharingInit) {
+        launchPublicKeysSharingTargetTransaction(
+            static_pointer_cast<PublicKeysSharingInitMessage>(message));
 
     } else if (message->typeID() == Message::TrustLines_Audit) {
-        try {
-            mScheduler->tryAttachMessageToTransaction(message);
-        } catch (NotFoundError &) {
-            if (!findSerializedTransactionAndLaunchIt(message)) {
-                launchAuditTargetTransaction(
-                    static_pointer_cast<AuditMessage>(message));
-            }
-        }
-
-    } else if (message->typeID() == Message::TrustLines_AuditConfirmation) {
-        try {
-            mScheduler->tryAttachMessageToTransaction(message);
-        } catch (NotFoundError &) {
-            if (!findSerializedTransactionAndLaunchIt(message)) {
-                warning() << "Can't attach TrustLines_AuditConfirmation message to transaction ";
-            }
-        }
+        launchAuditTargetTransaction(
+            static_pointer_cast<AuditMessage>(message));
 
     } else if (message->typeID() == Message::TrustLines_ConflictResolver) {
         launchConflictResolveContractorTransaction(
             static_pointer_cast<ConflictResolverMessage>(message));
-
-    } else if (message->typeID() == Message::TrustLines_ConflictResolverConfirmation) {
-        try {
-            mScheduler->tryAttachMessageToTransaction(message);
-        } catch (NotFoundError &) {
-            if (!findSerializedTransactionAndLaunchIt(message)) {
-                warning() << "Can't attach TrustLines_ConflictResolverConfirmation message to transaction ";
-            }
-        }
 
     /*
      * Gateway notification & RoutingTable
@@ -839,79 +531,64 @@ void TransactionsManager::processMessage(
     }
 }
 
-void TransactionsManager::launchSetOutgoingTrustLineTransaction(
-    SetOutgoingTrustLineCommand::Shared command)
+void TransactionsManager::launchInitTrustLineTransaction(
+    InitTrustLineCommand::Shared command)
 {
     try {
         mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
     } catch (NotFoundError &e) {
-        info() << "launchSetOutgoingTrustLineTransaction: init new equivalent "
+        info() << "launchInitTrustLineTransaction: init new equivalent "
                << command->equivalent();
         mEquivalentsSubsystemsRouter->initNewEquivalent(command->equivalent());
         mEquivalentsCyclesSubsystemsRouter->initNewEquivalent(command->equivalent());
-        auto transaction = make_shared<OpenTrustLineTransaction>(
+    }
+
+    auto transaction = make_shared<OpenTrustLineTransaction>(
+        mNodeUUID,
+        command,
+        mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
+        mStorageHandler,
+        mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
+        mSubsystemsController,
+        mTrustLinesInfluenceController,
+        mLog);
+    subscribeForProcessingConfirmationMessage(
+        transaction->processConfirmationMessageSignal);
+    subscribeForKeysSharingSignal(
+        transaction->publicKeysSharingSignal);
+    prepareAndSchedule(
+        transaction,
+        true,
+        true,
+        true);
+}
+
+void TransactionsManager::launchSetOutgoingTrustLineTransaction(
+    SetOutgoingTrustLineCommand::Shared command)
+{
+    try {
+        auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
+        auto transaction = make_shared<SetOutgoingTrustLineTransaction>(
             mNodeUUID,
             command,
-            mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
+            trustLinesManager,
             mStorageHandler,
+            mEquivalentsSubsystemsRouter->topologyCacheManager(command->equivalent()),
+            mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
             mSubsystemsController,
             mKeysStore,
-            mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
+            mVisualInterface.get(),
             mTrustLinesInfluenceController,
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
+        subscribeForTrustLineActionSignal(
+            transaction->trustLineActionSignal);
         prepareAndSchedule(
             transaction,
             true,
             true,
             true);
-        return;
-    }
-
-    try {
-        auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
-        if (trustLinesManager->trustLineIsPresent(command->contractorUUID())) {
-            auto transaction = make_shared<SetOutgoingTrustLineTransaction>(
-                mNodeUUID,
-                command,
-                trustLinesManager,
-                mStorageHandler,
-                mEquivalentsSubsystemsRouter->topologyCacheManager(command->equivalent()),
-                mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
-                mSubsystemsController,
-                mKeysStore,
-                mVisualInterface.get(),
-                mTrustLinesInfluenceController,
-                mLog);
-            subscribeForProcessingConfirmationMessage(
-                transaction->processConfirmationMessageSignal);
-            subscribeForKeysSharingSignal(
-                transaction->mPublicKeysSharingSignal);
-            prepareAndSchedule(
-                transaction,
-                true,
-                true,
-                true);
-        } else {
-            auto transaction = make_shared<OpenTrustLineTransaction>(
-                mNodeUUID,
-                command,
-                mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
-                mStorageHandler,
-                mSubsystemsController,
-                mKeysStore,
-                mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
-                mTrustLinesInfluenceController,
-                mLog);
-            subscribeForProcessingConfirmationMessage(
-                transaction->processConfirmationMessageSignal);
-            prepareAndSchedule(
-                transaction,
-                true,
-                true,
-                true);
-        }
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for SetOutgoingTrustLineTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
@@ -944,8 +621,8 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
-        subscribeForKeysSharingSignal(
-            transaction->mPublicKeysSharingSignal);
+        subscribeForTrustLineActionSignal(
+            transaction->trustLineActionSignal);
         prepareAndSchedule(
             transaction,
             true,
@@ -984,8 +661,8 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
-        subscribeForKeysSharingSignal(
-            transaction->mPublicKeysSharingSignal);
+        subscribeForTrustLineActionSignal(
+            transaction->trustLineActionSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -998,7 +675,7 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
 }
 
 void TransactionsManager::launchAcceptTrustLineTransaction(
-    SetIncomingTrustLineInitialMessage::Shared message)
+    TrustLineInitialMessage::Shared message)
 {
     try {
         mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent());
@@ -1015,13 +692,14 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
             message,
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
             mStorageHandler,
-            mSubsystemsController,
-            mKeysStore,
             mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
+            mSubsystemsController,
             mTrustLinesInfluenceController,
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
+        subscribeForKeysSharingSignal(
+            transaction->publicKeysSharingSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -1049,8 +727,8 @@ void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
-        subscribeForKeysSharingSignal(
-            transaction->mPublicKeysSharingSignal);
+        subscribeForTrustLineActionSignal(
+            transaction->trustLineActionSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -1098,8 +776,8 @@ void TransactionsManager::launchAuditTargetTransaction(
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
-        subscribeForKeysSharingSignal(
-            transaction->mPublicKeysSharingSignal);
+        subscribeForTrustLineActionSignal(
+            transaction->trustLineActionSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -2399,7 +2077,7 @@ void TransactionsManager::subscribeForTrustLineActionSignal(
 }
 
 void TransactionsManager::subscribeForKeysSharingSignal(
-    BaseTrustLineTransaction::PublicKeysSharingSignal &signal)
+    BaseTransaction::PublicKeysSharingSignal &signal)
 {
     signal.connect(
         boost::bind(
@@ -2549,7 +2227,7 @@ void TransactionsManager::onTrustLineActionSlot(
 {
     try {
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-        auto transaction = make_shared<CheckTrustLineAfterPaymentTransaction>(
+        auto transaction = make_shared<CheckTrustLineTransaction>(
             mNodeUUID,
             equivalent,
             contractorUUID,
@@ -2650,320 +2328,6 @@ void TransactionsManager::prepareAndSchedule(
             }
         }
     }
-}
-
-// some transactions can be stored in database when didn't receive response message on time.
-// because request message stored on communicator messages queue response should be delivered later.
-// on this case transaction should be deserialized and run.
-// if there is no transaction with requested transaction uuid, method returns false.
-bool TransactionsManager::findSerializedTransactionAndLaunchIt(
-    Message::Shared message)
-{
-    if (!message->isTransactionMessage()) {
-        throw ValueError(
-            "TransactionsScheduler::findSerializedTransactionAndLaunchIt: "
-                "message received is not TransactionMessage " + to_string(message->typeID()));
-    }
-
-    auto transactionMessage = static_pointer_cast<TransactionMessage>(message);
-    info() << "findSerializedTransactionAndLaunchIt " << transactionMessage->transactionUUID()
-           << " eq " << transactionMessage->equivalent();
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    BytesShared serializedTransaction;
-    try {
-        serializedTransaction = ioTransaction->transactionHandler()->getTransaction(
-            transactionMessage->transactionUUID());
-    } catch (NotFoundError& ) {
-        return false;
-    }
-
-    auto *transactionType =
-        new (serializedTransaction.get()) BaseTransaction::SerializedTransactionType;
-    auto transactionTypeId = *transactionType;
-    // todo maybe compare message->equivalent and transaction->equivalent
-    // todo discuss what reaction should be on NotFoundError, now it is return false
-    switch (transactionTypeId) {
-        case BaseTransaction::OpenTrustLineTransaction: {
-            // todo it is possible that no subsystems for current equivalent.
-            // on this case subsystems for equivalent should be init
-            try {
-                auto transaction = make_shared<OpenTrustLineTransaction>(
-                    serializedTransaction,
-                    mNodeUUID,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(
-                        transactionMessage->equivalent()),
-                    mStorageHandler,
-                    mKeysStore,
-                    mTrustLinesInfluenceController,
-                    mLog);
-                transaction->pushContext(message);
-                subscribeForProcessingConfirmationMessage(
-                    transaction->processConfirmationMessageSignal);
-                prepareAndSchedule(
-                    transaction,
-                    false,
-                    true,
-                    true);
-            } catch (NotFoundError &e) {
-                error() << "There are no subsystems for serialized OpenTrustLineTransaction "
-                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
-                return false;
-            }
-            break;
-        }
-        case BaseTransaction::AcceptTrustLineTransaction: {
-            try {
-                auto transaction = make_shared<AcceptTrustLineTransaction>(
-                    serializedTransaction,
-                    mNodeUUID,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(
-                        transactionMessage->equivalent()),
-                    mStorageHandler,
-                    mKeysStore,
-                    mTrustLinesInfluenceController,
-                    mLog);
-                transaction->pushContext(message);
-                subscribeForProcessingConfirmationMessage(
-                    transaction->processConfirmationMessageSignal);
-                prepareAndSchedule(
-                    transaction,
-                    false,
-                    false,
-                    true);
-            } catch (NotFoundError &e) {
-                error() << "There are no subsystems for serialized AcceptTrustLineTransaction "
-                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
-                return false;
-            }
-            break;
-        }
-        case BaseTransaction::SetOutgoingTrustLineTransaction: {
-            try {
-                auto transaction = make_shared<SetOutgoingTrustLineTransaction>(
-                    serializedTransaction,
-                    mNodeUUID,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(
-                        transactionMessage->equivalent()),
-                    mStorageHandler,
-                    mKeysStore,
-                    mTrustLinesInfluenceController,
-                    mLog);
-                transaction->pushContext(message);
-                subscribeForProcessingConfirmationMessage(
-                    transaction->processConfirmationMessageSignal);
-                subscribeForKeysSharingSignal(
-                    transaction->mPublicKeysSharingSignal);
-                prepareAndSchedule(
-                    transaction,
-                    false,
-                    true,
-                    true);
-            } catch (NotFoundError &e) {
-                error() << "There are no subsystems for serialized SetOutgoingTrustLineTransaction "
-                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
-                return false;
-            }
-            break;
-        }
-        case BaseTransaction::SetIncomingTrustLineTransaction: {
-            try {
-                auto transaction = make_shared<SetIncomingTrustLineTransaction>(
-                    serializedTransaction,
-                    mNodeUUID,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(
-                        transactionMessage->equivalent()),
-                    mStorageHandler,
-                    mKeysStore,
-                    mTrustLinesInfluenceController,
-                    mLog);
-                transaction->pushContext(message);
-                subscribeForProcessingConfirmationMessage(
-                    transaction->processConfirmationMessageSignal);
-                subscribeForKeysSharingSignal(
-                    transaction->mPublicKeysSharingSignal);
-                prepareAndSchedule(
-                    transaction,
-                    false,
-                    false,
-                    true);
-            } catch (NotFoundError &e) {
-                error() << "There are no subsystems for serialized SetIncomingTrustLineTransaction "
-                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
-                return false;
-            }
-            break;
-        }
-        case BaseTransaction::CloseIncomingTrustLineTransactionType: {
-            try {
-                auto transaction = make_shared<CloseIncomingTrustLineTransaction>(
-                    serializedTransaction,
-                    mNodeUUID,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(
-                        transactionMessage->equivalent()),
-                    mStorageHandler,
-                    mKeysStore,
-                    mTrustLinesInfluenceController,
-                    mLog);
-                transaction->pushContext(message);
-                subscribeForProcessingConfirmationMessage(
-                    transaction->processConfirmationMessageSignal);
-                subscribeForKeysSharingSignal(
-                    transaction->mPublicKeysSharingSignal);
-                prepareAndSchedule(
-                    transaction,
-                    false,
-                    true,
-                    true);
-            } catch (NotFoundError &e) {
-                error() << "There are no subsystems for serialized CloseIncomingTrustLineTransaction "
-                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
-                return false;
-            }
-            break;
-        }
-        case BaseTransaction::CloseOutgoingTrustLineTransactionType: {
-            try {
-                auto transaction = make_shared<CloseOutgoingTrustLineTransaction>(
-                    serializedTransaction,
-                    mNodeUUID,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(
-                        transactionMessage->equivalent()),
-                    mStorageHandler,
-                    mKeysStore,
-                    mTrustLinesInfluenceController,
-                    mLog);
-                transaction->pushContext(message);
-                subscribeForProcessingConfirmationMessage(
-                    transaction->processConfirmationMessageSignal);
-                subscribeForKeysSharingSignal(
-                    transaction->mPublicKeysSharingSignal);
-                prepareAndSchedule(
-                    transaction,
-                    false,
-                    false,
-                    true);
-            } catch (NotFoundError &e) {
-                error() << "There are no subsystems for serialized CloseOutgoingTrustLineTransaction "
-                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
-                return false;
-            }
-            break;
-        }
-        case BaseTransaction::AuditSourceTransactionType: {
-            try {
-                auto transaction = make_shared<AuditSourceTransaction>(
-                    serializedTransaction,
-                    mNodeUUID,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(
-                        transactionMessage->equivalent()),
-                    mStorageHandler,
-                    mKeysStore,
-                    mTrustLinesInfluenceController,
-                    mLog);
-                transaction->pushContext(message);
-                subscribeForProcessingConfirmationMessage(
-                    transaction->processConfirmationMessageSignal);
-                subscribeForKeysSharingSignal(
-                    transaction->mPublicKeysSharingSignal);
-                prepareAndSchedule(
-                    transaction,
-                    false,
-                    true,
-                    true);
-            } catch (NotFoundError &e) {
-                error() << "There are no subsystems for serialized AuditSourceTransaction "
-                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
-                return false;
-            }
-            break;
-        }
-        case BaseTransaction::AuditTargetTransactionType: {
-            try {
-                auto transaction = make_shared<AuditTargetTransaction>(
-                    serializedTransaction,
-                    mNodeUUID,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(
-                        transactionMessage->equivalent()),
-                    mStorageHandler,
-                    mKeysStore,
-                    mTrustLinesInfluenceController,
-                    mLog);
-                transaction->pushContext(message);
-                subscribeForProcessingConfirmationMessage(
-                    transaction->processConfirmationMessageSignal);
-                subscribeForKeysSharingSignal(
-                    transaction->mPublicKeysSharingSignal);
-                prepareAndSchedule(
-                    transaction,
-                    false,
-                    false,
-                    true);
-            } catch (NotFoundError &e) {
-                error() << "There are no subsystems for serialized AuditTargetTransaction "
-                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
-                return false;
-            }
-            break;
-        }
-        case BaseTransaction::PublicKeysSharingSourceTransactionType: {
-            try {
-                auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
-                    serializedTransaction,
-                    mNodeUUID,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(
-                        transactionMessage->equivalent()),
-                    mStorageHandler,
-                    mKeysStore,
-                    mTrustLinesInfluenceController,
-                    mLog);
-                transaction->pushContext(message);
-                subscribeForProcessingConfirmationMessage(
-                    transaction->processConfirmationMessageSignal);
-                prepareAndSchedule(
-                    transaction,
-                    false,
-                    false,
-                    true);
-            } catch (NotFoundError &e) {
-                error() << "There are no subsystems for serialized PublicKeysSharingSourceTransaction "
-                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
-                return false;
-            }
-            break;
-        }
-        case BaseTransaction::PublicKeysSharingTargetTransactionType: {
-            try {
-                auto transaction = make_shared<PublicKeysSharingTargetTransaction>(
-                    serializedTransaction,
-                    mNodeUUID,
-                    mEquivalentsSubsystemsRouter->trustLinesManager(
-                        transactionMessage->equivalent()),
-                    mStorageHandler,
-                    mKeysStore,
-                    mTrustLinesInfluenceController,
-                    mLog);
-                transaction->pushContext(message);
-                subscribeForProcessingConfirmationMessage(
-                    transaction->processConfirmationMessageSignal);
-                prepareAndSchedule(
-                    transaction,
-                    false,
-                    false,
-                    true);
-            } catch (NotFoundError &e) {
-                error() << "There are no subsystems for serialized PublicKeysSharingTargetTransaction "
-                        "with equivalent " << transactionMessage->equivalent() << " Details are: " << e.what();
-                return false;
-            }
-            break;
-        }
-        default: {
-            error() << "findSerializedTransactionAndLaunchIt. Unexpected transaction type identifier "
-                    << transactionTypeId;
-            return false;
-        }
-    }
-    return true;
 }
 
 void TransactionsManager::onSerializeTransaction(

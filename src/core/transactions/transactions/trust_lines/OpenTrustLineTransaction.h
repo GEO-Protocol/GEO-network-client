@@ -1,12 +1,17 @@
 #ifndef GEO_NETWORK_CLIENT_OPENTRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_OPENTRUSTLINETRANSACTION_H
 
-#include "base/BaseTrustLineTransaction.h"
-#include "../../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
-#include "../../../subsystems_controller/SubsystemsController.h"
-#include "../../../network/messages/trust_lines/SetIncomingTrustLineInitialMessage.h"
+#include "../base/BaseTransaction.h"
+#include "../../../interface/commands_interface/commands/trust_lines/InitTrustLineCommand.h"
+#include "../../../trust_lines/manager/TrustLinesManager.h"
 
-class OpenTrustLineTransaction : public BaseTrustLineTransaction {
+#include "../../../subsystems_controller/TrustLinesInfluenceController.h"
+#include "../../../subsystems_controller/SubsystemsController.h"
+
+#include "../../../network/messages/trust_lines/TrustLineInitialMessage.h"
+#include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
+
+class OpenTrustLineTransaction : public BaseTransaction {
 
 public:
     typedef shared_ptr<OpenTrustLineTransaction> Shared;
@@ -14,26 +19,22 @@ public:
 public:
     OpenTrustLineTransaction(
         const NodeUUID &nodeUUID,
-        SetOutgoingTrustLineCommand::Shared command,
+        InitTrustLineCommand::Shared command,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        SubsystemsController *subsystemsController,
-        Keystore *keystore,
         bool iAmGateway,
+        SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger)
     noexcept;
 
-    OpenTrustLineTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger);
-
     TransactionResult::SharedConst run();
+
+protected:
+    enum Stages {
+        Initialization = 1,
+        ResponseProcessing = 2,
+    };
 
 protected:
     TransactionResult::SharedConst resultOK();
@@ -57,17 +58,18 @@ private:
 
     TransactionResult::SharedConst runResponseProcessingStage();
 
-    TransactionResult::SharedConst runRecoveryStage();
-
-    TransactionResult::SharedConst runReceiveFirstKeyStage();
-
-    TransactionResult::SharedConst runReceiveNextKeyStage();
-
-    pair<BytesShared, size_t> serializeToBytes() const override;
+public:
+    mutable PublicKeysSharingSignal publicKeysSharingSignal;
 
 protected:
-    SetOutgoingTrustLineCommand::Shared mCommand;
-    TrustLineAmount mAmount;
+    static const uint32_t kWaitMillisecondsForResponse = 60000;
+
+protected:
+    InitTrustLineCommand::Shared mCommand;
+    TrustLinesManager *mTrustLines;
+    StorageHandler *mStorageHandler;
+
+    TrustLinesInfluenceController *mTrustLinesInfluenceController;
     SubsystemsController *mSubsystemsController;
     bool mIAmGateway;
 };

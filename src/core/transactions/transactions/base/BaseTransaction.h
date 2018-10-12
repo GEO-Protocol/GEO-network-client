@@ -42,6 +42,8 @@ public:
             Message::MessageType)> SendMessageWithCachingSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
     typedef signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
+    typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent, bool)> TrustLineActionSignal;
+    typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent)> PublicKeysSharingSignal;
 
 public:
     virtual ~BaseTransaction() = default;

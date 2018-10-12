@@ -4,7 +4,7 @@
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
 #include "../../../messages/trust_lines/SetIncomingTrustLineMessage.h"
-#include "../../../messages/trust_lines/SetIncomingTrustLineInitialMessage.h"
+#include "../../../messages/trust_lines/TrustLineInitialMessage.h"
 #include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 #include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
 #include "../../../messages/trust_lines/AuditMessage.h"

@@ -42,15 +42,6 @@ public:
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
-    CloseIncomingTrustLineTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger);
-
     TransactionResult::SharedConst run();
 
 protected:
@@ -67,7 +58,7 @@ protected: // trust lines history shortcuts
         IOTransaction::Shared ioTransaction,
         TrustLineRecord::TrustLineOperationType operationType);
 
-protected: // log
+    // log
     const string logHeader() const
     noexcept;
 
@@ -76,11 +67,7 @@ private:
 
     TransactionResult::SharedConst runResponseProcessingStage();
 
-    TransactionResult::SharedConst runRecoveryStage();
-
     TransactionResult::SharedConst runAddToBlackListStage();
-
-    pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     CloseIncomingTrustLineCommand::Shared mCommand;

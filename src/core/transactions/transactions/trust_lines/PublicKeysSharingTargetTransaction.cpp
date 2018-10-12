@@ -8,74 +8,31 @@ PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
     Keystore *keystore,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
-    BaseTrustLineTransaction(
+    BaseTransaction(
         BaseTransaction::PublicKeysSharingTargetTransactionType,
         message->transactionUUID(),
         nodeUUID,
         message->equivalent(),
-        message->senderUUID,
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger)
+        logger),
+    mContractorUUID(message->senderUUID),
+    mTrustLines(manager),
+    mStorageHandler(storageHandler),
+    mKeysStore(keystore),
+    mTrustLinesInfluenceController(trustLinesInfluenceController)
 {
     mContractorKeysCount = message->keysCount();
     mCurrentKeyNumber = message->number();
     mCurrentPublicKey = message->publicKey();
-    mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
-    mStep = KeysSharingTargetInitialization;
-}
-
-PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
-    BytesShared buffer,
-    const NodeUUID &nodeUUID,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    Keystore *keystore,
-    TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger) :
-
-    BaseTrustLineTransaction(
-        buffer,
-        nodeUUID,
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger)
-{
-    auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
-    mStep = Stages::Recovery;
-
-    memcpy(
-        mContractorUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
-
-    auto *contractorKeysCount = new (buffer.get() + bytesBufferOffset) KeysCount;
-    mContractorKeysCount = (KeysCount) *contractorKeysCount;
-    bytesBufferOffset += sizeof(KeysCount);
-
-    auto *keyNumber = new (buffer.get() + bytesBufferOffset) KeyNumber;
-    mCurrentKeyNumber = (KeyNumber) *keyNumber;
-
-    mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
 }
 
 TransactionResult::SharedConst PublicKeysSharingTargetTransaction::run()
 {
     switch (mStep) {
-        case Stages::KeysSharingTargetInitialization: {
-            mShouldPopPublicKeyMessage = false;
+        case Stages::Initialization: {
             return runPublicKeyReceiverInitStage();
         }
-        case Stages::KeysSharingTargetNextKey: {
+        case Stages::NextKeyProcessing: {
             return runReceiveNextKeyStage();
-        }
-        case Stages::Recovery: {
-            return runRecoveryStage();
         }
         default:
             throw ValueError(logHeader() + "::run: "
@@ -83,79 +40,153 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::run()
     }
 }
 
+TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runPublicKeyReceiverInitStage()
+{
+    info() << "runPublicKeyReceiverInitStage";
+    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+        warning() << "Trust line is absent.";
+        return sendKeyErrorConfirmation(
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+    }
+
+    // todo check contractor keys count
+    info() << "Contractor keys count " << mContractorKeysCount;
+
+    if (mCurrentKeyNumber != 0) {
+        warning() << "Invalid init key number " << mCurrentKeyNumber;
+        return sendKeyErrorConfirmation(
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+    }
+
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Archived or
+            mTrustLines->trustLineState(mContractorUUID) == TrustLine::Init) {
+        warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID)
+                  << ". Waiting for state updating";
+        return sendKeyErrorConfirmation(
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+    }
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorUUID));
+    try {
+        mTrustLines->setIsContractorKeysPresent(mContractorUUID, false);
+        keyChain.removeUnusedContractorKeys(ioTransaction);
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        error() << "Can't remove unused contractor keys. Details: " << e.what();
+        throw e;
+    }
+
+    mStep = NextKeyProcessing;
+    return runProcessKey(ioTransaction);
+}
+
 TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNextKeyStage()
 {
     info() << "runReceiveNextKeyStage";
-    if (!mShouldPopPublicKeyMessage) {
-        mShouldPopPublicKeyMessage = true;
-        return runPublicKeyReceiverStage();
-    }
     if (mContext.empty()) {
-        warning() << "No next public key message received. Transaction will be closed, and wait for message";
+        warning() << "No next public key message received. Transaction will be closed.";
         return resultDone();
     }
+
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Archived) {
+        warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
+        return sendKeyErrorConfirmation(
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+    }
+
     auto message = popNextMessage<PublicKeyMessage>();
+    if (message->number() != mCurrentKeyNumber + 1) {
+        warning() << "Invalid key number " << message->number();
+        // todo : state InvalidKeyNumber
+        return sendKeyErrorConfirmation(
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+    }
+
     mCurrentPublicKey = message->publicKey();
     mCurrentKeyNumber = message->number();
-    return runPublicKeyReceiverStage();
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    return runProcessKey(ioTransaction);
 }
 
-TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runRecoveryStage()
+TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey(
+    IOTransaction::Shared ioTransaction)
 {
-    info() << "Recovery. Contractor " << mContractorUUID;
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
-        warning() << "Trust line is absent " << mContractorUUID;
-        return resultDone();
+    info() << "runProcessKeyMessage";
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorUUID));
+    try {
+        keyChain.setContractorPublicKey(
+            ioTransaction,
+            mCurrentKeyNumber,
+            mCurrentPublicKey);
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingReceiverStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingReceiverStage();
+#endif
+
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        error() << "Can't store contractor public key. Details " << e.what();
+        throw e;
     }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending
-            or mTrustLines->trustLineState(mContractorUUID) == TrustLine::Active) {
-        info() << "Keys pending state, current key number " << mCurrentKeyNumber
-               << " contractor keys count " << mContractorKeysCount;
-        mStep = KeysSharingTargetNextKey;
-        return resultAwakeAsFastAsPossible();
+    info() << "Key saved, send hash confirmation";
+    if (mCurrentKeyNumber == 0) {
+        sendMessageWithCaching<PublicKeyHashConfirmation>(
+            mContractorUUID,
+            Message::TrustLines_PublicKeysSharingInit,
+            mEquivalent,
+            mNodeUUID,
+            mTransactionUUID,
+            mCurrentKeyNumber,
+            mCurrentPublicKey->hash());
+    } else {
+        sendMessageWithCaching<PublicKeyHashConfirmation>(
+            mContractorUUID,
+            Message::TrustLines_PublicKey,
+            mEquivalent,
+            mNodeUUID,
+            mTransactionUUID,
+            mCurrentKeyNumber,
+            mCurrentPublicKey->hash());
     }
-    warning() << "Invalid TL state for this TA state: "
-              << mTrustLines->trustLineState(mContractorUUID);
+
+    if (keyChain.allContractorKeysPresent(ioTransaction, mContractorKeysCount)) {
+        info() << "All keys received";
+        try {
+            mTrustLines->setTrustLineState(
+                mContractorUUID,
+                TrustLine::Active,
+                ioTransaction);
+            mTrustLines->setIsContractorKeysPresent(
+                mContractorUUID,
+                true);
+            info() << "TL is ready for using";
+            return resultDone();
+        } catch (IOError &e) {
+            ioTransaction->rollback();
+            error() << "Can't update TL state. Details " << e.what();
+            throw e;
+        }
+    }
+    return resultWaitForMessageTypes(
+        {Message::TrustLines_PublicKey},
+        kWaitMillisecondsForResponse);
+}
+
+TransactionResult::SharedConst PublicKeysSharingTargetTransaction::sendKeyErrorConfirmation(
+    ConfirmationMessage::OperationState errorState)
+{
+    sendMessage<PublicKeyHashConfirmation>(
+        mContractorUUID,
+        mEquivalent,
+        mNodeUUID,
+        mTransactionUUID,
+        errorState);
     return resultDone();
-}
-
-pair<BytesShared, size_t> PublicKeysSharingTargetTransaction::serializeToBytes() const
-{
-    const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
-    size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize
-                        + sizeof(KeysCount)
-                        + sizeof(KeyNumber);
-
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    dataBytesOffset += parentBytesAndCount.second;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize);
-    dataBytesOffset += NodeUUID::kBytesSize;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &mContractorKeysCount,
-        sizeof(KeysCount));
-    dataBytesOffset += sizeof(KeysCount);
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &mCurrentKeyNumber,
-        sizeof(KeyNumber));
-
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
 }
 
 const string PublicKeysSharingTargetTransaction::logHeader() const

@@ -228,6 +228,18 @@ void TrustLine::setContractorAsGateway(
     mIsContractorGateway = contractorAsGateway;
 }
 
+void TrustLine::setIsOwnKeysPresent(
+    bool isOwnKeysPresent)
+{
+    mIsOwnKeysPresent = isOwnKeysPresent;
+}
+
+void TrustLine::setIsContractorKeysPresent(
+    bool isContractorKeysPresent)
+{
+    mIsContractorKeysPresent = isContractorKeysPresent;
+}
+
 /*!
  * @returns static constant zero balance,
  * that is useful in comparison operations.

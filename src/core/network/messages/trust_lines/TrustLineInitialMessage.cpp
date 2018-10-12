@@ -1,31 +1,29 @@
-#include "SetIncomingTrustLineInitialMessage.h"
+#include "TrustLineInitialMessage.h"
 
-SetIncomingTrustLineInitialMessage::SetIncomingTrustLineInitialMessage(
+TrustLineInitialMessage::TrustLineInitialMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &sender,
     const TransactionUUID &transactionUUID,
-    const NodeUUID &destination,
-    const TrustLineAmount &amount,
+    const NodeUUID &destinationUUID,
     bool isContractorGateway)
     noexcept :
 
-    SetIncomingTrustLineMessage(
+    DestinationMessage(
         equivalent,
         sender,
         transactionUUID,
-        destination,
-        amount),
+        destinationUUID),
     mIsContractorGateway(isContractorGateway)
 {}
 
-SetIncomingTrustLineInitialMessage::SetIncomingTrustLineInitialMessage(
+TrustLineInitialMessage::TrustLineInitialMessage(
     BytesShared buffer)
     noexcept :
-    SetIncomingTrustLineMessage(buffer)
+    DestinationMessage(buffer)
 {
     // todo: use desrializer
 
-    size_t bytesBufferOffset = SetIncomingTrustLineMessage::kOffsetToInheritedBytes();
+    size_t bytesBufferOffset = DestinationMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     memcpy(
         &mIsContractorGateway,
@@ -34,23 +32,23 @@ SetIncomingTrustLineInitialMessage::SetIncomingTrustLineInitialMessage(
 }
 
 
-const Message::MessageType SetIncomingTrustLineInitialMessage::typeID() const
+const Message::MessageType TrustLineInitialMessage::typeID() const
     noexcept
 {
-    return Message::TrustLines_SetIncomingInitial;
+    return Message::TrustLines_Initial;
 }
 
-const bool SetIncomingTrustLineInitialMessage::isContractorGateway() const
+const bool TrustLineInitialMessage::isContractorGateway() const
     noexcept
 {
     return mIsContractorGateway;
 }
 
-pair<BytesShared, size_t> SetIncomingTrustLineInitialMessage::serializeToBytes() const
+pair<BytesShared, size_t> TrustLineInitialMessage::serializeToBytes() const
 {
     // todo: use serializer
 
-    auto parentBytesAndCount = SetIncomingTrustLineMessage::serializeToBytes();
+    auto parentBytesAndCount = DestinationMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(byte);

@@ -10,6 +10,8 @@ set(SOURCE_FILES
         commands/BaseUserCommand.cpp
         commands/BaseUserCommand.h
 
+        commands/trust_lines/InitTrustLineCommand.h
+        commands/trust_lines/InitTrustLineCommand.cpp
         commands/trust_lines/SetOutgoingTrustLineCommand.h
         commands/trust_lines/SetOutgoingTrustLineCommand.cpp
         commands/trust_lines/CloseIncomingTrustLineCommand.h

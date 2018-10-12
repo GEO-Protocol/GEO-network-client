@@ -246,6 +246,34 @@ void TrustLinesManager::setContractorAsGateway(
         trustLine);
 }
 
+void TrustLinesManager::setIsOwnKeysPresent(
+    const NodeUUID &contractorUUID,
+    bool isOwnKeysPresent)
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            logHeader() + "::setIsOwnKeysPresent: "
+                "There is no trust line to contractor " + contractorUUID.stringUUID());
+    }
+
+    auto trustLine = mTrustLines[contractorUUID];
+    trustLine->setIsOwnKeysPresent(isOwnKeysPresent);
+}
+
+void TrustLinesManager::setIsContractorKeysPresent(
+    const NodeUUID &contractorUUID,
+    bool isContractorKeysPresent)
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            logHeader() + "::setIsContractorKeysPresent: "
+                "There is no trust line to contractor " + contractorUUID.stringUUID());
+    }
+
+    auto trustLine = mTrustLines[contractorUUID];
+    trustLine->setIsContractorKeysPresent(isContractorKeysPresent);
+}
+
 void TrustLinesManager::setTrustLineState(
     const NodeUUID &contractorUUID,
     TrustLine::TrustLineState state,
@@ -268,7 +296,6 @@ void TrustLinesManager::setTrustLineState(
 }
 
 void TrustLinesManager::setTrustLineAuditNumberAndMakeActive(
-    IOTransaction::Shared ioTransaction,
     const NodeUUID &contractorUUID,
     AuditNumber newAuditNumber)
 {
@@ -281,9 +308,6 @@ void TrustLinesManager::setTrustLineAuditNumberAndMakeActive(
     auto trustLine = mTrustLines[contractorUUID];
     trustLine->setAuditNumber(newAuditNumber);
     trustLine->setState(TrustLine::Active);
-    updateTrustLine(
-        ioTransaction,
-        trustLine);
 }
 
 const TrustLineAmount &TrustLinesManager::incomingTrustAmount(
@@ -1115,14 +1139,14 @@ const TrustLineID TrustLinesManager::nextFreeID(
     return prevElement + 1;
 }
 
-TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterPayment(
+TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterTransaction(
     const NodeUUID &contractorUUID,
     bool isActionInitiator)
 {
-    info() << "checkTrustLineAfterPayment";
+    info() << "checkTrustLineAfterTransaction";
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-            logHeader() + "::checkTrustLineAfterPayment: "
+            logHeader() + "::checkTrustLineAfterTransaction: "
                 "No trust line with the contractor is present.");
     }
     auto ioTransaction = mStorageHandler->beginTransaction();
@@ -1162,10 +1186,9 @@ TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterPay
             trustLineID(
                 contractorUUID));
         if (keyChain.ownKeysCriticalCount(ioTransaction)) {
-            setTrustLineState(
+            setIsOwnKeysPresent(
                 contractorUUID,
-                TrustLine::KeysPending,
-                ioTransaction);
+                false);
             info() << "Public key sharing signal";
             return TrustLineActionType::KeysSharing;
         }

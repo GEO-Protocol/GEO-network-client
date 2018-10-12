@@ -1,18 +1,18 @@
-#ifndef GEO_NETWORK_CLIENT_CHECKTRUSTLINEAFTERPAYMENTTRANSACTION_H
-#define GEO_NETWORK_CLIENT_CHECKTRUSTLINEAFTERPAYMENTTRANSACTION_H
+#ifndef GEO_NETWORK_CLIENT_CHECKTRUSTLINETRANSACTION_H
+#define GEO_NETWORK_CLIENT_CHECKTRUSTLINETRANSACTION_H
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "AuditSourceTransaction.h"
 #include "PublicKeysSharingSourceTransaction.h"
 
-class CheckTrustLineAfterPaymentTransaction : public BaseTransaction {
+class CheckTrustLineTransaction : public BaseTransaction {
 
 public:
-    typedef shared_ptr<CheckTrustLineAfterPaymentTransaction> Shared;
+    typedef shared_ptr<CheckTrustLineTransaction> Shared;
 
 public:
-    CheckTrustLineAfterPaymentTransaction(
+    CheckTrustLineTransaction(
         const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         const NodeUUID &contractorUUID,
@@ -39,4 +39,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_CHECKTRUSTLINEAFTERPAYMENTTRANSACTION_H
+#endif //GEO_NETWORK_CLIENT_CHECKTRUSTLINETRANSACTION_H

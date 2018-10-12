@@ -15,7 +15,7 @@ TransactionMessage::Shared ConfirmationCachedResponseMessage::getCachedMessage(
     }
     if (incomingMessage->typeID() == Message::TrustLines_SetIncoming or
             incomingMessage->typeID() == Message::TrustLines_CloseOutgoing or
-            incomingMessage->typeID() == Message::TrustLines_SetIncomingInitial) {
+            incomingMessage->typeID() == Message::TrustLines_Initial) {
         if (incomingMessage->transactionUUID() == mCachedMessage->transactionUUID()) {
             return mCachedMessage;
         }

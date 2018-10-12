@@ -5,26 +5,30 @@ SetIncomingTrustLineMessage::SetIncomingTrustLineMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &sender,
     const TransactionUUID &transactionUUID,
-    const NodeUUID &destination,
+    const NodeUUID &destinationUUID,
+    const KeyNumber keyNumber,
+    const lamport::Signature::Shared signature,
     const TrustLineAmount &amount)
     noexcept :
 
-    DestinationMessage(
+    AuditMessage(
         equivalent,
         sender,
         transactionUUID,
-        destination),
+        destinationUUID,
+        keyNumber,
+        signature),
     mAmount(amount)
 {}
 
 SetIncomingTrustLineMessage::SetIncomingTrustLineMessage(
     BytesShared buffer)
     noexcept :
-    DestinationMessage(buffer)
+    AuditMessage(buffer)
 {
     // todo: use desrializer
 
-    size_t bytesBufferOffset = DestinationMessage::kOffsetToInheritedBytes();
+    size_t bytesBufferOffset = AuditMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     vector<byte> amountBytes(
         buffer.get() + bytesBufferOffset,
@@ -49,7 +53,7 @@ pair<BytesShared, size_t> SetIncomingTrustLineMessage::serializeToBytes() const
 {
     // todo: use serializer
 
-    auto parentBytesAndCount = DestinationMessage::serializeToBytes();
+    auto parentBytesAndCount = AuditMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
                         + kTrustLineAmountBytesCount;
@@ -88,7 +92,7 @@ const size_t SetIncomingTrustLineMessage::kOffsetToInheritedBytes() const
     noexcept
 {
     static const auto kOffset =
-            DestinationMessage::kOffsetToInheritedBytes()
+            AuditMessage::kOffsetToInheritedBytes()
             + kTrustLineAmountBytesCount;
 
     return kOffset;

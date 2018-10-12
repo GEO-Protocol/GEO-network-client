@@ -138,13 +138,20 @@ public:
         const NodeUUID &contractorUUID,
         bool contractorIsGateway);
 
+    void setIsOwnKeysPresent(
+        const NodeUUID &contractorUUID,
+        bool isOwnKeysPresent);
+
+    void setIsContractorKeysPresent(
+        const NodeUUID &contractorUUID,
+        bool isContractorKeysPresent);
+
     void setTrustLineState(
         const NodeUUID &contractorUUID,
         TrustLine::TrustLineState state,
         IOTransaction::Shared ioTransaction = nullptr);
 
     void setTrustLineAuditNumberAndMakeActive(
-        IOTransaction::Shared ioTransaction,
         const NodeUUID &contractorUUID,
         AuditNumber newAuditNumber);
 
@@ -365,7 +372,7 @@ public:
     vector<NodeUUID> getFirstLevelNodesForCycles(
         TrustLineBalance maxFlow);
 
-    TrustLineActionType checkTrustLineAfterPayment(
+    TrustLineActionType checkTrustLineAfterTransaction(
         const NodeUUID &contractorUUID,
         bool isActionInitiator);
 

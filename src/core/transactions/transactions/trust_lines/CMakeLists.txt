@@ -35,8 +35,8 @@ set(SOURCE_FILES
     ConflictResolverContractorTransaction.h
     ConflictResolverContractorTransaction.cpp
 
-    CheckTrustLineAfterPaymentTransaction.h
-    CheckTrustLineAfterPaymentTransaction.cpp)
+    CheckTrustLineTransaction.h
+    CheckTrustLineTransaction.cpp)
 
 add_library(transactions__trustlines ${SOURCE_FILES})
 target_link_libraries(transactions__trustlines

@@ -26,7 +26,7 @@ public:
          * Trust lines
          */
         TrustLines_SetIncoming = 101,
-        TrustLines_SetIncomingInitial = 102,
+        TrustLines_Initial = 102,
         TrustLines_CloseOutgoing = 103,
         TrustLines_Confirmation = 104,
         TrustLines_PublicKeysSharingInit = 105,

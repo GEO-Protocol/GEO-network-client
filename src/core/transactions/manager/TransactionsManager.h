@@ -19,6 +19,7 @@
 /*
  * Interface commands
  */
+#include "../../interface/commands_interface/commands/trust_lines/InitTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
@@ -66,7 +67,7 @@
 #include "../transactions/trust_lines/AuditTargetTransaction.h"
 #include "../transactions/trust_lines/ConflictResolverInitiatorTransaction.h"
 #include "../transactions/trust_lines/ConflictResolverContractorTransaction.h"
-#include "../transactions/trust_lines/CheckTrustLineAfterPaymentTransaction.h"
+#include "../transactions/trust_lines/CheckTrustLineTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -187,6 +188,9 @@ protected: // Transactions
      * Starts transaction that would processes locally received command
      * and try to set outgoing trust line to the remote node.
      */
+    void launchInitTrustLineTransaction(
+        InitTrustLineCommand::Shared command);
+
     void launchSetOutgoingTrustLineTransaction(
         SetOutgoingTrustLineCommand::Shared command);
 
@@ -201,7 +205,7 @@ protected: // Transactions
         SetIncomingTrustLineMessage::Shared message);
 
     void launchAcceptTrustLineTransaction(
-        SetIncomingTrustLineInitialMessage::Shared message);
+        TrustLineInitialMessage::Shared message);
 
     void launchCloseOutgoingTrustLineTransaction(
         CloseOutgoingTrustLineMessage::Shared message);
@@ -408,7 +412,7 @@ protected:
         BasePaymentTransaction::TrustLineActionSignal &signal);
 
     void subscribeForKeysSharingSignal(
-        BaseTrustLineTransaction::PublicKeysSharingSignal &signal);
+        BaseTransaction::PublicKeysSharingSignal &signal);
 
     // Slots
     void onSubsidiaryTransactionReady(
@@ -470,9 +474,6 @@ protected:
         bool regenerateUUID=false,
         bool subsidiaryTransactionSubscribe=false,
         bool outgoingMessagesSubscribe=false);
-
-    bool findSerializedTransactionAndLaunchIt(
-        Message::Shared message);
 
 protected:
     static string logHeader()

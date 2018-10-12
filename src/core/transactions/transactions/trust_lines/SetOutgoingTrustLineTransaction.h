@@ -45,15 +45,6 @@ public:
         Logger &logger)
         noexcept;
 
-    SetOutgoingTrustLineTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger);
-
     TransactionResult::SharedConst run();
 
 protected:
@@ -79,13 +70,8 @@ private:
 
     TransactionResult::SharedConst runResponseProcessingStage();
 
-    TransactionResult::SharedConst runRecoveryStage();
-
-    pair<BytesShared, size_t> serializeToBytes() const override;
-
 protected:
     SetOutgoingTrustLineCommand::Shared mCommand;
-    TrustLineAmount mAmount;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
     SubsystemsController *mSubsystemsController;

@@ -21,7 +21,7 @@ bool ConfirmationRequiredMessagesQueue::enqueue(
                 message);
             break;
         }
-        case Message::TrustLines_SetIncomingInitial: {
+        case Message::TrustLines_Initial: {
             updateTrustLineInitialNotificationInTheQueue(
                 message);
             break;
@@ -135,12 +135,12 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineNotificationInTheQueue(
 void ConfirmationRequiredMessagesQueue::updateTrustLineInitialNotificationInTheQueue(
     TransactionMessage::Shared message)
 {
-    // Only one SetIncomingTrustLineInitialMessage should be in the queue in one moment of time.
+    // Only one TrustLineInitialMessage should be in the queue in one moment of time.
     // queue must contains only newest one notification, all other must be removed.
     for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
         const auto kMessage = it->second;
 
-        if (kMessage->typeID() == Message::TrustLines_SetIncomingInitial) {
+        if (kMessage->typeID() == Message::TrustLines_Initial) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,

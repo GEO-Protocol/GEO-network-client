@@ -56,7 +56,6 @@ public:
 public:
     typedef signals::signal<void(set<NodeUUID>&, const SerializedEquivalent)> BuildCycleThreeNodesSignal;
     typedef signals::signal<void(set<NodeUUID>&, const SerializedEquivalent)> BuildCycleFourNodesSignal;
-    typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent, bool)> TrustLineActionSignal;
 
 public:
     BasePaymentTransaction(

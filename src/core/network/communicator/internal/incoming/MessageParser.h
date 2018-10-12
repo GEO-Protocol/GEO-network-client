@@ -6,7 +6,7 @@
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
 
 #include "../../../messages/trust_lines/SetIncomingTrustLineMessage.h"
-#include "../../../messages/trust_lines/SetIncomingTrustLineInitialMessage.h"
+#include "../../../messages/trust_lines/TrustLineInitialMessage.h"
 #include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 #include "../../../messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../messages/trust_lines/PublicKeysSharingInitMessage.h"

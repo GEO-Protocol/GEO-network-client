@@ -245,9 +245,9 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<SetIncomingTrustLineMessage>(messageBody));
                 break;
-            case Message::TrustLines_SetIncomingInitial:
+            case Message::TrustLines_Initial:
                 sendingMessage = static_pointer_cast<TransactionMessage>(
-                    make_shared<SetIncomingTrustLineInitialMessage>(messageBody));
+                    make_shared<TrustLineInitialMessage>(messageBody));
                 break;
             case Message::TrustLines_CloseOutgoing:
                 sendingMessage = static_pointer_cast<TransactionMessage>(

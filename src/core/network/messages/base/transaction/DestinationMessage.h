@@ -21,7 +21,7 @@ public:
         BytesShared buffer)
     noexcept;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
     const NodeUUID &destinationUUID() const
     noexcept;

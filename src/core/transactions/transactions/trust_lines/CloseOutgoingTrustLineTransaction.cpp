@@ -23,65 +23,14 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
         keystore,
         trustLinesInfluenceController,
         logger),
+    mMessage(message),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager)
 {
     mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
 }
 
-CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
-    BytesShared buffer,
-    const NodeUUID &nodeUUID,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    Keystore *keystore,
-    TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger) :
-
-    BaseTrustLineTransaction(
-        buffer,
-        nodeUUID,
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger)
-{
-    auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
-    mStep = Stages::Recovery;
-
-    memcpy(
-        mContractorUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
-
-    memcpy(
-        &mAuditNumber,
-        buffer.get() + bytesBufferOffset,
-        sizeof(AuditNumber));
-}
-
 TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
-{
-    info() << mStep;
-    switch (mStep) {
-        case Stages::TrustLineInitialization: {
-            return runInitializationStage();
-        }
-        case Stages::AuditTarget: {
-            return runReceiveAuditStage();
-        }
-        case Stages::Recovery: {
-            return runRecoveryStage();
-        }
-        default:
-            throw ValueError(logHeader() + "::run: "
-                "wrong value of mStep " + to_string(mStep));
-    }
-}
-
-TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runInitializationStage()
 {
     info() << "sender: " << mContractorUUID;
 
@@ -92,30 +41,71 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runInitializat
 
     if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
         warning() << "Trust line is absent.";
-        return sendTrustLineErrorConfirmation(
+        return sendAuditErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
 
     if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Active) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
-        return sendTrustLineErrorConfirmation(
+        return sendAuditErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
+
+    mPreviousOutgoingAmount = mTrustLines->outgoingTrustAmount(mContractorUUID);
+    mPreviousState = mTrustLines->trustLineState(mContractorUUID);
 
     // Trust line must be created (or updated) in the internal storage.
     // Also, history record must be written about this operation.
     // Both writes must be done atomically, so the IO transaction is used.
     auto ioTransaction = mStorageHandler->beginTransaction();
-    TrustLine::ConstShared previousTL = mTrustLines->trustLineReadOnly(mContractorUUID);
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
         mTrustLines->setTrustLineState(
             mContractorUUID,
-            TrustLine::AuditPending,
-            ioTransaction);
+            TrustLine::AuditPending);
 
         mTrustLines->closeOutgoing(
+            mContractorUUID);
+
+        auto keyChain = mKeysStore->keychain(
+            mTrustLines->trustLineID(mContractorUUID));
+        auto contractorSerializedAuditData = getContractorSerializedAuditData();
+        if (!keyChain.checkSign(
+                ioTransaction,
+                contractorSerializedAuditData.first,
+                contractorSerializedAuditData.second,
+                mMessage->signature(),
+                mMessage->keyNumber())) {
+            warning() << "Contractor didn't sign message correct";
+            return sendAuditErrorConfirmation(
+                ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+        }
+        info() << "Signature is correct";
+
+        auto serializedAuditData = getOwnSerializedAuditData();
+        mOwnSignatureAndKeyNumber = keyChain.sign(
+            ioTransaction,
+            serializedAuditData.first,
+            serializedAuditData.second);
+
+        keyChain.saveAudit(
+            ioTransaction,
+            mAuditNumber,
+            mOwnSignatureAndKeyNumber.second,
+            mOwnSignatureAndKeyNumber.first,
+            mMessage->keyNumber(),
+            mMessage->signature(),
+            mTrustLines->incomingTrustAmount(
+                mContractorUUID),
+            mTrustLines->outgoingTrustAmount(
+                mContractorUUID),
+            mTrustLines->balance(mContractorUUID));
+
+        mTrustLines->setTrustLineAuditNumberAndMakeActive(
+            mContractorUUID,
+            mAuditNumber);
+        mTrustLines->resetTrustLineTotalReceiptsAmounts(
             mContractorUUID);
 
         populateHistory(ioTransaction, TrustLineRecord::RejectingOutgoing);
@@ -124,13 +114,6 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runInitializat
         info() << "Outgoing trust line to the node " << mContractorUUID
                << " has been successfully closed by remote node.";
 
-        auto bytesAndCount = serializeToBytes();
-        info() << "Transaction serialized";
-        ioTransaction->transactionHandler()->saveRecord(
-            currentTransactionUUID(),
-            bytesAndCount.first,
-            bytesAndCount.second);
-        info() << "Transaction saved";
 
 #ifdef TESTS
         mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
@@ -142,10 +125,10 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runInitializat
         // return closed TL
         mTrustLines->setOutgoing(
             mContractorUUID,
-            previousTL->outgoingTrustAmount());
+            mPreviousOutgoingAmount);
         mTrustLines->setTrustLineState(
             mContractorUUID,
-            previousTL->state());
+            mPreviousState);
         warning() << "Attempt to close outgoing trust line to the node " << mContractorUUID << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();
@@ -155,82 +138,22 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runInitializat
     }
 
     // Sending confirmation back.
-    sendMessageWithCaching<TrustLineConfirmationMessage>(
+    sendMessageWithCaching<AuditResponseMessage>(
         mContractorUUID,
         Message::TrustLines_CloseOutgoing,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,
-        false,
-        ConfirmationMessage::OK);
+        mOwnSignatureAndKeyNumber.second,
+        mOwnSignatureAndKeyNumber.first);
+    info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
 
-    info() << "Wait for audit";
-    mStep = AuditTarget;
-    return resultWaitForMessageTypes(
-        {Message::TrustLines_Audit},
-        kWaitMillisecondsForResponse);
-}
+    trustLineActionSignal(
+        mContractorUUID,
+        mEquivalent,
+        false);
 
-TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runReceiveAuditStage()
-{
-    info() << "runReceiveAuditStage";
-    if (mContext.empty()) {
-        warning() << "No audit message received. Transaction will be closed, and wait for message";
-        return resultDone();
-    }
-    mAuditMessage = popNextMessage<AuditMessage>();
-    return runAuditTargetStage();
-}
-
-TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::runRecoveryStage()
-{
-    info() << "Recovery";
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
-        warning() << "Trust line is absent " << mContractorUUID;
-        return resultDone();
-    }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
-        info() << "Audit pending stage";
-        mTrustLines->closeOutgoing(mContractorUUID);
-        mStep = AuditTarget;
-        return runReceiveAuditStage();
-    }
-
-    warning() << "Invalid TL state for this TA: "
-              << mTrustLines->trustLineState(mContractorUUID);
     return resultDone();
-}
-
-pair<BytesShared, size_t> CloseOutgoingTrustLineTransaction::serializeToBytes() const
-{
-    const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
-    size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize
-                        + sizeof(AuditNumber);
-
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    dataBytesOffset += parentBytesAndCount.second;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize);
-    dataBytesOffset += NodeUUID::kBytesSize;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &mAuditNumber,
-        sizeof(AuditNumber));
-
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
 }
 
 const string CloseOutgoingTrustLineTransaction::logHeader() const
