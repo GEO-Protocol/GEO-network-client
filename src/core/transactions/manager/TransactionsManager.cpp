@@ -509,6 +509,13 @@ void TransactionsManager::processMessage(
             static_pointer_cast<ConflictResolverMessage>(message));
 
     /*
+     * General
+     */
+    } else if (message->typeID() == Message::General_Pong) {
+        launchPongReactionTransaction(
+            static_pointer_cast<PongMessage>(message));
+
+    /*
      * Gateway notification & RoutingTable
      */
     } else if (message->typeID() == Message::GatewayNotification) {
@@ -1920,6 +1927,31 @@ void TransactionsManager::launchFindPathByMaxFlowTransaction(
     }
 }
 
+void TransactionsManager::launchPongReactionTransaction(
+    PongMessage::Shared message)
+{
+    auto transaction = make_shared<PongReactionTransaction>(
+        mNodeUUID,
+        message,
+        mEquivalentsSubsystemsRouter,
+        mStorageHandler,
+        mLog);
+    subscribeForProcessingPongMessage(
+        transaction->processPongMessageSignal);
+    transaction->mResumeTransactionSignal.connect(
+        boost::bind(
+            &TransactionsManager::onResumeTransactionSlot,
+            this,
+            _1,
+            _2,
+            _3));
+    prepareAndSchedule(
+        transaction,
+        true,
+        false,
+        false);
+}
+
 void TransactionsManager::attachResourceToTransaction(
     BaseResource::Shared resource)
 {
@@ -2051,6 +2083,16 @@ void TransactionsManager::subscribeForProcessingConfirmationMessage(
     signal.connect(
         boost::bind(
             &TransactionsManager::onProcessConfirmationMessageSlot,
+            this,
+            _1));
+}
+
+void TransactionsManager::subscribeForProcessingPongMessage(
+    BaseTransaction::ProcessPongMessageSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onProcessPongMessageSlot,
             this,
             _1));
 }
@@ -2209,10 +2251,15 @@ void TransactionsManager::onTryCloseNextCycleSlot(
 void TransactionsManager::onProcessConfirmationMessageSlot(
     ConfirmationMessage::Shared confirmationMessage)
 {
-    info() << "onProcessConfirmationMessageSlot from " << confirmationMessage->senderUUID
-           << " on equivalent " << confirmationMessage->equivalent();
     ProcessConfirmationMessageSignal(
         confirmationMessage);
+}
+
+void TransactionsManager::onProcessPongMessageSlot(
+    const NodeUUID& contractorUUID)
+{
+    ProcessPongMessageSignal(
+        contractorUUID);
 }
 
 void TransactionsManager::onGatewayNotificationSlot()
@@ -2280,6 +2327,58 @@ void TransactionsManager::onPublicKeysSharingSlot(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for onPublicKeysSharingSlot "
                 "with equivalent " << equivalent << " Details are: " << e.what();
+    }
+}
+
+void TransactionsManager::onResumeTransactionSlot(
+    const NodeUUID &contractorUUID,
+    const SerializedEquivalent equivalent,
+    const BaseTransaction::TransactionType transactionType)
+{
+    switch (transactionType) {
+        case BaseTransaction::OpenTrustLineTransaction: {
+            auto transaction = make_shared<OpenTrustLineTransaction>(
+                mNodeUUID,
+                equivalent,
+                contractorUUID,
+                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mStorageHandler,
+                mEquivalentsSubsystemsRouter->iAmGateway(equivalent),
+                mSubsystemsController,
+                mTrustLinesInfluenceController,
+                mLog);
+            subscribeForProcessingConfirmationMessage(
+                transaction->processConfirmationMessageSignal);
+            subscribeForKeysSharingSignal(
+                transaction->publicKeysSharingSignal);
+            prepareAndSchedule(
+                transaction,
+                true,
+                false,
+                true);
+            break;
+        }
+        case BaseTransaction::AuditSourceTransactionType: {
+            auto transaction = make_shared<AuditSourceTransaction>(
+                mNodeUUID,
+                equivalent,
+                contractorUUID,
+                mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                mStorageHandler,
+                mKeysStore,
+                mTrustLinesInfluenceController,
+                mLog);
+            subscribeForProcessingConfirmationMessage(
+                transaction->processConfirmationMessageSignal);
+            prepareAndSchedule(
+                transaction,
+                true,
+                false,
+                true);
+        }
+        default: {
+            warning() << "onResumeTransactionSlot: invalid transaction type " << transactionType;
+        }
     }
 }
 

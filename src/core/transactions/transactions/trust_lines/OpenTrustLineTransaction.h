@@ -10,6 +10,7 @@
 
 #include "../../../network/messages/trust_lines/TrustLineInitialMessage.h"
 #include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
+#include "../../../network/messages/general/PingMessage.h"
 
 class OpenTrustLineTransaction : public BaseTransaction {
 
@@ -25,15 +26,26 @@ public:
         bool iAmGateway,
         SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger)
-    noexcept;
+        Logger &logger);
+
+    OpenTrustLineTransaction(
+        const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
+        const NodeUUID &contractorUUID,
+        TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        bool iAmGateway,
+        SubsystemsController *subsystemsController,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
+        Logger &logger);
 
     TransactionResult::SharedConst run();
 
 protected:
     enum Stages {
         Initialization = 1,
-        ResponseProcessing = 2,
+        NextAttempt = 2,
+        ResponseProcessing = 3,
     };
 
 protected:
@@ -56,6 +68,8 @@ protected: // trust lines history shortcuts
 private:
     TransactionResult::SharedConst runInitializationStage();
 
+    TransactionResult::SharedConst runNextAttemptStage();
+
     TransactionResult::SharedConst runResponseProcessingStage();
 
 public:
@@ -66,6 +80,7 @@ protected:
 
 protected:
     InitTrustLineCommand::Shared mCommand;
+    NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
 

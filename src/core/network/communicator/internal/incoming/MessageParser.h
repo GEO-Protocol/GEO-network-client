@@ -60,6 +60,9 @@
 #include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
 #include "../../../messages/gateway_notification_and_routing_tables/RoutingTableResponseMessage.h"
 
+#include "../../../messages/general/PingMessage.h"
+#include "../../../messages/general/PongMessage.h"
+
 #include "../../../../logger/Logger.h"
 
 #include <utility>

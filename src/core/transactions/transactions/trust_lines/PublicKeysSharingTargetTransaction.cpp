@@ -104,6 +104,8 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
 
+    info() << "Received key number " << message->number();
+
     mCurrentPublicKey = message->publicKey();
     mCurrentKeyNumber = message->number();
 
@@ -135,18 +137,16 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
     }
     info() << "Key saved, send hash confirmation";
     if (mCurrentKeyNumber == 0) {
-        sendMessageWithCaching<PublicKeyHashConfirmation>(
+        sendMessage<PublicKeyHashConfirmation>(
             mContractorUUID,
-            Message::TrustLines_PublicKeysSharingInit,
             mEquivalent,
             mNodeUUID,
             mTransactionUUID,
             mCurrentKeyNumber,
             mCurrentPublicKey->hash());
     } else {
-        sendMessageWithCaching<PublicKeyHashConfirmation>(
+        sendMessage<PublicKeyHashConfirmation>(
             mContractorUUID,
-            Message::TrustLines_PublicKey,
             mEquivalent,
             mNodeUUID,
             mTransactionUUID,

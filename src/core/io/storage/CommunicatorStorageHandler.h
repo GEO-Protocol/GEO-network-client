@@ -42,6 +42,7 @@ private:
 
 private:
     const string kMessagesQueueTableName = "communicator_messages_queue";
+    const string kPingMessagesTableName = "communicator_ping_messages";
 
 private:
     static sqlite3 *mDBConnection;
@@ -49,6 +50,7 @@ private:
 private:
     Logger &mLog;
     CommunicatorMessagesQueueHandler mCommunicatorMessagesQueueHandler;
+    CommunicatorPingMessagesHandler mCommunicatorPingMessagesHandler;
     string mDirectory;
     string mDataBaseName;
 };

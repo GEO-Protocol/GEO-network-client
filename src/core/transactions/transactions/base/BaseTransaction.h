@@ -44,6 +44,7 @@ public:
     typedef signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
     typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent, bool)> TrustLineActionSignal;
     typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent)> PublicKeysSharingSignal;
+    typedef signals::signal<void(const NodeUUID&)> ProcessPongMessageSignal;
 
 public:
     virtual ~BaseTransaction() = default;
@@ -126,8 +127,9 @@ public:
         GatewayNotificationReceiverType = 1201,
         RoutingTableUpdatingType = 1202,
 
-        //No equivalent
-        NoEquivalentType = 1300
+        // General
+        NoEquivalentType = 1300,
+        PongReactionType = 1301
     };
 
 public:
@@ -243,6 +245,13 @@ protected:
             confirmationMessage);
     }
 
+    void processPongMessage(
+        const NodeUUID &contractorUUID)
+    {
+        processPongMessageSignal(
+            contractorUUID);
+    }
+
     void launchSubsidiaryTransaction(
       BaseTransaction::Shared transaction);
 
@@ -291,6 +300,7 @@ public:
     mutable SendMessageWithCachingSignal sendMessageWithCachingSignal;
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
     mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;
+    mutable ProcessPongMessageSignal processPongMessageSignal;
 
 protected:
     static const uint16_t mkStandardConnectionTimeout = 1500; //miliseconds

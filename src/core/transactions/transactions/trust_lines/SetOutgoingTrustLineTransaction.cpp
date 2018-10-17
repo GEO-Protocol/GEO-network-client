@@ -178,6 +178,18 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
             serializedAuditData.first,
             serializedAuditData.second);
 
+        keyChain.saveOwnAuditPart(
+            ioTransaction,
+            mAuditNumber,
+            mOwnSignatureAndKeyNumber.second,
+            mOwnSignatureAndKeyNumber.first,
+            mTrustLines->incomingTrustAmount(
+                mContractorUUID),
+            mTrustLines->outgoingTrustAmount(
+                mContractorUUID),
+            mTrustLines->balance(
+                mContractorUUID));
+
 #ifdef TESTS
         mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
         mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
@@ -210,6 +222,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first,
         mCommand->amount());
+    info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
 
     mStep = ResponseProcessing;
     return resultOK();
@@ -219,13 +232,11 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
 {
     info() << "runResponseProcessingStage";
     if (mContext.empty()) {
-        warning() << "Contractor don't send response. Transaction will be closed.";
-        mTrustLines->setOutgoing(
-            mContractorUUID,
-            mPreviousOutgoingAmount);
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
-            mPreviousState);
+        warning() << "Contractor don't send response. Transaction will be closed and send ping";
+        sendMessage<PingMessage>(
+            mCommand->contractorUUID(),
+            0,
+            mNodeUUID);
         return resultDone();
     }
 
@@ -291,24 +302,18 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
             return resultDone();
         }
 
-        keyChain.saveAudit(
+        keyChain.saveContractorAuditPart(
             ioTransaction,
             mAuditNumber,
-            mOwnSignatureAndKeyNumber.second,
-            mOwnSignatureAndKeyNumber.first,
             message->keyNumber(),
-            message->signature(),
-            mTrustLines->incomingTrustAmount(
-                mContractorUUID),
-            mTrustLines->outgoingTrustAmount(
-                mContractorUUID),
-            mTrustLines->balance(mContractorUUID));
+            message->signature());
+        info() << "audit saved";
 
         mTrustLines->setTrustLineAuditNumberAndMakeActive(
-            mContractorUUID,
-            mAuditNumber);
+                mContractorUUID,
+                mAuditNumber);
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
-            mContractorUUID);
+                mContractorUUID);
 
         switch (mOperationResult) {
             case TrustLinesManager::TrustLineOperationResult::Opened: {
@@ -331,6 +336,17 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
                 break;
             }
         }
+    } catch (ValueError &e) {
+        ioTransaction->rollback();
+        mTrustLines->setOutgoing(
+            mContractorUUID,
+            mPreviousOutgoingAmount);
+        mTrustLines->setTrustLineState(
+            mContractorUUID,
+            mPreviousState);
+        error() << "Attempt to save audit from contractor " << mContractorUUID << " failed. "
+                << "Details are: " << e.what();
+        return resultDone();
     } catch (IOError &e) {
         ioTransaction->rollback();
         mTrustLines->setOutgoing(

@@ -372,6 +372,11 @@ void Core::connectCommunicatorSignals()
             &Core::onProcessConfirmationMessageSlot,
             this,
             _1));
+    mTransactionsManager->ProcessPongMessageSignal.connect(
+        boost::bind(
+            &Core::onProcessPongMessageSlot,
+            this,
+            _1));
 }
 
 void Core::connectResourcesManagerSignals()
@@ -566,6 +571,13 @@ void Core::onProcessConfirmationMessageSlot(
 {
     mCommunicator->processConfirmationMessage(
         confirmationMessage);
+}
+
+void Core::onProcessPongMessageSlot(
+    const NodeUUID &contractorUUID)
+{
+    mCommunicator->processPongMessage(
+        contractorUUID);
 }
 
 void Core::writePIDFile()

@@ -89,7 +89,7 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
             serializedAuditData.first,
             serializedAuditData.second);
 
-        keyChain.saveAudit(
+        keyChain.saveFullAudit(
             ioTransaction,
             mAuditNumber,
             mOwnSignatureAndKeyNumber.second,
@@ -138,9 +138,8 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
     }
 
     // Sending confirmation back.
-    sendMessageWithCaching<AuditResponseMessage>(
+    sendMessage<AuditResponseMessage>(
         mContractorUUID,
-        Message::TrustLines_CloseOutgoing,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,

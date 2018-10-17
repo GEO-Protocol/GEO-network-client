@@ -59,7 +59,10 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         // todo : add parameter mSenderIsGateway
         mTrustLinesManager->accept(
             mContractorUUID,
-            0,
+            ioTransaction);
+        mTrustLinesManager->setTrustLineState(
+            mContractorUUID,
+            TrustLine::Active,
             ioTransaction);
         populateHistory(ioTransaction, TrustLineRecord::Accepting);
         info() << "Trust Line from the node " << mContractorUUID
@@ -90,9 +93,8 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         throw e;
     }
 
-    sendMessageWithCaching<TrustLineConfirmationMessage>(
+    sendMessage<TrustLineConfirmationMessage>(
         mContractorUUID,
-        Message::TrustLines_Initial,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,

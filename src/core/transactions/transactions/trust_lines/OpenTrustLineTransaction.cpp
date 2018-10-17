@@ -8,8 +8,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     bool iAmGateway,
     SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger)
-    noexcept :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::OpenTrustLineTransaction,
@@ -17,12 +16,41 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
         command->equivalent(),
         logger),
     mCommand(command),
+    mContractorUUID(mCommand->contractorUUID()),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mSubsystemsController(subsystemsController),
     mTrustLinesInfluenceController(trustLinesInfluenceController),
     mIAmGateway(iAmGateway)
-{}
+{
+    mStep = Initialization;
+}
+
+OpenTrustLineTransaction::OpenTrustLineTransaction(
+    const NodeUUID &nodeUUID,
+    const SerializedEquivalent equivalent,
+    const NodeUUID &contractorUUID,
+    TrustLinesManager *manager,
+    StorageHandler *storageHandler,
+    bool iAmGateway,
+    SubsystemsController *subsystemsController,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
+    Logger &logger) :
+
+    BaseTransaction(
+        BaseTransaction::OpenTrustLineTransaction,
+        nodeUUID,
+        equivalent,
+        logger),
+    mContractorUUID(contractorUUID),
+    mTrustLines(manager),
+    mStorageHandler(storageHandler),
+    mSubsystemsController(subsystemsController),
+    mTrustLinesInfluenceController(trustLinesInfluenceController),
+    mIAmGateway(iAmGateway)
+{
+    mStep = NextAttempt;
+}
 
 TransactionResult::SharedConst OpenTrustLineTransaction::run()
 {
@@ -30,6 +58,9 @@ TransactionResult::SharedConst OpenTrustLineTransaction::run()
     switch (mStep) {
         case Stages::Initialization: {
             return runInitializationStage();
+        }
+        case Stages::NextAttempt: {
+            return runNextAttemptStage();
         }
         case Stages::ResponseProcessing: {
             return runResponseProcessingStage();
@@ -46,14 +77,14 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
         debug() << "It is forbidden run trust line transactions";
         return resultForbiddenRun();
     }
-    info() << "Try open TL to " << mCommand->contractorUUID();
+    info() << "Try init TL to " << mContractorUUID;
 
-    if (mCommand->contractorUUID() == mNodeUUID) {
+    if (mContractorUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
         return resultProtocolError();
     }
 
-    if (mTrustLines->trustLineIsPresent(mCommand->contractorUUID())) {
+    if (mTrustLines->trustLineIsPresent(mContractorUUID)) {
         warning() << "Trust line already present.";
         return resultProtocolError();
     }
@@ -61,10 +92,9 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
         mTrustLines->open(
-            mCommand->contractorUUID(),
-            0,
+            mContractorUUID,
             ioTransaction);
-        info() << "TrustLine to the node " << mCommand->contractorUUID()
+        info() << "TrustLine to the node " << mContractorUUID
                << " successfully initialised.";
 
 #ifdef TESTS
@@ -75,7 +105,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
     } catch (IOError &e) {
         ioTransaction->rollback();
         mTrustLines->removeTrustLine(
-            mCommand->contractorUUID());
+            mContractorUUID);
         error() << "Error during saving TA. Details: " << e.what();
         return resultUnexpectedError();
     }
@@ -84,11 +114,42 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
     // Network communicator knows, that this message must be forced to be delivered,
     // so the TA itself might finish without any response from the remote node.
     sendMessage<TrustLineInitialMessage>(
-        mCommand->contractorUUID(),
+        mContractorUUID,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,
-        mCommand->contractorUUID(),
+        mContractorUUID,
+        mIAmGateway);
+
+    mStep = ResponseProcessing;
+    return resultOK();
+}
+
+TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
+{
+    info() << "runNextAttemptStage";
+    if (!mSubsystemsController->isRunTrustLineTransactions()) {
+        debug() << "It is forbidden run trust line transactions";
+        return resultDone();
+    }
+    info() << "Try init TL to " << mContractorUUID;
+
+    if (mContractorUUID == mNodeUUID) {
+        warning() << "Attempt to launch transaction against itself was prevented.";
+        return resultDone();
+    }
+
+    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+        warning() << "Trust line is absent.";
+        return resultDone();
+    }
+
+    sendMessage<TrustLineInitialMessage>(
+        mContractorUUID,
+        mEquivalent,
+        mNodeUUID,
+        mTransactionUUID,
+        mContractorUUID,
         mIAmGateway);
 
     mStep = ResponseProcessing;
@@ -98,16 +159,20 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
 TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingStage()
 {
     if (mContext.empty()) {
-        warning() << "Contractor don't send response. Transaction will be closed, and wait for message";
+        warning() << "Contractor don't send response. Transaction will be closed, and send ping";
+        sendMessage<PingMessage>(
+            mContractorUUID,
+            0,
+            mNodeUUID);
         return resultDone();
     }
     auto message = popNextMessage<TrustLineConfirmationMessage>();
     info() << "contractor " << message->senderUUID << " send response on opening TL. gateway: " << message->isContractorGateway();
-    if (message->senderUUID != mCommand->contractorUUID()) {
+    if (message->senderUUID != mContractorUUID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }
-    if (!mTrustLines->trustLineIsPresent(mCommand->contractorUUID())) {
+    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
         error() << "Something wrong, because TL must be created";
         // todo : need correct reaction
         return resultDone();
@@ -118,7 +183,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
     if (message->state() != ConfirmationMessage::OK) {
         warning() << "Contractor didn't accept opening TL. Response code: " << message->state();
         mTrustLines->removeTrustLine(
-            mCommand->contractorUUID(),
+            mContractorUUID,
             ioTransaction);
         return resultDone();
     }
@@ -130,13 +195,13 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
 
     try {
         mTrustLines->setTrustLineState(
-            mCommand->contractorUUID(),
+            mContractorUUID,
             TrustLine::Active,
             ioTransaction);
         if (message->isContractorGateway()) {
             mTrustLines->setContractorAsGateway(
                 ioTransaction,
-                mCommand->contractorUUID(),
+                mContractorUUID,
                 true);
         }
         populateHistory(
@@ -144,13 +209,13 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
             TrustLineRecord::Opening);
     } catch (IOError &e) {
         ioTransaction->rollback();
-        error() << "Attempt to process confirmation from contractor " << mCommand->contractorUUID() << " failed. "
+        error() << "Attempt to process confirmation from contractor " << mContractorUUID << " failed. "
                 << "IO transaction can't be completed. Details are: " << e.what();
         throw e;
     }
 
     publicKeysSharingSignal(
-        mCommand->contractorUUID(), mEquivalent);
+        mContractorUUID, mEquivalent);
     return resultDone();
 }
 
@@ -196,7 +261,7 @@ void OpenTrustLineTransaction::populateHistory(
     auto record = make_shared<TrustLineRecord>(
         mTransactionUUID,
         operationType,
-        mCommand->contractorUUID(),
+        mContractorUUID,
         0);
 
     ioTransaction->historyStorage()->saveTrustLineRecord(

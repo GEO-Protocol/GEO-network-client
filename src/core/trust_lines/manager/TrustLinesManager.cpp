@@ -66,18 +66,21 @@ void TrustLinesManager::loadTrustLinesFromStorage()
 
 void TrustLinesManager::open(
     const NodeUUID &contractorUUID,
-    const TrustLineAmount &amount,
     IOTransaction::Shared ioTransaction)
 {
+    if (trustLineIsPresent(contractorUUID)) {
+        throw ValueError(
+            logHeader() + "::accept: trust line already present.");
+    }
     TrustLineID trustLineID = nextFreeID(ioTransaction);
-    // In case if trust line to this contractor is absent,
-    // and "amount" is greater than 0 - new trust line should be created.
+    // In case if TL to this contractor is absent,
+    // new trust line should be created.
     // contractor is not gateway by default
     auto trustLine = make_shared<TrustLine>(
         contractorUUID,
         trustLineID,
         0,
-        amount,
+        0,
         0,
         false);
     mTrustLines[contractorUUID] = trustLine;
@@ -91,27 +94,21 @@ void TrustLinesManager::open(
 
 void TrustLinesManager::accept(
     const NodeUUID &contractorUUID,
-    const TrustLineAmount &amount,
     IOTransaction::Shared ioTransaction)
 {
     if (trustLineIsPresent(contractorUUID)) {
         throw ValueError(
             logHeader() + "::accept: trust line already present.");
     }
-    if (amount == 0) {
-        throw ValueError(
-            logHeader() + "::accept: "
-                "can't establish trust line with zero amount.");
-    }
 
     TrustLineID trustLineID = nextFreeID(ioTransaction);
     // In case if TL to this contractor is absent,
-    // and "amount" is greater than 0 - new trust line should be created.
+    // new trust line should be created.
     // contractor is not gateway by default
     auto trustLine = make_shared<TrustLine>(
         contractorUUID,
         trustLineID,
-        amount,
+        0,
         0,
         0,
         false);
@@ -1151,10 +1148,6 @@ TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterTra
     }
     auto ioTransaction = mStorageHandler->beginTransaction();
     if (isTrustLineEmpty(contractorUUID)) {
-        setTrustLineState(
-            contractorUUID,
-            TrustLine::AuditPending,
-            ioTransaction);
         info() << "TL become empty";
         // if TL become empty, it is necessary to run Audit TA.
         // AuditSource TA run on node which pay
@@ -1166,10 +1159,6 @@ TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterTra
         }
     } else if (isTrustLineOverflowed(contractorUUID)) {
         // todo : add audit rules
-        setTrustLineState(
-            contractorUUID,
-            TrustLine::AuditPending,
-            ioTransaction);
         info() << "TL become overflowed";
         // if TL become overflowed, it is necessary to run Audit TA.
         // AuditSource TA run on node which pay

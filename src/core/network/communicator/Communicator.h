@@ -9,6 +9,7 @@
 #include "internal/queue/ConfirmationRequiredMessagesHandler.h"
 #include "internal/queue/ConfirmationNotStronglyRequiredMessagesHandler.h"
 #include "internal/queue/ConfirmationResponseMessagesHandler.h"
+#include "internal/queue/PingMessagesHandler.h"
 #include "../../io/storage/StorageHandler.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "internal/uuid2address/UUID2Address.h"
@@ -59,6 +60,9 @@ public:
     void processConfirmationMessage(
         ConfirmationMessage::Shared confirmationMessage);
 
+    void processPongMessage(
+        const NodeUUID &nodeUUID);
+
 protected:
     /**
      * This slot fires up every time when new message was received from the network.
@@ -107,6 +111,7 @@ protected:
     unique_ptr<ConfirmationRequiredMessagesHandler> mConfirmationRequiredMessagesHandler;
     unique_ptr<ConfirmationNotStronglyRequiredMessagesHandler> mConfirmationNotStronglyRequiredMessagesHandler;
     unique_ptr<ConfirmationResponseMessagesHandler> mConfirmationResponseMessagesHandler;
+    unique_ptr<PingMessagesHandler> mPingMessagesHandler;
 };
 
 

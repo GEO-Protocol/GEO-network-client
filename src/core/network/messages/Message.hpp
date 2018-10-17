@@ -94,8 +94,10 @@ public:
         MaxFlow_Confirmation = 407,
 
         /*
-         * Empty slot with codes 500-599
+         * General
          */
+        General_Ping = 500,
+        General_Pong = 501,
 
         /*
          * Empty slot with codes 600-699

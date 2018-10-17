@@ -66,12 +66,10 @@ public:
 
     void open(
         const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount,
         IOTransaction::Shared ioTransaction = nullptr);
 
     void accept(
         const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount,
         IOTransaction::Shared ioTransaction = nullptr);
 
     /**

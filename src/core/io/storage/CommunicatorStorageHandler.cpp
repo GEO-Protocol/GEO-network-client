@@ -10,6 +10,7 @@ CommunicatorStorageHandler::CommunicatorStorageHandler(
     mDirectory(directory),
     mDataBaseName(dataBaseName),
     mCommunicatorMessagesQueueHandler(connection(dataBaseName, directory), kMessagesQueueTableName, logger),
+    mCommunicatorPingMessagesHandler(connection(dataBaseName, directory), kPingMessagesTableName, logger),
     mLog(logger)
 {
     sqlite3_config(SQLITE_CONFIG_SINGLETHREAD);
@@ -53,6 +54,7 @@ CommunicatorIOTransaction::Shared CommunicatorStorageHandler::beginTransaction()
     return make_shared<CommunicatorIOTransaction>(
         mDBConnection,
         &mCommunicatorMessagesQueueHandler,
+        &mCommunicatorPingMessagesHandler,
         mLog);
 }
 
@@ -61,6 +63,7 @@ CommunicatorIOTransaction::Unique CommunicatorStorageHandler::beginTransactionUn
     return make_unique<CommunicatorIOTransaction>(
         mDBConnection,
         &mCommunicatorMessagesQueueHandler,
+        &mCommunicatorPingMessagesHandler,
         mLog);
 }
 

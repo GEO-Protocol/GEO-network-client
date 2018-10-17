@@ -360,6 +360,36 @@ const lamport::KeyHash::Shared OwnKeysHandler::getPublicKeyHash(
     }
 }
 
+const KeyNumber OwnKeysHandler::getKeyNumberByHash(
+    const lamport::KeyHash::Shared keyHash)
+{
+    string query = "SELECT number FROM  " + mTableName + " WHERE hash = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::getKeyNumberByHash: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 1, keyHash->data(), (int) lamport::KeyHash::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::getKeyNumberByHash: "
+                          "Bad binding of Hash; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        auto result = (KeyNumber)sqlite3_column_int(stmt, 0);
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        return result;
+    } else {
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        throw NotFoundError("OwnKeysHandler::getKeyNumberByHash: "
+                                "There are now records with requested hash");
+    }
+}
+
 KeysCount OwnKeysHandler::availableKeysCnt(
     const TrustLineID trustLineID)
 {

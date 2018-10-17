@@ -258,7 +258,7 @@ public:
         const TrustLineAmount &amount,
         const Signature::Shared contractorSignature);
 
-    void saveAudit(
+    void saveFullAudit(
         IOTransaction::Shared ioTransaction,
         const AuditNumber auditNumber,
         const KeyNumber ownKeyNumber,
@@ -268,6 +268,25 @@ public:
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);
+
+    void saveOwnAuditPart(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber,
+        const KeyNumber ownKeyNumber,
+        const lamport::Signature::Shared ownSignature,
+        const TrustLineAmount &incomingAmount,
+        const TrustLineAmount &outgoingAmount,
+        const TrustLineBalance &balance);
+
+    void saveContractorAuditPart(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber,
+        const KeyNumber contractorKeyNumber,
+        const lamport::Signature::Shared contractorSignature);
+
+    pair<lamport::Signature::Shared, KeyNumber> getSignatureAndKeyNumberForPendingAudit(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber);
 
     TrustLineAmount incomingCommittedReceiptsAmountsSum(
         IOTransaction::Shared ioTransaction,

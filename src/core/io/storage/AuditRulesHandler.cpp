@@ -54,8 +54,8 @@ void AuditRulesHandler::saveRule(
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("AuditHandler::saveAudit: "
-                              "Bad query; sqlite error: " + to_string(rc));
+        throw IOError("AuditHandler::saveRule: "
+                          "Bad query; sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_bind_int(stmt, 1, trustLineID);

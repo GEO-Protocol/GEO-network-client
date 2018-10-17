@@ -61,6 +61,13 @@ Communicator::Communicator(
 
     mConfirmationResponseMessagesHandler(
         make_unique<ConfirmationResponseMessagesHandler>(
+            logger)),
+
+    mPingMessagesHandler(
+        make_unique<PingMessagesHandler>(
+            mNodeUUID,
+            IOService,
+            mCommunicatorStorageHandler.get(),
             logger))
 {
     // Direct signals chaining.
@@ -152,6 +159,11 @@ void Communicator::sendMessage (
             message);
     }
 
+    if (message->typeID() == Message::General_Ping) {
+        mPingMessagesHandler->tryEnqueueContractor(
+            contractorUUID);
+    }
+
     mOutgoingMessagesHandler->sendMessage(
         message,
         contractorUUID);
@@ -178,6 +190,13 @@ void Communicator::processConfirmationMessage(
 {
     mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
         confirmationMessage);
+}
+
+void Communicator::processPongMessage(
+    const NodeUUID &nodeUUID)
+{
+    mPingMessagesHandler->tryProcessPongMessage(
+        nodeUUID);
 }
 
 void Communicator::onMessageReceived(
@@ -223,6 +242,17 @@ void Communicator::onMessageReceived(
         }
     }
 
+    if (message->typeID() == Message::General_Ping) {
+        const auto pingMessage =
+            static_pointer_cast<PingMessage>(message);
+        sendMessage(
+            make_shared<PongMessage>(
+                0,
+                mNodeUUID),
+            pingMessage->senderUUID);
+        return;
+    }
+
     if (message->isCheckCachedResponse()) {
         auto incomingTransactionMessage = static_pointer_cast<TransactionMessage>(message);
         auto cachedResponse = mConfirmationResponseMessagesHandler->getCachedMessage(incomingTransactionMessage);
@@ -260,8 +290,7 @@ void Communicator::onConfirmationRequiredMessageReadyToResend(
     pair<NodeUUID, TransactionMessage::Shared> addresseeAndMessage)
 {
     mOutgoingMessagesHandler->sendMessage(
-        static_pointer_cast<Message>(
-            addresseeAndMessage.second),
+        addresseeAndMessage.second,
         addresseeAndMessage.first);
 }
 
@@ -269,8 +298,7 @@ void Communicator::onConfirmationNotStronglyRequiredMessageReadyToResend(
     pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared> addresseeAndMessage)
 {
     mOutgoingMessagesHandler->sendMessage(
-        static_pointer_cast<Message>(
-            addresseeAndMessage.second),
+        addresseeAndMessage.second,
         addresseeAndMessage.first);
 }
 

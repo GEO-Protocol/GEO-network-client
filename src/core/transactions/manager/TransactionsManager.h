@@ -121,7 +121,8 @@
 #include "../transactions/gateway_notification/GatewayNotificationReceiverTransaction.h"
 #include "../transactions/gateway_notification/RoutingTableUpdatingTransaction.h"
 
-#include "../transactions/no_equivalent/NoEquivalentTransaction.h"
+#include "../transactions/general/NoEquivalentTransaction.h"
+#include "../transactions/general/PongReactionTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -140,6 +141,7 @@ public:
             const NodeUUID&,
             Message::MessageType)> transactionOutgoingMessageWithCachingReadySignal;
     signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
+    signals::signal<void(const NodeUUID&)> ProcessPongMessageSignal;
 
 public:
     TransactionsManager(
@@ -367,6 +369,12 @@ protected: // Transactions
     void launchRoutingTableUpdatingTransaction(
         RoutingTableResponseMessage::Shared message);
 
+    /*
+     * General
+     */
+    void launchPongReactionTransaction(
+        PongMessage::Shared message);
+
 protected:
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(
@@ -404,6 +412,9 @@ protected:
 
     void subscribeForProcessingConfirmationMessage(
         BaseTransaction::ProcessConfirmationMessageSignal &signal);
+
+    void subscribeForProcessingPongMessage(
+        BaseTransaction::ProcessPongMessageSignal &signal);
 
     void subscribeForGatewayNotificationSignal(
         EquivalentsSubsystemsRouter::GatewayNotificationSignal &signal);
@@ -457,6 +468,9 @@ protected:
     void onProcessConfirmationMessageSlot(
         ConfirmationMessage::Shared confirmationMessage);
 
+    void onProcessPongMessageSlot(
+        const NodeUUID &contractorUUID);
+
     void onGatewayNotificationSlot();
 
     void onTrustLineActionSlot(
@@ -467,6 +481,11 @@ protected:
     void onPublicKeysSharingSlot(
         const NodeUUID &contractorUUID,
         const SerializedEquivalent equivalent);
+
+    void onResumeTransactionSlot(
+        const NodeUUID& contractorUUID,
+        const SerializedEquivalent equivalent,
+        const BaseTransaction::TransactionType transactionType);
 
 protected:
     void prepareAndSchedule(

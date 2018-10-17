@@ -3,10 +3,12 @@
 CommunicatorIOTransaction::CommunicatorIOTransaction(
     sqlite3 *dbConnection,
     CommunicatorMessagesQueueHandler *communicatorMessagesQueueHandler,
+    CommunicatorPingMessagesHandler *communicatorPingMessagesHandler,
     Logger &logger) :
 
     mDBConnection(dbConnection),
     mCommunicatorMessagesQueueHandler(communicatorMessagesQueueHandler),
+    mCommunicatorPingMessagesHandler(communicatorPingMessagesHandler),
     mIsTransactionBegin(true),
     mLog(logger)
 {
@@ -25,6 +27,15 @@ CommunicatorMessagesQueueHandler* CommunicatorIOTransaction::communicatorMessage
                           "transaction was rollback, it can't be use now");
     }
     return mCommunicatorMessagesQueueHandler;
+}
+
+CommunicatorPingMessagesHandler* CommunicatorIOTransaction::communicatorPingMessagesHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("CommunicatorIOTransaction::communicatorPingMessagesHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mCommunicatorPingMessagesHandler;
 }
 
 void CommunicatorIOTransaction::commit()

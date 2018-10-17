@@ -108,7 +108,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
 #endif
 
-        keyChain.saveAudit(
+        keyChain.saveFullAudit(
             ioTransaction,
             mAuditNumber,
             mOwnSignatureAndKeyNumber.second,
@@ -236,9 +236,8 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
     }
 
     // Sending confirmation back.
-    sendMessageWithCaching<AuditResponseMessage>(
+    sendMessage<AuditResponseMessage>(
         mContractorUUID,
-        Message::TrustLines_SetIncoming,
         mEquivalent,
         mNodeUUID,
         currentTransactionUUID(),

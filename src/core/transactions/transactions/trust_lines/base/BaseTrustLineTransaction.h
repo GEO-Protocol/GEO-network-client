@@ -8,16 +8,11 @@
 
 #include "../../../../subsystems_controller/TrustLinesInfluenceController.h"
 
-#include "../../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../../network/messages/trust_lines/AuditMessage.h"
 #include "../../../../network/messages/trust_lines/AuditResponseMessage.h"
-#include "../../../../network/messages/trust_lines/PublicKeysSharingInitMessage.h"
-#include "../../../../network/messages/trust_lines/PublicKeyMessage.h"
-#include "../../../../network/messages/trust_lines/PublicKeyHashConfirmation.h"
+#include "../../../../network/messages/general/PingMessage.h"
 
 #include "../ConflictResolverInitiatorTransaction.h"
-
-namespace signals = boost::signals2;
 
 class BaseTrustLineTransaction : public BaseTransaction {
 
@@ -50,7 +45,8 @@ public:
 protected:
     enum Stages {
         Initialization = 1,
-        ResponseProcessing = 2,
+        NextAttempt = 2,
+        ResponseProcessing = 3,
         AddToBlackList = 11,
     };
 

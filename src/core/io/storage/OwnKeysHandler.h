@@ -52,6 +52,9 @@ public:
         const TrustLineID trustLineID,
         const KeyNumber keyNumber);
 
+    const KeyNumber getKeyNumberByHash(
+        const lamport::KeyHash::Shared keyHash);
+
     KeysCount availableKeysCnt(
         const TrustLineID trustLineID);
 

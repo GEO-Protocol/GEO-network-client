@@ -337,7 +337,7 @@ namespace crypto {
         return true;
     }
 
-    void TrustLineKeychain::saveAudit(
+    void TrustLineKeychain::saveFullAudit(
         IOTransaction::Shared ioTransaction,
         const AuditNumber auditNumber,
         const KeyNumber ownKeyNumber,
@@ -355,7 +355,7 @@ namespace crypto {
             mTrustLineID,
             contractorKeyNumber);
 
-        ioTransaction->auditHandler()->saveAudit(
+        ioTransaction->auditHandler()->saveFullAudit(
             auditNumber,
             mTrustLineID,
             ownKeyHash,
@@ -374,6 +374,81 @@ namespace crypto {
         ioTransaction->contractorKeysHandler()->invalidKey(
             mTrustLineID,
             contractorKeyNumber);
+    }
+
+    void TrustLineKeychain::saveOwnAuditPart(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber,
+        const KeyNumber ownKeyNumber,
+        const lamport::Signature::Shared ownSignature,
+        const TrustLineAmount &incomingAmount,
+        const TrustLineAmount &outgoingAmount,
+        const TrustLineBalance &balance)
+    {
+        auto ownKeyHash = ioTransaction->ownKeysHandler()->getPublicKeyHash(
+            mTrustLineID,
+            ownKeyNumber);
+
+        ioTransaction->auditHandler()->saveOwnAuditPart(
+            auditNumber,
+            mTrustLineID,
+            ownKeyHash,
+            ownSignature,
+            incomingAmount,
+            outgoingAmount,
+            balance);
+
+        ioTransaction->ownKeysHandler()->invalidKey(
+            mTrustLineID,
+            ownKeyNumber,
+            ownSignature);
+    }
+
+    void TrustLineKeychain::saveContractorAuditPart(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber,
+        const KeyNumber contractorKeyNumber,
+        const lamport::Signature::Shared contractorSignature)
+    {
+        auto contractorKeyHash = ioTransaction->contractorKeysHandler()->keyHashByNumber(
+            mTrustLineID,
+            contractorKeyNumber);
+
+        ioTransaction->auditHandler()->saveContractorAuditPart(
+            auditNumber,
+            mTrustLineID,
+            contractorKeyHash,
+            contractorSignature);
+
+        ioTransaction->contractorKeysHandler()->invalidKey(
+            mTrustLineID,
+            contractorKeyNumber);
+    }
+
+    pair<lamport::Signature::Shared, KeyNumber> TrustLineKeychain::getSignatureAndKeyNumberForPendingAudit(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber)
+    {
+        auto auditRecord = ioTransaction->auditHandler()->getActualAuditFull(
+            mTrustLineID);
+        if (auditRecord->auditNumber() != auditNumber) {
+            warning() << "Audit numbers are different: number from memory " << auditNumber
+                      << " number from storage " << auditRecord->auditNumber();
+            throw ValueError("Invalid audit number");
+        }
+        if (auditRecord->contractorSignature() != nullptr) {
+            throw ValueError("Not empty contractor signature");
+        }
+
+        try {
+            auto ownKeyNumber = ioTransaction->ownKeysHandler()->getKeyNumberByHash(
+                auditRecord->ownKeyHash());
+            return make_pair(
+                auditRecord->ownSignature(),
+                ownKeyNumber);
+        } catch (NotFoundError &e) {
+            throw ValueError("Can't get key number. Details: " + e.message());
+        }
     }
 
     TrustLineAmount TrustLineKeychain::incomingCommittedReceiptsAmountsSum(
@@ -501,16 +576,16 @@ namespace crypto {
         IOTransaction::Shared ioTransaction,
         AuditRecord::Shared auditRecord)
     {
-        ioTransaction->auditHandler()->saveAudit(
-            auditRecord->auditNumber(),
-            mTrustLineID,
-            auditRecord->contractorKeyHash(),
-            auditRecord->contractorSignature(),
-            auditRecord->ownKeyHash(),
-            auditRecord->ownSignature(),
-            auditRecord->outgoingAmount(),
-            auditRecord->incomingAmount(),
-            auditRecord->balance() * (-1));
+        ioTransaction->auditHandler()->saveFullAudit(
+                auditRecord->auditNumber(),
+                mTrustLineID,
+                auditRecord->contractorKeyHash(),
+                auditRecord->contractorSignature(),
+                auditRecord->ownKeyHash(),
+                auditRecord->ownSignature(),
+                auditRecord->outgoingAmount(),
+                auditRecord->incomingAmount(),
+                auditRecord->balance() * (-1));
 
         ioTransaction->ownKeysHandler()->invalidKeyByHash(
             mTrustLineID,

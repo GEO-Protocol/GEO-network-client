@@ -141,6 +141,18 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializat
             serializedAuditData.first,
             serializedAuditData.second);
 
+        keyChain.saveOwnAuditPart(
+            ioTransaction,
+            mAuditNumber,
+            mOwnSignatureAndKeyNumber.second,
+            mOwnSignatureAndKeyNumber.first,
+            mTrustLines->incomingTrustAmount(
+                mContractorUUID),
+            mTrustLines->outgoingTrustAmount(
+                mContractorUUID),
+            mTrustLines->balance(
+                mContractorUUID));
+
 #ifdef TESTS
         mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
         mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
@@ -181,13 +193,11 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializat
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponseProcessingStage()
 {
     if (mContext.empty()) {
-        warning() << "Contractor don't send response. Transaction will be closed.";
-        mTrustLines->setIncoming(
-            mContractorUUID,
-            mPreviousIncomingAmount);
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
-            mPreviousState);
+        warning() << "Contractor don't send response. Transaction will be closed and send ping";
+        sendMessage<PingMessage>(
+            mCommand->contractorUUID(),
+            0,
+            mNodeUUID);
         return resultDone();
     }
     auto message = popNextMessage<AuditResponseMessage>();
@@ -249,18 +259,11 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
             return resultDone();
         }
 
-        keyChain.saveAudit(
+        keyChain.saveContractorAuditPart(
             ioTransaction,
             mAuditNumber,
-            mOwnSignatureAndKeyNumber.second,
-            mOwnSignatureAndKeyNumber.first,
             message->keyNumber(),
-            message->signature(),
-            mTrustLines->incomingTrustAmount(
-                mContractorUUID),
-            mTrustLines->outgoingTrustAmount(
-                mContractorUUID),
-            mTrustLines->balance(mContractorUUID));
+            message->signature());
 
         mTrustLines->setTrustLineAuditNumberAndMakeActive(
             mContractorUUID,
@@ -270,6 +273,17 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
 
         populateHistory(ioTransaction, TrustLineRecord::ClosingIncoming);
 
+    } catch (ValueError &e) {
+        ioTransaction->rollback();
+        mTrustLines->setIncoming(
+            mContractorUUID,
+            mPreviousIncomingAmount);
+        mTrustLines->setTrustLineState(
+            mContractorUUID,
+            mPreviousState);
+        error() << "Attempt to save audit from contractor " << mContractorUUID << " failed. "
+                << "Details are: " << e.what();
+        return resultDone();
     } catch (IOError &e) {
         ioTransaction->rollback();
         mTrustLines->setIncoming(

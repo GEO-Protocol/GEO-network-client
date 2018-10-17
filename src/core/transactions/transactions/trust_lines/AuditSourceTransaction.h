@@ -19,6 +19,16 @@ public:
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
+    AuditSourceTransaction(
+        const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
+        const NodeUUID &contractorUUID,
+        TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
+        Logger &logger);
+
     TransactionResult::SharedConst run();
 
 protected: // log
@@ -26,6 +36,8 @@ protected: // log
 
 private:
     TransactionResult::SharedConst runInitializationStage();
+
+    TransactionResult::SharedConst runNextAttemptStage();
 
     TransactionResult::SharedConst runResponseProcessingStage();
 };
