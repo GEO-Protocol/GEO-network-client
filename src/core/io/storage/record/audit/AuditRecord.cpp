@@ -120,6 +120,11 @@ const lamport::Signature::Shared AuditRecord::contractorSignature() const
     return mContractorSignature;
 }
 
+bool AuditRecord::isPendingState() const
+{
+    return mContractorSignature == nullptr;
+}
+
 BytesShared AuditRecord::serializeToBytes()
 {
     BytesShared dataBytesShared = tryCalloc(recordSize());

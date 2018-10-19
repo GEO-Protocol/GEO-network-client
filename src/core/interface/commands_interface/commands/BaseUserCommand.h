@@ -42,14 +42,15 @@ public:
         noexcept;
     CommandResult::SharedConst responseTrustLineIsAbsent() const
         noexcept;
-    CommandResult::SharedConst responseCurrentIncomingDebtIsGreaterThanNewAmount() const
+    CommandResult::SharedConst responseThereAreNoKeys() const
         noexcept;
-    CommandResult::SharedConst responseTrustLineIsAlreadyPresent() const
+    CommandResult::SharedConst responseNoConsensus() const
         noexcept;
-
-    CommandResult::SharedConst responseTrustLineRejected() const;
-
     CommandResult::SharedConst responseInsufficientFunds() const
+        noexcept;
+    CommandResult::SharedConst responseInsufficientFundsDueToKeysAbsent() const
+        noexcept;
+    CommandResult::SharedConst responseInsufficientFundsDueToParticipantsKeysAbsent() const
         noexcept;
     CommandResult::SharedConst responseConflictWithOtherOperation() const
         noexcept;

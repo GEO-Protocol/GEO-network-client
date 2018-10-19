@@ -73,6 +73,18 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
         return resultProtocolError();
     }
 
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(mContractorUUID)) {
+        warning() << "There are no own keys";
+        return resultKeysError();
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineContractorKeysPresent(mContractorUUID)) {
+        warning() << "There are no contractor keys";
+        return resultKeysError();
+    }
+
     mPreviousOutgoingAmount = mTrustLines->outgoingTrustAmount(mContractorUUID);
     mPreviousState = mTrustLines->trustLineState(mContractorUUID);
 
@@ -261,7 +273,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
             {Message::TrustLines_AuditConfirmation},
             kWaitMillisecondsForResponse);
     }
-    processConfirmationMessage(message);
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
@@ -269,11 +280,10 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
     auto contractorSerializedAuditData = getContractorSerializedAuditData();
     try {
 
+        // todo process ConfirmationMessage::OwnKeysAbsent and ConfirmationMessage::ContractorKeysAbsent
+
         if (message->state() != ConfirmationMessage::OK) {
             warning() << "Contractor didn't accept changing TL. Response code: " << message->state();
-            mTrustLines->setOutgoing(
-                mContractorUUID,
-                mPreviousOutgoingAmount);
             mTrustLines->setTrustLineState(
                 mContractorUUID,
                 TrustLine::ConflictResolving,
@@ -310,10 +320,10 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
         info() << "audit saved";
 
         mTrustLines->setTrustLineAuditNumberAndMakeActive(
-                mContractorUUID,
-                mAuditNumber);
+            mContractorUUID,
+            mAuditNumber);
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
-                mContractorUUID);
+            mContractorUUID);
 
         switch (mOperationResult) {
             case TrustLinesManager::TrustLineOperationResult::Opened: {
@@ -338,23 +348,20 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
         }
     } catch (ValueError &e) {
         ioTransaction->rollback();
-        mTrustLines->setOutgoing(
-            mContractorUUID,
-            mPreviousOutgoingAmount);
         mTrustLines->setTrustLineState(
             mContractorUUID,
-            mPreviousState);
+            TrustLine::ConflictResolving,
+            ioTransaction);
+        // todo need correct reaction
         error() << "Attempt to save audit from contractor " << mContractorUUID << " failed. "
                 << "Details are: " << e.what();
         return resultDone();
     } catch (IOError &e) {
         ioTransaction->rollback();
-        mTrustLines->setOutgoing(
-            mContractorUUID,
-            mPreviousOutgoingAmount);
         mTrustLines->setTrustLineState(
             mContractorUUID,
-            mPreviousState);
+            TrustLine::ConflictResolving);
+        // todo need correct reaction
         error() << "Attempt to process confirmation from contractor " << mContractorUUID << " failed. "
                 << "IO transaction can't be completed. Details are: " << e.what();
         throw e;
@@ -386,6 +393,12 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::resultProtocolEr
 {
     return transactionResultFromCommand(
         mCommand->responseProtocolError());
+}
+
+TransactionResult::SharedConst SetOutgoingTrustLineTransaction::resultKeysError()
+{
+    return transactionResultFromCommand(
+        mCommand->responseThereAreNoKeys());
 }
 
 TransactionResult::SharedConst SetOutgoingTrustLineTransaction::resultUnexpectedError()

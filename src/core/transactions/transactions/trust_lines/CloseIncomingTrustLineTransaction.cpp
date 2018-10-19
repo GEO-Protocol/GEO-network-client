@@ -103,6 +103,18 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializat
         return resultProtocolError();
     }
 
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(mContractorUUID)) {
+        warning() << "There are no own keys";
+        return resultKeysError();
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineContractorKeysPresent(mContractorUUID)) {
+        warning() << "There are no contractor keys";
+        return resultKeysError();
+    }
+
     mPreviousIncomingAmount = mTrustLines->incomingTrustAmount(mContractorUUID);
     mPreviousState = mTrustLines->trustLineState(mContractorUUID);
 
@@ -220,22 +232,22 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
             {Message::TrustLines_AuditConfirmation},
             kWaitMillisecondsForResponse);
     }
-    processConfirmationMessage(message);
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineID(mContractorUUID));
     auto contractorSerializedAuditData = getContractorSerializedAuditData();
     try {
+
+        // todo process ConfirmationMessage::OwnKeysAbsent and ConfirmationMessage::ContractorKeysAbsent
+
         if (message->state() != ConfirmationMessage::OK) {
             warning() << "Contractor didn't accept closing incoming TL. Response code: " << message->state();
-            mTrustLines->setIncoming(
-                mContractorUUID,
-                mPreviousIncomingAmount);
             mTrustLines->setTrustLineState(
                 mContractorUUID,
                 TrustLine::ConflictResolving,
                 ioTransaction);
+            // todo run conflict resolving TA
             return resultDone();
         }
 
@@ -275,23 +287,20 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
 
     } catch (ValueError &e) {
         ioTransaction->rollback();
-        mTrustLines->setIncoming(
-            mContractorUUID,
-            mPreviousIncomingAmount);
         mTrustLines->setTrustLineState(
             mContractorUUID,
-            mPreviousState);
+            TrustLine::ConflictResolving,
+            ioTransaction);
+        // todo need correct reaction
         error() << "Attempt to save audit from contractor " << mContractorUUID << " failed. "
                 << "Details are: " << e.what();
         return resultDone();
     } catch (IOError &e) {
         ioTransaction->rollback();
-        mTrustLines->setIncoming(
-            mContractorUUID,
-            mPreviousIncomingAmount);
         mTrustLines->setTrustLineState(
             mContractorUUID,
-            mPreviousState);
+            TrustLine::ConflictResolving);
+        // todo need correct reaction
         error() << "Attempt to process confirmation from contractor " << message->senderUUID << " failed. "
                 << "IO transaction can't be completed. Details are: " << e.what();
         return resultDone();
@@ -313,6 +322,18 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runAddToBlackL
         mPreviousState = mTrustLines->trustLineState(mContractorUUID);
     } catch (NotFoundError &e) {
         warning() << "Attempt to change not existing TL";
+        return resultDone();
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(mContractorUUID)) {
+        warning() << "There are no own keys";
+        return resultDone();
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineContractorKeysPresent(mContractorUUID)) {
+        warning() << "There are no contractor keys";
         return resultDone();
     }
 
@@ -409,6 +430,12 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::resultProtocol
 {
     return transactionResultFromCommand(
         mCommand->responseProtocolError());
+}
+
+TransactionResult::SharedConst CloseIncomingTrustLineTransaction::resultKeysError()
+{
+    return transactionResultFromCommand(
+        mCommand->responseThereAreNoKeys());
 }
 
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::resultUnexpectedError()

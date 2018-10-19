@@ -1,9 +1,7 @@
 ﻿#ifndef RESPONSEMESSAGE_H
 #define RESPONSEMESSAGE_H
 
-
 #include "../../base/transaction/TransactionMessage.h"
-
 
 class ResponseMessage:
     public TransactionMessage {
@@ -12,9 +10,11 @@ public:
     enum OperationState {
         Accepted = 1,
         Rejected = 2,
+        RejectedDueOwnKeysAbsence = 3,
+        RejectedDueContractorKeysAbsence = 4,
         // used for immediately closing transaction
-        Closed = 3,
-        NextNodeInaccessible = 4
+        Closed = 5,
+        NextNodeInaccessible = 6
     };
 
 public:

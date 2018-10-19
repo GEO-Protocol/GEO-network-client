@@ -34,19 +34,6 @@ public:
         SubsystemsController *subsystemsController)
         noexcept;
 
-    CycleCloserInitiatorTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *trustLines,
-        CyclesManager *cyclesManager,
-        StorageHandler *storageHandler,
-        TopologyCacheManager *topologyCacheManager,
-        MaxFlowCacheManager *maxFlowCacheManager,
-        Keystore *keystore,
-        Logger &log,
-        SubsystemsController *subsystemsController)
-        throw (bad_alloc);
-
     TransactionResult::SharedConst run()
         noexcept;
 

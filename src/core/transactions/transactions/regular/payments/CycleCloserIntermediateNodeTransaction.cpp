@@ -118,6 +118,17 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
         return resultDone();
     }
 
+    if (!mTrustLines->trustLineContractorKeysPresent(mPreviousNode)) {
+        warning() << "There are no contractor keys on TL";
+        sendMessage<IntermediateNodeCycleReservationResponseMessage>(
+            mPreviousNode,
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            ResponseCycleMessage::RejectedDueContractorKeysAbsence);
+        return resultDone();
+    }
+
     // Note: (copy of shared pointer is required)
     const auto kIncomingAmounts = mTrustLines->availableIncomingCycleAmounts(mPreviousNode);
     const auto kIncomingAmountWithReservations = kIncomingAmounts.first;
@@ -257,8 +268,9 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
         return resultDone();
     }
 
-    if (!contextIsValid(Message::Payments_CoordinatorCycleReservationRequest))
+    if (!contextIsValid(Message::Payments_CoordinatorCycleReservationRequest)) {
         return reject("No coordinator request received. Rolled back.");
+    }
 
     debug() << "Coordinator further reservation request received.";
 
@@ -287,6 +299,19 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
             ResponseCycleMessage::Rejected);
 
         warning() << "Path is not valid: next node is not neighbor of current one. Rejected.";
+        rollBack();
+        return resultDone();
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(mNextNode)) {
+        warning() << "There are no own keys on TL";
+        sendMessage<CoordinatorCycleReservationResponseMessage>(
+            mCoordinator,
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            ResponseCycleMessage::RejectedDueOwnKeysAbsence);
         rollBack();
         return resultDone();
     }
@@ -452,6 +477,19 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
 
     const auto kMessage = popNextMessage<IntermediateNodeCycleReservationResponseMessage>();
     const auto kContractor = kMessage->senderUUID;
+
+    if (kMessage->state() == IntermediateNodeCycleReservationResponseMessage::RejectedDueContractorKeysAbsence){
+        sendMessage<CoordinatorCycleReservationResponseMessage>(
+            mCoordinator,
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            ResponseCycleMessage::RejectedDueContractorKeysAbsence);
+        warning() << "Next node doesn't approved reservation request due to contractor keys absence";
+        rollBack();
+        // todo maybe set mOwnKeysPresent into false and initiate KeysSharing TA
+        return resultDone();
+    }
 
     if (kMessage->state() == IntermediateNodeCycleReservationResponseMessage::Rejected ||
             kMessage->state() == IntermediateNodeCycleReservationResponseMessage::RejectedBecauseReservations){

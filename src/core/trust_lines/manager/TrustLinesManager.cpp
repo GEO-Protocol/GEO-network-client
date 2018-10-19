@@ -25,6 +25,7 @@ void TrustLinesManager::loadTrustLinesFromStorage()
     mTrustLines.reserve(kTrustLines.size());
 
     for (auto const &kTrustLine : kTrustLines) {
+        auto keyChain = mKeysStore->keychain(kTrustLine->trustLineID());
         try {
             auto auditRecord = ioTransaction->auditHandler()->getActualAudit(
                 kTrustLine->trustLineID());
@@ -32,29 +33,50 @@ void TrustLinesManager::loadTrustLinesFromStorage()
             kTrustLine->setIncomingTrustAmount(auditRecord->incomingAmount());
             kTrustLine->setOutgoingTrustAmount(auditRecord->outgoingAmount());
 
-            auto keyChain = mKeysStore->keychain(kTrustLine->trustLineID());
-            auto totalIncomingReceiptsAmount = keyChain.incomingCommittedReceiptsAmountsSum(
-                ioTransaction,
-                auditRecord->auditNumber());
-            auto totalOutgoingReceiptsAmount = keyChain.outgoingCommittedReceiptsAmountsSum(
-                ioTransaction,
-                auditRecord->auditNumber());
-            TrustLineBalance balance = auditRecord->balance() + totalIncomingReceiptsAmount - totalOutgoingReceiptsAmount;
-            kTrustLine->setBalance(balance);
+            if (!auditRecord->isPendingState()) {
+                auto totalIncomingReceiptsAmount = keyChain.incomingCommittedReceiptsAmountsSum(
+                    ioTransaction,
+                    auditRecord->auditNumber());
+                auto totalOutgoingReceiptsAmount = keyChain.outgoingCommittedReceiptsAmountsSum(
+                    ioTransaction,
+                    auditRecord->auditNumber());
+                TrustLineBalance balance =
+                    auditRecord->balance() + totalIncomingReceiptsAmount - totalOutgoingReceiptsAmount;
+                kTrustLine->setBalance(balance);
 
-            if (auditRecord->balance() > TrustLine::kZeroBalance()) {
-                totalIncomingReceiptsAmount = totalIncomingReceiptsAmount + TrustLineAmount(auditRecord->balance());
+                if (auditRecord->balance() > TrustLine::kZeroBalance()) {
+                    totalIncomingReceiptsAmount =
+                        totalIncomingReceiptsAmount + TrustLineAmount(auditRecord->balance());
+                } else {
+                    totalOutgoingReceiptsAmount =
+                        totalOutgoingReceiptsAmount + TrustLineAmount(abs(auditRecord->balance()));
+                }
+
+                kTrustLine->setTotalIncomingReceiptsAmount(
+                    totalIncomingReceiptsAmount);
+                kTrustLine->setTotalOutgoingReceiptsAmount(
+                    totalOutgoingReceiptsAmount);
             } else {
-                totalOutgoingReceiptsAmount = totalOutgoingReceiptsAmount + TrustLineAmount(abs(auditRecord->balance()));
+                info() << "audit pending TL in storage with contractor " << kTrustLine->contractorNodeUUID();
+                kTrustLine->setState(TrustLine::AuditPending);
             }
 
-            kTrustLine->setTotalIncomingReceiptsAmount(
-                totalIncomingReceiptsAmount);
-            kTrustLine->setTotalOutgoingReceiptsAmount(
-                totalOutgoingReceiptsAmount);
+            if (keyChain.ownKeysPresent(ioTransaction)) {
+                kTrustLine->setIsOwnKeysPresent(true);
+            }
+
+            if (keyChain.contractorKeysPresent(ioTransaction)) {
+                kTrustLine->setIsContractorKeysPresent(true);
+            }
 
         } catch (NotFoundError&) {
             info() << "init TL in storage with contractor " << kTrustLine->contractorNodeUUID();
+            if (keyChain.ownKeysPresent(ioTransaction)) {
+                warning() << "Something wrong, because TL contains own valid keys";
+            }
+            if (keyChain.contractorKeysPresent(ioTransaction)) {
+                warning() << "Something wrong, because TL contains contractor's valid keys";
+            }
         }
 
         mTrustLines.insert(
@@ -379,6 +401,30 @@ const TrustLine::TrustLineState TrustLinesManager::trustLineState(
     return mTrustLines.at(contractorUUID)->state();
 }
 
+bool TrustLinesManager::trustLineOwnKeysPresent(
+    const NodeUUID &contractorUUID) const
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            logHeader() + "::trustLineOwnKeysPresent: "
+                "There is no trust line to contractor " + contractorUUID.stringUUID());
+    }
+
+    return mTrustLines.at(contractorUUID)->isOwnKeysPresent();
+}
+
+bool TrustLinesManager::trustLineContractorKeysPresent(
+    const NodeUUID &contractorUUID) const
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            logHeader() + "::trustLineContractorKeysPresent: "
+                "There is no trust line to contractor " + contractorUUID.stringUUID());
+    }
+
+    return mTrustLines.at(contractorUUID)->isContractorKeysPresent();
+}
+
 AmountReservation::ConstShared TrustLinesManager::reserveOutgoingAmount(
     const NodeUUID &contractor,
     const TransactionUUID &transactionUUID,
@@ -685,6 +731,18 @@ void TrustLinesManager::updateTrustLineFromStorage(
             totalIncomingReceiptsAmount);
         kTrustLine->setTotalOutgoingReceiptsAmount(
             totalOutgoingReceiptsAmount);
+
+        if (keyChain.ownKeysPresent(ioTransaction)) {
+            kTrustLine->setIsOwnKeysPresent(true);
+        } else {
+            kTrustLine->setIsOwnKeysPresent(false);
+        }
+
+        if (keyChain.contractorKeysPresent(ioTransaction)) {
+            kTrustLine->setIsContractorKeysPresent(true);
+        } else {
+            kTrustLine->setIsContractorKeysPresent(false);
+        }
 
     } catch (NotFoundError&) {
         info() << "init TL in storage with contractor " << kTrustLine->contractorNodeUUID();
@@ -1197,6 +1255,12 @@ LoggerStream TrustLinesManager::info() const
     noexcept
 {
     return mLogger.info(logHeader());
+}
+
+LoggerStream TrustLinesManager::warning() const
+    noexcept
+{
+    return mLogger.warning(logHeader());
 }
 
 void TrustLinesManager::printRTs()

@@ -1,28 +1,28 @@
-#ifndef GEO_NETWORK_CLIENT_INITTRUSTLINECOMMAND_H
-#define GEO_NETWORK_CLIENT_INITTRUSTLINECOMMAND_H
+#ifndef GEO_NETWORK_CLIENT_SHAREKEYSCOMMAND_H
+#define GEO_NETWORK_CLIENT_SHAREKEYSCOMMAND_H
 
 #include "../BaseUserCommand.h"
 
 #include "../../../../common/exceptions/ValueError.h"
 
-class InitTrustLineCommand : public BaseUserCommand {
+class ShareKeysCommand : public BaseUserCommand {
 
 public:
-    typedef shared_ptr<InitTrustLineCommand> Shared;
+    typedef shared_ptr<ShareKeysCommand> Shared;
 
 public:
-    InitTrustLineCommand(
+    ShareKeysCommand(
         const CommandUUID &commandUUID,
         const string &commandBuffer);
 
     static const string &identifier()
-    noexcept;
+        noexcept;
 
     const NodeUUID &contractorUUID() const
-    noexcept;
+        noexcept;
 
     const SerializedEquivalent equivalent() const
-    noexcept;
+        noexcept;
 
 private:
     NodeUUID mContractorUUID;
@@ -30,4 +30,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_INITTRUSTLINECOMMAND_H
+#endif //GEO_NETWORK_CLIENT_SHAREKEYSCOMMAND_H

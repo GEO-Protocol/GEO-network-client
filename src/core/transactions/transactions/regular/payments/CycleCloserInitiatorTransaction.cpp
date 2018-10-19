@@ -31,33 +31,6 @@ noexcept :
     mPathStats = make_unique<PathStats>(path);
 }
 
-CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
-    BytesShared buffer,
-    const NodeUUID &nodeUUID,
-    TrustLinesManager *trustLines,
-    CyclesManager *cyclesManager,
-    StorageHandler *storageHandler,
-    TopologyCacheManager *topologyCacheManager,
-    MaxFlowCacheManager *maxFlowCacheManager,
-    Keystore *keystore,
-    Logger &log,
-    SubsystemsController *subsystemsController)
-throw (bad_alloc) :
-
-    BasePaymentTransaction(
-        buffer,
-        nodeUUID,
-        trustLines,
-        storageHandler,
-        topologyCacheManager,
-        maxFlowCacheManager,
-        keystore,
-        log,
-        subsystemsController),
-    mCyclesManager(cyclesManager)
-{}
-
-
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
     noexcept
 {
@@ -279,6 +252,15 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
     const auto kCurrentNode = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(mNextNode)) {
+        warning() << "There are no own keys on TL with contractor " << mNextNode;
+        mCyclesManager->addClosedTrustLine(
+            currentNodeUUID(),
+            mNextNode);
+        return resultDone();
+    }
+
     // Try reserve amount locally.
     mPathStats->shortageMaxFlow(mOutgoingAmount);
     mPathStats->setNodeState(
@@ -403,6 +385,16 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborA
         return resultDone();
     }
 
+    if (message->state() == IntermediateNodeCycleReservationResponseMessage::RejectedDueContractorKeysAbsence) {
+        warning() << "Neighbor node doesn't approved reservation request due to contractor keys absence";
+        rollBack();
+        mCyclesManager->addClosedTrustLine(
+            currentNodeUUID(),
+            mNextNode);
+        // todo maybe set mOwnKeysPresent into false and initiate KeysSharing TA
+        return resultDone();
+    }
+
     if (message->state() != IntermediateNodeCycleReservationResponseMessage::Accepted) {
         warning() << "Unexpected message state. Protocol error.";
         rollBack();
@@ -485,7 +477,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
     }
 
     if (message->state() == CoordinatorCycleReservationResponseMessage::Rejected ||
-            message->state() == CoordinatorCycleReservationResponseMessage::RejectedBecauseReservations) {
+            message->state() == CoordinatorCycleReservationResponseMessage::RejectedBecauseReservations ||
+            message->state() == CoordinatorCycleReservationResponseMessage::RejectedDueOwnKeysAbsence ||
+            message->state() == CoordinatorCycleReservationResponseMessage::RejectedDueContractorKeysAbsence) {
         warning() << "Neighbor node doesn't accepted coordinator request.";
         rollBack();
         if (message->state() == CoordinatorCycleReservationResponseMessage::Rejected) {
@@ -609,7 +603,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
     }
 
     if (message->state() == CoordinatorCycleReservationResponseMessage::Rejected ||
-            message->state() == CoordinatorCycleReservationResponseMessage::RejectedBecauseReservations) {
+            message->state() == CoordinatorCycleReservationResponseMessage::RejectedBecauseReservations ||
+            message->state() == CoordinatorCycleReservationResponseMessage::RejectedDueOwnKeysAbsence ||
+            message->state() == CoordinatorCycleReservationResponseMessage::RejectedDueContractorKeysAbsence) {
         warning() << "Remote node rejected reservation. Can't pay";
         rollBack();
         informIntermediateNodesAboutTransactionFinish(
@@ -695,6 +691,18 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
     debug() << "Coordinator payment operation from node (" << mPreviousNode << ")";
     debug() << "Requested amount reservation: " << kMessage->amount();
 
+    if (!mTrustLines->trustLineContractorKeysPresent(mPreviousNode)) {
+        warning() << "There are no contractor keys on TL";
+        sendMessage<IntermediateNodeCycleReservationResponseMessage>(
+            mPreviousNode,
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            ResponseCycleMessage::RejectedDueContractorKeysAbsence);
+        rollBack();
+        return resultDone();
+    }
+
     const auto kIncomingAmounts = mTrustLines->availableIncomingCycleAmounts(mPreviousNode);
     const auto kIncomingAmountWithReservations = kIncomingAmounts.first;
     const auto kIncomingAmountWithoutReservations = kIncomingAmounts.second;
@@ -710,6 +718,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
                 ResponseCycleMessage::Rejected);
             warning() << "can't reserve requested amount, because coordinator incoming amount "
                 "event without reservations equal zero, transaction closed";
+            rollBack();
             return resultDone();
         } else {
             mIncomingAmount = TrustLineAmount(0);

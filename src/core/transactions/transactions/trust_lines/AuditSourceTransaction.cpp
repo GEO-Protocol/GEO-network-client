@@ -85,6 +85,18 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
         return resultDone();
     }
 
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(mContractorUUID)) {
+        warning() << "There are no own keys";
+        return resultDone();
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineContractorKeysPresent(mContractorUUID)) {
+        warning() << "There are no contractor keys";
+        return resultDone();
+    }
+
     mTrustLines->setTrustLineState(
         mContractorUUID,
         TrustLine::AuditPending);
@@ -165,6 +177,18 @@ TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
 
     } catch (NotFoundError &e) {
         warning() << "Attempt to audit not existing TL";
+        return resultDone();
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(mContractorUUID)) {
+        warning() << "There are no own keys";
+        return resultDone();
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineContractorKeysPresent(mContractorUUID)) {
+        warning() << "There are no contractor keys";
         return resultDone();
     }
 
@@ -250,6 +274,8 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         mTrustLines->trustLineID(mContractorUUID));
     auto contractorSerializedAuditData = getContractorSerializedAuditData();
     try {
+
+        // todo process ConfirmationMessage::OwnKeysAbsent and ConfirmationMessage::ContractorKeysAbsent
 
         if (message->state() != ConfirmationMessage::OK) {
             warning() << "Contractor didn't accept changing TL. Response code: " << message->state();

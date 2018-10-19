@@ -44,6 +44,20 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
 
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(mContractorUUID)) {
+        warning() << "There are no own keys";
+        return sendAuditErrorConfirmation(
+            ConfirmationMessage::OwnKeysAbsent);
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineContractorKeysPresent(mContractorUUID)) {
+        warning() << "There are no contractor keys";
+        return sendAuditErrorConfirmation(
+            ConfirmationMessage::ContractorKeysAbsent);
+    }
+
     // Trust line must be created (or updated) in the internal storage.
     // Also, history record must be written about this operation.
     // Both writes must be done atomically, so the IO transaction is used.

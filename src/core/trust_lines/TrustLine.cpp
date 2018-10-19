@@ -19,7 +19,9 @@ TrustLine::TrustLine(
     mCurrentAudit(auditNumber),
     mState(state),
     mTotalIncomingReceiptsAmount(kZeroAmount()),
-    mTotalOutgoingReceiptsAmount(kZeroAmount())
+    mTotalOutgoingReceiptsAmount(kZeroAmount()),
+    mIsOwnKeysPresent(false),
+    mIsContractorKeysPresent(false)
 {
     // todo zero amounts checking
 }
@@ -39,7 +41,9 @@ TrustLine::TrustLine(
     mCurrentAudit(kInitialAuditNumber),
     mState(state),
     mTotalIncomingReceiptsAmount(kZeroAmount()),
-    mTotalOutgoingReceiptsAmount(kZeroAmount())
+    mTotalOutgoingReceiptsAmount(kZeroAmount()),
+    mIsOwnKeysPresent(false),
+    mIsContractorKeysPresent(false)
 {}
 
 /**
@@ -238,6 +242,16 @@ void TrustLine::setIsContractorKeysPresent(
     bool isContractorKeysPresent)
 {
     mIsContractorKeysPresent = isContractorKeysPresent;
+}
+
+bool TrustLine::isOwnKeysPresent() const
+{
+    return mIsOwnKeysPresent;
+}
+
+bool TrustLine::isContractorKeysPresent() const
+{
+    return mIsContractorKeysPresent;
 }
 
 /*!

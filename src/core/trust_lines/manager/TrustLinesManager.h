@@ -186,6 +186,12 @@ public:
     const TrustLine::TrustLineState trustLineState(
         const NodeUUID &contractorUUID) const;
 
+    bool trustLineOwnKeysPresent(
+        const NodeUUID &contractorUUID) const;
+
+    bool trustLineContractorKeysPresent(
+        const NodeUUID &contractorUUID) const;
+
     /**
      * Reserves payment amount TO the contractor.
      *
@@ -398,6 +404,9 @@ protected: // log shortcuts
         noexcept;
 
     LoggerStream info() const
+        noexcept;
+
+    LoggerStream warning() const
         noexcept;
 
 private:

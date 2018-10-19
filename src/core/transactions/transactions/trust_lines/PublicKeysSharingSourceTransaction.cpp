@@ -15,12 +15,39 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
         equivalent,
         logger),
     mContractorUUID(contractorUUID),
+    mCurrentKeyNumber(0),
+    mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
     mTrustLinesInfluenceController(trustLinesInfluenceController)
 {
-    mCurrentKeyNumber = 0;
+    mStep = Initialization;
+}
+
+PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
+    const NodeUUID &nodeUUID,
+    ShareKeysCommand::Shared command,
+    TrustLinesManager *manager,
+    StorageHandler *storageHandler,
+    Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
+    Logger &logger) :
+    BaseTransaction(
+        BaseTransaction::PublicKeysSharingSourceTransactionType,
+        nodeUUID,
+        mCommand->equivalent(),
+        logger),
+    mCommand(command),
+    mContractorUUID(mCommand->contractorUUID()),
+    mCurrentKeyNumber(0),
+    mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
+    mTrustLines(manager),
+    mStorageHandler(storageHandler),
+    mKeysStore(keystore),
+    mTrustLinesInfluenceController(trustLinesInfluenceController)
+{
+    mStep = CommandInitialization;
 }
 
 TransactionResult::SharedConst PublicKeysSharingSourceTransaction::run()
@@ -28,6 +55,9 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::run()
     switch (mStep) {
         case Stages::Initialization: {
             return runPublicKeysSharingInitializationStage();
+        }
+        case Stages::CommandInitialization: {
+            return runCommandPublicKeysSharingInitializationStage();
         }
         case Stages::ResponseProcessing: {
             return runPublicKeysSendNextKeyStage();
@@ -60,15 +90,13 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
             ioTransaction);
         keyChain.generateKeyPairsSet(
             ioTransaction);
-    } catch (IOError &e) {
-        ioTransaction->rollback();
-        error() << "Can't generate key pairs. Details: " << e.what();
-        throw e;
-    }
-    info() << "All keys saved";
-    mCurrentKeyNumber = 0;
+        info() << "All keys saved";
 
-    try {
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingStage();
+#endif
+
         mCurrentPublicKey = keyChain.publicKey(
             ioTransaction,
             mCurrentKeyNumber);
@@ -79,21 +107,16 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
         }
     } catch (IOError &e) {
         ioTransaction->rollback();
-        error() << "Can't get public key. Details: " << e.what();
+        error() << "Can't generate public keys. Details: " << e.what();
         throw e;
     }
-
-#ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingStage();
-#endif
 
     sendMessage<PublicKeysSharingInitMessage>(
         mContractorUUID,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,
-        crypto::TrustLineKeychain::kDefaultKeysSetSize,
+        mKeysCount,
         mCurrentKeyNumber,
         mCurrentPublicKey);
     info() << "Send key number: " << mCurrentKeyNumber;
@@ -102,6 +125,63 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
     return resultWaitForMessageTypes(
         {Message::TrustLines_HashConfirmation},
         kWaitMillisecondsForResponse);
+}
+
+TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runCommandPublicKeysSharingInitializationStage()
+{
+    info() << "runCommandPublicKeysSharingInitializationStage with " << mContractorUUID;
+
+    if (mContractorUUID == mNodeUUID) {
+        warning() << "Attempt to launch transaction against itself was prevented.";
+        return resultProtocolError();
+    }
+
+    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Archived) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
+        return resultProtocolError();
+    }
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorUUID));
+    try {
+        keyChain.removeUnusedOwnKeys(
+            ioTransaction);
+        keyChain.generateKeyPairsSet(
+            ioTransaction);
+        info() << "All keys saved";
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingStage();
+        mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingStage();
+#endif
+
+        mCurrentPublicKey = keyChain.publicKey(
+            ioTransaction,
+            mCurrentKeyNumber);
+        if (mCurrentPublicKey == nullptr) {
+            warning() << "There are no data for keyNumber " << mCurrentKeyNumber;
+            // todo run reset keys sharing TA
+            return resultUnexpectedError();
+        }
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        error() << "Can't generate public keys. Details: " << e.what();
+        return resultUnexpectedError();
+    }
+
+    sendMessage<PublicKeysSharingInitMessage>(
+        mContractorUUID,
+        mEquivalent,
+        mNodeUUID,
+        mTransactionUUID,
+        mKeysCount,
+        mCurrentKeyNumber,
+        mCurrentPublicKey);
+    info() << "Send key number: " << mCurrentKeyNumber;
+
+    mStep = ResponseProcessing;
+    return resultOK();
 }
 
 TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeysSendNextKeyStage()
@@ -201,6 +281,26 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
     return resultWaitForMessageTypes(
         {Message::TrustLines_HashConfirmation},
         kWaitMillisecondsForResponse);
+}
+
+TransactionResult::SharedConst PublicKeysSharingSourceTransaction::resultOK()
+{
+    return transactionResultFromCommandAndWaitForMessageTypes(
+        mCommand->responseOK(),
+        {Message::TrustLines_HashConfirmation},
+        kWaitMillisecondsForResponse);
+}
+
+TransactionResult::SharedConst PublicKeysSharingSourceTransaction::resultProtocolError()
+{
+    return transactionResultFromCommand(
+        mCommand->responseProtocolError());
+}
+
+TransactionResult::SharedConst PublicKeysSharingSourceTransaction::resultUnexpectedError()
+{
+    return transactionResultFromCommand(
+        mCommand->responseUnexpectedError());
 }
 
 const string PublicKeysSharingSourceTransaction::logHeader() const

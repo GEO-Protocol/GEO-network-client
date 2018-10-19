@@ -84,11 +84,6 @@ const SerializedEquivalent CreditUsageCommand::equivalent() const
     return mEquivalent;
 }
 
-CommandResult::SharedConst CreditUsageCommand::responseNoConsensus () const
-{
-    return makeResult(409);
-}
-
 CommandResult::SharedConst CreditUsageCommand::responseOK(
     string &transactionUUID) const
 {

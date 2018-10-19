@@ -50,20 +50,6 @@ public:
         VisualInterface *visualInterface)
         noexcept;
 
-    CoordinatorPaymentTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *trustLines,
-        StorageHandler *storageHandler,
-        TopologyCacheManager *topologyCacheManager,
-        MaxFlowCacheManager *maxFlowCacheManager,
-        ResourcesManager *resourcesManager,
-        PathsManager *pathsManager,
-        Keystore *keystore,
-        Logger &log,
-        SubsystemsController *subsystemsController)
-        throw (bad_alloc);
-
     TransactionResult::SharedConst run()
         noexcept;
 
@@ -360,6 +346,12 @@ protected:
     size_t mPreviousInaccessibleNodesCount;
     vector<pair<NodeUUID, NodeUUID>> mRejectedTrustLines;
     size_t mPreviousRejectedTrustLinesCount;
+
+    // indicates that there are TL with keys absent problem
+    bool mNeighborsKeysProblem;
+
+    // indicates that there are participants which have TL with keys absent problem
+    bool mParticipantsKeysProblem;
 
     // count failed attempts to connect with Receiver
     uint8_t mCountReceiverInaccessible;

@@ -22,6 +22,7 @@
 #include "../../interface/commands_interface/commands/trust_lines/InitTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
+#include "../../interface/commands_interface/commands/trust_lines/ShareKeysCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h"
@@ -198,6 +199,9 @@ protected: // Transactions
 
     void launchCloseIncomingTrustLineTransaction(
         CloseIncomingTrustLineCommand::Shared command);
+
+    void launchPublicKeysSharingSourceTransaction(
+        ShareKeysCommand::Shared command);
 
     /**
      * Starts transaction that would processes received message

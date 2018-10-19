@@ -112,6 +112,10 @@ public:
     void setIsOwnKeysPresent(
         bool isOwnKeysPresent);
 
+    bool isOwnKeysPresent() const;
+
+    bool isContractorKeysPresent() const;
+
     void setIsContractorKeysPresent(
         bool isContractorKeysPresent);
 

@@ -30,7 +30,6 @@ public:
 
 public:
     // Results handlers
-    CommandResult::SharedConst responseNoConsensus() const;
     CommandResult::SharedConst responseOK(
         string &transactionUUID) const;
 

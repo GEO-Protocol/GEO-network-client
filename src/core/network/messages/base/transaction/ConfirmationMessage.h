@@ -19,6 +19,8 @@ public:
         Audit_Reject = 5,
         Audit_Invalid = 6,
         Audit_KeyNotFound = 7,
+        OwnKeysAbsent = 8,
+        ContractorKeysAbsent = 9,
     };
 
 public:

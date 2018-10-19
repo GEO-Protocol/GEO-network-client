@@ -49,6 +49,8 @@ public:
 
     const lamport::Signature::Shared contractorSignature() const;
 
+    bool isPendingState() const;
+
     BytesShared serializeToBytes();
 
     BytesShared serializeToCheckSignatureByInitiator();

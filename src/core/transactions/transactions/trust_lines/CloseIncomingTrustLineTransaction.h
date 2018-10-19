@@ -51,6 +51,8 @@ protected:
 
     TransactionResult::SharedConst resultProtocolError();
 
+    TransactionResult::SharedConst resultKeysError();
+
     TransactionResult::SharedConst resultUnexpectedError();
 
 protected: // trust lines history shortcuts

@@ -82,36 +82,6 @@ void TransactionsManager::loadTransactionsFromStorage()
                      + sizeof(BaseTransaction::SerializedTransactionType)) SerializedEquivalent;
 
         switch (transactionTypeId) {
-            case BaseTransaction::CoordinatorPaymentTransaction: {
-                try {
-                    auto transaction = make_shared<CoordinatorPaymentTransaction>(
-                        kTABuffer,
-                        mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
-                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
-                        mResourcesManager,
-                        mEquivalentsSubsystemsRouter->pathsManager(*equivalent),
-                        mKeysStore,
-                        mLog,
-                        mSubsystemsController);
-                    subscribeForBuildCyclesThreeNodesTransaction(
-                        transaction->mBuildCycleThreeNodesSignal);
-                    subscribeForTrustLineActionSignal(
-                        transaction->mTrustLineActionSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        true,
-                        false,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized CoordinatorPaymentTransaction "
-                            "with equivalent " << *equivalent  << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
             case BaseTransaction::IntermediateNodePaymentTransaction: {
                 try {
                     auto transaction = make_shared<IntermediateNodePaymentTransaction>(
@@ -165,33 +135,6 @@ void TransactionsManager::loadTransactionsFromStorage()
                         true);
                 } catch (NotFoundError &e) {
                     error() << "There are no subsystems for serialized ReceiverPaymentTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
-            case BaseTransaction::Payments_CycleCloserInitiatorTransaction: {
-                try {
-                    auto transaction = make_shared<CycleCloserInitiatorTransaction>(
-                        kTABuffer,
-                        mNodeUUID,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mEquivalentsCyclesSubsystemsRouter->cyclesManager(*equivalent),
-                        mStorageHandler,
-                        mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
-                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
-                        mKeysStore,
-                        mLog,
-                        mSubsystemsController);
-                    subscribeForTrustLineActionSignal(
-                        transaction->mTrustLineActionSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        false,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized CycleCloserInitiatorTransaction "
                             "with equivalent " << *equivalent << " Details are: " << e.what();
                     continue;
                 }
@@ -277,6 +220,11 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == CloseIncomingTrustLineCommand::identifier()) {
         launchCloseIncomingTrustLineTransaction(
             static_pointer_cast<CloseIncomingTrustLineCommand>(
+                command));
+
+    } else if (command->identifier() == ShareKeysCommand::identifier()) {
+        launchPublicKeysSharingSourceTransaction(
+            static_pointer_cast<ShareKeysCommand>(
                 command));
 
     } else if (command->identifier() == CreditUsageCommand::identifier()) {
@@ -637,6 +585,39 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
             true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CloseIncomingTrustLineTransaction "
+                "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            false,
+            false,
+            false);
+    }
+}
+
+void TransactionsManager::launchPublicKeysSharingSourceTransaction(
+    ShareKeysCommand::Shared command)
+{
+    try {
+        auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
+            mNodeUUID,
+            command,
+            mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
+            mStorageHandler,
+            mKeysStore,
+            mTrustLinesInfluenceController,
+            mLog);
+        subscribeForProcessingConfirmationMessage(
+            transaction->processConfirmationMessageSignal);
+        prepareAndSchedule(
+            transaction,
+            true,
+            false,
+            true);
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for PublicKeysSharingSourceTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(

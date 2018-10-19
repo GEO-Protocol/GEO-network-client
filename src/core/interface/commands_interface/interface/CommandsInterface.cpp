@@ -152,6 +152,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == ShareKeysCommand::identifier()) {
+            command = new ShareKeysCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == CreditUsageCommand::identifier()) {
             command = new CreditUsageCommand(
                 uuid,

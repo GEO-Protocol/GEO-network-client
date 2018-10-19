@@ -268,7 +268,24 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay((kMaxPathLength - 1) * 4));
     }
-    debug() << "All reservations was updated";
+    debug() << "All reservations were updated";
+
+    if (!mTrustLines->trustLineContractorKeysPresent(kNeighbor)) {
+        warning() << "There are no contractor keys on TL";
+        sendMessage<IntermediateNodeReservationResponseMessage>(
+            kNeighbor,
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            kReservation.first,
+            ResponseMessage::RejectedDueContractorKeysAbsence);
+
+        // Begin accepting other reservation messages
+        return resultWaitForMessageTypes(
+            {Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
+            maxNetworkDelay((kMaxPathLength - 1) * 4));
+    }
 
     // Note: copy of shared pointer is required.
     const auto kAvailableAmount = mTrustLines->incomingTrustAmountConsideringReservations(kNeighbor);

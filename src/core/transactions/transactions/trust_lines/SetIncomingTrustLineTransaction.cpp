@@ -56,6 +56,20 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
 
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(mContractorUUID)) {
+        warning() << "There are no own keys";
+        return sendAuditErrorConfirmation(
+            ConfirmationMessage::OwnKeysAbsent);
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineContractorKeysPresent(mContractorUUID)) {
+        warning() << "There are no contractor keys";
+        return sendAuditErrorConfirmation(
+            ConfirmationMessage::ContractorKeysAbsent);
+    }
+
     mPreviousIncomingAmount = mTrustLines->incomingTrustAmount(mContractorUUID);
     mPreviousState = mTrustLines->trustLineState(mContractorUUID);
 

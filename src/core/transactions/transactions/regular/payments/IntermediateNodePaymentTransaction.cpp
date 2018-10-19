@@ -185,7 +185,29 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
-    debug() << "All reservations was updated";
+    debug() << "All reservations were updated";
+
+    if (!mTrustLines->trustLineContractorKeysPresent(kNeighbor)) {
+        warning() << "There are no contractor keys on TL";
+        sendMessage<IntermediateNodeReservationResponseMessage>(
+            kNeighbor,
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            kReservation.first,
+            ResponseMessage::RejectedDueContractorKeysAbsence);
+        if (mReservations.empty()) {
+            debug() << "There are no reservations. Transaction closed.";
+            return resultDone();
+        }
+        mStep = Stages::IntermediateNode_ReservationProlongation;
+        return resultWaitForMessageTypes(
+            {Message::Payments_FinalAmountsConfiguration,
+             Message::Payments_TransactionPublicKeyHash,
+             Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
+            maxNetworkDelay((kMaxPathLength - 2) * 4));
+    }
 
     const auto kIncomingAmount = mTrustLines->incomingTrustAmountConsideringReservations(kNeighbor);
     TrustLineAmount kReservationAmount =
@@ -305,6 +327,30 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
             ResponseMessage::Rejected);
         warning() << "Path is not valid: next node is not neighbor of current one. Rolled back.";
         rollBack(kReservation.first);
+        // if no reservations close transaction
+        if (mReservations.empty()) {
+            debug() << "There are no reservations. Transaction closed.";
+            return resultDone();
+        }
+        mStep = Stages::IntermediateNode_ReservationProlongation;
+        return resultWaitForMessageTypes(
+            {Message::Payments_FinalAmountsConfiguration,
+             Message::Payments_TransactionPublicKeyHash,
+             Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
+            maxNetworkDelay((kMaxPathLength - 2) * 4));
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(kNextNode)) {
+        warning() << "There are no own keys on TL";
+        sendMessage<CoordinatorReservationResponseMessage>(
+            mCoordinator,
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            kReservation.first,
+            ResponseMessage::RejectedDueOwnKeysAbsence);
         // if no reservations close transaction
         if (mReservations.empty()) {
             debug() << "There are no reservations. Transaction closed.";
@@ -506,6 +552,31 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         }
+        mStep = Stages::IntermediateNode_ReservationProlongation;
+        return resultWaitForMessageTypes(
+            {Message::Payments_FinalAmountsConfiguration,
+             Message::Payments_TransactionPublicKeyHash,
+             Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
+            maxNetworkDelay((kMaxPathLength - 2) * 4));
+    }
+
+    if (kMessage->state() == IntermediateNodeReservationResponseMessage::RejectedDueContractorKeysAbsence){
+        sendMessage<CoordinatorReservationResponseMessage>(
+            mCoordinator,
+            mEquivalent,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            kMessage->pathID(),
+            ResponseMessage::RejectedDueContractorKeysAbsence);
+        warning() << "Neighbor node doesn't approved reservation request due to contractor keys absence";
+        rollBack(kMessage->pathID());
+        // if no reservations close transaction
+        if (mReservations.empty()) {
+            debug() << "There are no reservations. Transaction closed.";
+            return resultDone();
+        }
+        // todo maybe set mOwnKeysPresent into false and initiate KeysSharing TA
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,

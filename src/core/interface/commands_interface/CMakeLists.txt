@@ -16,6 +16,8 @@ set(SOURCE_FILES
         commands/trust_lines/SetOutgoingTrustLineCommand.cpp
         commands/trust_lines/CloseIncomingTrustLineCommand.h
         commands/trust_lines/CloseIncomingTrustLineCommand.cpp
+        commands/trust_lines/ShareKeysCommand.h
+        commands/trust_lines/ShareKeysCommand.cpp
 
         commands/payments/CreditUsageCommand.cpp
         commands/payments/CreditUsageCommand.h
@@ -39,12 +41,12 @@ set(SOURCE_FILES
 
         commands/trust_lines_list/GetFirstLevelContractorsCommand.h
         commands/trust_lines_list/GetFirstLevelContractorsCommand.cpp
-
         commands/trust_lines_list/GetTrustLinesCommand.h
         commands/trust_lines_list/GetTrustLinesCommand.cpp
-
         commands/trust_lines_list/GetTrustLineCommand.h
         commands/trust_lines_list/GetTrustLineCommand.cpp
+        commands/trust_lines_list/EquivalentListCommand.h
+        commands/trust_lines_list/EquivalentListCommand.cpp
 
         commands/subsystems_controller/SubsystemsInfluenceCommand.h
         commands/subsystems_controller/SubsystemsInfluenceCommand.cpp
@@ -53,21 +55,15 @@ set(SOURCE_FILES
 
         commands/blacklist/AddNodeToBlackListCommand.h
         commands/blacklist/AddNodeToBlackListCommand.cpp
-
         commands/blacklist/RemoveNodeFromBlackListCommand.h
         commands/blacklist/RemoveNodeFromBlackListCommand.cpp
-
         commands/blacklist/GetBlackListCommand.h
         commands/blacklist/GetBlackListCommand.cpp
-
         commands/blacklist/CheckIfNodeInBlackListCommand.h
         commands/blacklist/CheckIfNodeInBlackListCommand.cpp
 
         commands/transactions/PaymentTransactionByCommandUUIDCommand.h
-        commands/transactions/PaymentTransactionByCommandUUIDCommand.cpp
-
-        commands/trust_lines_list/EquivalentListCommand.h
-        commands/trust_lines_list/EquivalentListCommand.cpp)
+        commands/transactions/PaymentTransactionByCommandUUIDCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

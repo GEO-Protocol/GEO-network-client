@@ -34,39 +34,12 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     mCountReceiverInaccessible(0),
     mPreviousInaccessibleNodesCount(0),
     mPreviousRejectedTrustLinesCount(0),
+    mNeighborsKeysProblem(false),
+    mParticipantsKeysProblem(false),
     mVisualInterface(visualInterface)
 {
     mStep = Stages::Coordinator_Initialization;
 }
-
-CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
-    BytesShared buffer,
-    const NodeUUID &nodeUUID,
-    TrustLinesManager *trustLines,
-    StorageHandler *storageHandler,
-    TopologyCacheManager *topologyCacheManager,
-    MaxFlowCacheManager *maxFlowCacheManager,
-    ResourcesManager *resourcesManager,
-    PathsManager *pathsManager,
-    Keystore *keystore,
-    Logger &log,
-    SubsystemsController *subsystemsController)
-    throw (bad_alloc) :
-
-    BasePaymentTransaction(
-        buffer,
-        nodeUUID,
-        trustLines,
-        storageHandler,
-        topologyCacheManager,
-        maxFlowCacheManager,
-        keystore,
-        log,
-        subsystemsController),
-    mResourcesManager(resourcesManager),
-    mPathsManager(pathsManager)
-{}
-
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
     noexcept
@@ -455,15 +428,20 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     }
     mDirectPathIsAlreadyProcessed = true;
 
-
     debug() << "Direct path occurred (coordinator -> receiver). "
            << "Trying to reserve amount directly on the receiver side.";
-
 
     const auto kCoordinator = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
     const auto kContractor = mCommand->contractorUUID();
 
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(kContractor)) {
+        warning() << "There are no own keys on TL with receiver. Switching to another path.";
+        pathStats->setUnusable();
+        mNeighborsKeysProblem = true;
+        return tryProcessNextPath();
+    }
 
     // ToDo: implement operator < for TrustLineAmount and remove this pure conversion
 
@@ -619,6 +597,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         throw RuntimeError(
             "CoordinatorPaymentTransaction::tryReserveNextIntermediateNodeAmount: "
             "invalid first level node occurred. ");
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(neighbor)) {
+        warning() << "There are no own keys on TL with contractor " << neighbor << " Switching to another path.";
+        path->setUnusable();
+        mNeighborsKeysProblem = true;
+        throw CallChainBreakException("Break call chain for preventing call loop");
     }
 
     // Note: copy of shared pointer is required
@@ -814,6 +800,19 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         return tryProcessNextPath();
     }
 
+    if (message->state() == IntermediateNodeReservationResponseMessage::RejectedDueContractorKeysAbsence) {
+        warning() << "Neighbor node doesn't approved reservation request due to contractor keys absence";
+        dropReservationsOnPath(
+            currentAmountReservationPathStats(),
+            mCurrentAmountReservingPathIdentifier);
+        mRejectedTrustLines.emplace_back(
+            mNodeUUID,
+            message->senderUUID);
+        mNeighborsKeysProblem = true;
+        // todo maybe set mOwnKeysPresent into false and initiate KeysSharing TA
+        return tryProcessNextPath();
+    }
+
     if (message->state() != IntermediateNodeReservationResponseMessage::Accepted) {
         return reject("Unexpected message state. Protocol error. Transaction closed.");
     }
@@ -927,6 +926,19 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
             currentNodeUUID(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
+        return tryProcessNextPath();
+    }
+
+    if (message->state() == CoordinatorReservationResponseMessage::RejectedDueOwnKeysAbsence or
+            message->state() == CoordinatorReservationResponseMessage::RejectedDueContractorKeysAbsence) {
+        warning() << "Neighbor node doesn't accepted coordinator request due to keys absence";
+        dropReservationsOnPath(
+            currentAmountReservationPathStats(),
+            mCurrentAmountReservingPathIdentifier);
+        mRejectedTrustLines.emplace_back(
+            mNodeUUID,
+            message->senderUUID);
+        mParticipantsKeysProblem = true;
         return tryProcessNextPath();
     }
 
@@ -1149,6 +1161,19 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             R_PathPosition,
             PathStats::ReservationRejected);
 
+        return tryProcessNextPath();
+    }
+
+    if (message->state() == CoordinatorReservationResponseMessage::RejectedDueOwnKeysAbsence or
+            message->state() == CoordinatorReservationResponseMessage::RejectedDueContractorKeysAbsence) {
+        warning() << "Remote node doesn't accepted coordinator request due to keys absence. Switching to another path.";
+        dropReservationsOnPath(
+            currentAmountReservationPathStats(),
+            mCurrentAmountReservingPathIdentifier);
+        mRejectedTrustLines.emplace_back(
+            mNodeUUID,
+            message->senderUUID);
+        mParticipantsKeysProblem = true;
         return tryProcessNextPath();
     }
 
@@ -1453,6 +1478,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultNoResponseEr
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultInsufficientFundsError()
 {
+    if (mNeighborsKeysProblem) {
+        return transactionResultFromCommand(
+            mCommand->responseInsufficientFundsDueToKeysAbsent());
+    }
+    if (mParticipantsKeysProblem) {
+        return transactionResultFromCommand(
+            mCommand->responseInsufficientFundsDueToParticipantsKeysAbsent());
+    }
     return transactionResultFromCommand(
         mCommand->responseInsufficientFunds());
 }
@@ -1539,18 +1572,30 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
 
-    if (kMessage->state() != IntermediateNodeReservationResponseMessage::Accepted) {
-        warning() << "Receiver node rejected reservation. "
-               << "Switching to another path.";
-
+    if (kMessage->state() == IntermediateNodeReservationResponseMessage::RejectedDueContractorKeysAbsence) {
+        warning() << "Receiver node doesn't approved reservation request due to contractor keys absence. "
+                  << "Switching to another path.";
         dropReservationsOnPath(
             pathStats,
             mCurrentAmountReservingPathIdentifier);
-
         mRejectedTrustLines.emplace_back(
             mNodeUUID,
             kMessage->senderUUID);
+        mNeighborsKeysProblem = true;
+        // todo maybe set mOwnKeysPresent into false and initiate KeysSharing TA
+        mStep = Stages::Coordinator_AmountReservation;
+        return tryProcessNextPath();
+    }
 
+    if (kMessage->state() != IntermediateNodeReservationResponseMessage::Accepted) {
+        warning() << "Receiver node rejected reservation. "
+                  << "Switching to another path.";
+        dropReservationsOnPath(
+            pathStats,
+            mCurrentAmountReservingPathIdentifier);
+        mRejectedTrustLines.emplace_back(
+            mNodeUUID,
+            kMessage->senderUUID);
         mStep = Stages::Coordinator_AmountReservation;
         return tryProcessNextPath();
     }
