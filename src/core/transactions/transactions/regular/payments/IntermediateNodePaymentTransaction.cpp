@@ -437,7 +437,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
          Message::Payments_FinalAmountsConfiguration,
          Message::Payments_TransactionPublicKeyHash,
          Message::Payments_TTLProlongationResponse,
-         Message::NoEquivalent},
+         Message::General_NoEquivalent},
         maxNetworkDelay(2));
 }
 
@@ -468,7 +468,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
 
-    if (contextIsValid(Message::NoEquivalent, false)) {
+    if (contextIsValid(Message::General_NoEquivalent, false)) {
         warning() << "Neighbor hasn't TLs on requested equivalent. Rolled back.";
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,

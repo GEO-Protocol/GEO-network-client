@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_TRUSTLINESINFLUENCECONTROLLER_H
 
 #include "../network/messages/Message.hpp"
+#include "../transactions/transactions/base/BaseTransaction.h"
 #include "../logger/Logger.h"
 #include "../common/exceptions/IOError.h"
 
@@ -14,42 +15,42 @@ public:
 public:
     void setFlags(size_t flags);
 
-    void setForbiddenReceiveMessageType(
-        const Message::MessageType forbiddenMessageType);
+    void setFirstParameter(
+        uint32_t firstParameter);
 
-    void setCountForbiddenReceivedMessages(
-        uint32_t countForbiddenReceivedMessages);
+    void setSecondParameter(
+        uint32_t secondParameter);
 
+    // on this method firstParameter - type of forbidden message and second parameter - count forbidden messages
     bool checkReceivedMessage(
         Message::MessageType receivedMessageType);
 
-    void testThrowExceptionOnTLModifyingStage();
+    // on throws methods first parameter - type of transaction and second parameter - type of exception
+    void testThrowExceptionOnSourceInitializationStage(
+        BaseTransaction::TransactionType transactionType);
 
-    void testThrowExceptionOnTLProcessingResponseStage();
+    void testThrowExceptionOnSourceProcessingResponseStage(
+        BaseTransaction::TransactionType transactionType);
 
-    void testThrowExceptionOnKeysSharingStage();
+    void testThrowExceptionOnSourceResumingStage(
+        BaseTransaction::TransactionType transactionType);
 
-    void testThrowExceptionOnKeysSharingProcessingResponseStage();
+    void testThrowExceptionOnTargetStage(
+        BaseTransaction::TransactionType transactionType);
 
-    void testThrowExceptionOnKeysSharingReceiverStage();
+    // on terminating methods first parameter - type of transaction
+    // and second parameter - place of terminating (1 - on transaction, 2 - after)
+    void testTerminateProcessOnSourceInitializationStage(
+        BaseTransaction::TransactionType transactionType);
 
-    void testThrowExceptionOnAuditStage();
+    void testTerminateProcessOnSourceProcessingResponseStage(
+        BaseTransaction::TransactionType transactionType);
 
-    void testThrowExceptionOnAuditResponseProcessingStage();
+    void testTerminateProcessOnSourceResumingStage(
+        BaseTransaction::TransactionType transactionType);
 
-    void testTerminateProcessOnTLModifyingStage();
-
-    void testTerminateProcessOnTLProcessingResponseStage();
-
-    void testTerminateProcessOnKeysSharingStage();
-
-    void testTerminateProcessOnKeysSharingProcessingResponseStage();
-
-    void testTerminateProcessOnKeysSharingReceiverStage();
-
-    void testTerminateProcessOnAuditStage();
-
-    void testTerminateProcessOnAuditResponseProcessingStage();
+    void testTerminateProcessOnTargetStage(
+        BaseTransaction::TransactionType transactionType);
 
     bool isTerminateProcessOnScheduler();
 
@@ -63,25 +64,19 @@ protected:
     const string logHeader() const;
 
 private:
-    Message::MessageType mForbiddenReceiveMessageType;
-    uint32_t mCountForbiddenReceivedMessages;
+    uint32_t mFirstParameter;
+    uint32_t mSecondParameter;
 
     bool mForbidReceiveMessages;
-    bool mThrowExceptionOnTLModifyingStage;
-    bool mThrowExceptionOnTLProcessingResponseStage;
-    bool mThrowExceptionOnKeysSharingStage;
-    bool mThrowExceptionOnKeysSharingResponseProcessingStage;
-    bool mThrowExceptionOnKeysSharingReceiverStage;
-    bool mThrowExceptionOnAuditStage;
-    bool mThrowExceptionOnAuditResponseProcessingStage;
+    bool mThrowExceptionOnSourceInitializationStage;
+    bool mThrowExceptionOnSourceProcessingResponseStage;
+    bool mThrowExceptionOnSourceResumingStage;
+    bool mThrowExceptionOnTargetStage;
 
-    bool mTerminateProcessOnTLModifyingStage;
-    bool mTerminateProcessOnTLProcessingResponseStage;
-    bool mTerminateProcessOnKeysSharingStage;
-    bool mTerminateProcessOnKeysSharingResponseProcessingStage;
-    bool mTerminateProcessOnKeysSharingReceiverStage;
-    bool mTerminateProcessOnAuditStage;
-    bool mTerminateProcessOnAuditResponseProcessingStage;
+    bool mTerminateProcessOnSourceInitializationStage;
+    bool mTerminateProcessOnSourceProcessingResponseStage;
+    bool mTerminateProcessOnSourceResumingStage;
+    bool mTerminateProcessOnTargetStage;
 
     bool mTerminateProcessOnScheduler;
 

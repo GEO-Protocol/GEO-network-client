@@ -3,8 +3,7 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/BaseUserCommand.h"
-#include "../../../network/messages/base/transaction/TransactionMessage.h"
-#include "../../../network/messages/no_equivalent/NoEquivalentMessage.h"
+#include "../../../network/messages/general/NoEquivalentMessage.h"
 
 class NoEquivalentTransaction : public BaseTransaction {
 

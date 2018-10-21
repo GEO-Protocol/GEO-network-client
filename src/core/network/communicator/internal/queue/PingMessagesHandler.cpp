@@ -50,7 +50,7 @@ void PingMessagesHandler::tryProcessPongMessage(
         contractorUUID);
     if (contractorIt == mContractors.end()) {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        warning() << "tryProcessPongMessage: no contractor is present " << pongMessage->senderUUID;
+        warning() << "tryProcessPongMessage: no contractor is present " << contractorUUID;
 #endif
         return;
     }
@@ -63,7 +63,7 @@ void PingMessagesHandler::tryProcessPongMessage(
         ioTransaction->communicatorPingMessagesHandler()->deleteRecord(contractorUUID);
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        debug() << "Pong message from contractor " << pongMessage->senderUUID << " received.";
+        debug() << "Pong message from contractor " << contractorUUID << " received.";
 #endif
 
     } catch (IOError &e) {

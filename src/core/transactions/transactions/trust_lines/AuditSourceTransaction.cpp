@@ -18,7 +18,8 @@ AuditSourceTransaction::AuditSourceTransaction(
         storageHandler,
         keystore,
         trustLinesInfluenceController,
-        logger)
+        logger),
+    mCountSendingAttempts(0)
 {
     mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
     mStep = Initialization;
@@ -42,7 +43,8 @@ AuditSourceTransaction::AuditSourceTransaction(
         storageHandler,
         keystore,
         trustLinesInfluenceController,
-        logger)
+        logger),
+    mCountSendingAttempts(0)
 {
     mAuditNumber = mTrustLines->auditNumber(mContractorUUID);
     mStep = NextAttempt;
@@ -125,9 +127,15 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
             mTrustLines->balance(
                 mContractorUUID));
 
+        mTrustLines->setTrustLineAuditNumber(
+            mContractorUUID,
+            mAuditNumber);
+
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(
+            BaseTransaction::AuditSourceTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnTargetStage(
+            BaseTransaction::AuditSourceTransactionType);
 #endif
 
     } catch(IOError &e) {
@@ -153,6 +161,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
         mContractorUUID,
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);
+    mCountSendingAttempts++;
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
 
     mStep = ResponseProcessing;
@@ -201,10 +210,13 @@ TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
         mOwnSignatureAndKeyNumber = keyChain.getSignatureAndKeyNumberForPendingAudit(
             ioTransaction,
             mAuditNumber);
+        debug() << "signature getting";
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceResumingStage(
+            BaseTransaction::AuditSourceTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceResumingStage(
+            BaseTransaction::AuditSourceTransactionType);
 #endif
 
     } catch(IOError &e) {
@@ -227,6 +239,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
         mContractorUUID,
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);
+    mCountSendingAttempts++;
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
 
     mStep = ResponseProcessing;
@@ -239,7 +252,23 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
 {
     info() << "runResponseProcessingStage";
     if (mContext.empty()) {
-        warning() << "Contractor don't send response. Transaction will be closed and send ping";
+        warning() << "Contractor don't send response.";
+        if (mCountSendingAttempts < kMaxCountSendingAttempts) {
+            sendMessage<AuditMessage>(
+                mContractorUUID,
+                mEquivalent,
+                mNodeUUID,
+                mTransactionUUID,
+                mContractorUUID,
+                mOwnSignatureAndKeyNumber.second,
+                mOwnSignatureAndKeyNumber.first);
+            mCountSendingAttempts++;
+            info() << "Send message " << mCountSendingAttempts << " times";
+            return resultWaitForMessageTypes(
+                {Message::TrustLines_AuditConfirmation},
+                kWaitMillisecondsForResponse);
+        }
+        info() << "Transaction will be closed and send ping";
         sendMessage<PingMessage>(
             mContractorUUID,
             0,
@@ -287,11 +316,6 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
             return resultDone();
         }
 
-#ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnTLProcessingResponseStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnTLProcessingResponseStage();
-#endif
-
         if (!keyChain.checkSign(
                 ioTransaction,
                 contractorSerializedAuditData.first,
@@ -306,6 +330,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
             // todo run conflict resolver TA
             return resultDone();
         }
+        info() << "Contractor sign audit correct";
 
         keyChain.saveContractorAuditPart(
             ioTransaction,
@@ -313,11 +338,19 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
             message->keyNumber(),
             message->signature());
 
-        mTrustLines->setTrustLineAuditNumberAndMakeActive(
+        mTrustLines->setTrustLineState(
             mContractorUUID,
-            mAuditNumber);
+            TrustLine::Active);
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
             mContractorUUID);
+        info() << "All data saved. Now TL is ready for using";
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceProcessingResponseStage(
+            BaseTransaction::AuditSourceTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceProcessingResponseStage(
+            BaseTransaction::AuditSourceTransactionType);
+#endif
 
     } catch (ValueError &e) {
         ioTransaction->rollback();

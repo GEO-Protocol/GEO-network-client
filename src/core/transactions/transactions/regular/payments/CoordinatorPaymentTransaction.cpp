@@ -224,13 +224,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
     mStep = Stages::Coordinator_ReceiverResponseProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_ReceiverInitPaymentResponse,
-         Message::NoEquivalent},
+         Message::General_NoEquivalent},
         maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResponseProcessingStage ()
 {
-    if (contextIsValid(Message::NoEquivalent, false)) {
+    if (contextIsValid(Message::General_NoEquivalent, false)) {
         warning() << "Receiver hasn't TLs on requested equivalent. Canceling.";
         return resultProtocolError();
     }
@@ -676,7 +676,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationResponse,
          Message::Payments_TTLProlongationRequest,
-         Message::NoEquivalent},
+         Message::General_NoEquivalent},
         maxNetworkDelay(2));
 }
 
@@ -742,7 +742,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
 TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmountReservationResponse()
 {
     debug() << "processNeighborAmountReservationResponse";
-    if (contextIsValid(Message::NoEquivalent, false)) {
+    if (contextIsValid(Message::General_NoEquivalent, false)) {
         warning() << "Receiver hasn't TLs on requested equivalent. Canceling.";
         // dropping reservation to first node
         dropReservationsOnPath(

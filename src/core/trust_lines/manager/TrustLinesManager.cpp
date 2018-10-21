@@ -314,7 +314,7 @@ void TrustLinesManager::setTrustLineState(
     }
 }
 
-void TrustLinesManager::setTrustLineAuditNumberAndMakeActive(
+void TrustLinesManager::setTrustLineAuditNumber(
     const NodeUUID &contractorUUID,
     AuditNumber newAuditNumber)
 {
@@ -326,7 +326,6 @@ void TrustLinesManager::setTrustLineAuditNumberAndMakeActive(
 
     auto trustLine = mTrustLines[contractorUUID];
     trustLine->setAuditNumber(newAuditNumber);
-    trustLine->setState(TrustLine::Active);
 }
 
 const TrustLineAmount &TrustLinesManager::incomingTrustAmount(

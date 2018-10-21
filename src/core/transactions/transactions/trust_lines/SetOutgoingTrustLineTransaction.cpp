@@ -26,6 +26,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
         trustLinesInfluenceController,
         logger),
     mCommand(command),
+    mCountSendingAttempts(0),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController),
@@ -202,9 +203,15 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
             mTrustLines->balance(
                 mContractorUUID));
 
+        mTrustLines->setTrustLineAuditNumber(
+            mContractorUUID,
+            mAuditNumber);
+
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(
+            BaseTransaction::SetOutgoingTrustLineTransaction);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceInitializationStage(
+            BaseTransaction::SetOutgoingTrustLineTransaction);
 #endif
 
     } catch(IOError &e) {
@@ -234,6 +241,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first,
         mCommand->amount());
+    mCountSendingAttempts++;
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
 
     mStep = ResponseProcessing;
@@ -244,7 +252,24 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
 {
     info() << "runResponseProcessingStage";
     if (mContext.empty()) {
-        warning() << "Contractor don't send response. Transaction will be closed and send ping";
+        warning() << "Contractor don't send response.";
+        if (mCountSendingAttempts < kMaxCountSendingAttempts) {
+            sendMessage<SetIncomingTrustLineMessage>(
+                mContractorUUID,
+                mEquivalent,
+                mNodeUUID,
+                mTransactionUUID,
+                mContractorUUID,
+                mOwnSignatureAndKeyNumber.second,
+                mOwnSignatureAndKeyNumber.first,
+                mCommand->amount());
+            mCountSendingAttempts++;
+            info() << "Send message " << mCountSendingAttempts << " times";
+            return resultWaitForMessageTypes(
+                {Message::TrustLines_AuditConfirmation},
+                kWaitMillisecondsForResponse);
+        }
+        info() << "Transaction will be closed and send ping";
         sendMessage<PingMessage>(
             mCommand->contractorUUID(),
             0,
@@ -293,8 +318,10 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
         }
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnTLProcessingResponseStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnTLProcessingResponseStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceProcessingResponseStage(
+            BaseTransaction::SetOutgoingTrustLineTransaction);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceProcessingResponseStage(
+            BaseTransaction::SetOutgoingTrustLineTransaction);
 #endif
 
         if (!keyChain.checkSign(
@@ -319,9 +346,9 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
             message->signature());
         info() << "audit saved";
 
-        mTrustLines->setTrustLineAuditNumberAndMakeActive(
+        mTrustLines->setTrustLineState(
             mContractorUUID,
-            mAuditNumber);
+            TrustLine::Active);
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
             mContractorUUID);
 

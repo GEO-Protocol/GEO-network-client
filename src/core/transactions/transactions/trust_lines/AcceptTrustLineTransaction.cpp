@@ -77,8 +77,10 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         }
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnTargetStage(
+            BaseTransaction::AcceptTrustLineTransaction);
+        mTrustLinesInfluenceController->testTerminateProcessOnTargetStage(
+            BaseTransaction::AcceptTrustLineTransaction);
 #endif
 
     } catch (IOError &e) {
@@ -100,6 +102,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         mTransactionUUID,
         mIAmGateway,
         ConfirmationMessage::OK);
+    info() << "Confirmation was sent";
 
     publicKeysSharingSignal(
         mContractorUUID,

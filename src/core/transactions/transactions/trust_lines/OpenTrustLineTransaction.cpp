@@ -17,6 +17,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
         logger),
     mCommand(command),
     mContractorUUID(mCommand->contractorUUID()),
+    mCountSendingAttempts(0),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mSubsystemsController(subsystemsController),
@@ -43,6 +44,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
         equivalent,
         logger),
     mContractorUUID(contractorUUID),
+    mCountSendingAttempts(0),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mSubsystemsController(subsystemsController),
@@ -98,8 +100,10 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
                << " successfully initialised.";
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(
+            BaseTransaction::OpenTrustLineTransaction);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceInitializationStage(
+            BaseTransaction::OpenTrustLineTransaction);
 #endif
 
     } catch (IOError &e) {
@@ -120,6 +124,8 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
         mTransactionUUID,
         mContractorUUID,
         mIAmGateway);
+    mCountSendingAttempts++;
+    info() << "Message with TL opening request was sent";
 
     mStep = ResponseProcessing;
     return resultOK();
@@ -144,6 +150,13 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
         return resultDone();
     }
 
+#ifdef TESTS
+    mTrustLinesInfluenceController->testThrowExceptionOnSourceResumingStage(
+        BaseTransaction::OpenTrustLineTransaction);
+    mTrustLinesInfluenceController->testTerminateProcessOnSourceResumingStage(
+        BaseTransaction::OpenTrustLineTransaction);
+#endif
+
     sendMessage<TrustLineInitialMessage>(
         mContractorUUID,
         mEquivalent,
@@ -151,6 +164,8 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
         mTransactionUUID,
         mContractorUUID,
         mIAmGateway);
+    mCountSendingAttempts++;
+    info() << "Message with TL opening request was sent";
 
     mStep = ResponseProcessing;
     return resultOK();
@@ -159,7 +174,22 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
 TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingStage()
 {
     if (mContext.empty()) {
-        warning() << "Contractor don't send response. Transaction will be closed, and send ping";
+        warning() << "Contractor don't send response.";
+        if (mCountSendingAttempts < kMaxCountSendingAttempts) {
+            sendMessage<TrustLineInitialMessage>(
+                mContractorUUID,
+                mEquivalent,
+                mNodeUUID,
+                mTransactionUUID,
+                mContractorUUID,
+                mIAmGateway);
+            mCountSendingAttempts++;
+            info() << "Send message " << mCountSendingAttempts << " times";
+            return resultWaitForMessageTypes(
+                {Message::TrustLines_Confirmation},
+                kWaitMillisecondsForResponse);
+        }
+        info() << "Transaction will be closed and send ping";
         sendMessage<PingMessage>(
             mContractorUUID,
             0,
@@ -178,7 +208,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
         return resultDone();
     }
 
-    processConfirmationMessage(message);
     auto ioTransaction = mStorageHandler->beginTransaction();
     if (message->state() != ConfirmationMessage::OK) {
         warning() << "Contractor didn't accept opening TL. Response code: " << message->state();
@@ -187,11 +216,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
             ioTransaction);
         return resultDone();
     }
-
-#ifdef TESTS
-    mTrustLinesInfluenceController->testThrowExceptionOnTLProcessingResponseStage();
-    mTrustLinesInfluenceController->testTerminateProcessOnTLProcessingResponseStage();
-#endif
 
     try {
         mTrustLines->setTrustLineState(
@@ -204,6 +228,14 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
                 mContractorUUID,
                 true);
         }
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceProcessingResponseStage(
+            BaseTransaction::OpenTrustLineTransaction);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceProcessingResponseStage(
+            BaseTransaction::OpenTrustLineTransaction);
+#endif
+
         populateHistory(
             ioTransaction,
             TrustLineRecord::Opening);

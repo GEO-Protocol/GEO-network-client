@@ -29,8 +29,6 @@ public:
 
     const MessageType typeID() const;
 
-    const bool isAddToConfirmationRequiredMessagesHandler() const;
-
     const bool isCheckCachedResponse() const override;
 
     pair<BytesShared, size_t> serializeToBytes() const override;

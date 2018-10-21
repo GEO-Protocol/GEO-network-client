@@ -31,10 +31,6 @@ public:
     const TrustLineAmount& amount() const
         noexcept;
 
-    const bool isAddToConfirmationRequiredMessagesHandler() const override;
-
-    const bool isCheckCachedResponse() const override;
-
     pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:

@@ -93,8 +93,10 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
         info() << "All keys saved";
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(
+            BaseTransaction::PublicKeysSharingSourceTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceInitializationStage(
+            BaseTransaction::PublicKeysSharingSourceTransactionType);
 #endif
 
         mCurrentPublicKey = keyChain.publicKey(
@@ -152,8 +154,10 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runCommandPub
         info() << "All keys saved";
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(
+            BaseTransaction::PublicKeysSharingSourceTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceInitializationStage(
+            BaseTransaction::PublicKeysSharingSourceTransactionType);
 #endif
 
         mCurrentPublicKey = keyChain.publicKey(
@@ -236,7 +240,6 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
             mTrustLines->setIsOwnKeysPresent(
                 mContractorUUID,
                 true);
-            processConfirmationMessage(message);
             info() << "TL is ready for using";
         } catch (IOError &e) {
             ioTransaction->rollback();
@@ -258,11 +261,12 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
         }
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingProcessingResponseStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingProcessingResponseStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceProcessingResponseStage(
+            BaseTransaction::PublicKeysSharingSourceTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceProcessingResponseStage(
+            BaseTransaction::PublicKeysSharingSourceTransactionType);
 #endif
 
-        processConfirmationMessage(message);
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't serialize TA. Details " << e.what();

@@ -78,6 +78,8 @@ private:
     MaxFlowCacheManager *mMaxFlowCacheManager;
     SubsystemsController *mSubsystemsController;
 
+    uint16_t mCountSendingAttempts;
+
     TrustLineAmount mPreviousIncomingAmount;
     TrustLine::TrustLineState mPreviousState;
 };

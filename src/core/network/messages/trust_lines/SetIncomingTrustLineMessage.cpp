@@ -78,16 +78,6 @@ pair<BytesShared, size_t> SetIncomingTrustLineMessage::serializeToBytes() const
         bytesCount);
 }
 
-const bool SetIncomingTrustLineMessage::isAddToConfirmationRequiredMessagesHandler() const
-{
-    return true;
-}
-
-const bool SetIncomingTrustLineMessage::isCheckCachedResponse() const
-{
-    return true;
-}
-
 const size_t SetIncomingTrustLineMessage::kOffsetToInheritedBytes() const
     noexcept
 {

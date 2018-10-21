@@ -31,11 +31,11 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         /*
          * Trust lines messages
          */
-        case Message::TrustLines_SetIncoming:
-            return messageCollected<SetIncomingTrustLineMessage>(buffer);
-
         case Message::TrustLines_Initial:
             return messageCollected<TrustLineInitialMessage>(buffer);
+
+        case Message::TrustLines_SetIncoming:
+            return messageCollected<SetIncomingTrustLineMessage>(buffer);
 
         case Message::TrustLines_CloseOutgoing:
             return messageCollected<CloseOutgoingTrustLineMessage>(buffer);
@@ -198,6 +198,18 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
 
         case Message::RoutingTableResponse:
             return messageCollected<RoutingTableResponseMessage>(buffer);
+
+        /*
+         * General
+         */
+        case Message::General_Ping:
+            return messageCollected<PingMessage>(buffer);
+
+        case Message::General_Pong:
+            return messageCollected<PongMessage>(buffer);
+
+        case Message::General_NoEquivalent:
+            return messageCollected<NoEquivalentMessage>(buffer);
 
         default: {
             warning() << "processBytesSequence: "

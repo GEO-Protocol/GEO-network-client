@@ -437,10 +437,10 @@ void Core::onCommandReceivedSlot (
     if (command->identifier() == TrustLinesInfluenceCommand::identifier()) {
         auto trustLinesInfluenceCommand = static_pointer_cast<TrustLinesInfluenceCommand>(command);
         mTrustLinesInfluenceController->setFlags(trustLinesInfluenceCommand->flags());
-        mTrustLinesInfluenceController->setForbiddenReceiveMessageType(
-            trustLinesInfluenceCommand->forbiddenReceiveMessageType());
-        mTrustLinesInfluenceController->setCountForbiddenReceivedMessages(
-            trustLinesInfluenceCommand->countForbiddenReceivedMessages());
+        mTrustLinesInfluenceController->setFirstParameter(
+            trustLinesInfluenceCommand->firstParameter());
+        mTrustLinesInfluenceController->setSecondParameter(
+            trustLinesInfluenceCommand->secondParameter());
         return;
     }
 #endif

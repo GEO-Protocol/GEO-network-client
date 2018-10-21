@@ -13,10 +13,6 @@ public:
     using AuditMessage::AuditMessage;
 
     const MessageType typeID() const;
-
-    const bool isAddToConfirmationRequiredMessagesHandler() const;
-
-    const bool isCheckCachedResponse() const override;
 };
 
 

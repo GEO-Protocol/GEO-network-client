@@ -126,8 +126,10 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             mCurrentPublicKey);
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnKeysSharingReceiverStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnKeysSharingReceiverStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnTargetStage(
+            BaseTransaction::PublicKeysSharingTargetTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnTargetStage(
+            BaseTransaction::PublicKeysSharingTargetTransactionType);
 #endif
 
     } catch (IOError &e) {
@@ -136,27 +138,18 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
         throw e;
     }
     info() << "Key saved, send hash confirmation";
-    if (mCurrentKeyNumber == 0) {
-        sendMessage<PublicKeyHashConfirmation>(
-            mContractorUUID,
-            mEquivalent,
-            mNodeUUID,
-            mTransactionUUID,
-            mCurrentKeyNumber,
-            mCurrentPublicKey->hash());
-    } else {
-        sendMessage<PublicKeyHashConfirmation>(
-            mContractorUUID,
-            mEquivalent,
-            mNodeUUID,
-            mTransactionUUID,
-            mCurrentKeyNumber,
-            mCurrentPublicKey->hash());
-    }
+    sendMessage<PublicKeyHashConfirmation>(
+        mContractorUUID,
+        mEquivalent,
+        mNodeUUID,
+        mTransactionUUID,
+        mCurrentKeyNumber,
+        mCurrentPublicKey->hash());
 
     if (keyChain.allContractorKeysPresent(ioTransaction, mContractorKeysCount)) {
         info() << "All keys received";
         try {
+            // todo maybe don't save TL state in storage only in memory (don't use ioTransaction and try catch)
             mTrustLines->setTrustLineState(
                 mContractorUUID,
                 TrustLine::Active,

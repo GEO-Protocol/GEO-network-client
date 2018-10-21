@@ -69,9 +69,6 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
-            TrustLine::AuditPending);
         if (!keyChain.checkSign(
                 ioTransaction,
                 contractorSerializedAuditData.first,
@@ -90,11 +87,6 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             serializedAuditData.first,
             serializedAuditData.second);
 
-#ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
-#endif
-
         keyChain.saveFullAudit(
             ioTransaction,
             mAuditNumber,
@@ -108,15 +100,17 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
                 mContractorUUID),
             mTrustLines->balance(mContractorUUID));
 
-        mTrustLines->setTrustLineAuditNumberAndMakeActive(
+        mTrustLines->setTrustLineAuditNumber(
             mContractorUUID,
             mAuditNumber);
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
             mContractorUUID);
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnTargetStage(
+            BaseTransaction::AuditTargetTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnTargetStage(
+            BaseTransaction::AuditTargetTransactionType);
 #endif
 
     } catch (IOError &e) {

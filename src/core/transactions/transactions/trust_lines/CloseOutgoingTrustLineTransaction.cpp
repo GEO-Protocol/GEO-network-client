@@ -75,10 +75,6 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
-            TrustLine::AuditPending);
-
         mTrustLines->closeOutgoing(
             mContractorUUID);
 
@@ -116,9 +112,9 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
                 mContractorUUID),
             mTrustLines->balance(mContractorUUID));
 
-        mTrustLines->setTrustLineAuditNumberAndMakeActive(
-            mContractorUUID,
-            mAuditNumber);
+        mTrustLines->setTrustLineAuditNumber(
+                mContractorUUID,
+                mAuditNumber);
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
             mContractorUUID);
 
@@ -128,10 +124,11 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
         info() << "Outgoing trust line to the node " << mContractorUUID
                << " has been successfully closed by remote node.";
 
-
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnTargetStage(
+            BaseTransaction::CloseOutgoingTrustLineTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnTargetStage(
+            BaseTransaction::CloseOutgoingTrustLineTransactionType);
 #endif
 
     } catch (IOError &e) {

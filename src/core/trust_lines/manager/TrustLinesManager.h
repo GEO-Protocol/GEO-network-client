@@ -149,7 +149,7 @@ public:
         TrustLine::TrustLineState state,
         IOTransaction::Shared ioTransaction = nullptr);
 
-    void setTrustLineAuditNumberAndMakeActive(
+    void setTrustLineAuditNumber(
         const NodeUUID &contractorUUID,
         AuditNumber newAuditNumber);
 

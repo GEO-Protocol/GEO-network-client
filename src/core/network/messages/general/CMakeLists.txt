@@ -4,7 +4,10 @@ set(SOURCE_FILES
         PingMessage.h
         PingMessage.cpp
         PongMessage.h
-        PongMessage.cpp)
+        PongMessage.cpp
+
+        NoEquivalentMessage.h
+        NoEquivalentMessage.cpp)
 
 add_library(messages__general ${SOURCE_FILES})
 

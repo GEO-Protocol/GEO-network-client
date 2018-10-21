@@ -62,6 +62,7 @@
 
 #include "../../../messages/general/PingMessage.h"
 #include "../../../messages/general/PongMessage.h"
+#include "../../../messages/general/NoEquivalentMessage.h"
 
 #include "../../../../logger/Logger.h"
 

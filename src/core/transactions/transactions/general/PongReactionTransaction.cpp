@@ -25,7 +25,7 @@ TransactionResult::SharedConst PongReactionTransaction::run()
             continue;
         }
 
-        if (trustLineManager->trustLineState(mContractorUUID) == TrustLine::Active) {
+        if (trustLineManager->trustLineState(mContractorUUID) == TrustLine::Init) {
             mResumeTransactionSignal(mContractorUUID, equivalent, BaseTransaction::OpenTrustLineTransaction);
         } else if (trustLineManager->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
             mResumeTransactionSignal(mContractorUUID, equivalent, BaseTransaction::AuditSourceTransactionType);

@@ -72,12 +72,14 @@ private:
 
     TransactionResult::SharedConst runResponseProcessingStage();
 
-protected:
+private:
     SetOutgoingTrustLineCommand::Shared mCommand;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
     SubsystemsController *mSubsystemsController;
     VisualInterface *mVisualInterface;
+
+    uint16_t mCountSendingAttempts;
 
     TrustLineAmount mPreviousOutgoingAmount;
     TrustLine::TrustLineState mPreviousState;

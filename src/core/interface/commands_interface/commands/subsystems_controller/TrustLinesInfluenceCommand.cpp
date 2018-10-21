@@ -23,27 +23,27 @@ TrustLinesInfluenceCommand::TrustLinesInfluenceCommand(
             tokenSeparatorPos);
         mFlags = std::stoul(flagsStr);
 
-        auto forbiddenMessageTypeStartPos = tokenSeparatorPos + 1;
+        auto firstParameterStartPos = tokenSeparatorPos + 1;
         tokenSeparatorPos = commandBuffer.find(
             kTokensSeparator,
-            forbiddenMessageTypeStartPos);
-        auto strForbiddenMessageType = commandBuffer.substr(
-            forbiddenMessageTypeStartPos,
-            tokenSeparatorPos - forbiddenMessageTypeStartPos);
-        mForbiddenReceiveMessageType = (Message::MessageType) std::stoi(strForbiddenMessageType);
+            firstParameterStartPos);
+        auto strFirstParameter = commandBuffer.substr(
+            firstParameterStartPos,
+            tokenSeparatorPos - firstParameterStartPos);
+        mFirstParameter = (uint32_t)std::stoi(strFirstParameter);
 
-        auto countForbiddenMessagesReceivedStartPos = tokenSeparatorPos + 1;
-        auto strCountForbiddenMessagesReceived = commandBuffer.substr(
-            countForbiddenMessagesReceivedStartPos,
-            commandBuffer.size() - countForbiddenMessagesReceivedStartPos - 1);
-        mCountForbiddenReceivedMessages = (uint32_t) std::stoi(strCountForbiddenMessagesReceived);
+        auto secondParameterStartPos = tokenSeparatorPos + 1;
+        auto strSecondParameter = commandBuffer.substr(
+            secondParameterStartPos,
+            commandBuffer.size() - secondParameterStartPos - 1);
+        mSecondParameter = (uint32_t) std::stoi(strSecondParameter);
     } else {
         auto flagsStr = commandBuffer.substr(
             0,
             commandBuffer.size() - 1);
         mFlags = std::stoul(flagsStr);
-        mForbiddenReceiveMessageType = Message::Debug;
-        mCountForbiddenReceivedMessages = 0;
+        mFirstParameter = 0;
+        mSecondParameter = 0;
     }
 }
 
@@ -58,12 +58,12 @@ size_t TrustLinesInfluenceCommand::flags() const
     return mFlags;
 }
 
-const Message::MessageType TrustLinesInfluenceCommand::forbiddenReceiveMessageType() const
+const uint32_t TrustLinesInfluenceCommand::firstParameter() const
 {
-    return mForbiddenReceiveMessageType;
+    return mFirstParameter;
 }
 
-const uint32_t TrustLinesInfluenceCommand::countForbiddenReceivedMessages() const
+const uint32_t TrustLinesInfluenceCommand::secondParameter() const
 {
-    return mCountForbiddenReceivedMessages;
+    return mSecondParameter;
 }

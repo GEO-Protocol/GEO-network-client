@@ -326,7 +326,7 @@ const AuditRecord::Shared AuditHandler::getActualAuditFull(
     rc = sqlite3_bind_int(stmt, 1, trustLineID);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::getActualAuditFull: "
-                              "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
+                          "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
@@ -356,11 +356,19 @@ const AuditRecord::Shared AuditHandler::getActualAuditFull(
         auto ownSignature = make_shared<lamport::Signature>(
             (byte*)sqlite3_column_blob(stmt, 5));
 
-        auto contractorKeyHash = make_shared<lamport::KeyHash>(
-            (byte*)sqlite3_column_blob(stmt, 6));
+        auto contractorKeyHashBytes = (byte*)sqlite3_column_blob(stmt, 6);
+        lamport::KeyHash::Shared contractorKeyHash = nullptr;
+        if (contractorKeyHashBytes != nullptr) {
+            contractorKeyHash = make_shared<lamport::KeyHash>(
+                contractorKeyHashBytes);
+        }
 
-        auto contractorSignature = make_shared<lamport::Signature>(
-            (byte*)sqlite3_column_blob(stmt, 7));
+        auto contractorSignatureBytes = (byte*)sqlite3_column_blob(stmt, 7);
+        lamport::Signature::Shared contractorSignature = nullptr;
+        if (contractorSignatureBytes != nullptr) {
+            contractorSignature = make_shared<lamport::Signature>(
+                contractorSignatureBytes);
+        }
 
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);

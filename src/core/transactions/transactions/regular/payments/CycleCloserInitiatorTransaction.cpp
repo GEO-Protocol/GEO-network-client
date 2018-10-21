@@ -311,7 +311,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
 
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeCycleReservationResponse,
-         Message::NoEquivalent},
+         Message::General_NoEquivalent},
         maxNetworkDelay(1));
 }
 
@@ -350,14 +350,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
     mStep = Coordinator_AmountReservation;
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeCycleReservationResponse,
-         Message::NoEquivalent},
+         Message::General_NoEquivalent},
         maxNetworkDelay(1));
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborAmountReservationResponse()
 {
     debug() << "processNeighborAmountReservationResponse";
-    if (contextIsValid(Message::NoEquivalent, false)) {
+    if (contextIsValid(Message::General_NoEquivalent, false)) {
         warning() << "Neighbour hasn't TLs on requested equivalent. Canceling.";
         rollBack();
         return resultDone();

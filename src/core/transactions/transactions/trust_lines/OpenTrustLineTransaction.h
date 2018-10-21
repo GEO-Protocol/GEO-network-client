@@ -77,12 +77,15 @@ public:
 
 protected:
     static const uint32_t kWaitMillisecondsForResponse = 60000;
+    static const uint16_t kMaxCountSendingAttempts = 3;
 
 protected:
     InitTrustLineCommand::Shared mCommand;
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
+
+    uint16_t mCountSendingAttempts;
 
     TrustLinesInfluenceController *mTrustLinesInfluenceController;
     SubsystemsController *mSubsystemsController;

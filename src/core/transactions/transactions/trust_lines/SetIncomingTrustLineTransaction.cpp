@@ -92,10 +92,6 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
             mContractorUUID,
             mMessage->amount());
 
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
-            TrustLine::AuditPending);
-
         auto keyChain = mKeysStore->keychain(
             mTrustLines->trustLineID(mContractorUUID));
         auto contractorSerializedAuditData = getContractorSerializedAuditData();
@@ -117,11 +113,6 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
             serializedAuditData.first,
             serializedAuditData.second);
 
-#ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnAuditStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnAuditStage();
-#endif
-
         keyChain.saveFullAudit(
             ioTransaction,
             mAuditNumber,
@@ -135,7 +126,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
                 mContractorUUID),
             mTrustLines->balance(mContractorUUID));
 
-        mTrustLines->setTrustLineAuditNumberAndMakeActive(
+        mTrustLines->setTrustLineAuditNumber(
             mContractorUUID,
             mAuditNumber);
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
@@ -185,8 +176,10 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         }
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnTargetStage(
+            BaseTransaction::SetIncomingTrustLineTransaction);
+        mTrustLinesInfluenceController->testTerminateProcessOnTargetStage(
+            BaseTransaction::SetIncomingTrustLineTransaction);
 #endif
 
         if (mSubsystemsController->isWriteVisualResults()) {

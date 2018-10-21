@@ -40,6 +40,9 @@ private:
     TransactionResult::SharedConst runNextAttemptStage();
 
     TransactionResult::SharedConst runResponseProcessingStage();
+
+private:
+    uint16_t mCountSendingAttempts;
 };
 
 

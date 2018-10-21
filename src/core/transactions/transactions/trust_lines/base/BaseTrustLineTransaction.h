@@ -58,11 +58,9 @@ protected:
 
     pair<BytesShared, size_t> getContractorSerializedAuditData();
 
-public:
-    mutable TrustLineActionSignal trustLineActionSignal;
-
 protected:
     static const uint32_t kWaitMillisecondsForResponse = 60000;
+    static const uint16_t kMaxCountSendingAttempts = 3;
 
 protected:
     TrustLinesManager *mTrustLines;

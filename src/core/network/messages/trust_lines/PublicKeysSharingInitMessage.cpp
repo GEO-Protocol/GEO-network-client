@@ -38,16 +38,6 @@ const KeyNumber PublicKeysSharingInitMessage::keysCount() const
     return mKeysCount;
 }
 
-const bool PublicKeysSharingInitMessage::isAddToConfirmationRequiredMessagesHandler() const
-{
-    return true;
-}
-
-const bool PublicKeysSharingInitMessage::isCheckCachedResponse() const
-{
-    return true;
-}
-
 pair<BytesShared, size_t> PublicKeysSharingInitMessage::serializeToBytes() const
 {
     const auto parentBytesAndCount = PublicKeyMessage::serializeToBytes();

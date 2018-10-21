@@ -2177,6 +2177,9 @@ void TransactionsManager::onSubsidiaryTransactionReady(
     subscribeForProcessingConfirmationMessage(
         transaction->processConfirmationMessageSignal);
 
+    subscribeForTrustLineActionSignal(
+        transaction->trustLineActionSignal);
+
     mScheduler->postponeTransaction(
         transaction,
         50);
@@ -2351,11 +2354,14 @@ void TransactionsManager::onResumeTransactionSlot(
                 mLog);
             subscribeForProcessingConfirmationMessage(
                 transaction->processConfirmationMessageSignal);
+            subscribeForTrustLineActionSignal(
+                transaction->trustLineActionSignal);
             prepareAndSchedule(
                 transaction,
                 true,
                 false,
                 true);
+            break;
         }
         default: {
             warning() << "onResumeTransactionSlot: invalid transaction type " << transactionType;

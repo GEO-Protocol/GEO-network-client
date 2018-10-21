@@ -47,11 +47,6 @@ const lamport::PublicKey::Shared PublicKeyMessage::publicKey() const
     return mPublicKey;
 }
 
-const bool PublicKeyMessage::isAddToConfirmationRequiredMessagesHandler() const
-{
-    return true;
-}
-
 const bool PublicKeyMessage::isCheckCachedResponse() const
 {
     return true;

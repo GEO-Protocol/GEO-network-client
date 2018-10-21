@@ -406,9 +406,6 @@ public:
     // signal for launching transaction of building cycles on four nodes
     mutable BuildCycleFourNodesSignal mBuildCycleFourNodesSignal;
 
-    // signal for checking TL after payment on audit or keys sharing cases
-    mutable TrustLineActionSignal mTrustLineActionSignal;
-
 protected:
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;

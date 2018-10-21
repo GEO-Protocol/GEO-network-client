@@ -50,10 +50,6 @@ void CommunicatorPingMessagesHandler::saveRecord(
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "inserting is completed successfully";
 #endif
-    } else if (rc == SQLITE_CONSTRAINT) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "inserting is not completed due to constraint violation";
-#endif
     } else {
         throw IOError("CommunicatorPingMessagesHandler::insert: "
                           "Run query; sqlite error: " + to_string(rc));

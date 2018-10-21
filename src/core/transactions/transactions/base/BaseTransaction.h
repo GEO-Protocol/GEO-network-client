@@ -301,6 +301,7 @@ public:
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
     mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;
     mutable ProcessPongMessageSignal processPongMessageSignal;
+    mutable TrustLineActionSignal trustLineActionSignal;
 
 protected:
     static const uint16_t mkStandardConnectionTimeout = 1500; //miliseconds

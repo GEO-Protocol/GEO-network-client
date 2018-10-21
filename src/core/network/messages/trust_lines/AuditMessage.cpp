@@ -47,11 +47,6 @@ const lamport::Signature::Shared AuditMessage::signature() const
     return mSignature;
 }
 
-const bool AuditMessage::isAddToConfirmationRequiredMessagesHandler() const
-{
-    return true;
-}
-
 const bool AuditMessage::isCheckCachedResponse() const
 {
     return true;

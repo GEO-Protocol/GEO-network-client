@@ -25,8 +25,8 @@ public:
         /*
          * Trust lines
          */
-        TrustLines_SetIncoming = 101,
-        TrustLines_Initial = 102,
+        TrustLines_Initial = 101,
+        TrustLines_SetIncoming = 102,
         TrustLines_CloseOutgoing = 103,
         TrustLines_Confirmation = 104,
         TrustLines_PublicKeysSharingInit = 105,
@@ -98,6 +98,7 @@ public:
          */
         General_Ping = 500,
         General_Pong = 501,
+        General_NoEquivalent,
 
         /*
          * Empty slot with codes 600-699
@@ -108,8 +109,6 @@ public:
          */
         GatewayNotification = 700,
         RoutingTableResponse = 701,
-
-        NoEquivalent = 800,
 
         /*
          * DEBUG
