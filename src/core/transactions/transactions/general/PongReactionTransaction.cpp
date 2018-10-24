@@ -18,6 +18,7 @@ PongReactionTransaction::PongReactionTransaction(
 
 TransactionResult::SharedConst PongReactionTransaction::run()
 {
+    bool isSignalSend = false;
     for (const auto equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
         auto trustLineManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
 
@@ -27,11 +28,16 @@ TransactionResult::SharedConst PongReactionTransaction::run()
 
         if (trustLineManager->trustLineState(mContractorUUID) == TrustLine::Init) {
             mResumeTransactionSignal(mContractorUUID, equivalent, BaseTransaction::OpenTrustLineTransaction);
+            isSignalSend = true;
         } else if (trustLineManager->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
             mResumeTransactionSignal(mContractorUUID, equivalent, BaseTransaction::AuditSourceTransactionType);
+            isSignalSend = true;
         }
     }
-    processPongMessage(mContractorUUID);
+    if (!isSignalSend) {
+        info() << "No one signal was sent";
+        processPongMessage(mContractorUUID);
+    }
     return resultDone();
 }
 

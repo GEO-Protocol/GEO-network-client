@@ -3,6 +3,7 @@
 
 #include "../base/transaction/DestinationMessage.h"
 #include "../../../crypto/lamportscheme.h"
+#include "../../../common/multiprecision/MultiprecisionUtils.h"
 
 using namespace crypto;
 
@@ -17,11 +18,17 @@ public:
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const NodeUUID &destinationUUID,
+        const TrustLineAmount &incomingAmount,
+        const TrustLineAmount &outgoingAmount,
         const KeyNumber keyNumber,
         const lamport::Signature::Shared signature);
 
     AuditMessage(
         BytesShared buffer);
+
+    const TrustLineAmount& incomingAmount() const;
+
+    const TrustLineAmount& outgoingAmount() const;
 
     const lamport::Signature::Shared signature() const;
 
@@ -38,6 +45,8 @@ protected:
     noexcept;
 
 private:
+    TrustLineAmount mIncomingAmount;
+    TrustLineAmount mOutgoingAmount;
     uint32_t mKeyNumber;
     lamport::Signature::Shared mSignature;
 };

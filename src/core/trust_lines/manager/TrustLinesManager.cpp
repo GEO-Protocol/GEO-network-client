@@ -59,6 +59,8 @@ void TrustLinesManager::loadTrustLinesFromStorage()
             } else {
                 info() << "audit pending TL in storage with contractor " << kTrustLine->contractorNodeUUID();
                 kTrustLine->setState(TrustLine::AuditPending);
+                pingMessageSignal(
+                    kTrustLine->contractorNodeUUID());
             }
 
             if (keyChain.ownKeysPresent(ioTransaction)) {
@@ -77,6 +79,8 @@ void TrustLinesManager::loadTrustLinesFromStorage()
             if (keyChain.contractorKeysPresent(ioTransaction)) {
                 warning() << "Something wrong, because TL contains contractor's valid keys";
             }
+            pingMessageSignal(
+                kTrustLine->contractorNodeUUID());
         }
 
         mTrustLines.insert(

@@ -3,7 +3,6 @@
 
 #include "../../common/Types.h"
 #include "CommunicatorMessagesQueueHandler.h"
-#include "CommunicatorPingMessagesHandler.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -17,14 +16,11 @@ public:
     CommunicatorIOTransaction(
         sqlite3 *dbConnection,
         CommunicatorMessagesQueueHandler *communicatorMessagesQueueHandler,
-        CommunicatorPingMessagesHandler *communicatorPingMessagesHandler,
         Logger &logger);
 
     ~CommunicatorIOTransaction();
 
     CommunicatorMessagesQueueHandler *communicatorMessagesQueueHandler();
-
-    CommunicatorPingMessagesHandler *communicatorPingMessagesHandler();
 
     void rollback();
 
@@ -42,7 +38,6 @@ private:
 private:
     sqlite3 *mDBConnection;
     CommunicatorMessagesQueueHandler *mCommunicatorMessagesQueueHandler;
-    CommunicatorPingMessagesHandler *mCommunicatorPingMessagesHandler;
     bool mIsTransactionBegin;
     Logger &mLog;
 };

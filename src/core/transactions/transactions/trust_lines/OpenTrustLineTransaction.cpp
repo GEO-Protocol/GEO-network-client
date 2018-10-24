@@ -150,6 +150,11 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
         return resultDone();
     }
 
+    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Init) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
+        return resultDone();
+    }
+
 #ifdef TESTS
     mTrustLinesInfluenceController->testThrowExceptionOnSourceResumingStage(
         BaseTransaction::OpenTrustLineTransaction);
@@ -166,6 +171,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
         mIAmGateway);
     mCountSendingAttempts++;
     info() << "Message with TL opening request was sent";
+    processPongMessage(mContractorUUID);
 
     mStep = ResponseProcessing;
     return resultOK();

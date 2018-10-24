@@ -3,10 +3,6 @@ cmake_minimum_required(VERSION 3.6)
 set(SOURCE_FILES
         TrustLineInitialMessage.h
         TrustLineInitialMessage.cpp
-        SetIncomingTrustLineMessage.h
-        SetIncomingTrustLineMessage.cpp
-        CloseOutgoingTrustLineMessage.h
-        CloseOutgoingTrustLineMessage.cpp
 
         PublicKeysSharingInitMessage.h
         PublicKeysSharingInitMessage.cpp

@@ -6,7 +6,7 @@
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
-#include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
+#include "../../../network/messages/trust_lines/AuditMessage.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 #include "../../../interface/visual_interface/interface/VisualInterface.h"
 #include "../../../interface/visual_interface/visual/VisualResult.h"

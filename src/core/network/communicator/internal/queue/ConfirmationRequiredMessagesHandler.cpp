@@ -241,17 +241,9 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
         TransactionMessage::Shared sendingMessage;
         std::tie(contractorUUID, messageBody, messageType) = message;
         switch (messageType) {
-            case Message::TrustLines_SetIncoming:
-                sendingMessage = static_pointer_cast<TransactionMessage>(
-                    make_shared<SetIncomingTrustLineMessage>(messageBody));
-                break;
             case Message::TrustLines_Initial:
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<TrustLineInitialMessage>(messageBody));
-                break;
-            case Message::TrustLines_CloseOutgoing:
-                sendingMessage = static_pointer_cast<TransactionMessage>(
-                    make_shared<CloseOutgoingTrustLineMessage>(messageBody));
                 break;
             case Message::GatewayNotification:
                 sendingMessage = static_pointer_cast<TransactionMessage>(

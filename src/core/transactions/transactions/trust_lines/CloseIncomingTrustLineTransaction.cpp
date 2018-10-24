@@ -197,12 +197,14 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializat
     // Notifying remote node about trust line state changed.
     // Network communicator knows, that this message must be forced to be delivered,
     // so the TA itself might finish without any response from the remote node.
-    sendMessage<CloseOutgoingTrustLineMessage>(
+    sendMessage<AuditMessage>(
         mContractorUUID,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,
         mContractorUUID,
+        mTrustLines->incomingTrustAmount(mContractorUUID),
+        mTrustLines->outgoingTrustAmount(mContractorUUID),
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
@@ -217,12 +219,14 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
     if (mContext.empty()) {
         warning() << "Contractor don't send response.";
         if (mCountSendingAttempts < kMaxCountSendingAttempts) {
-            sendMessage<CloseOutgoingTrustLineMessage>(
+            sendMessage<AuditMessage>(
                 mContractorUUID,
                 mEquivalent,
                 mNodeUUID,
                 mTransactionUUID,
                 mContractorUUID,
+                mTrustLines->incomingTrustAmount(mContractorUUID),
+                mTrustLines->outgoingTrustAmount(mContractorUUID),
                 mOwnSignatureAndKeyNumber.second,
                 mOwnSignatureAndKeyNumber.first);
             mCountSendingAttempts++;
@@ -443,12 +447,14 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runAddToBlackL
     // Notifying remote node about trust line state changed.
     // Network communicator knows, that this message must be forced to be delivered,
     // so the TA itself might finish without any response from the remote node.
-    sendMessage<CloseOutgoingTrustLineMessage>(
+    sendMessage<AuditMessage>(
         mContractorUUID,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,
         mContractorUUID,
+        mTrustLines->incomingTrustAmount(mContractorUUID),
+        mTrustLines->outgoingTrustAmount(mContractorUUID),
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;

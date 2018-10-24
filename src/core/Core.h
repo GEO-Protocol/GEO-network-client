@@ -99,12 +99,16 @@ private:
     void onMessageSendWithCachingSlot(
         TransactionMessage::Shared message,
         const NodeUUID &contractorUUID,
-        Message::MessageType incomingMessageTypeFilter);
+        Message::MessageType incomingMessageTypeFilter,
+        uint32_t cacheTimeLiving);
 
     void onProcessConfirmationMessageSlot(
         ConfirmationMessage::Shared confirmationMessage);
 
     void onProcessPongMessageSlot(
+        const NodeUUID& contractorUUID);
+
+    void onPingMessageSlot(
         const NodeUUID& contractorUUID);
 
     void onPathsResourceRequestedSlot(

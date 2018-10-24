@@ -39,7 +39,8 @@ public:
     typedef signals::signal<void(
             TransactionMessage::Shared,
             const NodeUUID&,
-            Message::MessageType)> SendMessageWithCachingSignal;
+            Message::MessageType,
+            uint32_t)> SendMessageWithCachingSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
     typedef signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
     typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent, bool)> TrustLineActionSignal;
@@ -53,16 +54,14 @@ public:
         OpenTrustLineTransaction = 100,
         AcceptTrustLineTransaction = 101,
         SetOutgoingTrustLineTransaction = 102,
-        SetIncomingTrustLineTransaction = 103,
-        CloseIncomingTrustLineTransactionType = 104,
-        CloseOutgoingTrustLineTransactionType = 105,
-        PublicKeysSharingSourceTransactionType = 106,
-        PublicKeysSharingTargetTransactionType = 107,
-        AuditSourceTransactionType = 108,
-        AuditTargetTransactionType = 109,
-        ConflictResolverInitiatorTransactionType = 110,
-        ConflictResolverContractorTransactionType = 111,
-        CheckTrustLineAfterPaymentTransactionType = 112,
+        CloseIncomingTrustLineTransactionType = 103,
+        PublicKeysSharingSourceTransactionType = 104,
+        PublicKeysSharingTargetTransactionType = 105,
+        AuditSourceTransactionType = 106,
+        AuditTargetTransactionType = 107,
+        ConflictResolverInitiatorTransactionType = 108,
+        ConflictResolverContractorTransactionType = 109,
+        CheckTrustLineAfterPaymentTransactionType = 110,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction = 200,
@@ -229,13 +228,15 @@ protected:
     inline void sendMessageWithCaching(
         const NodeUUID &addressee,
         Message::MessageType incomingMessageTypeFilter,
+        uint32_t cacheLivingSecondsTime,
         Args&&... args) const
     {
         const auto message = make_shared<MessageType>(args...);
         sendMessageWithCachingSignal(
             message,
             addressee,
-            incomingMessageTypeFilter);
+            incomingMessageTypeFilter,
+            cacheLivingSecondsTime);
     }
 
     void processConfirmationMessage(
@@ -304,7 +305,7 @@ public:
     mutable TrustLineActionSignal trustLineActionSignal;
 
 protected:
-    static const uint16_t mkStandardConnectionTimeout = 1500; //miliseconds
+    static const uint16_t mkStandardConnectionTimeout = 1500; //milliseconds
     static const uint16_t mkWaitingForResponseTime = 3000;
 
 protected:

@@ -7,15 +7,11 @@ set(SOURCE_FILES
 
     SetOutgoingTrustLineTransaction.h
     SetOutgoingTrustLineTransaction.cpp
-    SetIncomingTrustLineTransaction.h
-    SetIncomingTrustLineTransaction.cpp
 
-    CloseIncomingTrustLineTransaction.h
+        CloseIncomingTrustLineTransaction.h
     CloseIncomingTrustLineTransaction.cpp
-    CloseOutgoingTrustLineTransaction.h
-    CloseOutgoingTrustLineTransaction.cpp
 
-    OpenTrustLineTransaction.h
+        OpenTrustLineTransaction.h
     OpenTrustLineTransaction.cpp
     AcceptTrustLineTransaction.h
     AcceptTrustLineTransaction.cpp

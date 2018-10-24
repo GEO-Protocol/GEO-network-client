@@ -58,6 +58,9 @@ public:
     };
 
 public:
+    typedef signals::signal<void(const NodeUUID&)> PingMessageSignal;
+
+public:
     TrustLinesManager(
         const SerializedEquivalent equivalent,
         StorageHandler *storageHandler,
@@ -408,6 +411,9 @@ protected: // log shortcuts
 
     LoggerStream warning() const
         noexcept;
+
+public:
+    mutable PingMessageSignal pingMessageSignal;
 
 private:
     unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>> mTrustLines;

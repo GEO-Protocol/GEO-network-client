@@ -3,18 +3,22 @@
 PingMessagesHandler::PingMessagesHandler(
     const NodeUUID &nodeUUID,
     IOService &ioService,
-    CommunicatorStorageHandler *communicatorStorageHandler,
     Logger &logger) :
 
     LoggerMixin(logger),
     mNodeUUID(nodeUUID),
-    mCommunicatorStorageHandler(communicatorStorageHandler),
     mIOService(ioService),
-    mCleaningTimer(ioService)
+    mResendingTimer(ioService)
 {
-    mDeserializationMessagesTimer = make_unique<as::steady_timer>(
+    mReschedulingTimer = make_unique<as::steady_timer>(
         mIOService);
-    deserializeMessages();
+    mReschedulingTimer->expires_from_now(
+        chrono::seconds(
+            kMessagesReschedulingSecondsTime));
+    mReschedulingTimer->async_wait(
+        boost::bind(
+            &PingMessagesHandler::delayedRescheduleResending,
+            this));
 }
 
 void PingMessagesHandler::tryEnqueueContractor(
@@ -28,8 +32,6 @@ void PingMessagesHandler::tryEnqueueContractor(
     }
 
     mContractors.push_back(contractorUUID);
-    auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
-    ioTransaction->communicatorPingMessagesHandler()->saveRecord(contractorUUID);
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     debug() << "Contractor " << contractorUUID << " enqueued for ping.";
@@ -39,6 +41,24 @@ void PingMessagesHandler::tryEnqueueContractor(
         // First message was added for further re-sending.
         rescheduleResending();
     }
+}
+
+void PingMessagesHandler::enqueueContractorWithPostponedSending(
+    const NodeUUID &contractorUUID)
+{
+    if (find(
+            mContractors.begin(),
+            mContractors.end(),
+            contractorUUID) != mContractors.end()) {
+        return;
+    }
+
+    mContractors.push_back(contractorUUID);
+
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+    debug() << "Contractor " << contractorUUID << " enqueued for postponed ping.";
+#endif
+
 }
 
 void PingMessagesHandler::tryProcessPongMessage(
@@ -58,17 +78,9 @@ void PingMessagesHandler::tryProcessPongMessage(
     mContractors.erase(
         contractorIt);
 
-    auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
-    try {
-        ioTransaction->communicatorPingMessagesHandler()->deleteRecord(contractorUUID);
-
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         debug() << "Pong message from contractor " << contractorUUID << " received.";
 #endif
-
-    } catch (IOError &e) {
-        this->warning() << "Can't remove contractor from storage. Details: " << e.what();
-    }
 }
 
 void PingMessagesHandler::rescheduleResending()
@@ -83,8 +95,8 @@ void PingMessagesHandler::rescheduleResending()
         return;
     }
 
-    mCleaningTimer.expires_from_now(chrono::seconds(kPingMessagesSecondsTimeOut));
-    mCleaningTimer.async_wait([this] (const boost::system::error_code &e) {
+    mResendingTimer.expires_from_now(chrono::seconds(kPingMessagesSecondsTimeOut));
+    mResendingTimer.async_wait([this] (const boost::system::error_code &e) {
 
         if (e == boost::asio::error::operation_aborted) {
             return;
@@ -94,7 +106,7 @@ void PingMessagesHandler::rescheduleResending()
         this->debug() << "Enqueued messages re-sending started.";
 #endif
 
-        this->sendPostponedMessages();
+        this->sendPingMessages();
         this->rescheduleResending();
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
@@ -103,7 +115,7 @@ void PingMessagesHandler::rescheduleResending()
     });
 }
 
-void PingMessagesHandler::sendPostponedMessages() const
+void PingMessagesHandler::sendPingMessages() const
 {
     for (const auto &contractorUUID : mContractors) {
         signalOutgoingMessageReady(
@@ -113,32 +125,10 @@ void PingMessagesHandler::sendPostponedMessages() const
     }
 }
 
-void PingMessagesHandler::deserializeMessages()
+void PingMessagesHandler::delayedRescheduleResending()
 {
-    auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
-    try {
-        mContractors = ioTransaction->communicatorPingMessagesHandler()->allContractors();
-    } catch (IOError &e) {
-        warning() << "Can't read serialized messages from storage. Details: " << e.message();
-        return;
-    }
-    if (mContractors.empty()) {
-        return;
-    }
-    info() << "Serialized messages count: " << mContractors.size();
-    mDeserializationMessagesTimer->expires_from_now(
-        chrono::seconds(
-            kMessagesDeserializationDelayedSecondsTime));
-    mDeserializationMessagesTimer->async_wait(
-        boost::bind(
-            &PingMessagesHandler::delayedRescheduleResendingAfterDeserialization,
-            this));
-}
-
-void PingMessagesHandler::delayedRescheduleResendingAfterDeserialization()
-{
-    mDeserializationMessagesTimer->cancel();
-    mDeserializationMessagesTimer = nullptr;
+    mReschedulingTimer->cancel();
+    mReschedulingTimer = nullptr;
     rescheduleResending();
 }
 

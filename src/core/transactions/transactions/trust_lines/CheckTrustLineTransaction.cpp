@@ -69,6 +69,6 @@ const string CheckTrustLineTransaction::logHeader() const
     noexcept
 {
     stringstream s;
-    s << "[CheckTrustLineOnAuditOrKeysSharingTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
+    s << "[CheckTrustLineTransaction: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

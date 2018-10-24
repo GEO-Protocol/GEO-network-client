@@ -34,12 +34,6 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::TrustLines_Initial:
             return messageCollected<TrustLineInitialMessage>(buffer);
 
-        case Message::TrustLines_SetIncoming:
-            return messageCollected<SetIncomingTrustLineMessage>(buffer);
-
-        case Message::TrustLines_CloseOutgoing:
-            return messageCollected<CloseOutgoingTrustLineMessage>(buffer);
-
         case Message::TrustLines_Confirmation:
             return messageCollected<TrustLineConfirmationMessage>(buffer);
 

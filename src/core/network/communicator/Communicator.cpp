@@ -61,13 +61,13 @@ Communicator::Communicator(
 
     mConfirmationResponseMessagesHandler(
         make_unique<ConfirmationResponseMessagesHandler>(
+            IOService,
             logger)),
 
     mPingMessagesHandler(
         make_unique<PingMessagesHandler>(
             mNodeUUID,
             IOService,
-            mCommunicatorStorageHandler.get(),
             logger))
 {
     // Direct signals chaining.
@@ -172,13 +172,15 @@ void Communicator::sendMessage (
 void Communicator::sendMessageWithCacheSaving(
     const TransactionMessage::Shared message,
     const NodeUUID &contractorUUID,
-    Message::MessageType incomingMessageTypeFilter)
+    Message::MessageType incomingMessageTypeFilter,
+    uint32_t cacheLivingTime)
     noexcept
 {
     mConfirmationResponseMessagesHandler->addCachedMessage(
         contractorUUID,
         message,
-        incomingMessageTypeFilter);
+        incomingMessageTypeFilter,
+        cacheLivingTime);
 
     mOutgoingMessagesHandler->sendMessage(
         message,
@@ -197,6 +199,13 @@ void Communicator::processPongMessage(
 {
     mPingMessagesHandler->tryProcessPongMessage(
         nodeUUID);
+}
+
+void Communicator::enqueueContractorWithPostponedSending(
+    const NodeUUID &contractorUUID)
+{
+    mPingMessagesHandler->enqueueContractorWithPostponedSending(
+        contractorUUID);
 }
 
 void Communicator::onMessageReceived(

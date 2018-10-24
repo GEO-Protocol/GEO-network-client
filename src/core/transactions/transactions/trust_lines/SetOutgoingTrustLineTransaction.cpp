@@ -232,15 +232,16 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
     // Notifying remote node about trust line state changed.
     // Network communicator knows, that this message must be forced to be delivered,
     // so the TA itself might finish without any response from the remote node.
-    sendMessage<SetIncomingTrustLineMessage>(
+    sendMessage<AuditMessage>(
         mContractorUUID,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,
         mContractorUUID,
+        mTrustLines->incomingTrustAmount(mContractorUUID),
+        mTrustLines->outgoingTrustAmount(mContractorUUID),
         mOwnSignatureAndKeyNumber.second,
-        mOwnSignatureAndKeyNumber.first,
-        mCommand->amount());
+        mOwnSignatureAndKeyNumber.first);
     mCountSendingAttempts++;
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
 
@@ -254,15 +255,16 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
     if (mContext.empty()) {
         warning() << "Contractor don't send response.";
         if (mCountSendingAttempts < kMaxCountSendingAttempts) {
-            sendMessage<SetIncomingTrustLineMessage>(
+            sendMessage<AuditMessage>(
                 mContractorUUID,
                 mEquivalent,
                 mNodeUUID,
                 mTransactionUUID,
                 mContractorUUID,
+                mTrustLines->incomingTrustAmount(mContractorUUID),
+                mTrustLines->outgoingTrustAmount(mContractorUUID),
                 mOwnSignatureAndKeyNumber.second,
-                mOwnSignatureAndKeyNumber.first,
-                mCommand->amount());
+                mOwnSignatureAndKeyNumber.first);
             mCountSendingAttempts++;
             info() << "Send message " << mCountSendingAttempts << " times";
             return resultWaitForMessageTypes(

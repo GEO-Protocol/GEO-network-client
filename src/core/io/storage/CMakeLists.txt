@@ -31,8 +31,6 @@ set(SOURCE_FILES
 
         CommunicatorMessagesQueueHandler.h
         CommunicatorMessagesQueueHandler.cpp
-        CommunicatorPingMessagesHandler.h
-        CommunicatorPingMessagesHandler.cpp
 
         BlackListHandler.h
         BlackListHandler.cpp

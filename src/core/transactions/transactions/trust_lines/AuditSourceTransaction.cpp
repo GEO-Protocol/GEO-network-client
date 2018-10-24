@@ -159,6 +159,8 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
         mNodeUUID,
         mTransactionUUID,
         mContractorUUID,
+        mTrustLines->incomingTrustAmount(mContractorUUID),
+        mTrustLines->outgoingTrustAmount(mContractorUUID),
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);
     mCountSendingAttempts++;
@@ -188,6 +190,8 @@ TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
         warning() << "Attempt to audit not existing TL";
         return resultDone();
     }
+
+    processPongMessage(mContractorUUID);
 
     // todo maybe check in storage (keyChain)
     if (!mTrustLines->trustLineOwnKeysPresent(mContractorUUID)) {
@@ -237,6 +241,8 @@ TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
         mNodeUUID,
         mTransactionUUID,
         mContractorUUID,
+        mTrustLines->incomingTrustAmount(mContractorUUID),
+        mTrustLines->outgoingTrustAmount(mContractorUUID),
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);
     mCountSendingAttempts++;
@@ -260,6 +266,8 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
                 mNodeUUID,
                 mTransactionUUID,
                 mContractorUUID,
+                mTrustLines->incomingTrustAmount(mContractorUUID),
+                mTrustLines->outgoingTrustAmount(mContractorUUID),
                 mOwnSignatureAndKeyNumber.second,
                 mOwnSignatureAndKeyNumber.first);
             mCountSendingAttempts++;

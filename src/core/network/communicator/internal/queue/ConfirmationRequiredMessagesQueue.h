@@ -3,9 +3,7 @@
 
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
-#include "../../../messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../messages/trust_lines/TrustLineInitialMessage.h"
-#include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 #include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
 #include "../../../messages/trust_lines/AuditMessage.h"
 #include "../../../messages/trust_lines/PublicKeysSharingInitMessage.h"
@@ -83,13 +81,7 @@ protected: // messages handlers
      * Removes all messages of type "SetIncomingTrustLineMessage" with contractor UUID = "contractorUUID",
      * to prevent messages order collision.
      */
-    void updateTrustLineNotificationInTheQueue(
-        TransactionMessage::Shared message);
-
     void updateTrustLineInitialNotificationInTheQueue(
-        TransactionMessage::Shared message);
-
-    void updateTrustLineCloseNotificationInTheQueue(
         TransactionMessage::Shared message);
 
     void updateGatewayNotificationInTheQueue(

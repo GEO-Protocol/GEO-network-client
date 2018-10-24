@@ -16,18 +16,8 @@ bool ConfirmationRequiredMessagesQueue::enqueue(
     TransactionMessage::Shared message)
 {
     switch (message->typeID()) {
-        case Message::TrustLines_SetIncoming: {
-            updateTrustLineNotificationInTheQueue(
-                message);
-            break;
-        }
         case Message::TrustLines_Initial: {
             updateTrustLineInitialNotificationInTheQueue(
-                message);
-            break;
-        }
-        case Message::TrustLines_CloseOutgoing: {
-            updateTrustLineCloseNotificationInTheQueue(
                 message);
             break;
         }
@@ -107,31 +97,6 @@ void ConfirmationRequiredMessagesQueue::resetInternalTimeout()
     mNextTimeoutSeconds = 4;
 }
 
-void ConfirmationRequiredMessagesQueue::updateTrustLineNotificationInTheQueue(
-    TransactionMessage::Shared message)
-{
-    // Only one SetIncomingTrustLineMessage should be in the queue in one moment of time.
-    // queue must contains only newest one notification, all other must be removed.
-    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
-        const auto kMessage = it->second;
-
-        if (kMessage->typeID() == Message::TrustLines_SetIncoming) {
-            mMessages.erase(it++);
-            signalRemoveMessageFromStorage(
-                mContractorUUID,
-                mEquivalent,
-                kMessage->typeID());
-        } else {
-            ++it;
-        }
-    }
-
-    mMessages[message->transactionUUID()] = message;
-    signalSaveMessageToStorage(
-        mContractorUUID,
-        message);
-}
-
 void ConfirmationRequiredMessagesQueue::updateTrustLineInitialNotificationInTheQueue(
     TransactionMessage::Shared message)
 {
@@ -141,32 +106,6 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineInitialNotificationInTheQ
         const auto kMessage = it->second;
 
         if (kMessage->typeID() == Message::TrustLines_Initial) {
-            mMessages.erase(it++);
-            signalRemoveMessageFromStorage(
-                mContractorUUID,
-                mEquivalent,
-                kMessage->typeID());
-        } else {
-            ++it;
-        }
-    }
-
-    mMessages[message->transactionUUID()] = message;
-    signalSaveMessageToStorage(
-        mContractorUUID,
-        message);
-}
-
-// todo : discuss if need keep only one message in queue
-void ConfirmationRequiredMessagesQueue::updateTrustLineCloseNotificationInTheQueue(
-    TransactionMessage::Shared message)
-{
-    // Only one CloseOutgoingTrustLineMessage should be in the queue in one moment of time.
-    // queue must contains only newest one notification, all other must be removed.
-    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
-        const auto kMessage = it->second;
-
-        if (kMessage->typeID() == Message::TrustLines_CloseOutgoing) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,

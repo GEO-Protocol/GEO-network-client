@@ -365,16 +365,24 @@ void Core::connectCommunicatorSignals()
             this,
             _1,
             _2,
-            _3));
+            _3,
+            _4));
 
     mTransactionsManager->ProcessConfirmationMessageSignal.connect(
         boost::bind(
             &Core::onProcessConfirmationMessageSlot,
             this,
             _1));
+
     mTransactionsManager->ProcessPongMessageSignal.connect(
         boost::bind(
             &Core::onProcessPongMessageSlot,
+            this,
+            _1));
+
+    mEquivalentsSubsystemsRouter->pingMessageSignal.connect(
+        boost::bind(
+            &Core::onPingMessageSlot,
             this,
             _1));
 }
@@ -517,7 +525,8 @@ void Core::onMessageSendSlot(
 void Core::onMessageSendWithCachingSlot(
     TransactionMessage::Shared message,
     const NodeUUID &contractorUUID,
-    Message::MessageType incomingMessageTypeFilter)
+    Message::MessageType incomingMessageTypeFilter,
+    uint32_t cacheTimeLiving)
 {
 #ifdef TESTS
     if (not mSubsystemsController->isNetworkOn()) {
@@ -531,7 +540,8 @@ void Core::onMessageSendWithCachingSlot(
         mCommunicator->sendMessageWithCacheSaving(
             message,
             contractorUUID,
-            incomingMessageTypeFilter);
+            incomingMessageTypeFilter,
+            cacheTimeLiving);
 
     } catch (exception &e) {
         mLog->logException("Core", e);
@@ -571,6 +581,13 @@ void Core::onProcessConfirmationMessageSlot(
 {
     mCommunicator->processConfirmationMessage(
         confirmationMessage);
+}
+
+void Core::onPingMessageSlot(
+    const NodeUUID &contractorUUID)
+{
+    mCommunicator->enqueueContractorWithPostponedSending(
+        contractorUUID);
 }
 
 void Core::onProcessPongMessageSlot(

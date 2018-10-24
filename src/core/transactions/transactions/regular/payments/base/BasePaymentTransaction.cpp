@@ -527,7 +527,7 @@ void BasePaymentTransaction::commit(
                 kNodeUUIDAndReservations.first,
                 kPathIDAndReservation.second);
         }
-        mTrustLineActionSignal(
+        trustLineActionSignal(
             kNodeUUIDAndReservations.first,
             mEquivalent,
             reservationDirection == AmountReservation::Outgoing);

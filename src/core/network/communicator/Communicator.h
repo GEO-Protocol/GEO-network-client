@@ -54,7 +54,8 @@ public:
     void sendMessageWithCacheSaving (
         const TransactionMessage::Shared kMessage,
         const NodeUUID &kContractorUUID,
-        Message::MessageType incomingMessageTypeFilter)
+        Message::MessageType incomingMessageTypeFilter,
+        uint32_t cacheLivingTime)
         noexcept;
 
     void processConfirmationMessage(
@@ -62,6 +63,9 @@ public:
 
     void processPongMessage(
         const NodeUUID &nodeUUID);
+
+    void enqueueContractorWithPostponedSending(
+        const NodeUUID &contractorUUID);
 
 protected:
     /**

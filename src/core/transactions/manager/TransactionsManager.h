@@ -59,9 +59,7 @@
 #include "../transactions/trust_lines/OpenTrustLineTransaction.h"
 #include "../transactions/trust_lines/AcceptTrustLineTransaction.h"
 #include "../transactions/trust_lines/SetOutgoingTrustLineTransaction.h"
-#include "../transactions/trust_lines/SetIncomingTrustLineTransaction.h"
 #include "../transactions/trust_lines/CloseIncomingTrustLineTransaction.h"
-#include "../transactions/trust_lines/CloseOutgoingTrustLineTransaction.h"
 #include "../transactions/trust_lines/PublicKeysSharingSourceTransaction.h"
 #include "../transactions/trust_lines/PublicKeysSharingTargetTransaction.h"
 #include "../transactions/trust_lines/AuditSourceTransaction.h"
@@ -140,7 +138,8 @@ public:
     signals::signal<void(
             TransactionMessage::Shared,
             const NodeUUID&,
-            Message::MessageType)> transactionOutgoingMessageWithCachingReadySignal;
+            Message::MessageType,
+            uint32_t)> transactionOutgoingMessageWithCachingReadySignal;
     signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
     signals::signal<void(const NodeUUID&)> ProcessPongMessageSignal;
 
@@ -207,14 +206,8 @@ protected: // Transactions
      * Starts transaction that would processes received message
      * and attempts to set incoming trust line from the remote node.
      */
-    void launchSetIncomingTrustLineTransaction(
-        SetIncomingTrustLineMessage::Shared message);
-
     void launchAcceptTrustLineTransaction(
         TrustLineInitialMessage::Shared message);
-
-    void launchCloseOutgoingTrustLineTransaction(
-        CloseOutgoingTrustLineMessage::Shared message);
 
     void launchPublicKeysSharingTargetTransaction(
         PublicKeysSharingInitMessage::Shared message);
@@ -440,7 +433,8 @@ protected:
     void onTransactionOutgoingMessageWithCachingReady(
         TransactionMessage::Shared message,
         const NodeUUID &contractorUUID,
-        Message::MessageType incomingMessageTypeFilter);
+        Message::MessageType incomingMessageTypeFilter,
+        uint32_t cacheTimeLiving);
 
     void onCommandResultReady(
         CommandResult::SharedConst result);

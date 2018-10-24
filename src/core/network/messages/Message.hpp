@@ -26,16 +26,14 @@ public:
          * Trust lines
          */
         TrustLines_Initial = 101,
-        TrustLines_SetIncoming = 102,
-        TrustLines_CloseOutgoing = 103,
-        TrustLines_Confirmation = 104,
-        TrustLines_PublicKeysSharingInit = 105,
-        TrustLines_PublicKey = 106,
-        TrustLines_HashConfirmation = 107,
-        TrustLines_Audit = 108,
-        TrustLines_AuditConfirmation = 109,
-        TrustLines_ConflictResolver = 110,
-        TrustLines_ConflictResolverConfirmation = 111,
+        TrustLines_Confirmation = 102,
+        TrustLines_PublicKeysSharingInit = 103,
+        TrustLines_PublicKey = 104,
+        TrustLines_HashConfirmation = 105,
+        TrustLines_Audit = 106,
+        TrustLines_AuditConfirmation = 107,
+        TrustLines_ConflictResolver = 108,
+        TrustLines_ConflictResolverConfirmation = 109,
 
         /*
          * Payments messages

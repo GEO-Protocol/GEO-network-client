@@ -18,6 +18,7 @@ class EquivalentsSubsystemsRouter {
 
 public:
     typedef signals::signal<void()> GatewayNotificationSignal;
+    typedef signals::signal<void(const NodeUUID&)> PingMessageSignal;
 
 public:
     EquivalentsSubsystemsRouter(
@@ -58,6 +59,8 @@ public:
 public:
     mutable GatewayNotificationSignal gatewayNotificationSignal;
 
+    mutable PingMessageSignal pingMessageSignal;
+
 protected:
     string logHeader() const;
 
@@ -73,7 +76,13 @@ private:
     void subscribeForGatewayNotification(
         GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationSignal &signal);
 
+    void subscribeForPingMessage(
+        TrustLinesManager::PingMessageSignal &signal);
+
     void onGatewayNotificationSlot();
+
+    void onPingMessageSlot(
+        const NodeUUID &contractorUUID);
 
 private:
     NodeUUID mNodeUUID;
