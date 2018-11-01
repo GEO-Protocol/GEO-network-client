@@ -96,8 +96,6 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
         }
     }
 
-    info() << "allNeighborsResponseReceive " << allNeighborsResponseReceive.size();
-    info() << "allNeighborsRequestAlreadySent " << allNeighborsRequestAlreadySent.size();
     if (allNeighborsResponseReceive.size() < allNeighborsRequestAlreadySent.size()) {
         if (utc_now() - mPreviousStepStarted < kMaxDurationBetweenSteps()) {
             return resultAwakeAfterMilliseconds(
