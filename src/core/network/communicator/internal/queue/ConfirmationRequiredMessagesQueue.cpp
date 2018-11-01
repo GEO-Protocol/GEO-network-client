@@ -176,19 +176,12 @@ void ConfirmationRequiredMessagesQueue::updateGatewayNotificationInTheQueue(
 
         if (kMessage->typeID() == Message::GatewayNotification) {
             mMessages.erase(it++);
-            signalRemoveMessageFromStorage(
-                mContractorUUID,
-                mEquivalent,
-                kMessage->typeID());
         } else {
             ++it;
         }
     }
 
     mMessages[message->transactionUUID()] = message;
-    signalSaveMessageToStorage(
-        mContractorUUID,
-        message);
 }
 
 void ConfirmationRequiredMessagesQueue::updateGatewayNotificationOneEquivalentInTheQueue(
