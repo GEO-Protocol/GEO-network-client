@@ -631,6 +631,23 @@ namespace crypto {
         }
     }
 
+    pair<lamport::Signature::Shared, KeyNumber> TrustLineKeychain::getCurrentAuditSignatureAndKeyNumber(
+        IOTransaction::Shared ioTransaction)
+    {
+        auto auditRecord = ioTransaction->auditHandler()->getActualAuditFull(
+            mTrustLineID);
+
+        try {
+            auto ownKeyNumber = ioTransaction->ownKeysHandler()->getKeyNumberByHash(
+                auditRecord->ownKeyHash());
+            return make_pair(
+                auditRecord->ownSignature(),
+                ownKeyNumber);
+        } catch (NotFoundError &e) {
+            throw ValueError("Can't get key number. Details: " + e.message());
+        }
+    }
+
     void TrustLineKeychain::keyNumberGuard(
         const KeyNumber &number) const
     {

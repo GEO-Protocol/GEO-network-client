@@ -22,7 +22,8 @@ void ConfirmationResponseMessagesHandler::addCachedMessage(
         incomingMessageTypeFilter,
         cacheLivingTime);
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-    debug() << "Messages added for " << contractorUUID << " equivalent " << cachedMessage->equivalent();
+    debug() << "Message " << cachedMessage->typeID() << " added for " << incomingMessageTypeFilter
+            << " from contractor" << contractorUUID << " equivalent " << cachedMessage->equivalent();
 #endif
     debug() << "mCachedMessages size " << mCachedMessages.size();
     if (mCachedMessages.size() == 1) {
@@ -42,7 +43,7 @@ Message::Shared ConfirmationResponseMessagesHandler::getCachedMessage(
         return nullptr;
     }
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-    debug() << "Cached response was found for " << incomingMessage->senderUUID
+    debug() << "Cache was found for " << incomingMessage->senderUUID
             << " equivalent " << incomingMessage->equivalent();
 #endif
     return confirmationCachedResponseMessage->second->getCachedMessage(

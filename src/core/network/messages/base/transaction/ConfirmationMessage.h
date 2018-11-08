@@ -15,12 +15,14 @@ public:
         OK = 1,
         ErrorShouldBeRemovedFromQueue = 2,
         ContractorBanned = 3,
-        ReservationsPresentOnTrustLine = 4,
-        Audit_Reject = 5,
-        Audit_Invalid = 6,
-        Audit_KeyNotFound = 7,
-        OwnKeysAbsent = 8,
-        ContractorKeysAbsent = 9,
+        TrustLineAlreadyPresent = 4,
+        ReservationsPresentOnTrustLine = 5,
+        Audit_Reject = 6,
+        Audit_Invalid = 7,
+        Audit_KeyNotFound = 8,
+        Audit_IncorrectNumber = 9,
+        OwnKeysAbsent = 10,
+        ContractorKeysAbsent = 11,
     };
 
 public:

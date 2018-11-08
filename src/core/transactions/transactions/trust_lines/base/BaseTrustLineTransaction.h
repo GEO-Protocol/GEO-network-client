@@ -59,7 +59,7 @@ protected:
     pair<BytesShared, size_t> getContractorSerializedAuditData();
 
 protected:
-    static const uint32_t kWaitMillisecondsForResponse = 60000;
+    static const uint32_t kWaitMillisecondsForResponse = 20000;
     static const uint16_t kMaxCountSendingAttempts = 3;
 
 protected:

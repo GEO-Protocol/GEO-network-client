@@ -17,6 +17,7 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     mContractorUUID(contractorUUID),
     mCurrentKeyNumber(0),
     mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
+    mCountSendingAttempts(0),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
@@ -42,6 +43,7 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     mContractorUUID(mCommand->contractorUUID()),
     mCurrentKeyNumber(0),
     mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
+    mCountSendingAttempts(0),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
@@ -121,6 +123,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
         mKeysCount,
         mCurrentKeyNumber,
         mCurrentPublicKey);
+    mCountSendingAttempts++;
     info() << "Send key number: " << mCurrentKeyNumber;
 
     mStep = ResponseProcessing;
@@ -182,6 +185,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runCommandPub
         mKeysCount,
         mCurrentKeyNumber,
         mCurrentPublicKey);
+    mCountSendingAttempts++;
     info() << "Send key number: " << mCurrentKeyNumber;
 
     mStep = ResponseProcessing;
@@ -193,6 +197,32 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
     info() << "runPublicKeysSendNextKeyStage";
     if (mContext.empty()) {
         warning() << "No confirmation message received. Transaction will be closed, and wait for message";
+        if (mCountSendingAttempts < kMaxCountSendingAttempts) {
+            if (mCurrentKeyNumber == 0) {
+                sendMessage<PublicKeysSharingInitMessage>(
+                    mContractorUUID,
+                    mEquivalent,
+                    mNodeUUID,
+                    mTransactionUUID,
+                    mKeysCount,
+                    mCurrentKeyNumber,
+                    mCurrentPublicKey);
+            } else {
+                sendMessage<PublicKeyMessage>(
+                    mContractorUUID,
+                    mEquivalent,
+                    mNodeUUID,
+                    currentTransactionUUID(),
+                    mCurrentKeyNumber,
+                    mCurrentPublicKey);
+            }
+            mCountSendingAttempts++;
+            info() << "Send message " << mCountSendingAttempts << " times";
+            return resultWaitForMessageTypes(
+                {Message::TrustLines_HashConfirmation},
+                kWaitMillisecondsForResponse);
+        }
+        info() << "Transaction will be closed";
         return resultDone();
     }
 
@@ -280,6 +310,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
         currentTransactionUUID(),
         mCurrentKeyNumber,
         mCurrentPublicKey);
+    mCountSendingAttempts = 1;
     info() << "Send key number: " << mCurrentKeyNumber;
 
     return resultWaitForMessageTypes(

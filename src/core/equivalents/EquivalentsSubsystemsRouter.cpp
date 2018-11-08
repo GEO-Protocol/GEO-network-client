@@ -37,8 +37,6 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                     mStorageHandler,
                     mKeysStore,
                     mLogger)));
-        subscribeForPingMessage(
-            mTrustLinesManagers[equivalent]->pingMessageSignal);
         info() << "Trust Lines Manager is successfully initialized";
 
         mTopologyTrustLinesManagers.insert(
@@ -89,6 +87,13 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                     mTopologyTrustLinesManagers[equivalent].get(),
                     mLogger)));
         info() << "Paths Manager is successfully initialized";
+    }
+
+    for (const auto &trustLinesManager : mTrustLinesManagers) {
+        for (const auto &contractorUUID : trustLinesManager.second->contractorsShouldBePinged()) {
+            mContractorsShouldBePinged.insert(contractorUUID);
+        }
+        trustLinesManager.second->clearContractorsShouldBePinged();
     }
 
     mGatewayNotificationAndRoutingTablesDelayedTask = make_unique<GatewayNotificationAndRoutingTablesDelayedTask>(
@@ -192,8 +197,6 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
                 mStorageHandler,
                 mKeysStore,
                 mLogger)));
-    subscribeForPingMessage(
-        mTrustLinesManagers[equivalent]->pingMessageSignal);
     info() << "Trust Lines Manager is successfully initialized";
 
     mTopologyTrustLinesManagers.insert(
@@ -248,6 +251,16 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
     mEquivalents.push_back(equivalent);
 }
 
+set<NodeUUID> EquivalentsSubsystemsRouter::contractorsShouldBePinged() const
+{
+    return mContractorsShouldBePinged;
+}
+
+void EquivalentsSubsystemsRouter::clearContractorsShouldBePinged()
+{
+    mContractorsShouldBePinged.clear();
+}
+
 void EquivalentsSubsystemsRouter::subscribeForGatewayNotification(
     GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationSignal &signal)
 {
@@ -257,25 +270,9 @@ void EquivalentsSubsystemsRouter::subscribeForGatewayNotification(
             this));
 }
 
-void EquivalentsSubsystemsRouter::subscribeForPingMessage(
-    TrustLinesManager::PingMessageSignal &signal)
-{
-    signal.connect(
-        boost::bind(
-            &EquivalentsSubsystemsRouter::onPingMessageSlot,
-            this,
-            _1));
-}
-
 void EquivalentsSubsystemsRouter::onGatewayNotificationSlot()
 {
     gatewayNotificationSignal();
-}
-
-void EquivalentsSubsystemsRouter::onPingMessageSlot(
-    const NodeUUID &contractorUUID)
-{
-    pingMessageSignal(contractorUUID);
 }
 
 #ifdef TESTS

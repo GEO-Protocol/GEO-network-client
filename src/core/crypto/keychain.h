@@ -344,6 +344,9 @@ public:
         vector<ReceiptRecord::Shared> contractorIncomingReceipts,
         vector<ReceiptRecord::Shared> contractorOutgoingReceipts);
 
+    pair<lamport::Signature::Shared, KeyNumber> getCurrentAuditSignatureAndKeyNumber(
+        IOTransaction::Shared ioTransaction);
+
 protected:
     /**
      * @brief checks "number" for it's range.

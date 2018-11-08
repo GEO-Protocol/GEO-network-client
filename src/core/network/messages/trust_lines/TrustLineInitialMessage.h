@@ -27,6 +27,8 @@ public:
     const bool isContractorGateway() const
     noexcept;
 
+    const bool isCheckCachedResponse() const override;
+
     pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:

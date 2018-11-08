@@ -84,6 +84,9 @@ protected:
     void onConfirmationNotStronglyRequiredMessageReadyToResend(
         pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared>);
 
+    void onPingMessageReadyToResend(
+        pair<NodeUUID, PingMessage::Shared>);
+
     void onClearTopologyCache(
         const SerializedEquivalent equivalent,
         const NodeUUID& nodeUUID);

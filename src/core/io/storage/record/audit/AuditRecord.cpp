@@ -120,6 +120,12 @@ const lamport::Signature::Shared AuditRecord::contractorSignature() const
     return mContractorSignature;
 }
 
+void AuditRecord::setContractorSignature(
+    lamport::Signature::Shared signature)
+{
+    mContractorSignature = signature;
+}
+
 bool AuditRecord::isPendingState() const
 {
     return mContractorSignature == nullptr;

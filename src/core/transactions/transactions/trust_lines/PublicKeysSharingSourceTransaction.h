@@ -64,7 +64,9 @@ private:
     TransactionResult::SharedConst runPublicKeysSendNextKeyStage();
 
 protected:
-    static const uint32_t kWaitMillisecondsForResponse = 60000;
+    // these constants should be the same as in PublicKeysSharingTargetTransaction
+    static const uint32_t kWaitMillisecondsForResponse = 20000;
+    static const uint16_t kMaxCountSendingAttempts = 3;
 
 private:
     ShareKeysCommand::Shared mCommand;
@@ -76,6 +78,8 @@ private:
     KeyNumber mCurrentKeyNumber;
     KeysCount mKeysCount;
     lamport::PublicKey::Shared mCurrentPublicKey;
+
+    uint16_t mCountSendingAttempts;
 
     TrustLinesInfluenceController *mTrustLinesInfluenceController;
 };

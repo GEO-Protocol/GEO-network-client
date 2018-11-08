@@ -155,6 +155,8 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
         return resultDone();
     }
 
+    processPongMessage(mContractorUUID);
+
 #ifdef TESTS
     mTrustLinesInfluenceController->testThrowExceptionOnSourceResumingStage(
         BaseTransaction::OpenTrustLineTransaction);
@@ -171,10 +173,11 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
         mIAmGateway);
     mCountSendingAttempts++;
     info() << "Message with TL opening request was sent";
-    processPongMessage(mContractorUUID);
 
     mStep = ResponseProcessing;
-    return resultOK();
+    return resultWaitForMessageTypes(
+        {Message::TrustLines_Confirmation},
+        kWaitMillisecondsForResponse);
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingStage()

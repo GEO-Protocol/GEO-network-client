@@ -262,7 +262,7 @@ void AuditHandler::saveContractorAuditPart(
 const AuditRecord::Shared AuditHandler::getActualAudit(
     TrustLineID trustLineID)
 {
-    string query = "SELECT number, incoming_amount, outgoing_amount, balance FROM " + mTableName
+    string query = "SELECT number, incoming_amount, outgoing_amount, balance, contractor_signature FROM " + mTableName
                    + " WHERE trust_line_id = ? ORDER BY number DESC LIMIT 1;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
@@ -296,13 +296,24 @@ const AuditRecord::Shared AuditHandler::getActualAudit(
             balanceBytes,
             balanceBytes + kTrustLineBalanceSerializeBytesCount);
         TrustLineBalance balance = bytesToTrustLineBalance(balanceBufferBytes);
+
+        auto contractorSignatureBytes = (byte*)sqlite3_column_blob(stmt, 4);
+        lamport::Signature::Shared contractorSignature = nullptr;
+        if (contractorSignatureBytes != nullptr) {
+            contractorSignature = make_shared<lamport::Signature>(
+                contractorSignatureBytes);
+        }
+
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
-        return make_shared<AuditRecord>(
+        auto result =  make_shared<AuditRecord>(
             number,
             incomingAmount,
             outgoingAmount,
             balance);
+        result->setContractorSignature(
+            contractorSignature);
+        return result;
     } else {
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);

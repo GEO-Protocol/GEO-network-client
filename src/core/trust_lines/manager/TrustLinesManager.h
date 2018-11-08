@@ -21,7 +21,6 @@
 #include "../../crypto/keychain.h"
 
 #include <boost/crc.hpp>
-#include <boost/signals2.hpp>
 #include <boost/functional/hash.hpp>
 
 #include <unordered_map>
@@ -38,10 +37,6 @@
 #endif
 
 
-using namespace std;
-namespace signals = boost::signals2;
-
-
 class TrustLinesManager {
 public:
     enum TrustLineOperationResult {
@@ -56,9 +51,6 @@ public:
         Audit,
         KeysSharing,
     };
-
-public:
-    typedef signals::signal<void(const NodeUUID&)> PingMessageSignal;
 
 public:
     TrustLinesManager(
@@ -315,10 +307,6 @@ public:
     const bool trustLineIsActive(
         const NodeUUID &contractorUUID) const;
 
-    void updateTrustLine(
-        IOTransaction::Shared ioTransaction,
-        TrustLine::Shared trustLine);
-
     void updateTrustLineFromStorage(
         const NodeUUID &contractorUUID,
         IOTransaction::Shared ioTransaction);
@@ -383,6 +371,10 @@ public:
         const NodeUUID &contractorUUID,
         bool isActionInitiator);
 
+    vector<NodeUUID> contractorsShouldBePinged() const;
+
+    void clearContractorsShouldBePinged();
+
     // TODO remove after testing
     void printRTs();
 
@@ -412,14 +404,12 @@ protected: // log shortcuts
     LoggerStream warning() const
         noexcept;
 
-public:
-    mutable PingMessageSignal pingMessageSignal;
-
 private:
     unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>> mTrustLines;
     SerializedEquivalent mEquivalent;
 
     unordered_map<NodeUUID, BaseAuditRule::Shared, boost::hash<boost::uuids::uuid>> mAuditRules;
+    vector<NodeUUID> mContractorsShouldBePinged;
 
     unique_ptr<AmountReservationsHandler> mAmountReservationsHandler;
     StorageHandler *mStorageHandler;

@@ -49,8 +49,13 @@ private:
     TransactionResult::SharedConst sendKeyErrorConfirmation(
         ConfirmationMessage::OperationState errorState);
 
+public:
+    mutable PublicKeysSharingSignal publicKeysSharingSignal;
+
 protected:
-    static const uint32_t kWaitMillisecondsForResponse = 60000;
+    // these constants should be the same as in PublicKeysSharingSourceTransaction
+    static const uint32_t kWaitMillisecondsForResponse = 20000;
+    static const uint16_t kMaxCountSendingAttempts = 3;
 
 private:
     TrustLinesManager *mTrustLines;

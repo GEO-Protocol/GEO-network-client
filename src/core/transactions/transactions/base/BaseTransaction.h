@@ -225,7 +225,7 @@ protected:
     }
 
     template <typename MessageType, typename... Args>
-    inline void sendMessageWithCaching(
+    inline void sendMessageWithTemporaryCaching(
         const NodeUUID &addressee,
         Message::MessageType incomingMessageTypeFilter,
         uint32_t cacheLivingSecondsTime,

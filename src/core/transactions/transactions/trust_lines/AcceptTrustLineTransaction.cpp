@@ -36,9 +36,23 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     }
 
     if (mTrustLinesManager->trustLineIsPresent(mContractorUUID)) {
-        warning() << "Trust line already present.";
+        if (mTrustLinesManager->isTrustLineEmpty(mContractorUUID)
+            and mTrustLinesManager->auditNumber(mContractorUUID) == 0) {
+            info() << "Send confirmation on init TL again";
+            sendMessageWithTemporaryCaching<TrustLineConfirmationMessage>(
+                mContractorUUID,
+                Message::TrustLines_Initial,
+                kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
+                mEquivalent,
+                mNodeUUID,
+                mTransactionUUID,
+                mIAmGateway,
+                ConfirmationMessage::OK);
+            return resultDone();
+        }
+        warning() << "Trust line already present and not initial.";
         return sendTrustLineErrorConfirmation(
-            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+            ConfirmationMessage::TrustLineAlreadyPresent);
     }
 
     // Trust line must be created (or updated) in the internal storage.
@@ -95,18 +109,17 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         throw e;
     }
 
-    sendMessage<TrustLineConfirmationMessage>(
+    // Sending confirmation back.
+    sendMessageWithTemporaryCaching<TrustLineConfirmationMessage>(
         mContractorUUID,
+        Message::TrustLines_Initial,
+        kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,
         mIAmGateway,
         ConfirmationMessage::OK);
     info() << "Confirmation was sent";
-
-    publicKeysSharingSignal(
-        mContractorUUID,
-        mEquivalent);
     return resultDone();
 }
 

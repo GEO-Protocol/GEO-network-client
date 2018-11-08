@@ -108,9 +108,6 @@ private:
     void onProcessPongMessageSlot(
         const NodeUUID& contractorUUID);
 
-    void onPingMessageSlot(
-        const NodeUUID& contractorUUID);
-
     void onPathsResourceRequestedSlot(
         const TransactionUUID &transactionUUID,
         const NodeUUID &destinationNodeUUID,

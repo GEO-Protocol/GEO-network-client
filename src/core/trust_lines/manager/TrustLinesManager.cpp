@@ -59,7 +59,7 @@ void TrustLinesManager::loadTrustLinesFromStorage()
             } else {
                 info() << "audit pending TL in storage with contractor " << kTrustLine->contractorNodeUUID();
                 kTrustLine->setState(TrustLine::AuditPending);
-                pingMessageSignal(
+                mContractorsShouldBePinged.push_back(
                     kTrustLine->contractorNodeUUID());
             }
 
@@ -79,7 +79,7 @@ void TrustLinesManager::loadTrustLinesFromStorage()
             if (keyChain.contractorKeysPresent(ioTransaction)) {
                 warning() << "Something wrong, because TL contains contractor's valid keys";
             }
-            pingMessageSignal(
+            mContractorsShouldBePinged.push_back(
                 kTrustLine->contractorNodeUUID());
         }
 
@@ -264,9 +264,9 @@ void TrustLinesManager::setContractorAsGateway(
 
     auto trustLine = mTrustLines[contractorUUID];
     trustLine->setContractorAsGateway(contractorIsGateway);
-    updateTrustLine(
-        ioTransaction,
-        trustLine);
+    ioTransaction->trustLinesHandler()->updateTrustLineIsContractorGateway(
+        trustLine,
+        mEquivalent);
 }
 
 void TrustLinesManager::setIsOwnKeysPresent(
@@ -312,9 +312,9 @@ void TrustLinesManager::setTrustLineState(
     trustLine->setState(state);
 
     if (ioTransaction != nullptr) {
-        updateTrustLine(
-            ioTransaction,
-            trustLine);
+        ioTransaction->trustLinesHandler()->updateTrustLineState(
+            trustLine,
+            mEquivalent);
     }
 }
 
@@ -649,27 +649,6 @@ void TrustLinesManager::saveToStorage(
             throw MemoryError(
                 logHeader() + "::saveToStorage: "
                 "Can not reallocate STL container memory for new trust line instance.");
-    }
-}
-
-void TrustLinesManager::updateTrustLine(
-    IOTransaction::Shared ioTransaction,
-    TrustLine::Shared trustLine)
-{
-    if (not trustLineIsPresent(trustLine->contractorNodeUUID())) {
-        throw NotFoundError(
-            logHeader() + "::updateTrustLine: "
-                "There is no trust line to the contractor.");
-    }
-    ioTransaction->trustLinesHandler()->updateTrustLine(
-        trustLine,
-        mEquivalent);
-    try {
-        mTrustLines[trustLine->contractorNodeUUID()] = trustLine;
-    } catch (std::bad_alloc&) {
-        throw MemoryError(
-            logHeader() + "::updateTrustLine: "
-            "Can not reallocate STL container memory for new trust line instance.");
     }
 }
 
@@ -1244,6 +1223,16 @@ TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterTra
         }
     }
     return TrustLineActionType::NoActions;
+}
+
+vector<NodeUUID> TrustLinesManager::contractorsShouldBePinged() const
+{
+    return mContractorsShouldBePinged;
+}
+
+void TrustLinesManager::clearContractorsShouldBePinged()
+{
+    mContractorsShouldBePinged.clear();
 }
 
 const string TrustLinesManager::logHeader() const

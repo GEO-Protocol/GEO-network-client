@@ -24,7 +24,11 @@ public:
         TrustLine::Shared trustLine,
         const SerializedEquivalent equivalent);
 
-    void updateTrustLine(
+    void updateTrustLineState(
+        TrustLine::Shared trustLine,
+        const SerializedEquivalent equivalent);
+
+    void updateTrustLineIsContractorGateway(
         TrustLine::Shared trustLine,
         const SerializedEquivalent equivalent);
 

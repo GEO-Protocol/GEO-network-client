@@ -42,8 +42,10 @@ private:
     TransactionResult::SharedConst sendTrustLineErrorConfirmation(
         ConfirmationMessage::OperationState errorState);
 
-public:
-    mutable PublicKeysSharingSignal publicKeysSharingSignal;
+protected:
+    // these constants should be the same as in OpenTrustLineTransaction
+    static const uint32_t kWaitMillisecondsForResponse = 20000;
+    static const uint16_t kMaxCountSendingAttempts = 3;
 
 protected:
     NodeUUID mContractorUUID;

@@ -72,6 +72,15 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runPublicKeyR
     try {
         mTrustLines->setIsContractorKeysPresent(mContractorUUID, false);
         keyChain.removeUnusedContractorKeys(ioTransaction);
+
+        if (mTrustLines->isTrustLineEmpty(mContractorUUID)
+            and mTrustLines->auditNumber(mContractorUUID) == 0
+            and !keyChain.ownKeysPresent(ioTransaction)) {
+            info() << "publicKeysSharing Signal";
+            publicKeysSharingSignal(
+                mContractorUUID,
+                mEquivalent);
+        }
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't remove unused contractor keys. Details: " << e.what();
@@ -98,10 +107,8 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
 
     auto message = popNextMessage<PublicKeyMessage>();
     if (message->number() != mCurrentKeyNumber + 1) {
-        warning() << "Invalid key number " << message->number();
-        // todo : state InvalidKeyNumber
-        return sendKeyErrorConfirmation(
-            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+        warning() << "Invalid key number " << message->number() << ". Wait for another";
+        return resultContinuePreviousState();
     }
 
     info() << "Received key number " << message->number();
@@ -126,6 +133,10 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             mCurrentPublicKey);
 
 #ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(
+            BaseTransaction::PublicKeysSharingTargetTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceInitializationStage(
+            BaseTransaction::PublicKeysSharingTargetTransactionType);
         mTrustLinesInfluenceController->testThrowExceptionOnTargetStage(
             BaseTransaction::PublicKeysSharingTargetTransactionType);
         mTrustLinesInfluenceController->testTerminateProcessOnTargetStage(
@@ -138,17 +149,31 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
         throw e;
     }
     info() << "Key saved, send hash confirmation";
-    sendMessage<PublicKeyHashConfirmation>(
-        mContractorUUID,
-        mEquivalent,
-        mNodeUUID,
-        mTransactionUUID,
-        mCurrentKeyNumber,
-        mCurrentPublicKey->hash());
+    if (mCurrentKeyNumber == 0) {
+        sendMessageWithTemporaryCaching<PublicKeyHashConfirmation>(
+            mContractorUUID,
+            Message::TrustLines_PublicKeysSharingInit,
+            kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
+            mEquivalent,
+            mNodeUUID,
+            mTransactionUUID,
+            mCurrentKeyNumber,
+            mCurrentPublicKey->hash());
+    } else {
+        sendMessageWithTemporaryCaching<PublicKeyHashConfirmation>(
+            mContractorUUID,
+            Message::TrustLines_PublicKey,
+            kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
+            mEquivalent,
+            mNodeUUID,
+            mTransactionUUID,
+            mCurrentKeyNumber,
+            mCurrentPublicKey->hash());
+    }
 
-    if (keyChain.allContractorKeysPresent(ioTransaction, mContractorKeysCount)) {
-        info() << "All keys received";
-        try {
+    try {
+        if (keyChain.allContractorKeysPresent(ioTransaction, mContractorKeysCount)) {
+            info() << "All keys received";
             // todo maybe don't save TL state in storage only in memory (don't use ioTransaction and try catch)
             mTrustLines->setTrustLineState(
                 mContractorUUID,
@@ -159,15 +184,15 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
                 true);
             info() << "TL is ready for using";
             return resultDone();
-        } catch (IOError &e) {
-            ioTransaction->rollback();
-            error() << "Can't update TL state. Details " << e.what();
-            throw e;
         }
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        error() << "Can't update TL state. Details " << e.what();
+        throw e;
     }
     return resultWaitForMessageTypes(
         {Message::TrustLines_PublicKey},
-        kWaitMillisecondsForResponse);
+        kWaitMillisecondsForResponse * kMaxCountSendingAttempts);
 }
 
 TransactionResult::SharedConst PublicKeysSharingTargetTransaction::sendKeyErrorConfirmation(

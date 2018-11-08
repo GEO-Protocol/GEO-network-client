@@ -95,6 +95,12 @@ Communicator::Communicator(
             this,
             _1,
             _2));
+
+    mPingMessagesHandler->signalOutgoingMessageReady.connect(
+        boost::bind(
+            &Communicator::onPingMessageReadyToResend,
+            this,
+            _1));
 }
 
 /**
@@ -305,6 +311,14 @@ void Communicator::onConfirmationRequiredMessageReadyToResend(
 
 void Communicator::onConfirmationNotStronglyRequiredMessageReadyToResend(
     pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared> addresseeAndMessage)
+{
+    mOutgoingMessagesHandler->sendMessage(
+        addresseeAndMessage.second,
+        addresseeAndMessage.first);
+}
+
+void Communicator::onPingMessageReadyToResend(
+    pair<NodeUUID, PingMessage::Shared> addresseeAndMessage)
 {
     mOutgoingMessagesHandler->sendMessage(
         addresseeAndMessage.second,

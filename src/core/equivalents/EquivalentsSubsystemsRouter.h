@@ -52,6 +52,10 @@ public:
     void initNewEquivalent(
         const SerializedEquivalent equivalent);
 
+    set<NodeUUID> contractorsShouldBePinged() const;
+
+    void clearContractorsShouldBePinged();
+
 #ifdef TESTS
     void setMeAsGateway();
 #endif
@@ -76,13 +80,7 @@ private:
     void subscribeForGatewayNotification(
         GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationSignal &signal);
 
-    void subscribeForPingMessage(
-        TrustLinesManager::PingMessageSignal &signal);
-
     void onGatewayNotificationSlot();
-
-    void onPingMessageSlot(
-        const NodeUUID &contractorUUID);
 
 private:
     NodeUUID mNodeUUID;
@@ -99,6 +97,8 @@ private:
     map<SerializedEquivalent, unique_ptr<MaxFlowCacheManager>> mMaxFlowCacheManagers;
     map<SerializedEquivalent, unique_ptr<PathsManager>> mPathsManagers;
     unique_ptr<GatewayNotificationAndRoutingTablesDelayedTask> mGatewayNotificationAndRoutingTablesDelayedTask;
+
+    set<NodeUUID> mContractorsShouldBePinged;
 };
 
 

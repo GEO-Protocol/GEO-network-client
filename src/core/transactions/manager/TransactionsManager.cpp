@@ -646,8 +646,6 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
-        subscribeForKeysSharingSignal(
-            transaction->publicKeysSharingSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -663,15 +661,19 @@ void TransactionsManager::launchPublicKeysSharingTargetTransaction(
     PublicKeysSharingInitMessage::Shared message)
 {
     try {
+
+        auto transaction = make_shared<PublicKeysSharingTargetTransaction>(
+            mNodeUUID,
+            message,
+            mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+            mStorageHandler,
+            mKeysStore,
+            mTrustLinesInfluenceController,
+            mLog);
+        subscribeForKeysSharingSignal(
+            transaction->publicKeysSharingSignal);
         prepareAndSchedule(
-            make_shared<PublicKeysSharingTargetTransaction>(
-                mNodeUUID,
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mStorageHandler,
-                mKeysStore,
-                mTrustLinesInfluenceController,
-                mLog),
+            transaction,
             false,
             false,
             true);
@@ -698,8 +700,6 @@ void TransactionsManager::launchAuditTargetTransaction(
             mTrustLinesInfluenceController,
             mVisualInterface.get(),
             mLog);
-        subscribeForProcessingConfirmationMessage(
-            transaction->processConfirmationMessageSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
         prepareAndSchedule(
@@ -2243,10 +2243,9 @@ void TransactionsManager::onPublicKeysSharingSlot(
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
 
-        // wait for finish of contractor audit TA
         mScheduler->postponeTransaction(
             transaction,
-            500);
+            5);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for onPublicKeysSharingSlot "
                 "with equivalent " << equivalent << " Details are: " << e.what();

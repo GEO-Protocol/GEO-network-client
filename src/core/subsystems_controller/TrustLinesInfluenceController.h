@@ -21,7 +21,11 @@ public:
     void setSecondParameter(
         uint32_t secondParameter);
 
-    // on this method firstParameter - type of forbidden message and second parameter - count forbidden messages
+    void setThirdParameter(
+        uint32_t thirdParameter);
+
+    // on this method firstParameter - type of forbidden message, second parameter - count forbidden messages,
+    // third parameter - count permitted messages before forbiddance
     bool checkReceivedMessage(
         Message::MessageType receivedMessageType);
 
@@ -66,6 +70,7 @@ protected:
 private:
     uint32_t mFirstParameter;
     uint32_t mSecondParameter;
+    uint32_t mThirdParameter;
 
     bool mForbidReceiveMessages;
     bool mThrowExceptionOnSourceInitializationStage;

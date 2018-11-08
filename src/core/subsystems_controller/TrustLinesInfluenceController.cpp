@@ -6,6 +6,7 @@ TrustLinesInfluenceController::TrustLinesInfluenceController(
 {
     mFirstParameter = 0;
     mSecondParameter = 0;
+    mThirdParameter = 0;
     mForbidReceiveMessages = false;
     mThrowExceptionOnSourceInitializationStage = false;
     mThrowExceptionOnSourceProcessingResponseStage = false;
@@ -49,20 +50,31 @@ void TrustLinesInfluenceController::setSecondParameter(
     mSecondParameter = secondParameter;
 }
 
+void TrustLinesInfluenceController::setThirdParameter(
+    uint32_t thirdParameter)
+{
+    debug() << "setThirdParameter " << thirdParameter;
+    mThirdParameter = thirdParameter;
+}
+
 bool TrustLinesInfluenceController::checkReceivedMessage(
     Message::MessageType receivedMessageType)
 {
     if (!mForbidReceiveMessages) {
         return false;
     }
+    if (receivedMessageType != mFirstParameter) {
+        return false;
+    }
     if (mSecondParameter == 0) {
         return false;
     }
-    if (receivedMessageType == mFirstParameter) {
-        mSecondParameter--;
-        return true;
+    if (mThirdParameter != 0) {
+        mThirdParameter--;
+        return false;
     }
-    return false;
+    mSecondParameter--;
+    return true;
 }
 
 void TrustLinesInfluenceController::testThrowExceptionOnSourceInitializationStage(

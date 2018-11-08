@@ -44,6 +44,11 @@ const bool TrustLineInitialMessage::isContractorGateway() const
     return mIsContractorGateway;
 }
 
+const bool TrustLineInitialMessage::isCheckCachedResponse() const
+{
+    return true;
+}
+
 pair<BytesShared, size_t> TrustLineInitialMessage::serializeToBytes() const
 {
     // todo: use serializer

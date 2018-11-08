@@ -16,10 +16,12 @@ TransactionMessage::Shared ConfirmationCachedResponseMessage::getCachedMessage(
     if (incomingMessage->typeID() != mIncomingMessageTypeFilter) {
         return nullptr;
     }
-    if (incomingMessage->typeID() == Message::TrustLines_PublicKeysSharingInit) {
-        auto incomingPublicKeysSharingInitMessage = static_pointer_cast<PublicKeysSharingInitMessage>(incomingMessage);
-        auto cachedPublicKeyResponseMessage = static_pointer_cast<PublicKeyHashConfirmation>(mCachedMessage);
-        if (incomingPublicKeysSharingInitMessage->transactionUUID() == mCachedMessage->transactionUUID()) {
+    if (incomingMessage->typeID() == Message::TrustLines_Initial) {
+        if (incomingMessage->transactionUUID() == mCachedMessage->transactionUUID()) {
+            return mCachedMessage;
+        }
+    } else if (incomingMessage->typeID() == Message::TrustLines_PublicKeysSharingInit) {
+        if (incomingMessage->transactionUUID() == mCachedMessage->transactionUUID()) {
             return mCachedMessage;
         }
 

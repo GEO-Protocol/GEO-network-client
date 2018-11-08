@@ -380,11 +380,11 @@ void Core::connectCommunicatorSignals()
             this,
             _1));
 
-    mEquivalentsSubsystemsRouter->pingMessageSignal.connect(
-        boost::bind(
-            &Core::onPingMessageSlot,
-            this,
-            _1));
+    for (const auto &contractorUUID : mEquivalentsSubsystemsRouter->contractorsShouldBePinged()) {
+        mCommunicator->enqueueContractorWithPostponedSending(
+            contractorUUID);
+    }
+    mEquivalentsSubsystemsRouter->clearContractorsShouldBePinged();
 }
 
 void Core::connectResourcesManagerSignals()
@@ -449,6 +449,8 @@ void Core::onCommandReceivedSlot (
             trustLinesInfluenceCommand->firstParameter());
         mTrustLinesInfluenceController->setSecondParameter(
             trustLinesInfluenceCommand->secondParameter());
+        mTrustLinesInfluenceController->setThirdParameter(
+            trustLinesInfluenceCommand->thirdParameter());
         return;
     }
 #endif
@@ -581,13 +583,6 @@ void Core::onProcessConfirmationMessageSlot(
 {
     mCommunicator->processConfirmationMessage(
         confirmationMessage);
-}
-
-void Core::onPingMessageSlot(
-    const NodeUUID &contractorUUID)
-{
-    mCommunicator->enqueueContractorWithPostponedSending(
-        contractorUUID);
 }
 
 void Core::onProcessPongMessageSlot(

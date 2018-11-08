@@ -68,16 +68,45 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             ConfirmationMessage::ContractorKeysAbsent);
     }
 
-    // todo check audit number
+    if (mAuditNumber < mMessage->auditNumber()) {
+        warning() << "Contractor's audit number " << mMessage->auditNumber() << " is greater than own " << mAuditNumber;
+        // todo : need correct reaction
+    }
 
-    mPreviousIncomingAmount = mTrustLines->incomingTrustAmount(mContractorUUID);
-    mPreviousOutgoingAmount = mTrustLines->outgoingTrustAmount(mContractorUUID);
-    mPreviousState = mTrustLines->trustLineState(mContractorUUID);
+    if (mAuditNumber - mMessage->auditNumber() > 1) {
+        warning() << "Contractor's audit number is deprecated " << mMessage->auditNumber();
+        return sendAuditErrorConfirmation(
+           ConfirmationMessage::Audit_IncorrectNumber);
+    }
 
     // Trust line must be created (or updated) in the internal storage.
     // Also, history record must be written about this operation.
     // Both writes must be done atomically, so the IO transaction is used.
     auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorUUID));
+
+    if (mAuditNumber - mMessage->auditNumber() == 1) {
+        info() << "Contractor send current audit " << mMessage->auditNumber();
+        mOwnSignatureAndKeyNumber = keyChain.getCurrentAuditSignatureAndKeyNumber(ioTransaction);
+        // Sending confirmation back.
+        sendMessageWithTemporaryCaching<AuditResponseMessage>(
+            mContractorUUID,
+            Message::TrustLines_Audit,
+            kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
+            mEquivalent,
+            mNodeUUID,
+            currentTransactionUUID(),
+            mOwnSignatureAndKeyNumber.second,
+            mOwnSignatureAndKeyNumber.first);
+        info() << "Send audit again message signed by key " << mOwnSignatureAndKeyNumber.second;
+        return resultDone();
+    }
+
+    mPreviousIncomingAmount = mTrustLines->incomingTrustAmount(mContractorUUID);
+    mPreviousOutgoingAmount = mTrustLines->outgoingTrustAmount(mContractorUUID);
+    mPreviousState = mTrustLines->trustLineState(mContractorUUID);
+
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
@@ -99,8 +128,6 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             closeOutgoingTrustLine(ioTransaction);
         }
 
-        auto keyChain = mKeysStore->keychain(
-            mTrustLines->trustLineID(mContractorUUID));
         auto contractorSerializedAuditData = getContractorSerializedAuditData();
 
         if (!keyChain.checkSign(
@@ -173,7 +200,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
     }
 
     // Sending confirmation back.
-    sendMessageWithCaching<AuditResponseMessage>(
+    sendMessageWithTemporaryCaching<AuditResponseMessage>(
         mContractorUUID,
         Message::TrustLines_Audit,
         kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,

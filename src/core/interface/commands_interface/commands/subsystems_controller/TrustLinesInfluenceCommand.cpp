@@ -33,10 +33,19 @@ TrustLinesInfluenceCommand::TrustLinesInfluenceCommand(
         mFirstParameter = (uint32_t)std::stoi(strFirstParameter);
 
         auto secondParameterStartPos = tokenSeparatorPos + 1;
+        tokenSeparatorPos = commandBuffer.find(
+            kTokensSeparator,
+            secondParameterStartPos);
         auto strSecondParameter = commandBuffer.substr(
             secondParameterStartPos,
-            commandBuffer.size() - secondParameterStartPos - 1);
-        mSecondParameter = (uint32_t) std::stoi(strSecondParameter);
+            tokenSeparatorPos - secondParameterStartPos);
+        mSecondParameter = (uint32_t)std::stoi(strSecondParameter);
+
+        auto thirdParameterStartPos = tokenSeparatorPos + 1;
+        auto strThirdParameter = commandBuffer.substr(
+            thirdParameterStartPos,
+            commandBuffer.size() - thirdParameterStartPos - 1);
+        mThirdParameter = (uint32_t) std::stoi(strThirdParameter);
     } else {
         auto flagsStr = commandBuffer.substr(
             0,
@@ -66,4 +75,9 @@ const uint32_t TrustLinesInfluenceCommand::firstParameter() const
 const uint32_t TrustLinesInfluenceCommand::secondParameter() const
 {
     return mSecondParameter;
+}
+
+const uint32_t TrustLinesInfluenceCommand::thirdParameter() const
+{
+    return mThirdParameter;
 }

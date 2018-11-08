@@ -18,6 +18,7 @@ public:
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const NodeUUID &destinationUUID,
+        const AuditNumber auditNumber,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const KeyNumber keyNumber,
@@ -25,6 +26,8 @@ public:
 
     AuditMessage(
         BytesShared buffer);
+
+    const AuditNumber auditNumber() const;
 
     const TrustLineAmount& incomingAmount() const;
 
@@ -45,6 +48,7 @@ protected:
     noexcept;
 
 private:
+    AuditNumber mAuditNumber;
     TrustLineAmount mIncomingAmount;
     TrustLineAmount mOutgoingAmount;
     uint32_t mKeyNumber;

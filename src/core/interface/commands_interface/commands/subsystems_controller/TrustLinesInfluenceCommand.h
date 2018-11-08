@@ -23,6 +23,8 @@ public:
 
     const uint32_t secondParameter() const;
 
+    const uint32_t thirdParameter() const;
+
 protected:
 //    bits order:
 //    0 - Network in general   0x1  // 1
@@ -52,6 +54,7 @@ protected:
     // this parameter used in different cases in different ways
     uint32_t mFirstParameter;
     uint32_t mSecondParameter;
+    uint32_t mThirdParameter;
 };
 
 

@@ -5,6 +5,7 @@ AuditMessage::AuditMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const NodeUUID &destinationUUID,
+    const AuditNumber auditNumber,
     const TrustLineAmount &incomingAmount,
     const TrustLineAmount &outgoingAmount,
     const KeyNumber keyNumber,
@@ -14,6 +15,7 @@ AuditMessage::AuditMessage(
         senderUUID,
         transactionUUID,
         destinationUUID),
+    mAuditNumber(auditNumber),
     mIncomingAmount(incomingAmount),
     mOutgoingAmount(outgoingAmount),
     mSignature(signature),
@@ -25,6 +27,12 @@ AuditMessage::AuditMessage(
     DestinationMessage(buffer)
 {
     auto bytesBufferOffset = DestinationMessage::kOffsetToInheritedBytes();
+
+    memcpy(
+        &mAuditNumber,
+        buffer.get() + bytesBufferOffset,
+        sizeof(AuditNumber));
+    bytesBufferOffset += sizeof(AuditNumber);
 
     vector<byte> incomingAmountBytes(
         buffer.get() + bytesBufferOffset,
@@ -51,6 +59,11 @@ AuditMessage::AuditMessage(
 const Message::MessageType AuditMessage::typeID() const
 {
     return Message::TrustLines_Audit;
+}
+
+const AuditNumber AuditMessage::auditNumber() const
+{
+    return mAuditNumber;
 }
 
 const TrustLineAmount& AuditMessage::incomingAmount() const
@@ -82,6 +95,7 @@ pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
 {
     const auto parentBytesAndCount = DestinationMessage::serializeToBytes();
     auto kBufferSize = parentBytesAndCount.second
+                       + sizeof(AuditNumber)
                        + kTrustLineAmountBytesCount
                        + kTrustLineAmountBytesCount
                        + sizeof(KeyNumber)
@@ -95,6 +109,12 @@ pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
+
+    memcpy(
+        buffer.get() + dataBytesOffset,
+        &mAuditNumber,
+        sizeof(AuditNumber));
+    dataBytesOffset += sizeof(AuditNumber);
 
     vector<byte> incomingAmountBuffer = trustLineAmountToBytes(mIncomingAmount);
     memcpy(
@@ -131,6 +151,7 @@ const size_t AuditMessage::kOffsetToInheritedBytes() const
 {
     static const auto kOffset =
             DestinationMessage::kOffsetToInheritedBytes()
+            + sizeof(AuditNumber)
             + kTrustLineAmountBytesCount
             + kTrustLineAmountBytesCount
             + sizeof(KeyNumber)
