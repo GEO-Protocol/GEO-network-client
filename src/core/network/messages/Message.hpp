@@ -16,6 +16,10 @@ public:
     typedef uint16_t SerializedType;
 
 public:
+    enum ProtocolVersion {
+        Latest = 0,
+    };
+
     enum MessageType {
         /*
          * System messages types
@@ -186,23 +190,30 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
         noexcept(false)
     {
+        SerializedProtocolVersion kProtocolVersion = ProtocolVersion::Latest;
         const SerializedType kMessageType = typeID();
-        auto buffer = tryMalloc(sizeof(kMessageType));
+        auto buffer = tryMalloc(
+                sizeof(SerializedProtocolVersion) + sizeof(kMessageType));
 
         memcpy(
             buffer.get(),
+            &kProtocolVersion,
+            sizeof(SerializedProtocolVersion));
+
+        memcpy(
+            buffer.get() + sizeof(SerializedProtocolVersion),
             &kMessageType,
             sizeof(kMessageType));
 
         return make_pair(
             buffer,
-            sizeof(kMessageType));
+            sizeof(SerializedProtocolVersion) + sizeof(kMessageType));
     }
 
 protected:
     virtual const size_t kOffsetToInheritedBytes() const
     {
-        return sizeof(SerializedType);
+        return sizeof(SerializedProtocolVersion) + sizeof(SerializedType);
     }
 };
 

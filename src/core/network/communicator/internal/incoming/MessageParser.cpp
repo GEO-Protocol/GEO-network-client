@@ -16,8 +16,16 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
     }
 
     try {
+        const SerializedProtocolVersion kMessageProtocolVersion =
+            *(reinterpret_cast<SerializedProtocolVersion *>(buffer.get()));
+        if (kMessageProtocolVersion != Message::ProtocolVersion::Latest) {
+            warning() << "processBytesSequence: Message with invalid protocol version occurred "
+                      << (uint16_t)kMessageProtocolVersion << " current protocol version " << Message::Latest << ". Message dropped.";
+            return messageInvalidOrIncomplete();
+        }
+
         const Message::SerializedType kMessageIdentifier =
-            *(reinterpret_cast<Message::SerializedType*>(buffer.get()));
+            *(reinterpret_cast<Message::SerializedType*>(buffer.get() + sizeof(SerializedProtocolVersion)));
 
         switch(kMessageIdentifier) {
 

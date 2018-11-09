@@ -53,5 +53,6 @@ typedef uint16_t ConfirmationID;
 
 //equivalents
 typedef uint32_t SerializedEquivalent;
+typedef byte SerializedProtocolVersion;
 
 #endif //GEO_NETWORK_CLIENT_TYPES_H
