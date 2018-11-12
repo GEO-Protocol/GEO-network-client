@@ -422,6 +422,9 @@ protected:
     void subscribeForKeysSharingSignal(
         BaseTransaction::PublicKeysSharingSignal &signal);
 
+    void subscribeForAuditSignal(
+        BaseTransaction::AuditSignal &signal);
+
     // Slots
     void onSubsidiaryTransactionReady(
         BaseTransaction::Shared transaction);
@@ -477,6 +480,10 @@ protected:
         bool isActionInitiator);
 
     void onPublicKeysSharingSlot(
+        const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent);
+
+    void onAuditSlot(
         const NodeUUID &contractorUUID,
         const SerializedEquivalent equivalent);
 

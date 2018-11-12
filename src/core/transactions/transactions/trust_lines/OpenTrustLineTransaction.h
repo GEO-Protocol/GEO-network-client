@@ -72,9 +72,6 @@ private:
 
     TransactionResult::SharedConst runResponseProcessingStage();
 
-public:
-    mutable PublicKeysSharingSignal publicKeysSharingSignal;
-
 protected:
     // these constants should be the same as in AcceptTrustLineTransaction
     static const uint32_t kWaitMillisecondsForResponse = 20000;

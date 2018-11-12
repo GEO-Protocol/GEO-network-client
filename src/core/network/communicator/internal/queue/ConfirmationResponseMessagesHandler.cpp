@@ -24,8 +24,8 @@ void ConfirmationResponseMessagesHandler::addCachedMessage(
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     debug() << "Message " << cachedMessage->typeID() << " added for " << incomingMessageTypeFilter
             << " from contractor" << contractorUUID << " equivalent " << cachedMessage->equivalent();
-#endif
     debug() << "mCachedMessages size " << mCachedMessages.size();
+#endif
     if (mCachedMessages.size() == 1) {
         rescheduleResending();
     }
@@ -80,7 +80,6 @@ void ConfirmationResponseMessagesHandler::rescheduleResending()
     }
 
     const auto kCleaningTimeout = closestLegacyCacheTimestamp() - utc_now();
-    this->debug() << "kCleaningTimeout " << kCleaningTimeout;
     mCleaningTimer.expires_from_now(chrono::microseconds(kCleaningTimeout.total_microseconds()));
     mCleaningTimer.async_wait([this] (const boost::system::error_code &e) {
 

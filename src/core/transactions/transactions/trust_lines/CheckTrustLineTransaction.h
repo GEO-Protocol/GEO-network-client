@@ -3,8 +3,6 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "AuditSourceTransaction.h"
-#include "PublicKeysSharingSourceTransaction.h"
 
 class CheckTrustLineTransaction : public BaseTransaction {
 
@@ -18,9 +16,6 @@ public:
         const NodeUUID &contractorUUID,
         bool isActionInitiator,
         TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -33,9 +28,6 @@ private:
     const NodeUUID mContractorUUID;
     bool mIsActionInitiator;
     TrustLinesManager *mTrustLinesManager;
-    StorageHandler *mStorageHandler;
-    Keystore *mKeysStore;
-    TrustLinesInfluenceController *mTrustLinesInfluenceController;
 };
 
 

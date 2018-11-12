@@ -271,6 +271,14 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
                 mContractorUUID,
                 true);
             info() << "TL is ready for using";
+            if (mTrustLines->auditNumber(mContractorUUID) != 0) {
+                auditSignal(mContractorUUID, mEquivalent);
+            } else {
+                if (mTrustLines->trustLineContractorKeysPresent(mContractorUUID)) {
+                    info() << "Init audit signal";
+                    auditSignal(mContractorUUID, mEquivalent);
+                }
+            }
         } catch (IOError &e) {
             ioTransaction->rollback();
             error() << "Can't update TL state. Details " << e.what();

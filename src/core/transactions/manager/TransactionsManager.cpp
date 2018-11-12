@@ -603,6 +603,8 @@ void TransactionsManager::launchPublicKeysSharingSourceTransaction(
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
+        subscribeForAuditSignal(
+            transaction->auditSignal);
         prepareAndSchedule(
             transaction,
             true,
@@ -2047,6 +2049,17 @@ void TransactionsManager::subscribeForKeysSharingSignal(
             _2));
 }
 
+void TransactionsManager::subscribeForAuditSignal(
+    BaseTransaction::AuditSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onAuditSlot,
+            this,
+            _1,
+            _2));
+}
+
 void TransactionsManager::onTransactionOutgoingMessageReady(
     Message::Shared message,
     const NodeUUID &contractorUUID)
@@ -2203,13 +2216,13 @@ void TransactionsManager::onTrustLineActionSlot(
             contractorUUID,
             isActionInitiator,
             trustLinesManager,
-            mStorageHandler,
-            mKeysStore,
-            mTrustLinesInfluenceController,
             mLog);
 
-        subscribeForSubsidiaryTransactions(
-            transaction->runSubsidiaryTransactionSignal);
+        subscribeForKeysSharingSignal(
+            transaction->publicKeysSharingSignal);
+
+        subscribeForAuditSignal(
+            transaction->auditSignal);
 
         // wait for finish of contractor payment TA
         mScheduler->postponeTransaction(
@@ -2243,11 +2256,48 @@ void TransactionsManager::onPublicKeysSharingSlot(
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
 
+        subscribeForAuditSignal(
+            transaction->auditSignal);
+
         mScheduler->postponeTransaction(
             transaction,
             5);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for onPublicKeysSharingSlot "
+                "with equivalent " << equivalent << " Details are: " << e.what();
+    }
+}
+
+void TransactionsManager::onAuditSlot(
+    const NodeUUID &contractorUUID,
+    const SerializedEquivalent equivalent)
+{
+    try {
+        auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+        auto transaction = make_shared<AuditSourceTransaction>(
+            mNodeUUID,
+            contractorUUID,
+            equivalent,
+            trustLinesManager,
+            mStorageHandler,
+            mKeysStore,
+            mTrustLinesInfluenceController,
+            mLog);
+
+        subscribeForProcessingConfirmationMessage(
+            transaction->processConfirmationMessageSignal);
+        subscribeForTrustLineActionSignal(
+            transaction->trustLineActionSignal);
+        subscribeForProcessingPongMessage(
+            transaction->processPongMessageSignal);
+
+        prepareAndSchedule(
+            transaction,
+            true,
+            false,
+            true);
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for onAuditSlot "
                 "with equivalent " << equivalent << " Details are: " << e.what();
     }
 }
