@@ -54,8 +54,12 @@ private:
         const TrustLineAmount& currentFlow,
         byte level);
 
-    TransactionResult::SharedConst resultOk(
-        bool finalMaxFlows,
+    TransactionResult::SharedConst resultFinalOk(
+        uint16_t stepMaxFlows,
+        vector<pair<NodeUUID, TrustLineAmount>> &maxFlows);
+
+    TransactionResult::SharedConst resultIntermediateOk(
+        uint16_t stepMaxFlows,
         vector<pair<NodeUUID, TrustLineAmount>> &maxFlows);
 
     TransactionResult::SharedConst resultProtocolError();
@@ -74,6 +78,7 @@ private:
     bool mIAmGateway;
     TopologyTrustLinesManager::TrustLineWithPtrHashSet mFirstLevelTopology;
     vector<NodeUUID> mAlreadyCalculated;
+    uint16_t mResultStep;
 };
 
 
