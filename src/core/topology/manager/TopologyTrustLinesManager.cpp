@@ -307,6 +307,22 @@ void TopologyTrustLinesManager::makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
     }
 }
 
+const TrustLineAmount& TopologyTrustLinesManager::flowAmount(
+    const NodeUUID &source,
+    const NodeUUID &destination)
+{
+    auto const &nodeUUIDAndSetFlows = msTrustLines.find(source);
+    if (nodeUUIDAndSetFlows == msTrustLines.end()) {
+        return TrustLine::kZeroAmount();
+    }
+    for (auto &trustLinePtr : *nodeUUIDAndSetFlows->second) {
+        if (trustLinePtr->topologyTrustLine()->targetUUID() == destination) {
+            return *trustLinePtr->topologyTrustLine()->amount();
+        }
+    }
+    return TrustLine::kZeroAmount();
+}
+
 void TopologyTrustLinesManager::setPreventDeleting(
     bool preventDeleting)
 {

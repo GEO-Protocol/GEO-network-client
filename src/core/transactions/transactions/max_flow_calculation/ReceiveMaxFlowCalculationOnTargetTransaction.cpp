@@ -17,11 +17,6 @@ ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetT
     mTopologyCacheManager(topologyCacheManager)
 {}
 
-InitiateMaxFlowCalculationMessage::Shared ReceiveMaxFlowCalculationOnTargetTransaction::message() const
-{
-    return mMessage;
-}
-
 TransactionResult::SharedConst ReceiveMaxFlowCalculationOnTargetTransaction::run()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION

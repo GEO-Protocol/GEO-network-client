@@ -23,8 +23,6 @@ public:
         MaxFlowCacheManager *maxFlowCacheManager,
         Logger &logger);
 
-    InitiateMaxFlowCalculationFullyCommand::Shared command() const;
-
 protected:
     const string logHeader() const;
 

@@ -9,7 +9,6 @@
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
 
 #include "CollectTopologyTransaction.h"
-#include "MaxFlowCalculationStepTwoTransaction.h"
 
 #include <set>
 
@@ -26,10 +25,7 @@ public:
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
-        bool iAmGateway,
         Logger &logger);
-
-    InitiateMaxFlowCalculationCommand::Shared command() const;
 
 protected:
     const string logHeader() const;
@@ -38,6 +34,8 @@ private:
     TransactionResult::SharedConst sendRequestForCollectingTopology();
 
     TransactionResult::SharedConst processCollectingTopology();
+
+    TransactionResult::SharedConst applyCustomLogic();
 
     TrustLineAmount calculateMaxFlow(
         const NodeUUID &contractorUUID);
@@ -54,19 +52,21 @@ private:
         const TrustLineAmount& currentFlow,
         byte level);
 
-    TransactionResult::SharedConst resultFinalOk(
-        uint16_t stepMaxFlows,
-        vector<pair<NodeUUID, TrustLineAmount>> &maxFlows);
+    TransactionResult::SharedConst resultFinalOk();
 
-    TransactionResult::SharedConst resultIntermediateOk(
-        uint16_t stepMaxFlows,
-        vector<pair<NodeUUID, TrustLineAmount>> &maxFlows);
+    TransactionResult::SharedConst resultIntermediateOk();
 
     TransactionResult::SharedConst resultProtocolError();
 
 private:
-    static const byte kMaxPathLength = 5;
-    static const uint32_t kWaitMillisecondsForCalculatingMaxFlow = 2000;
+    static const byte kShortMaxPathLength = 5;
+    static const byte kLongMaxPathLength = 6;
+    static const uint32_t kWaitMillisecondsForCalculatingMaxFlow = 1000;
+    static const uint32_t kWaitMillisecondsForCalculatingMaxFlowAgain = 500;
+    static const uint32_t kMaxWaitMillisecondsForCalculatingMaxFlow = 10000;
+    static const uint16_t kCountRunningProcessCollectingTopologyStage =
+            (kMaxWaitMillisecondsForCalculatingMaxFlow - kWaitMillisecondsForCalculatingMaxFlow) /
+            kWaitMillisecondsForCalculatingMaxFlowAgain;
 
 private:
     InitiateMaxFlowCalculationCommand::Shared mCommand;
@@ -75,10 +75,14 @@ private:
     TrustLineAmount mCurrentMaxFlow;
     NodeUUID mCurrentContractor;
     size_t mCountProcessCollectingTopologyRun;
-    bool mIAmGateway;
     TopologyTrustLinesManager::TrustLineWithPtrHashSet mFirstLevelTopology;
-    vector<NodeUUID> mAlreadyCalculated;
+    map<NodeUUID, TrustLineAmount> mMaxFlows;
     uint16_t mResultStep;
+    bool mShortMaxFlowsCalculated;
+    bool mGatewayResponseProcessed;
+    size_t mCurrentGlobalContractorIdx;
+    bool mFinalTopologyCollected;
+    byte mMaxPathLength;
 };
 
 

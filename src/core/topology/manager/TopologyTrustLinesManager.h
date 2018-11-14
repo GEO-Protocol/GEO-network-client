@@ -64,6 +64,10 @@ public:
     void makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
         const NodeUUID &exceptedNode);
 
+    const TrustLineAmount& flowAmount(
+        const NodeUUID& source,
+        const NodeUUID& destination);
+
 private:
     static const byte kResetTrustLinesHours = 0;
     static const byte kResetTrustLinesMinutes = 12;
