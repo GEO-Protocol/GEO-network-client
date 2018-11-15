@@ -4,6 +4,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
     const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
+    bool iAmGateway,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -16,6 +17,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         equivalent,
         log),
+    mIAmGateway(iAmGateway),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
@@ -31,6 +33,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionUUID &transactionUUID,
     const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
+    bool iAmGateway,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -44,6 +47,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         equivalent,
         log),
+    mIAmGateway(iAmGateway),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
@@ -57,6 +61,7 @@ BasePaymentTransaction::BasePaymentTransaction(
 BasePaymentTransaction::BasePaymentTransaction(
     BytesShared buffer,
     const NodeUUID &nodeUUID,
+    bool iAmGateway,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -68,6 +73,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         buffer,
         nodeUUID,
         log),
+    mIAmGateway(iAmGateway),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
@@ -558,10 +564,15 @@ void BasePaymentTransaction::commit(
                         << "]";
                 mCreditorsForCycles.insert(kNodeUUIDAndReservations.first);
             }
-            else if (kPathIDAndReservation.second->direction() == AmountReservation::Incoming)
+            else if (kPathIDAndReservation.second->direction() == AmountReservation::Incoming) {
                 debug() << "Committed reservation: [ <= ] " << kPathIDAndReservation.second->amount()
                         << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathIDAndReservation.first
                         << "]";
+                if (mIAmGateway) {
+                    // gateway try build cycles on both directions, because it don't shared by own routing tables
+                    mCreditorsForCycles.insert(kNodeUUIDAndReservations.first);
+                }
+            }
 
             mTrustLines->dropAmountReservation(
                 kNodeUUIDAndReservations.first,

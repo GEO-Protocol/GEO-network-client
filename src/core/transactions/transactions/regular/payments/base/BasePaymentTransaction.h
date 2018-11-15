@@ -62,6 +62,7 @@ public:
         const TransactionType type,
         const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
+        bool iAmGateway,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -74,6 +75,7 @@ public:
         const TransactionUUID &transactionUUID,
         const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
+        bool iAmGateway,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -84,6 +86,7 @@ public:
     BasePaymentTransaction(
         BytesShared buffer,
         const NodeUUID &nodeUUID,
+        bool iAmGateway,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -440,6 +443,7 @@ protected:
 
     // Nodes which with current node will be trying to close cycle
     set<NodeUUID> mCreditorsForCycles;
+    bool mIAmGateway;
 
     // Votes recovery
     vector<NodeUUID> mNodesToCheckVotes;

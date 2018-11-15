@@ -66,6 +66,10 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
 
     vector<pair<SerializedEquivalent, set<NodeUUID>>> neighborsByEquivalents;
     for (const auto &equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
+        // if node is gateway it not share by routing tables, because they are very large
+        if (mEquivalentsSubsystemsRouter->iAmGateway(equivalent)) {
+            continue;
+        }
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
         if (trustLinesManager->trustLineIsPresent(mMessage->senderUUID)) {
             neighborsByEquivalents.push_back(

@@ -38,6 +38,7 @@ public:
     CoordinatorPaymentTransaction(
         const NodeUUID &kCurrentNodeUUID,
         const CreditUsageCommand::Shared kCommand,
+        bool iAmGateway,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -52,6 +53,7 @@ public:
     CoordinatorPaymentTransaction(
         BytesShared buffer,
         const NodeUUID &nodeUUID,
+        bool iAmGateway,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,

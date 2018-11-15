@@ -4,6 +4,7 @@
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     const NodeUUID& currentNodeUUID,
     IntermediateNodeReservationRequestMessage::ConstShared message,
+    bool iAmGateway,
     TrustLinesManager* trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -16,6 +17,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         message->equivalent(),
+        iAmGateway,
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -31,6 +33,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     BytesShared buffer,
     const NodeUUID &nodeUUID,
+    bool iAmGateway,
     TrustLinesManager* trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -41,6 +44,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     BasePaymentTransaction(
         buffer,
         nodeUUID,
+        iAmGateway,
         trustLines,
         storageHandler,
         topologyCacheManager,

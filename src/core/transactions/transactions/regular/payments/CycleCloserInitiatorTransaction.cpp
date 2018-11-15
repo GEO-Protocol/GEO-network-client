@@ -17,6 +17,7 @@ noexcept :
         BaseTransaction::Payments_CycleCloserInitiatorTransaction,
         kCurrentNodeUUID,
         equivalent,
+        false,
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -44,6 +45,7 @@ throw (bad_alloc) :
     BasePaymentTransaction(
         buffer,
         nodeUUID,
+        false,
         trustLines,
         storageHandler,
         topologyCacheManager,

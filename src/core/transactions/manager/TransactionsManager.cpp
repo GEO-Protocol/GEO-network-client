@@ -84,6 +84,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     auto transaction = make_shared<CoordinatorPaymentTransaction>(
                         kTABufferAndSize.first,
                         mNodeUUID,
+                        mEquivalentsSubsystemsRouter->iAmGateway(*equivalent),
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
@@ -94,6 +95,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mSubsystemsController);
                     subscribeForBuildCyclesThreeNodesTransaction(
                         transaction->mBuildCycleThreeNodesSignal);
+                    subscribeForBuildCyclesFourNodesTransaction(
+                        transaction->mBuildCycleFourNodesSignal);
                     prepareAndSchedule(
                         transaction,
                         true,
@@ -111,6 +114,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     auto transaction = make_shared<IntermediateNodePaymentTransaction>(
                         kTABufferAndSize.first,
                         mNodeUUID,
+                        mEquivalentsSubsystemsRouter->iAmGateway(*equivalent),
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
@@ -138,6 +142,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     auto transaction = make_shared<ReceiverPaymentTransaction>(
                         kTABufferAndSize.first,
                         mNodeUUID,
+                        mEquivalentsSubsystemsRouter->iAmGateway(*equivalent),
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
@@ -146,6 +151,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mSubsystemsController);
                     subscribeForBuildCyclesThreeNodesTransaction(
                         transaction->mBuildCycleThreeNodesSignal);
+                    subscribeForBuildCyclesFourNodesTransaction(
+                        transaction->mBuildCycleFourNodesSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -931,6 +938,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         auto transaction = make_shared<CoordinatorPaymentTransaction>(
             mNodeUUID,
             command,
+            mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
             mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyCacheManager(command->equivalent()),
@@ -942,6 +950,8 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mVisualInterface.get());
         subscribeForBuildCyclesThreeNodesTransaction(
             transaction->mBuildCycleThreeNodesSignal);
+        subscribeForBuildCyclesFourNodesTransaction(
+            transaction->mBuildCycleFourNodesSignal);
         prepareAndSchedule(transaction, true, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CoordinatorPaymentTransaction "
@@ -964,6 +974,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
         auto transaction = make_shared<ReceiverPaymentTransaction>(
             mNodeUUID,
             message,
+            mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
@@ -973,6 +984,8 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             mVisualInterface.get());
         subscribeForBuildCyclesThreeNodesTransaction(
             transaction->mBuildCycleThreeNodesSignal);
+        subscribeForBuildCyclesFourNodesTransaction(
+            transaction->mBuildCycleFourNodesSignal);
         prepareAndSchedule(transaction, false, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for ReceiverPaymentTransaction "
@@ -995,6 +1008,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
         auto transaction = make_shared<IntermediateNodePaymentTransaction>(
             mNodeUUID,
             message,
+            mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),

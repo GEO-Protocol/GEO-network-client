@@ -3,6 +3,7 @@
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     const NodeUUID &kCurrentNodeUUID,
     const CreditUsageCommand::Shared kCommand,
+    bool iAmGateway,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -18,6 +19,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction,
         kCurrentNodeUUID,
         kCommand->equivalent(),
+        iAmGateway,
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -40,6 +42,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     BytesShared buffer,
     const NodeUUID &nodeUUID,
+    bool iAmGateway,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -53,6 +56,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     BasePaymentTransaction(
         buffer,
         nodeUUID,
+        iAmGateway,
         trustLines,
         storageHandler,
         topologyCacheManager,
