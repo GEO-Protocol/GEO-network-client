@@ -199,17 +199,16 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::applyCusto
                     true));
         }
     }
-    if (mMaxFlows.size() >= mCommand->contractors().size()) {
-        mTopologyTrustLineManager->setPreventDeleting(false);
-
+    mCurrentGlobalContractorIdx++;
+    if (mCurrentGlobalContractorIdx == mCommand->contractors().size()) {
         if (!mFinalTopologyCollected) {
             mCountProcessCollectingTopologyRun = 0;
             mStep = ProcessCollectingTopology;
             return resultIntermediateOk();
         }
+        mTopologyTrustLineManager->setPreventDeleting(false);
         return resultFinalOk();
     }
-    mCurrentGlobalContractorIdx++;
     return resultAwakeAsFastAsPossible();
 }
 
@@ -241,7 +240,7 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     }
 
     mTopologyTrustLineManager->resetAllUsedAmounts();
-    info() << "max flow calculating time: " << utc_now() - startTime;
+    info() << contractorUUID << " max flow calculating time: " << utc_now() - startTime;
     return mCurrentMaxFlow;
 }
 

@@ -65,7 +65,7 @@ private:
     static const uint32_t kWaitMillisecondsForCalculatingMaxFlowAgain = 500;
     static const uint32_t kMaxWaitMillisecondsForCalculatingMaxFlow = 10000;
     static const uint16_t kCountRunningProcessCollectingTopologyStage =
-            (kMaxWaitMillisecondsForCalculatingMaxFlow - kWaitMillisecondsForCalculatingMaxFlow) /
+            (kMaxWaitMillisecondsForCalculatingMaxFlow - kWaitMillisecondsForCalculatingMaxFlow * 2) /
             kWaitMillisecondsForCalculatingMaxFlowAgain;
 
 private:
