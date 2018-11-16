@@ -89,7 +89,7 @@ public:
      *
      * Creates new trust line in case if no trust line from the contractor is present.
      * Updates trust line with new amount if it's already present.
-     * In case if ne wamount is equal to previously set amount - "NoChanges" result would be returned.
+     * In case if new amount is equal to previously set amount - "NoChanges" result would be returned.
      * Closes the trust line if it's present and received amount = 0.
      *
      * @returns final state of the operation.

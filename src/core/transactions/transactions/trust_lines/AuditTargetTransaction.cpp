@@ -136,7 +136,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
                 contractorSerializedAuditData.second,
                 mMessage->signature(),
                 mMessage->keyNumber())) {
-            warning() << "Contractor didn't sign message correct";
+            warning() << "Contractor didn't sign message correct by key number " << mMessage->keyNumber();
             return sendAuditErrorConfirmation(
                 ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         }

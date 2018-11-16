@@ -334,7 +334,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
                 contractorSerializedAuditData.second,
                 message->signature(),
                 message->keyNumber())) {
-            warning() << "Contractor didn't sign message correct";
+            warning() << "Contractor didn't sign message correct by key number " << message->keyNumber();
             mTrustLines->setTrustLineState(
                 mContractorUUID,
                 TrustLine::ConflictResolving,

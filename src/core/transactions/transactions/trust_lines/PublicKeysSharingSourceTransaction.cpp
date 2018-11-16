@@ -196,7 +196,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
 {
     info() << "runPublicKeysSendNextKeyStage";
     if (mContext.empty()) {
-        warning() << "No confirmation message received. Transaction will be closed, and wait for message";
+        warning() << "No confirmation message received.";
         if (mCountSendingAttempts < kMaxCountSendingAttempts) {
             if (mCurrentKeyNumber == 0) {
                 sendMessage<PublicKeysSharingInitMessage>(
