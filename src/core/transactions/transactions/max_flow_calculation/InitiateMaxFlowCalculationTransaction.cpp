@@ -7,7 +7,6 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
     TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
-    bool iAmGateway,
     Logger &logger) :
 
     BaseCollectTopologyTransaction(
@@ -20,13 +19,10 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
         maxFlowCacheManager,
         logger),
     mCommand(command),
-    mIAmGateway(iAmGateway)
+    mResultStep(1),
+    mGatewayResponseProcessed(false),
+    mShortMaxFlowsCalculated(false)
 {}
-
-InitiateMaxFlowCalculationCommand::Shared InitiateMaxFlowCalculationTransaction::command() const
-{
-    return mCommand;
-}
 
 TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendRequestForCollectingTopology()
 {
@@ -42,17 +38,15 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
             return resultProtocolError();
         }
     }
+    for (const auto &contractorUUID : mCommand->contractors()) {
+        mMaxFlows.insert(
+            make_pair(
+                contractorUUID,
+                TrustLineAmount(0)));
+    }
     // Check if Node does not have outgoing FlowAmount;
     if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().empty()){
-        vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
-        maxFlows.reserve(mCommand->contractors().size());
-        for (const auto &contractorUUID : mCommand->contractors()) {
-            maxFlows.push_back(
-                make_pair(
-                    contractorUUID,
-                    TrustLineAmount(0)));
-        }
-        return resultOk(true, maxFlows);
+        return resultFinalOk();
     }
 
     vector<NodeUUID> nonCachedContractors;
@@ -68,16 +62,11 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
     }
 
     if (allContractorsAlreadyCalculated) {
-        vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
-        maxFlows.reserve(mCommand->contractors().size());
         for (const auto &contractorUUID : mCommand->contractors()) {
             auto nodeCache = mMaxFlowCacheManager->cacheByNode(contractorUUID);
-                maxFlows.push_back(
-                    make_pair(
-                        contractorUUID,
-                        nodeCache->currentFlow()));
+            mMaxFlows[contractorUUID] = nodeCache->currentFlow();
         }
-        return resultOk(true, maxFlows);
+        return resultFinalOk();
     }
 
     const auto kTransaction = make_shared<CollectTopologyTransaction>(
@@ -91,51 +80,136 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
         mLog);
     mTopologyTrustLineManager->setPreventDeleting(true);
     launchSubsidiaryTransaction(kTransaction);
-    return resultAwakeAfterMilliseconds(
-        kWaitMillisecondsForCalculatingMaxFlow);
+    bool isDirectPathOccurred = false;
+    for (const auto &contractorUUID : mCommand->contractors()) {
+        if (mTrustLinesManager->isNeighbor(contractorUUID)) {
+            const auto kOutgoingFlow = mTrustLinesManager->outgoingTrustAmountConsideringReservations(contractorUUID);
+            mMaxFlows[contractorUUID] = *kOutgoingFlow;
+            isDirectPathOccurred = true;
+        }
+    }
+    if (isDirectPathOccurred) {
+        return resultIntermediateOk();
+    } else {
+        return resultAwakeAfterMilliseconds(
+            kWaitMillisecondsForCalculatingMaxFlow);
+    }
 }
 
 TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCollectingTopology()
 {
-#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "CalculateMaxTransactionFlow";
     info() << "context size: " << mContext.size();
-#endif
+//#endif
+    auto const contextSize = mContext.size();
     fillTopology();
-    vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
-    maxFlows.reserve(mCommand->contractors().size());
-    mFirstLevelTopology =
-            mTopologyTrustLineManager->trustLinePtrsSet(mNodeUUID);
-    auto startTime = utc_now();
-    for (const auto &contractorUUID : mCommand->contractors()) {
-        auto nodeCache = mMaxFlowCacheManager->cacheByNode(contractorUUID);
-        if (nodeCache != nullptr) {
-            maxFlows.push_back(
-                make_pair(
-                    contractorUUID,
-                    nodeCache->currentFlow()));
+    if (!mGatewayResponseProcessed) {
+        mGatewayResponseProcessed = true;
+        bool gatewayPathOccurred = false;
+        for (const auto &gateway : mGateways) {
+            if (!mTrustLinesManager->isNeighbor(gateway)) {
+                continue;
+            }
+            const auto outgoingFlowToGateway = mTrustLinesManager->outgoingTrustAmountConsideringReservations(gateway);
+            if (*outgoingFlowToGateway == TrustLine::kZeroAmount()) {
+                continue;
+            }
+            for (const auto &contractorUUID : mCommand->contractors()) {
+                auto outgoingFlowFromGatewayToContractor = mTopologyTrustLineManager->flowAmount(
+                    gateway,
+                    contractorUUID);
+                if (outgoingFlowFromGatewayToContractor != TrustLine::kZeroAmount()) {
+                    mMaxFlows[contractorUUID] += min(*outgoingFlowToGateway, outgoingFlowFromGatewayToContractor);
+                    gatewayPathOccurred = true;
+                }
+            }
+        }
+        if (gatewayPathOccurred) {
+            return resultIntermediateOk();
         } else {
-            maxFlows.push_back(
-                make_pair(
-                    contractorUUID,
-                    // todo : choose updated or not
-                    calculateMaxFlow(
-                        contractorUUID)));
+            return resultAwakeAfterMilliseconds(
+                kWaitMillisecondsForCalculatingMaxFlow);
         }
     }
-    info() << "all contractors calculating time: " << utc_now() - startTime;
-    const auto kTransaction = make_shared<MaxFlowCalculationStepTwoTransaction>(
-        mNodeUUID,
-        currentTransactionUUID(),
-        mCommand,
-        mTrustLinesManager,
-        mTopologyTrustLineManager,
-        mTopologyCacheManager,
-        mMaxFlowCacheManager,
-        2,
-        mLog);
-    launchSubsidiaryTransaction(kTransaction);
-    return resultOk(false, maxFlows);
+
+    if (!mShortMaxFlowsCalculated) {
+        mShortMaxFlowsCalculated = true;
+        mFirstLevelTopology =
+                mTopologyTrustLineManager->trustLinePtrsSet(mNodeUUID);
+        mMaxPathLength = kShortMaxPathLength;
+        auto startTime = utc_now();
+        for (const auto &contractorUUID : mCommand->contractors()) {
+            auto nodeCache = mMaxFlowCacheManager->cacheByNode(contractorUUID);
+            if (nodeCache != nullptr) {
+                mMaxFlows[contractorUUID] =
+                    nodeCache->currentFlow();
+            } else {
+                mMaxFlows[contractorUUID] =
+                    // todo : choose updated or not
+                    calculateMaxFlow(
+                        contractorUUID);
+            }
+        }
+        info() << "all contractors calculating time: " << utc_now() - startTime;
+        mCountProcessCollectingTopologyRun = 0;
+        return resultIntermediateOk();
+    }
+
+    mCountProcessCollectingTopologyRun++;
+    if (contextSize > 0 && mCountProcessCollectingTopologyRun <= kCountRunningProcessCollectingTopologyStage) {
+        return resultAwakeAfterMilliseconds(
+            kWaitMillisecondsForCalculatingMaxFlowAgain);
+    }
+
+    mFinalTopologyCollected = contextSize == 0;
+    mFirstLevelTopology =
+        mTopologyTrustLineManager->trustLinePtrsSet(mNodeUUID);
+    mMaxPathLength = kLongMaxPathLength;
+    mCurrentGlobalContractorIdx = 0;
+    mStep = CustomLogic;
+    return applyCustomLogic();
+}
+
+TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::applyCustomLogic()
+{
+    if (mCurrentGlobalContractorIdx >= mCommand->contractors().size()) {
+        error() << "Illegal current contractor idx: " << mCurrentGlobalContractorIdx;
+        mTopologyTrustLineManager->setPreventDeleting(false);
+        return resultFinalOk();
+    }
+    const auto contractorUUID = mCommand->contractors().at(mCurrentGlobalContractorIdx);
+    auto nodeCache = mMaxFlowCacheManager->cacheByNode(contractorUUID);
+    // todo : implement separated logic when !nodeCache->isFlowFinal()
+    if (nodeCache != nullptr && nodeCache->isFlowFinal()) {
+        mMaxFlows[contractorUUID] = nodeCache->currentFlow();
+    } else {
+        mMaxFlows[contractorUUID] = calculateMaxFlow(
+            contractorUUID);
+        if (nodeCache != nullptr) {
+            mMaxFlowCacheManager->updateCache(
+                contractorUUID,
+                mMaxFlows[contractorUUID],
+                true);
+        } else {
+            mMaxFlowCacheManager->addCache(
+                contractorUUID,
+                make_shared<MaxFlowCache>(
+                    mMaxFlows[contractorUUID],
+                    true));
+        }
+    }
+    mCurrentGlobalContractorIdx++;
+    if (mCurrentGlobalContractorIdx == mCommand->contractors().size()) {
+        if (!mFinalTopologyCollected) {
+            mCountProcessCollectingTopologyRun = 0;
+            mStep = ProcessCollectingTopology;
+            return resultIntermediateOk();
+        }
+        mTopologyTrustLineManager->setPreventDeleting(false);
+        return resultFinalOk();
+    }
+    return resultAwakeAsFastAsPossible();
 }
 
 // this method used the same logic as PathsManager::reBuildPaths
@@ -161,16 +235,12 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     }
 
     mCurrentMaxFlow = TrustLine::kZeroAmount();
-    for (mCurrentPathLength = 1; mCurrentPathLength <= kMaxPathLength; mCurrentPathLength++) {
+    for (mCurrentPathLength = 1; mCurrentPathLength <= mMaxPathLength; mCurrentPathLength++) {
         calculateMaxFlowOnOneLevel();
     }
 
     mTopologyTrustLineManager->resetAllUsedAmounts();
-    info() << "max flow calculating time: " << utc_now() - startTime;
-    mMaxFlowCacheManager->addCache(
-        mCurrentContractor,
-        make_shared<MaxFlowCache>(
-            mCurrentMaxFlow));
+    info() << contractorUUID << " max flow calculating time: " << utc_now() - startTime;
     return mCurrentMaxFlow;
 }
 
@@ -197,7 +267,7 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlowUpdated(
     }
 
     mCurrentMaxFlow = TrustLine::kZeroAmount();
-    for (mCurrentPathLength = 1; mCurrentPathLength <= kMaxPathLength; mCurrentPathLength++) {
+    for (mCurrentPathLength = 1; mCurrentPathLength <= mMaxPathLength; mCurrentPathLength++) {
         calculateMaxFlowOnOneLevelUpdated();
     }
 
@@ -315,17 +385,11 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
     return 0;
 }
 
-TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultOk(
-    bool finalMaxFlows,
-    vector<pair<NodeUUID, TrustLineAmount>> &maxFlows)
+TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultFinalOk()
 {
     stringstream ss;
-    if (finalMaxFlows) {
-        ss << kFinalStep << kTokensSeparator << maxFlows.size();
-    } else {
-        ss << "1" << kTokensSeparator << maxFlows.size();
-    }
-    for (const auto &nodeUUIDAndMaxFlow : maxFlows) {
+    ss << kFinalStep << kTokensSeparator << mMaxFlows.size();
+    for (const auto &nodeUUIDAndMaxFlow : mMaxFlows) {
         ss << kTokensSeparator << nodeUUIDAndMaxFlow.first << kTokensSeparator;
         ss << nodeUUIDAndMaxFlow.second;
     }
@@ -333,6 +397,23 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultOk(
     return transactionResultFromCommand(
         mCommand->responseOk(
             kMaxFlowAmountsStr));
+}
+
+TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultIntermediateOk()
+{
+    uint16_t stepMaxFlows = mResultStep;
+    mResultStep++;
+    stringstream ss;
+    ss << stepMaxFlows << kTokensSeparator << mMaxFlows.size();
+    for (const auto &nodeUUIDAndMaxFlow : mMaxFlows) {
+        ss << kTokensSeparator << nodeUUIDAndMaxFlow.first << kTokensSeparator;
+        ss << nodeUUIDAndMaxFlow.second;
+    }
+    auto kMaxFlowAmountsStr = ss.str();
+    return transactionResultFromCommandAndAwakeAfterMilliseconds(
+        mCommand->responseOk(
+            kMaxFlowAmountsStr),
+        kWaitMillisecondsForCalculatingMaxFlow);
 }
 
 TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultProtocolError()

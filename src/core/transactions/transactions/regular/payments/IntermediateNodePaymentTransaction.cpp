@@ -321,7 +321,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
     // Note: copy of shared pointer is required
     const auto kOutgoingAmount = mTrustLines->outgoingTrustAmountConsideringReservations(kNextNode);
-    debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount.get();
+    debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount;
     TrustLineAmount reservationAmount = min(
         *kReservation.second.get(),
         *kOutgoingAmount);

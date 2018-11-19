@@ -123,6 +123,9 @@ public:
         const NodeUUID &contractorUUID,
         bool contractorIsGateway);
 
+    const bool isContractorGateway(
+        const NodeUUID &contractor) const;
+
     /**
      * @returns outgoing trust amount without considering present reservations.
      *

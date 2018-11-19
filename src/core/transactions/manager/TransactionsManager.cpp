@@ -690,7 +690,6 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
                 mEquivalentsSubsystemsRouter->topologyTrustLineManager(command->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyCacheManager(command->equivalent()),
                 mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
-                mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
                 mLog),
             true,
             true,

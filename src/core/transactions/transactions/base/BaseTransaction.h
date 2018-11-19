@@ -252,6 +252,10 @@ protected:
     TransactionResult::Shared transactionResultFromCommand(
         CommandResult::SharedConst result) const;
 
+    TransactionResult::Shared transactionResultFromCommandAndAwakeAfterMilliseconds(
+        CommandResult::SharedConst result,
+        uint32_t responseWaitTime) const;
+
     virtual const string logHeader() const = 0;
     LoggerStream info() const;
     LoggerStream warning() const;

@@ -17,11 +17,6 @@ MaxFlowCalculationTargetFstLevelTransaction::MaxFlowCalculationTargetFstLevelTra
     mIAmGateway(iAmGateway)
 {}
 
-MaxFlowCalculationTargetFstLevelMessage::Shared MaxFlowCalculationTargetFstLevelTransaction::message() const
-{
-    return mMessage;
-}
-
 TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION

@@ -22,8 +22,6 @@ public:
         Logger &logger,
         bool iAmGateway);
 
-    MaxFlowCalculationTargetSndLevelMessage::Shared message() const;
-
     TransactionResult::SharedConst run();
 
 protected:

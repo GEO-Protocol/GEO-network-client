@@ -15,6 +15,15 @@ TransactionResult::TransactionResult(
     setCommandResult(commandResult);
 }
 
+TransactionResult::TransactionResult(
+    TransactionState::SharedConst transactionState,
+    CommandResult::SharedConst commandResult)
+{
+    setTransactionState(transactionState);
+    setCommandResult(commandResult);
+}
+
+
 void TransactionResult::setCommandResult(
     CommandResult::SharedConst commandResult)
 {

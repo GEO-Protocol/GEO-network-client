@@ -21,11 +21,6 @@ MaxFlowCalculationFullyTransaction::MaxFlowCalculationFullyTransaction(
     mCommand(command)
 {}
 
-InitiateMaxFlowCalculationFullyCommand::Shared MaxFlowCalculationFullyTransaction::command() const
-{
-    return mCommand;
-}
-
 TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::sendRequestForCollectingTopology()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION

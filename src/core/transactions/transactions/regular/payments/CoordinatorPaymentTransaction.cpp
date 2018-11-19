@@ -252,10 +252,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
         mCommand->amount());
 
     mStep = Stages::Coordinator_ReceiverResponseProcessing;
+    // delay 4 = 6sec for message delivery guarantee
     return resultWaitForMessageTypes(
         {Message::Payments_ReceiverInitPaymentResponse,
          Message::NoEquivalent},
-        maxNetworkDelay(2));
+        maxNetworkDelay(4));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResponseProcessingStage ()
