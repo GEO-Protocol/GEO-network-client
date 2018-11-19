@@ -82,7 +82,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
     launchSubsidiaryTransaction(kTransaction);
     bool isDirectPathOccurred = false;
     for (const auto &contractorUUID : mCommand->contractors()) {
-        if (mTrustLinesManager->isNeighbor(contractorUUID)) {
+        if (mTrustLinesManager->trustLineIsPresent(contractorUUID)) {
             const auto kOutgoingFlow = mTrustLinesManager->outgoingTrustAmountConsideringReservations(contractorUUID);
             mMaxFlows[contractorUUID] = *kOutgoingFlow;
             isDirectPathOccurred = true;
@@ -102,12 +102,13 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCol
     info() << "CalculateMaxTransactionFlow";
     info() << "context size: " << mContext.size();
 #endif
+    auto const contextSize = mContext.size();
     fillTopology();
     if (!mGatewayResponseProcessed) {
         mGatewayResponseProcessed = true;
         bool gatewayPathOccurred = false;
         for (const auto &gateway : mGateways) {
-            if (!mTrustLinesManager->isNeighbor(gateway)) {
+            if (!mTrustLinesManager->trustLineIsPresent(gateway)) {
                 continue;
             }
             const auto outgoingFlowToGateway = mTrustLinesManager->outgoingTrustAmountConsideringReservations(gateway);
