@@ -36,11 +36,6 @@ ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTrans
     mSenderIsGateway(true)
 {}
 
-ResultMaxFlowCalculationMessage::Shared ReceiveResultMaxFlowCalculationTransaction::message() const
-{
-    return mMessage;
-}
-
 TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION

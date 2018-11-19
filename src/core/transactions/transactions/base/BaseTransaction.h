@@ -45,6 +45,7 @@ public:
     typedef signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
     typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent, bool)> TrustLineActionSignal;
     typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent)> PublicKeysSharingSignal;
+    typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent)> AuditSignal;
     typedef signals::signal<void(const NodeUUID&)> ProcessPongMessageSignal;
 
 public:
@@ -290,6 +291,10 @@ protected:
         vector<Message::MessageType> &&requiredMessagesTypes,
         uint32_t noLongerThanMilliseconds) const;
 
+    TransactionResult::Shared transactionResultFromCommandAndAwakeAfterMilliseconds(
+        CommandResult::SharedConst result,
+        uint32_t responseWaitTime) const;
+
     virtual const string logHeader() const = 0;
     LoggerStream info() const;
     LoggerStream warning() const;
@@ -303,6 +308,8 @@ public:
     mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;
     mutable ProcessPongMessageSignal processPongMessageSignal;
     mutable TrustLineActionSignal trustLineActionSignal;
+    mutable PublicKeysSharingSignal publicKeysSharingSignal;
+    mutable AuditSignal auditSignal;
 
 protected:
     static const uint16_t mkStandardConnectionTimeout = 1500; //milliseconds

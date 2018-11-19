@@ -49,9 +49,6 @@ private:
     TransactionResult::SharedConst sendKeyErrorConfirmation(
         ConfirmationMessage::OperationState errorState);
 
-public:
-    mutable PublicKeysSharingSignal publicKeysSharingSignal;
-
 protected:
     // these constants should be the same as in PublicKeysSharingSourceTransaction
     static const uint32_t kWaitMillisecondsForResponse = 20000;

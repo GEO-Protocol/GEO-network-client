@@ -196,7 +196,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
 {
     info() << "runPublicKeysSendNextKeyStage";
     if (mContext.empty()) {
-        warning() << "No confirmation message received. Transaction will be closed, and wait for message";
+        warning() << "No confirmation message received.";
         if (mCountSendingAttempts < kMaxCountSendingAttempts) {
             if (mCurrentKeyNumber == 0) {
                 sendMessage<PublicKeysSharingInitMessage>(
@@ -271,6 +271,14 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
                 mContractorUUID,
                 true);
             info() << "TL is ready for using";
+            if (mTrustLines->auditNumber(mContractorUUID) != 0) {
+                auditSignal(mContractorUUID, mEquivalent);
+            } else {
+                if (mTrustLines->trustLineContractorKeysPresent(mContractorUUID)) {
+                    info() << "Init audit signal";
+                    auditSignal(mContractorUUID, mEquivalent);
+                }
+            }
         } catch (IOError &e) {
             ioTransaction->rollback();
             error() << "Can't update TL state. Details " << e.what();

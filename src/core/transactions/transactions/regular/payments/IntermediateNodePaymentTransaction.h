@@ -14,6 +14,7 @@ public:
     IntermediateNodePaymentTransaction(
         const NodeUUID &currentNodeUUID,
         IntermediateNodeReservationRequestMessage::ConstShared message,
+        bool iAmGateway,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -25,6 +26,7 @@ public:
     IntermediateNodePaymentTransaction(
         BytesShared buffer,
         const NodeUUID &nodeUUID,
+        bool iAmGateway,
         TrustLinesManager* trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,

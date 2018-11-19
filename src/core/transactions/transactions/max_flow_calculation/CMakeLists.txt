@@ -17,8 +17,6 @@ set(SOURCE_FILES
         ReceiveResultMaxFlowCalculationTransaction.cpp
         CollectTopologyTransaction.h
         CollectTopologyTransaction.cpp
-        MaxFlowCalculationStepTwoTransaction.h
-        MaxFlowCalculationStepTwoTransaction.cpp
         MaxFlowCalculationFullyTransaction.h
         MaxFlowCalculationFullyTransaction.cpp)
 

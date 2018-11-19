@@ -21,6 +21,7 @@ public:
 
 public:
     GatewayNotificationAndRoutingTablesDelayedTask(
+        const NodeUUID &nodeUUID,
         as::io_service &mIOService,
         Logger &logger);
 
@@ -30,6 +31,8 @@ public:
 private:
     void runSignalNotify(
         const boost::system::error_code &error);
+
+    uint32_t randomInitializer() const;
 
     LoggerStream info() const;
 
@@ -43,6 +46,7 @@ private:
     static const uint32_t kUpdatingTimerPeriodSeconds = 60 * 60 * 24 * 2;
 
 private:
+    NodeUUID mNodeUUID;
     as::io_service &mIOService;
     unique_ptr<as::steady_timer> mNotificationTimer;
     Logger &mLog;

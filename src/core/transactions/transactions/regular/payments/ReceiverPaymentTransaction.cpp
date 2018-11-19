@@ -4,6 +4,7 @@
 ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     const NodeUUID &currentNodeUUID,
     ReceiverInitPaymentRequestMessage::ConstShared message,
+    bool iAmGateway,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -18,6 +19,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         message->equivalent(),
+        iAmGateway,
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -35,6 +37,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     BytesShared buffer,
     const NodeUUID &nodeUUID,
+    bool iAmGateway,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -46,6 +49,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     BasePaymentTransaction(
         buffer,
         nodeUUID,
+        iAmGateway,
         trustLines,
         storageHandler,
         topologyCacheManager,

@@ -42,7 +42,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::run()
 
 TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runPublicKeyReceiverInitStage()
 {
-    info() << "runPublicKeyReceiverInitStage";
+    info() << "runPublicKeyReceiverInitStage " << mContractorUUID;
     if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
         warning() << "Trust line is absent.";
         return sendKeyErrorConfirmation(
@@ -72,15 +72,6 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runPublicKeyR
     try {
         mTrustLines->setIsContractorKeysPresent(mContractorUUID, false);
         keyChain.removeUnusedContractorKeys(ioTransaction);
-
-        if (mTrustLines->isTrustLineEmpty(mContractorUUID)
-            and mTrustLines->auditNumber(mContractorUUID) == 0
-            and !keyChain.ownKeysPresent(ioTransaction)) {
-            info() << "publicKeysSharing Signal";
-            publicKeysSharingSignal(
-                mContractorUUID,
-                mEquivalent);
-        }
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't remove unused contractor keys. Details: " << e.what();
@@ -182,6 +173,13 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             mTrustLines->setIsContractorKeysPresent(
                 mContractorUUID,
                 true);
+            if (mTrustLines->auditNumber(mContractorUUID) == 0
+                and !keyChain.ownKeysPresent(ioTransaction)) {
+                info() << "publicKeysSharing Signal";
+                publicKeysSharingSignal(
+                    mContractorUUID,
+                    mEquivalent);
+            }
             info() << "TL is ready for using";
             return resultDone();
         }

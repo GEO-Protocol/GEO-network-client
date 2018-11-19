@@ -20,8 +20,6 @@ public:
         Logger &logger,
         bool iAmGateway);
 
-    MaxFlowCalculationSourceFstLevelMessage::Shared message() const;
-
     TransactionResult::SharedConst run();
 
 protected:

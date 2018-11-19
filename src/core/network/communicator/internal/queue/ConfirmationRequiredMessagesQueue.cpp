@@ -182,19 +182,12 @@ void ConfirmationRequiredMessagesQueue::updatePublicKeysSharingInitInTheQueue(
 
         if (kMessage->typeID() == Message::TrustLines_PublicKeysSharingInit) {
             mMessages.erase(it++);
-            signalRemoveMessageFromStorage(
-                mContractorUUID,
-                mEquivalent,
-                kMessage->typeID());
         } else {
             ++it;
         }
     }
 
     mMessages[message->transactionUUID()] = message;
-    signalSaveMessageToStorage(
-        mContractorUUID,
-        message);
 }
 
 void ConfirmationRequiredMessagesQueue::updatePublicKeyInTheQueue(

@@ -38,10 +38,10 @@ protected:
 
 private:
     static const uint32_t kCollectingRoutingTablesMilliseconds = 6000;
-    static const uint16_t kCountNeighborsPerOneStep = 15;
+    static const uint16_t kCountNeighborsPerOneStep = 20;
     static const uint32_t kHoursBetweenSteps = 0;
-    static const uint32_t kMinutesBetweenSteps = 1;
-    static const uint32_t kSecondsBetweenSteps = 0;
+    static const uint32_t kMinutesBetweenSteps = 0;
+    static const uint32_t kSecondsBetweenSteps = 30;
     static const uint32_t kHoursMax = 2;
     static const uint32_t kMinutesMax = 0;
     static const uint32_t kSecondsMax = 0;

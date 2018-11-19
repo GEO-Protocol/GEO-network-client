@@ -93,10 +93,12 @@ void ConfirmationRequiredMessagesHandler::tryProcessConfirmation(
                       << confirmationMessage->typeID() << " for equivalent " << queueKey.first;
         }
 
-        auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
-        ioTransaction->communicatorMessagesQueueHandler()->deleteRecord(
-            queueKey.second,
-            confirmationMessage->transactionUUID());
+        if (confirmationMessage->typeID() != Message::GatewayNotification) {
+            auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
+            ioTransaction->communicatorMessagesQueueHandler()->deleteRecord(
+                queueKey.second,
+                confirmationMessage->transactionUUID());
+        }
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         debug() << "Confirmation for message with transaction UUID " << confirmationMessage->transactionUUID() << " received. "

@@ -97,6 +97,7 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     }
 
     mGatewayNotificationAndRoutingTablesDelayedTask = make_unique<GatewayNotificationAndRoutingTablesDelayedTask>(
+        mNodeUUID,
         mIOService,
         mLogger);
     subscribeForGatewayNotification(

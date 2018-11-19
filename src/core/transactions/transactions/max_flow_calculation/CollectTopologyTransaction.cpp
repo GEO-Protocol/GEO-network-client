@@ -57,6 +57,19 @@ void CollectTopologyTransaction::sendMessagesToContractors()
 void CollectTopologyTransaction::sendMessagesOnFirstLevel()
 {
     vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
+    auto outgoingFlowUuidIt = outgoingFlowUuids.begin();
+    while (outgoingFlowUuidIt != outgoingFlowUuids.end()) {
+        // firstly send message to gateways
+        if (mTrustLinesManager->isContractorGateway(*outgoingFlowUuidIt)) {
+            sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
+                *outgoingFlowUuidIt,
+                mEquivalent,
+                mNodeUUID);
+            outgoingFlowUuids.erase(outgoingFlowUuidIt);
+        } else {
+            outgoingFlowUuidIt++;
+        }
+    }
     for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
         sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
             nodeUUIDOutgoingFlow,

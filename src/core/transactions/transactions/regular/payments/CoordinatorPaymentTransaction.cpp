@@ -3,6 +3,7 @@
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     const NodeUUID &kCurrentNodeUUID,
     const CreditUsageCommand::Shared kCommand,
+    bool iAmGateway,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -19,6 +20,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction,
         kCurrentNodeUUID,
         kCommand->equivalent(),
+        iAmGateway,
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -222,10 +224,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
         mCommand->amount());
 
     mStep = Stages::Coordinator_ReceiverResponseProcessing;
+    // delay 4 = 6sec for message delivery guarantee
     return resultWaitForMessageTypes(
         {Message::Payments_ReceiverInitPaymentResponse,
          Message::General_NoEquivalent},
-        maxNetworkDelay(2));
+        maxNetworkDelay(4));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResponseProcessingStage ()

@@ -38,7 +38,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::run()
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAndSendMessageStage()
 {
-    debug() << "runCollectDataAndSendMessageStage; creditor is " << mContractorUUID;
+    debug() << "runCollectDataAndSendMessageStage to " << mContractorUUID;
     if (!mTrustLinesManager->trustLineIsActive(mContractorUUID)) {
         warning() << "TL with creditor is not active";
         return resultDone();
