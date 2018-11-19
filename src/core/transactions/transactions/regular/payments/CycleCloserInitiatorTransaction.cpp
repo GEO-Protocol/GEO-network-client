@@ -18,6 +18,7 @@ noexcept :
         BaseTransaction::Payments_CycleCloserInitiatorTransaction,
         kCurrentNodeUUID,
         equivalent,
+        false,
         trustLines,
         storageHandler,
         topologyCacheManager,

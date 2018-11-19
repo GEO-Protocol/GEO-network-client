@@ -106,6 +106,8 @@ void BaseCollectTopologyTransaction::fillTopology()
                         kMessage->senderUUID,
                         incomingFlow.second));
             }
+            mGateways.insert(
+                kMessage->senderUUID);
         }
         else {
             warning() << "Invalid message type in context during fill topology";

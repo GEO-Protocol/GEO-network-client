@@ -21,8 +21,6 @@ public:
         TopologyCacheManager *topologyCacheManager,
         Logger &logger);
 
-    InitiateMaxFlowCalculationMessage::Shared message() const;
-
     TransactionResult::SharedConst run();
 
 protected:

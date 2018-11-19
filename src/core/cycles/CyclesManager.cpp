@@ -418,7 +418,9 @@ uint32_t CyclesManager::randomInitializer() const
     uint32_t result = 0;
     for (int i=0; i < NodeUUID::kBytesSize; i++) {
         result = result << 2;
-        result |= (mNodeUUID.data[i] & 0x3);
+        byte tmp = (byte)(mNodeUUID.data[i] * mEquivalent);
+        result |= (tmp & 0x3);
+
     }
     return result;
 }

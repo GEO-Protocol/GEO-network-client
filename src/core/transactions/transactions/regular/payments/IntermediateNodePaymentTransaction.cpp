@@ -4,6 +4,7 @@
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     const NodeUUID& currentNodeUUID,
     IntermediateNodeReservationRequestMessage::ConstShared message,
+    bool iAmGateway,
     TrustLinesManager* trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -17,6 +18,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         message->equivalent(),
+        iAmGateway,
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -33,6 +35,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     BytesShared buffer,
     const NodeUUID &nodeUUID,
+    bool iAmGateway,
     TrustLinesManager* trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -44,6 +47,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     BasePaymentTransaction(
         buffer,
         nodeUUID,
+        iAmGateway,
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -367,7 +371,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
     // Note: copy of shared pointer is required
     const auto kOutgoingAmount = mTrustLines->outgoingTrustAmountConsideringReservations(kNextNode);
-    debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount.get();
+    debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount;
     TrustLineAmount reservationAmount = min(
         *kReservation.second.get(),
         *kOutgoingAmount);

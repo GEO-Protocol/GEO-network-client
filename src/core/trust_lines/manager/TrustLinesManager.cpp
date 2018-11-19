@@ -332,6 +332,18 @@ void TrustLinesManager::setTrustLineAuditNumber(
     trustLine->setAuditNumber(newAuditNumber);
 }
 
+const bool TrustLinesManager::isContractorGateway(
+        const NodeUUID &contractorUUID) const
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            logHeader() + "::isContractorGateway: "
+                "There is no trust line to this contractor.");
+    }
+
+    return mTrustLines.at(contractorUUID)->isContractorGateway();
+}
+
 const TrustLineAmount &TrustLinesManager::incomingTrustAmount(
     const NodeUUID &contractorUUID) const
 {

@@ -16,6 +16,7 @@ public:
     ReceiverPaymentTransaction(
         const NodeUUID &currentNodeUUID,
         ReceiverInitPaymentRequestMessage::ConstShared message,
+        bool iAmGateway,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -28,6 +29,7 @@ public:
     ReceiverPaymentTransaction(
         BytesShared buffer,
         const NodeUUID &nodeUUID,
+        bool iAmGateway,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,

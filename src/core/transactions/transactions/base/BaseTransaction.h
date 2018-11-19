@@ -291,6 +291,10 @@ protected:
         vector<Message::MessageType> &&requiredMessagesTypes,
         uint32_t noLongerThanMilliseconds) const;
 
+    TransactionResult::Shared transactionResultFromCommandAndAwakeAfterMilliseconds(
+        CommandResult::SharedConst result,
+        uint32_t responseWaitTime) const;
+
     virtual const string logHeader() const = 0;
     LoggerStream info() const;
     LoggerStream warning() const;

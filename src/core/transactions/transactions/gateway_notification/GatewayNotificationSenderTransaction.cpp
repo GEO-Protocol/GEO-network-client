@@ -69,8 +69,9 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
     while (!mContext.empty()) {
         if (mContext.at(0)->typeID() == Message::RoutingTableResponse) {
             const auto kMessage = popNextMessage<RoutingTableResponseMessage>();
+            info() << "node " << kMessage->senderUUID << " send response";
+            allNeighborsResponseReceive.insert(kMessage->senderUUID);
             for (const auto &equivalentAndNeighbors : kMessage->neighborsByEquivalents()) {
-                allNeighborsResponseReceive.insert(kMessage->senderUUID);
                 try {
                     auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(
                             equivalentAndNeighbors.first);

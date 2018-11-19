@@ -28,8 +28,6 @@ public:
         TopologyTrustLinesManager *topologyTrustLineManager,
         Logger &logger);
 
-    ResultMaxFlowCalculationMessage::Shared message() const;
-
     TransactionResult::SharedConst run();
 
 protected:

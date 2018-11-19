@@ -57,13 +57,14 @@ protected:
     void fillTopology();
 
 protected:
-    const string kFinalStep = "10";
+    const uint16_t kFinalStep = 10;
 
 protected:
     TrustLinesManager *mTrustLinesManager;
     TopologyTrustLinesManager *mTopologyTrustLineManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
+    set<NodeUUID> mGateways;
 };
 
 

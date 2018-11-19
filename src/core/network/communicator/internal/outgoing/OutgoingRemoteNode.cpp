@@ -27,7 +27,7 @@ void OutgoingRemoteNode::sendMessage(
         // In case if queue already contains packets -
         // then async handler is already scheduled.
         // Otherwise - it must be initialised.
-        bool packetsSendingAlreadyScheduled = mPacketsQueue.size() > 0;
+        bool packetsSendingAlreadyScheduled = !mPacketsQueue.empty();
 
         auto bytesAndBytesCount = message->serializeToBytes();
         if (bytesAndBytesCount.second > Message::maxSize()) {
@@ -56,14 +56,14 @@ void OutgoingRemoteNode::sendMessage(
 
     } catch (exception &e) {
         errors()
-            << "Exception occured: "
+            << "Exception occurred: "
             << e.what();
     }
 }
 
 bool OutgoingRemoteNode::containsPacketsInQueue() const
 {
-    return mPacketsQueue.size() > 0;
+    return !mPacketsQueue.empty();
 }
 
 uint32_t OutgoingRemoteNode::crc32Checksum(
@@ -265,7 +265,7 @@ void OutgoingRemoteNode::beginPacketsSending()
                 // Removing packet from the memory
                 free(packetDataAndSize.first);
                 mPacketsQueue.pop();
-                if (mPacketsQueue.size() > 0) {
+                if (!mPacketsQueue.empty()) {
                     beginPacketsSending();
                 }
 
@@ -297,7 +297,7 @@ void OutgoingRemoteNode::beginPacketsSending()
 
 
             mCyclesStats.first = boost::posix_time::microsec_clock::universal_time();
-            if (mPacketsQueue.size() > 0) {
+            if (!mPacketsQueue.empty()) {
                 beginPacketsSending();
             }
         });

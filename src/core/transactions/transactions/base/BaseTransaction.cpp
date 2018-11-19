@@ -170,6 +170,17 @@ TransactionResult::Shared BaseTransaction::transactionResultFromCommandAndWaitFo
         result);
 }
 
+TransactionResult::Shared BaseTransaction::transactionResultFromCommandAndAwakeAfterMilliseconds(
+    CommandResult::SharedConst result,
+    uint32_t responseWaitTime) const
+{
+    return make_shared<TransactionResult>(
+        TransactionState::awakeAfterMilliseconds(
+            responseWaitTime),
+        result);
+
+}
+
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const
 {
     return mType;

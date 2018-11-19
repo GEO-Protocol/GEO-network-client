@@ -131,6 +131,9 @@ public:
         const NodeUUID &contractorUUID,
         bool contractorIsGateway);
 
+    const bool isContractorGateway(
+        const NodeUUID &contractor) const;
+
     void setIsOwnKeysPresent(
         const NodeUUID &contractorUUID,
         bool isOwnKeysPresent);
@@ -390,7 +393,7 @@ protected:
      * @throws IOError in case of storage read error.
      */
     void loadTrustLinesFromStorage();
-    
+
     const TrustLineID nextFreeID(
         IOTransaction::Shared ioTransaction) const;
 

@@ -17,6 +17,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         message->equivalent(),
+        false,
         trustLines,
         storageHandler,
         topologyCacheManager,
@@ -45,6 +46,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     BasePaymentTransaction(
         buffer,
         nodeUUID,
+        false,
         trustLines,
         storageHandler,
         topologyCacheManager,
