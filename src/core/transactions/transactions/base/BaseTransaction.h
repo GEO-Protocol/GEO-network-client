@@ -36,6 +36,7 @@ public:
     typedef uint16_t SerializedStep;
 
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
+    typedef signals::signal<void(Message::Shared, const ContractorID)> SendMessageNewSignal;
     typedef signals::signal<void(
             TransactionMessage::Shared,
             const NodeUUID&,
@@ -216,6 +217,17 @@ protected:
             addressee);
     }
 
+    template <typename MessageType, typename... Args>
+    inline void sendMessage(
+        const ContractorID addressee,
+        Args&&... args) const
+    {
+        const auto message = make_shared<MessageType>(args...);
+        outgoingMessageIsReadyNewSignal(
+            message,
+            addressee);
+    }
+
     inline void sendMessage(
         const NodeUUID &addressee,
         const Message::Shared message) const
@@ -303,6 +315,7 @@ protected:
 
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
+    mutable SendMessageNewSignal outgoingMessageIsReadyNewSignal;
     mutable SendMessageWithCachingSignal sendMessageWithCachingSignal;
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
     mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;

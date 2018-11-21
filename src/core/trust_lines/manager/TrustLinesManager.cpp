@@ -5,11 +5,13 @@ TrustLinesManager::TrustLinesManager(
     const SerializedEquivalent equivalent,
     StorageHandler *storageHandler,
     Keystore *keyStore,
+    ContractorsManager *contractorsManager,
     Logger &logger):
 
     mEquivalent(equivalent),
     mStorageHandler(storageHandler),
     mKeysStore(keyStore),
+    mContractorsManager(contractorsManager),
     mLogger(logger),
     mAmountReservationsHandler(
         make_unique<AmountReservationsHandler>())
@@ -25,6 +27,9 @@ void TrustLinesManager::loadTrustLinesFromStorage()
     mTrustLines.reserve(kTrustLines.size());
 
     for (auto const &kTrustLine : kTrustLines) {
+        // todo contractor can be absent : NotFoundError will be
+        kTrustLine->setContractorUUID(
+            mContractorsManager->contractor(kTrustLine->contractorID())->getUUID());
         auto keyChain = mKeysStore->keychain(kTrustLine->trustLineID());
         try {
             auto auditRecord = ioTransaction->auditHandler()->getActualAudit(
@@ -91,6 +96,7 @@ void TrustLinesManager::loadTrustLinesFromStorage()
 }
 
 void TrustLinesManager::open(
+    ContractorID contractorID,
     const NodeUUID &contractorUUID,
     IOTransaction::Shared ioTransaction)
 {
@@ -104,21 +110,19 @@ void TrustLinesManager::open(
     // contractor is not gateway by default
     auto trustLine = make_shared<TrustLine>(
         contractorUUID,
-        trustLineID,
-        0,
-        0,
-        0,
-        false);
+        contractorID,
+        trustLineID);
     mTrustLines[contractorUUID] = trustLine;
 
     if (ioTransaction != nullptr) {
-        saveToStorage(
-            ioTransaction,
-            trustLine);
+        ioTransaction->trustLinesHandler()->saveTrustLine(
+            trustLine,
+            mEquivalent);
     }
 }
 
 void TrustLinesManager::accept(
+    ContractorID contractorID,
     const NodeUUID &contractorUUID,
     IOTransaction::Shared ioTransaction)
 {
@@ -133,17 +137,14 @@ void TrustLinesManager::accept(
     // contractor is not gateway by default
     auto trustLine = make_shared<TrustLine>(
         contractorUUID,
-        trustLineID,
-        0,
-        0,
-        0,
-        false);
+        contractorID,
+        trustLineID);
     mTrustLines[contractorUUID] = trustLine;
 
     if (ioTransaction != nullptr) {
-        saveToStorage(
-            ioTransaction,
-            trustLine);
+        ioTransaction->trustLinesHandler()->saveTrustLine(
+            trustLine,
+            mEquivalent);
     }
 }
 
@@ -440,6 +441,18 @@ bool TrustLinesManager::trustLineContractorKeysPresent(
     return mTrustLines.at(contractorUUID)->isContractorKeysPresent();
 }
 
+ContractorID TrustLinesManager::contractorID(
+    const NodeUUID &contractorUUID) const
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            logHeader() + "::contractorID: "
+                "There is no trust line to contractor " + contractorUUID.stringUUID());
+    }
+
+    return mTrustLines.at(contractorUUID)->contractorID();
+}
+
 AmountReservation::ConstShared TrustLinesManager::reserveOutgoingAmount(
     const NodeUUID &contractor,
     const TransactionUUID &transactionUUID,
@@ -642,26 +655,6 @@ bool TrustLinesManager::isReservationsPresentOnTrustLine(
 {
     return mAmountReservationsHandler->isReservationsPresent(
         contractorUUID);
-}
-
-void TrustLinesManager::saveToStorage(
-    IOTransaction::Shared ioTransaction,
-    TrustLine::Shared trustLine)
-{
-    ioTransaction->trustLinesHandler()->saveTrustLine(
-        trustLine,
-        mEquivalent);
-    try {
-        mTrustLines.insert(
-            make_pair(
-                trustLine->contractorNodeUUID(),
-                trustLine));
-
-    } catch (std::bad_alloc&) {
-            throw MemoryError(
-                logHeader() + "::saveToStorage: "
-                "Can not reallocate STL container memory for new trust line instance.");
-    }
 }
 
 /**

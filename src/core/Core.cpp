@@ -83,17 +83,22 @@ int Core::initSubsystems()
         return initCode;
     }
 
+    initCode = initStorageHandler();
+    if (initCode != 0) {
+        return initCode;
+    }
+
+    initCode = initContractorsManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initCommunicator(conf);
     if (initCode != 0) {
         return initCode;
     }
 
     initCode = initResultsInterface();
-    if (initCode != 0) {
-        return initCode;
-    }
-
-    initCode = initStorageHandler();
     if (initCode != 0) {
         return initCode;
     }
@@ -175,6 +180,7 @@ int Core::initCommunicator(
             mSettings->port(&conf),
             mSettings->uuid2addressHost(&conf),
             mSettings->uuid2addressPort(&conf),
+            mContractorsManager.get(),
             mNodeUUID,
             *mLog);
 
@@ -209,6 +215,7 @@ int Core::initEquivalentsSubsystemsRouter(
             mNodeUUID,
             mStorageHandler.get(),
             mKeysStore.get(),
+            mContractorsManager.get(),
             mIOService,
             equivalentIAmGateway,
             *mLog);
@@ -239,6 +246,7 @@ int Core::initTransactionsManager()
         mTransactionsManager = make_unique<TransactionsManager>(
             mNodeUUID,
             mIOService,
+            mContractorsManager.get(),
             mEquivalentsSubsystemsRouter.get(),
             mResourcesManager.get(),
             mResultsInterface.get(),
@@ -279,6 +287,20 @@ int Core::initStorageHandler()
             "storageDB",
             *mLog);
         info() << "Storage handler is successfully initialised";
+        return 0;
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initContractorsManager()
+{
+    try {
+        mContractorsManager = make_unique<ContractorsManager>(
+            mStorageHandler.get(),
+            *mLog);
+        info() << "Contractors manager is successfully initialised";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
@@ -355,6 +377,13 @@ void Core::connectCommunicatorSignals()
     mTransactionsManager->transactionOutgoingMessageReadySignal.connect(
         boost::bind(
             &Core::onMessageSendSlot,
+            this,
+            _1,
+            _2));
+
+    mTransactionsManager->transactionOutgoingMessageReadyNewSignal.connect(
+        boost::bind(
+            &Core::onMessageSendNewSlot,
             this,
             _1,
             _2));
@@ -518,6 +547,28 @@ void Core::onMessageSendSlot(
         mCommunicator->sendMessage(
             message,
             contractorUUID);
+
+    } catch (exception &e) {
+        mLog->logException("Core", e);
+    }
+}
+
+void Core::onMessageSendNewSlot(
+    Message::Shared message,
+    const ContractorID contractorID)
+{
+#ifdef TESTS
+    if (not mSubsystemsController->isNetworkOn()) {
+        // Ignore outgoing message in case if network was disabled.
+        debug() << "Ignore send message";
+        return;
+    }
+#endif
+
+    try {
+        mCommunicator->sendMessage(
+            message,
+            contractorID);
 
     } catch (exception &e) {
         mLog->logException("Core", e);

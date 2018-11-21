@@ -4,6 +4,7 @@
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/trust_lines/InitTrustLineCommand.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../contractors/ContractorsManager.h"
 
 #include "../../../subsystems_controller/TrustLinesInfluenceController.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
@@ -21,6 +22,7 @@ public:
     OpenTrustLineTransaction(
         const NodeUUID &nodeUUID,
         InitTrustLineCommand::Shared command,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         bool iAmGateway,
@@ -80,6 +82,7 @@ protected:
 protected:
     InitTrustLineCommand::Shared mCommand;
     NodeUUID mContractorUUID;
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
 

@@ -7,12 +7,14 @@ Communicator::Communicator(
     const Port port,
     const Host &UUID2AddressHost,
     const Port UUID2AddressPort,
+    ContractorsManager *contractorsManager,
     const NodeUUID &nodeUUID,
     Logger &logger):
 
     mInterface(interface),
     mPort(port),
     mIOService(IOService),
+    mContractorsManager(contractorsManager),
     mNodeUUID(nodeUUID),
     mLog(logger),
     mSocket(
@@ -39,6 +41,7 @@ Communicator::Communicator(
             IOService,
             *mSocket,
             *mUUID2AddressService,
+            mContractorsManager,
             logger)),
 
     mCommunicatorStorageHandler(
@@ -173,6 +176,34 @@ void Communicator::sendMessage (
     mOutgoingMessagesHandler->sendMessage(
         message,
         contractorUUID);
+}
+
+void Communicator::sendMessage (
+    const Message::Shared message,
+    const ContractorID contractorID)
+    noexcept
+{
+    // Filter outgoing messages for confirmation-required messages.
+//    if (message->isAddToConfirmationNotStronglyRequiredMessagesHandler()) {
+//        mConfirmationNotStronglyRequiredMessagesHandler->tryEnqueueMessage(
+//            contractorUUID,
+//            message);
+//    }
+//
+//    else if (message->isAddToConfirmationRequiredMessagesHandler()) {
+//        mConfirmationRequiredMessagesHandler->tryEnqueueMessage(
+//            contractorUUID,
+//            message);
+//    }
+//
+//    if (message->typeID() == Message::General_Ping) {
+//        mPingMessagesHandler->tryEnqueueContractor(
+//            contractorUUID);
+//    }
+
+    mOutgoingMessagesHandler->sendMessage(
+        message,
+        contractorID);
 }
 
 void Communicator::sendMessageWithCacheSaving(

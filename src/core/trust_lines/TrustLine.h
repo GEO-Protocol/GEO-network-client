@@ -36,20 +36,18 @@ public:
 
 public:
     TrustLine(
-        const NodeUUID &nodeUUID,
         const TrustLineID trustLineID,
-        const TrustLineAmount &incomingAmount,
-        const TrustLineAmount &outgoingAmount,
-        const TrustLineBalance &nodeBalance,
+        const ContractorID contractorID,
         bool isContractorGateway,
-        TrustLineState state = Init,
-        AuditNumber auditNumber = kInitialAuditNumber);
+        TrustLineState state);
 
     TrustLine(
         const NodeUUID &nodeUUID,
-        const TrustLineID trustLineID,
-        bool isContractorGateway,
-        TrustLineState state);
+        const ContractorID contractorID,
+        const TrustLineID trustLineID);
+
+    void setContractorUUID(
+        const NodeUUID& contractorUUID);
 
     void setIncomingTrustAmount(
         const TrustLineAmount &amount);
@@ -65,6 +63,8 @@ public:
 
     void acceptPayment(
         const TrustLineAmount &amount);
+
+    const ContractorID contractorID() const;
 
     const NodeUUID& contractorNodeUUID() const;
 
@@ -136,6 +136,7 @@ public:
 
 private:
     NodeUUID mContractorNodeUUID;
+    ContractorID mContractorID;
     TrustLineID mID;
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;

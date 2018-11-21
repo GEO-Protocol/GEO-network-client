@@ -26,7 +26,15 @@ InitTrustLineCommand::InitTrustLineCommand(
                 "Error occurred while parsing 'Contractor UUID' token.");
     }
 
-    size_t equivalentOffset = NodeUUID::kHexSize + 1;
+    size_t tokenSeparatorPos = NodeUUID::kHexSize;
+    size_t nextTokenSeparatorPos = command.find(
+        kTokensSeparator,
+        tokenSeparatorPos + 1);
+    mContractorAddress = command.substr(
+        tokenSeparatorPos + 1,
+        nextTokenSeparatorPos - tokenSeparatorPos - 1);
+
+    size_t equivalentOffset = nextTokenSeparatorPos + 1;
     string equivalentStr = command.substr(
         equivalentOffset,
         command.size() - equivalentOffset - 1);
@@ -56,4 +64,10 @@ const SerializedEquivalent InitTrustLineCommand::equivalent() const
 noexcept
 {
     return mEquivalent;
+}
+
+const string InitTrustLineCommand::contractorAddress() const
+noexcept
+{
+    return mContractorAddress;
 }

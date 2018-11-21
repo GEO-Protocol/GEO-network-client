@@ -3,8 +3,6 @@
 
 #include "../TrustLine.h"
 
-#include "../../common/NodeUUID.h"
-#include "../../common/Types.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/MemoryError.h"
@@ -19,6 +17,7 @@
 #include "../../io/storage/StorageHandler.h"
 #include "../../io/storage/IOTransaction.h"
 #include "../../crypto/keychain.h"
+#include "../../contractors/ContractorsManager.h"
 
 #include <boost/crc.hpp>
 #include <boost/functional/hash.hpp>
@@ -57,13 +56,16 @@ public:
         const SerializedEquivalent equivalent,
         StorageHandler *storageHandler,
         Keystore *keyStore,
+        ContractorsManager *contractorsManager,
         Logger &logger);
 
     void open(
+        ContractorID contractorID,
         const NodeUUID &contractorUUID,
         IOTransaction::Shared ioTransaction = nullptr);
 
     void accept(
+        ContractorID contractorID,
         const NodeUUID &contractorUUID,
         IOTransaction::Shared ioTransaction = nullptr);
 
@@ -188,6 +190,9 @@ public:
         const NodeUUID &contractorUUID) const;
 
     bool trustLineContractorKeysPresent(
+        const NodeUUID &contractorUUID) const;
+
+    ContractorID contractorID(
         const NodeUUID &contractorUUID) const;
 
     /**
@@ -382,10 +387,6 @@ public:
     void printRTs();
 
 protected:
-    void saveToStorage(
-        IOTransaction::Shared ioTransaction,
-        TrustLine::Shared trustLine);
-
     /**
      * Reads trust lines info from the internal storage and initialises internal trust lines map.
      * Ignores obsolete trust lines (outgoing 0, incoming 0, and balance 0).
@@ -417,6 +418,7 @@ private:
     unique_ptr<AmountReservationsHandler> mAmountReservationsHandler;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
+    ContractorsManager *mContractorsManager;
     Logger &mLogger;
 };
 

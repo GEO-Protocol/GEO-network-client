@@ -35,6 +35,7 @@ public:
         const Port port,
         const Host &uuid2AddressHost,
         const Port uuid2AddressPort,
+        ContractorsManager *contractorsManager,
         const NodeUUID &nodeUUID,
         Logger &logger)
         noexcept(false);
@@ -49,6 +50,11 @@ public:
     void sendMessage (
         const Message::Shared kMessage,
         const NodeUUID &kContractorUUID)
+        noexcept;
+
+    void sendMessage (
+        const Message::Shared kMessage,
+        const ContractorID contractorID)
         noexcept;
 
     void sendMessageWithCacheSaving (
@@ -113,6 +119,7 @@ protected:
 
     unique_ptr<UDPSocket> mSocket;
     unique_ptr<UUID2Address> mUUID2AddressService;
+    ContractorsManager *mContractorsManager;
     unique_ptr<IncomingMessagesHandler> mIncomingMessagesHandler;
     unique_ptr<OutgoingMessagesHandler> mOutgoingMessagesHandler;
     unique_ptr<ConfirmationRequiredMessagesHandler> mConfirmationRequiredMessagesHandler;

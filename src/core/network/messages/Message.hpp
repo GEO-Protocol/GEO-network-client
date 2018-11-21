@@ -210,11 +210,25 @@ public:
             sizeof(SerializedProtocolVersion) + sizeof(kMessageType));
     }
 
+    void setSenderAddress(
+        const string &senderAddress)
+    {
+        mSenderAddress = senderAddress;
+    }
+
+    string senderAddress()
+    {
+        return mSenderAddress;
+    }
+
 protected:
     virtual const size_t kOffsetToInheritedBytes() const
     {
         return sizeof(SerializedProtocolVersion) + sizeof(SerializedType);
     }
+
+private:
+    string mSenderAddress;
 };
 
 #endif //GEO_NETWORK_CLIENT_MESSAGE_H

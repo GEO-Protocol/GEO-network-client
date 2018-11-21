@@ -135,6 +135,7 @@ namespace signals = boost::signals2;
 class TransactionsManager {
 public:
     signals::signal<void(Message::Shared, const NodeUUID&)> transactionOutgoingMessageReadySignal;
+    signals::signal<void(Message::Shared, const ContractorID)> transactionOutgoingMessageReadyNewSignal;
     signals::signal<void(
             TransactionMessage::Shared,
             const NodeUUID&,
@@ -147,6 +148,7 @@ public:
     TransactionsManager(
         NodeUUID &nodeUUID,
         as::io_service &IOService,
+        ContractorsManager *contractorsManager,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         ResourcesManager *ResourcesManager,
         ResultsInterface *resultsInterface,
@@ -380,6 +382,9 @@ protected:
     void subscribeForOutgoingMessages(
         BaseTransaction::SendMessageSignal &signal);
 
+    void subscribeForOutgoingNewMessages(
+        BaseTransaction::SendMessageNewSignal &signal);
+
     void subscribeForOutgoingMessagesWithCaching(
         BaseTransaction::SendMessageWithCachingSignal &signal);
 
@@ -432,6 +437,10 @@ protected:
     void onTransactionOutgoingMessageReady(
         Message::Shared message,
         const NodeUUID &contractorUUID);
+
+    void onTransactionOutgoingNewMessageReady(
+        Message::Shared message,
+        const ContractorID contractorID);
 
     void onTransactionOutgoingMessageWithCachingReady(
         TransactionMessage::Shared message,
@@ -515,6 +524,7 @@ protected:
 private:
     NodeUUID &mNodeUUID;
     as::io_service &mIOService;
+    ContractorsManager *mContractorsManager;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     ResourcesManager *mResourcesManager;
     ResultsInterface *mResultsInterface;

@@ -3,6 +3,7 @@
 OpenTrustLineTransaction::OpenTrustLineTransaction(
     const NodeUUID &nodeUUID,
     InitTrustLineCommand::Shared command,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     bool iAmGateway,
@@ -18,6 +19,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mCommand(command),
     mContractorUUID(mCommand->contractorUUID()),
     mCountSendingAttempts(0),
+    mContractorsManager(contractorsManager),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mSubsystemsController(subsystemsController),
@@ -80,6 +82,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
         return resultForbiddenRun();
     }
     info() << "Try init TL to " << mContractorUUID;
+    info() << "Contractor address " << mCommand->contractorAddress();
 
     if (mContractorUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
@@ -93,7 +96,12 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
+        auto contractorID = mContractorsManager->getContractorID(
+            ioTransaction,
+            mCommand->contractorAddress(),
+            mContractorUUID);
         mTrustLines->open(
+            contractorID,
             mContractorUUID,
             ioTransaction);
         info() << "TrustLine to the node " << mContractorUUID
@@ -114,11 +122,8 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
         return resultUnexpectedError();
     }
 
-    // Notifying remote node about trust line state changed.
-    // Network communicator knows, that this message must be forced to be delivered,
-    // so the TA itself might finish without any response from the remote node.
     sendMessage<TrustLineInitialMessage>(
-        mContractorUUID,
+        mTrustLines->contractorID(mContractorUUID),
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,

@@ -9,6 +9,7 @@ StorageHandler::StorageHandler(
 
     mDirectory(directory),
     mDataBaseName(dataBaseName),
+    mContractorsHandler(connection(dataBaseName, directory), kContractorsTableName, logger),
     mTrustLineHandler(connection(dataBaseName, directory), kTrustLineTableName, logger),
     mTransactionHandler(connection(dataBaseName, directory), kTransactionTableName, logger),
     mHistoryStorage(connection(dataBaseName, directory), kHistoryMainTableName, kHistoryAdditionalTableName, logger),
@@ -87,6 +88,7 @@ IOTransaction::Shared StorageHandler::beginTransaction()
         &mOutgoingPaymentReceiptHandler,
         &mPaymentKeysHandler,
         &mPaymentParticipantsVotesHandler,
+        &mContractorsHandler,
         mLog);
 }
 

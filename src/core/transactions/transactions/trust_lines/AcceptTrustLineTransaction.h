@@ -7,6 +7,7 @@
 #include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
 
 #include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../contractors/ContractorsManager.h"
 
 #include "../../../subsystems_controller/SubsystemsController.h"
 #include "../../../subsystems_controller/TrustLinesInfluenceController.h"
@@ -20,6 +21,7 @@ public:
     AcceptTrustLineTransaction(
         const NodeUUID &nodeUUID,
         TrustLineInitialMessage::Shared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         bool iAmGateway,
@@ -49,7 +51,9 @@ protected:
 
 protected:
     NodeUUID mContractorUUID;
+    string mSenderAddress;
 
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
 

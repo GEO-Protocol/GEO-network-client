@@ -13,6 +13,7 @@ IOTransaction::IOTransaction(
     OutgoingPaymentReceiptHandler *outgoingPaymentReceiptHandler,
     PaymentKeysHandler *paymentKeysHandler,
     PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler,
+    ContractorsHandler *contractorsHandler,
     Logger &logger) :
 
     mDBConnection(dbConnection),
@@ -27,6 +28,7 @@ IOTransaction::IOTransaction(
     mOutgoingPaymentReceiptHandler(outgoingPaymentReceiptHandler),
     mPaymentKeysHandler(paymentKeysHandler),
     mPaymentParticipantsVotesHandler(paymentParticipantsVotesHandler),
+    mContractorsHandler(contractorsHandler),
     mIsTransactionBegin(true),
     mLog(logger)
 {
@@ -126,6 +128,15 @@ PaymentParticipantsVotesHandler* IOTransaction::paymentParticipantsVotesHandler(
                           "transaction was rollback, it can't be use now");
     }
     return mPaymentParticipantsVotesHandler;
+}
+
+ContractorsHandler* IOTransaction::contractorsHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::contractorsHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mContractorsHandler;
 }
 
 void IOTransaction::commit()

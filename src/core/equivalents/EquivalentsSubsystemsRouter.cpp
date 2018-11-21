@@ -4,6 +4,7 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     NodeUUID &nodeUUID,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    ContractorsManager *contractorsManager,
     as::io_service &ioService,
     vector<SerializedEquivalent> &equivalentsIAmGateway,
     Logger &logger):
@@ -11,6 +12,7 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     mNodeUUID(nodeUUID),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
+    mContractorsManager(contractorsManager),
     mIOService(ioService),
     mLogger(logger)
 {
@@ -36,6 +38,7 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                     equivalent,
                     mStorageHandler,
                     mKeysStore,
+                    mContractorsManager,
                     mLogger)));
         info() << "Trust Lines Manager is successfully initialized";
 
@@ -197,6 +200,7 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
                 equivalent,
                 mStorageHandler,
                 mKeysStore,
+                mContractorsManager,
                 mLogger)));
     info() << "Trust Lines Manager is successfully initialized";
 

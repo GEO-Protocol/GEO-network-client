@@ -3,6 +3,7 @@
 AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     const NodeUUID &nodeUUID,
     TrustLineInitialMessage::Shared message,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     bool iAmGateway,
@@ -18,6 +19,8 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
         message->equivalent(),
         logger),
     mContractorUUID(message->senderUUID),
+    mSenderAddress(message->senderAddress()),
+    mContractorsManager(contractorsManager),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler),
     mSubsystemsController(subsystemsController),
@@ -29,6 +32,7 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
 TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 {
     info() << "sender: " << mContractorUUID;
+    info() << "sender address " << mSenderAddress;
 
     if (mContractorUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
@@ -70,8 +74,14 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
+        auto contractorID = mContractorsManager->getContractorID(
+            ioTransaction,
+            mSenderAddress,
+            mContractorUUID);
+
         // todo : add parameter mSenderIsGateway
         mTrustLinesManager->accept(
+            contractorID,
             mContractorUUID,
             ioTransaction);
         mTrustLinesManager->setTrustLineState(

@@ -5,12 +5,14 @@ OutgoingNodesHandler::OutgoingNodesHandler(
     IOService &ioService,
     UDPSocket &socket,
     UUID2Address &UUID2AddressService,
+    ContractorsManager *contractorsManager,
     Logger &logger)
     noexcept:
 
     mIOService(ioService),
     mSocket(socket),
     mUUID2AddressService(UUID2AddressService),
+    mContractorsManager(contractorsManager),
     mCleaningTimer(ioService),
     mLog(logger)
 {
@@ -32,6 +34,23 @@ OutgoingRemoteNode *OutgoingNodesHandler::handler(
 
     mLastAccessDateTimes[remoteNodeUUID] = utc_now();
     return mNodes[remoteNodeUUID].get();
+}
+
+OutgoingRemoteNodeNew *OutgoingNodesHandler::handler(
+    const ContractorID contractorID)
+    noexcept
+{
+    auto contractor = mContractorsManager->contractor(contractorID);
+    if (0 == mNodesNew.count(contractorID)) {
+        mNodesNew[contractorID] = make_unique<OutgoingRemoteNodeNew>(
+            contractor,
+            mSocket,
+            mIOService,
+            mLog);
+    }
+
+    mLastAccessDateTimes[contractor->getUUID()] = utc_now();
+    return mNodesNew[contractorID].get();
 }
 
 /**
@@ -59,7 +78,7 @@ void OutgoingNodesHandler::rescheduleCleaning()
 void OutgoingNodesHandler::removeOutdatedHandlers()
     noexcept
 {
-    if (mNodes.size() == 0) {
+    if (mNodes.empty()) {
         return;
     }
 
@@ -76,13 +95,13 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
     // This prevents sending of several messages into the same channel
     // (and further collision)
     //
-    // Channels counter is initalised by 0 every time handler is created.
+    // Channels counter is initialised by 0 every time handler is created.
     // In case if handler for the outgoing node would be created and removed too quickly -
     // this counter would be very often reinitialised to 0,
-    // and messages would be sent into the channels, that was alredy used recently.
+    // and messages would be sent into the channels, that was already used recently.
     //
     // Depending on the network bandwidth, it may, or may not brings messages collisions.
-    // It is recommended to set this paramter to 1-2 minutes.
+    // It is recommended to set this parameter to 1-2 minutes.
     const auto kMaxIdleTimeout = boost::posix_time::seconds(kHandlersTTL().count());
 
     forward_list<NodeUUID> outdatedHandlersUUIDs;
@@ -121,7 +140,7 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
 
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
-    if (mNodes.size() > 0) {
+    if (!mNodes.empty()) {
         debug() << mNodes.size() << " nodes handler(s) are (is) alive";
     }
     debug() << "Outdated nodes handlers removing finished";

@@ -116,6 +116,9 @@ void IncomingMessagesHandler::handleReceivedInfo(
             for (;;) {
                 auto message = remoteNodeHandler->popNextMessage();
                 if (message != nullptr) {
+                    stringstream ss;
+                    ss << mRemoteEndpointBuffer.address().to_string() << ":" << mRemoteEndpointBuffer.port();
+                    message->setSenderAddress(ss.str());
                     signalMessageParsed(message);
                 }
                 else {

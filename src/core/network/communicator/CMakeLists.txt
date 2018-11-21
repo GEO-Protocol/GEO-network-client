@@ -54,7 +54,7 @@ set(SOURCE_FILES
         internal/queue/ConfirmationResponseMessagesHandler.h
         internal/queue/ConfirmationResponseMessagesHandler.cpp
         internal/queue/ConfirmationCachedResponseMessage.h
-        internal/queue/ConfirmationCachedResponseMessage.cpp internal/queue/PingMessagesHandler.cpp internal/queue/PingMessagesHandler.h)
+        internal/queue/ConfirmationCachedResponseMessage.cpp internal/queue/PingMessagesHandler.cpp internal/queue/PingMessagesHandler.h internal/outgoing/OutgoingRemoteNodeNew.cpp internal/outgoing/OutgoingRemoteNodeNew.h)
 
 
 add_library(network__communicator ${SOURCE_FILES})

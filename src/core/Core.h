@@ -14,6 +14,7 @@
 #include "io/storage/StorageHandler.h"
 #include "equivalents/EquivalentsSubsystemsRouter.h"
 #include "crypto/keychain.h"
+#include "contractors/ContractorsManager.h"
 
 #include "logger/Logger.h"
 
@@ -68,6 +69,8 @@ private:
 
     int initStorageHandler();
 
+    int initContractorsManager();
+
     int initSubsystemsController();
 
     int initTrustLinesInfluenceController();
@@ -95,6 +98,10 @@ private:
     void onMessageSendSlot(
         Message::Shared message,
         const NodeUUID &contractorUUID);
+
+    void onMessageSendNewSlot(
+        Message::Shared message,
+        const ContractorID contractorID);
 
     void onMessageSendWithCachingSlot(
         TransactionMessage::Shared message,
@@ -156,6 +163,7 @@ protected:
     unique_ptr<TrustLinesInfluenceController> mTrustLinesInfluenceController;
     unique_ptr<EquivalentsSubsystemsRouter> mEquivalentsSubsystemsRouter;
     unique_ptr<Keystore> mKeysStore;
+    unique_ptr<ContractorsManager> mContractorsManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

@@ -15,6 +15,8 @@
 #include "PaymentKeysHandler.h"
 #include "PaymentParticipantsVotesHandler.h"
 
+#include "ContractorsHandler.h"
+
 #include "../../../libs/sqlite3/sqlite3.h"
 
 class IOTransaction {
@@ -36,6 +38,7 @@ public:
         OutgoingPaymentReceiptHandler *outgoingPaymentReceiptHandler,
         PaymentKeysHandler *paymentKeysHandler,
         PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler,
+        ContractorsHandler *contractorsHandler,
         Logger &logger);
 
     ~IOTransaction();
@@ -61,6 +64,8 @@ public:
     PaymentKeysHandler *paymentKeysHandler();
 
     PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler();
+
+    ContractorsHandler *contractorsHandler();
 
     void rollback();
 
@@ -90,6 +95,8 @@ private:
     OutgoingPaymentReceiptHandler *mOutgoingPaymentReceiptHandler;
     PaymentKeysHandler *mPaymentKeysHandler;
     PaymentParticipantsVotesHandler *mPaymentParticipantsVotesHandler;
+
+    ContractorsHandler *mContractorsHandler;
 
     bool mIsTransactionBegin;
     Logger &mLog;

@@ -25,6 +25,7 @@ public:
         NodeUUID &nodeUUID,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        ContractorsManager *contractorsManager,
         as::io_service &ioService,
         vector<SerializedEquivalent> &equivalentsIAmGateway,
         Logger &logger);
@@ -88,6 +89,7 @@ private:
     as::io_service &mIOService;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
+    ContractorsManager *mContractorsManager;
     Logger &mLogger;
     vector<SerializedEquivalent> mEquivalents;
     map<SerializedEquivalent, unique_ptr<TrustLinesManager>> mTrustLinesManagers;

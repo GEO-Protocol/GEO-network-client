@@ -1,39 +1,14 @@
 ﻿#include "TrustLine.h"
 
 TrustLine::TrustLine(
-    const NodeUUID &nodeUUID,
     const TrustLineID trustLineID,
-    const TrustLineAmount &incomingAmount,
-    const TrustLineAmount &outgoingAmount,
-    const TrustLineBalance &nodeBalance,
-    bool isContractorGateway,
-    TrustLineState state,
-    AuditNumber auditNumber) :
-
-    mContractorNodeUUID(nodeUUID),
-    mID(trustLineID),
-    mIncomingTrustAmount(incomingAmount),
-    mOutgoingTrustAmount(outgoingAmount),
-    mBalance(nodeBalance),
-    mIsContractorGateway(isContractorGateway),
-    mCurrentAudit(auditNumber),
-    mState(state),
-    mTotalIncomingReceiptsAmount(kZeroAmount()),
-    mTotalOutgoingReceiptsAmount(kZeroAmount()),
-    mIsOwnKeysPresent(false),
-    mIsContractorKeysPresent(false)
-{
-    // todo zero amounts checking
-}
-
-TrustLine::TrustLine(
-    const NodeUUID &nodeUUID,
-    const TrustLineID trustLineID,
+    const ContractorID contractorID,
     bool isContractorGateway,
     TrustLineState state) :
 
-    mContractorNodeUUID(nodeUUID),
     mID(trustLineID),
+    mContractorID(contractorID),
+    mContractorNodeUUID(NodeUUID::empty()),
     mIncomingTrustAmount(kZeroAmount()),
     mOutgoingTrustAmount(kZeroAmount()),
     mBalance(kZeroBalance()),
@@ -45,6 +20,32 @@ TrustLine::TrustLine(
     mIsOwnKeysPresent(false),
     mIsContractorKeysPresent(false)
 {}
+
+TrustLine::TrustLine(
+    const NodeUUID &nodeUUID,
+    const ContractorID contractorID,
+    const TrustLineID trustLineID):
+
+    mContractorNodeUUID(nodeUUID),
+    mContractorID(contractorID),
+    mID(trustLineID),
+    mIncomingTrustAmount(kZeroAmount()),
+    mOutgoingTrustAmount(kZeroAmount()),
+    mBalance(kZeroBalance()),
+    mIsContractorGateway(false),
+    mCurrentAudit(kInitialAuditNumber),
+    mState(TrustLine::Init),
+    mTotalIncomingReceiptsAmount(kZeroAmount()),
+    mTotalOutgoingReceiptsAmount(kZeroAmount()),
+    mIsOwnKeysPresent(false),
+    mIsContractorKeysPresent(false)
+{}
+
+void TrustLine::setContractorUUID(
+    const NodeUUID &contractorUUID)
+{
+    mContractorNodeUUID = contractorUUID;
+}
 
 /**
  * Sets incoming trust amount of the trust line.
@@ -94,6 +95,11 @@ void TrustLine::setBalance(
         throw ValueError("TrustLine::setBalance: Balance is too big");
     }
     mBalance = balance;
+}
+
+const ContractorID TrustLine::contractorID() const
+{
+    return mContractorID;
 }
 
 const NodeUUID &TrustLine::contractorNodeUUID() const

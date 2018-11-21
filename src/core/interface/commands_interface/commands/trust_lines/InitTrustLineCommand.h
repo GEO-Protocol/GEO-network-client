@@ -24,9 +24,13 @@ public:
     const SerializedEquivalent equivalent() const
     noexcept;
 
+    const string contractorAddress() const
+    noexcept;
+
 private:
     NodeUUID mContractorUUID;
     SerializedEquivalent mEquivalent;
+    string mContractorAddress;
 };
 
 

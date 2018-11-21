@@ -7,6 +7,7 @@
 TransactionsManager::TransactionsManager(
     NodeUUID &nodeUUID,
     as::io_service &IOService,
+    ContractorsManager *contractorsManager,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     ResourcesManager *resourcesManager,
     ResultsInterface *resultsInterface,
@@ -18,6 +19,7 @@ TransactionsManager::TransactionsManager(
 
     mNodeUUID(nodeUUID),
     mIOService(IOService),
+    mContractorsManager(contractorsManager),
     mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
     mResourcesManager(resourcesManager),
     mResultsInterface(resultsInterface),
@@ -497,6 +499,7 @@ void TransactionsManager::launchInitTrustLineTransaction(
     auto transaction = make_shared<OpenTrustLineTransaction>(
         mNodeUUID,
         command,
+        mContractorsManager,
         mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
         mStorageHandler,
         mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
@@ -644,6 +647,7 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
         auto transaction = make_shared<AcceptTrustLineTransaction>(
             mNodeUUID,
             message,
+            mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
             mStorageHandler,
             mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
@@ -1911,6 +1915,19 @@ void TransactionsManager::subscribeForOutgoingMessages(
             _2));
 }
 
+void TransactionsManager::subscribeForOutgoingNewMessages(
+    BaseTransaction::SendMessageNewSignal &signal)
+{
+    // ToDo: connect signals of transaction and core directly (signal -> signal)
+    // Boost allows this type of connectivity.
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onTransactionOutgoingNewMessageReady,
+            this,
+            _1,
+            _2));
+}
+
 void TransactionsManager::subscribeForOutgoingMessagesWithCaching(
     BaseTransaction::SendMessageWithCachingSignal &signal)
 {
@@ -2077,6 +2094,15 @@ void TransactionsManager::onTransactionOutgoingMessageReady(
     transactionOutgoingMessageReadySignal(
         message,
         contractorUUID);
+}
+
+void TransactionsManager::onTransactionOutgoingNewMessageReady(
+    Message::Shared message,
+    const ContractorID contractorID)
+{
+    transactionOutgoingMessageReadyNewSignal(
+        message,
+        contractorID);
 }
 
 void TransactionsManager::onTransactionOutgoingMessageWithCachingReady(
@@ -2384,6 +2410,8 @@ void TransactionsManager::prepareAndSchedule(
     if (outgoingMessagesSubscribe) {
         subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
+        subscribeForOutgoingNewMessages(
+            transaction->outgoingMessageIsReadyNewSignal);
         subscribeForOutgoingMessagesWithCaching(
             transaction->sendMessageWithCachingSignal);
     }

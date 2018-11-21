@@ -158,7 +158,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         throw ValueError(
                 "HistoryPaymentsCommand: can't parse command. "
                     "Error occurred while parsing 'equivalent' token.");
-        }
+    }
 }
 
 const string &HistoryPaymentsCommand::identifier()

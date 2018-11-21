@@ -1,8 +1,6 @@
 #ifndef GEO_NETWORK_CLIENT_TRUSTLINEHANDLER_H
 #define GEO_NETWORK_CLIENT_TRUSTLINEHANDLER_H
 
-#include "../../common/NodeUUID.h"
-#include "../../common/Types.h"
 #include "../../trust_lines/TrustLine.h"
 #include "../../logger/Logger.h"
 #include "../../common/exceptions/IOError.h"

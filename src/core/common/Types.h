@@ -37,6 +37,7 @@ const size_t kTrustLineBalanceSerializeBytesCount = 33;
 
 static const constexpr char kCommandsSeparator = '\n';
 static const constexpr char kTokensSeparator = '\t';
+static const constexpr char kAddressSeparator = ':';
 
 typedef uint16_t SerializedRecordsCount;
 typedef SerializedRecordsCount SerializedRecordNumber;
@@ -54,5 +55,7 @@ typedef uint16_t ConfirmationID;
 //equivalents
 typedef uint32_t SerializedEquivalent;
 typedef byte SerializedProtocolVersion;
+
+typedef uint32_t ContractorID;
 
 #endif //GEO_NETWORK_CLIENT_TYPES_H
