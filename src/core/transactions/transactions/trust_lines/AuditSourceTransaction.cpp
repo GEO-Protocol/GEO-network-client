@@ -349,12 +349,25 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
             message->keyNumber(),
             message->signature());
 
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
-            TrustLine::Active);
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
             mContractorUUID);
-        info() << "All data saved. Now TL is ready for using";
+        if (mTrustLines->isTrustLineEmpty(mContractorUUID) and
+                mAuditNumber > TrustLine::kInitialAuditNumber + 1) {
+            mTrustLines->setTrustLineState(
+                mContractorUUID,
+                TrustLine::Archived,
+                ioTransaction);
+            keyChain.removeUnusedOwnKeys(ioTransaction);
+            mTrustLines->setIsOwnKeysPresent(mContractorUUID, false);
+            keyChain.removeUnusedContractorKeys(ioTransaction);
+            mTrustLines->setIsContractorKeysPresent(mContractorUUID, false);
+            info() << "Trust Line become empty";
+        } else {
+            mTrustLines->setTrustLineState(
+                mContractorUUID,
+                TrustLine::Active);
+            info() << "All data saved. Now TL is ready for using";
+        }
 
 #ifdef TESTS
         mTrustLinesInfluenceController->testThrowExceptionOnSourceProcessingResponseStage(

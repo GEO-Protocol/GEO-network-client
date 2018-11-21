@@ -50,9 +50,13 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
                 ConfirmationMessage::OK);
             return resultDone();
         }
-        warning() << "Trust line already present and not initial.";
-        return sendTrustLineErrorConfirmation(
-            ConfirmationMessage::TrustLineAlreadyPresent);
+        if (mTrustLinesManager->trustLineState(mContractorUUID) != TrustLine::Archived) {
+            warning() << "Trust line already present and not initial.";
+            return sendTrustLineErrorConfirmation(
+                ConfirmationMessage::TrustLineAlreadyPresent);
+        } else {
+            info() << "Reopening of archived TL";
+        }
     }
 
     // Trust line must be created (or updated) in the internal storage.
@@ -71,17 +75,26 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
         // todo : add parameter mSenderIsGateway
-        mTrustLinesManager->accept(
-            mContractorUUID,
-            ioTransaction);
-        mTrustLinesManager->setTrustLineState(
-            mContractorUUID,
-            TrustLine::Active,
-            ioTransaction);
-        populateHistory(ioTransaction, TrustLineRecord::Accepting);
-        info() << "Trust Line from the node " << mContractorUUID
-               << " has been successfully initialised.";
+        if (mTrustLinesManager->trustLineIsPresent(mContractorUUID)) {
+            mTrustLinesManager->setTrustLineState(
+                mContractorUUID,
+                TrustLine::Active,
+                ioTransaction);
+            info() << "TrustLine form the node " << mContractorUUID
+                   << " successfully reinitialised.";
+        } else {
+            mTrustLinesManager->accept(
+                mContractorUUID,
+                ioTransaction);
+            mTrustLinesManager->setTrustLineState(
+                mContractorUUID,
+                TrustLine::Active,
+                ioTransaction);
+            info() << "Trust Line from the node " << mContractorUUID
+                   << " has been successfully initialised.";
+        }
 
+        populateHistory(ioTransaction, TrustLineRecord::Accepting);
         if (mSenderIsGateway) {
             mTrustLinesManager->setContractorAsGateway(
                 ioTransaction,
