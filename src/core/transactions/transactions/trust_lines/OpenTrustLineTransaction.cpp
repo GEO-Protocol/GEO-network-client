@@ -90,22 +90,35 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
     }
 
     if (mTrustLines->trustLineIsPresent(mContractorUUID)) {
-        warning() << "Trust line already present.";
-        return resultProtocolError();
+        if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Archived) {
+            warning() << "Trust line already present.";
+            return resultProtocolError();
+        } else {
+            info() << "Reopening of archived TL";
+        }
     }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
-        auto contractorID = mContractorsManager->getContractorID(
-            ioTransaction,
-            mCommand->contractorAddress(),
-            mContractorUUID);
-        mTrustLines->open(
-            contractorID,
-            mContractorUUID,
-            ioTransaction);
-        info() << "TrustLine to the node " << mContractorUUID
-               << " successfully initialised.";
+        if (mTrustLines->trustLineIsPresent(mContractorUUID)) {
+            mTrustLines->setTrustLineState(
+                mContractorUUID,
+                TrustLine::Init,
+                ioTransaction);
+            info() << "TrustLine to the node " << mContractorUUID
+                   << " successfully reinitialised.";
+        } else {
+            auto contractorID = mContractorsManager->getContractorID(
+                ioTransaction,
+                mCommand->contractorAddress(),
+                mContractorUUID);
+            mTrustLines->open(
+                contractorID,
+                mContractorUUID,
+                ioTransaction);
+            info() << "TrustLine to the node " << mContractorUUID
+                   << " successfully initialised.";
+        }
 
 #ifdef TESTS
         mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(

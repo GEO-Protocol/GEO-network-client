@@ -348,13 +348,26 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
             mAuditNumber,
             message->keyNumber(),
             message->signature());
-        info() << "audit saved";
 
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
-            TrustLine::Active);
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
             mContractorUUID);
+        if (mTrustLines->isTrustLineEmpty(mContractorUUID) and
+                mAuditNumber > TrustLine::kInitialAuditNumber + 1) {
+            mTrustLines->setTrustLineState(
+                mContractorUUID,
+                TrustLine::Archived,
+                ioTransaction);
+            keyChain.removeUnusedOwnKeys(ioTransaction);
+            mTrustLines->setIsOwnKeysPresent(mContractorUUID, false);
+            keyChain.removeUnusedContractorKeys(ioTransaction);
+            mTrustLines->setIsContractorKeysPresent(mContractorUUID, false);
+            info() << "Trust Line become empty";
+        } else {
+            mTrustLines->setTrustLineState(
+                mContractorUUID,
+                TrustLine::Active);
+            info() << "All data saved. Now TL is ready for using";
+        }
 
         switch (mOperationResult) {
             case TrustLinesManager::TrustLineOperationResult::Opened: {

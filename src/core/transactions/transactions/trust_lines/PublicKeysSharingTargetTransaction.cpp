@@ -173,8 +173,8 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             mTrustLines->setIsContractorKeysPresent(
                 mContractorUUID,
                 true);
-            if (mTrustLines->auditNumber(mContractorUUID) == 0
-                and !keyChain.ownKeysPresent(ioTransaction)) {
+            if (mTrustLines->isTrustLineEmpty(mContractorUUID) and
+                    !keyChain.ownKeysPresent(ioTransaction)) {
                 info() << "publicKeysSharing Signal";
                 publicKeysSharingSignal(
                     mContractorUUID,

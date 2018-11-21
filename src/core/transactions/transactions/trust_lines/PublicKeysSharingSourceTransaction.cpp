@@ -271,7 +271,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
                 mContractorUUID,
                 true);
             info() << "TL is ready for using";
-            if (mTrustLines->auditNumber(mContractorUUID) != 0) {
+            if (!mTrustLines->isTrustLineEmpty(mContractorUUID)) {
                 auditSignal(mContractorUUID, mEquivalent);
             } else {
                 if (mTrustLines->trustLineContractorKeysPresent(mContractorUUID)) {
