@@ -88,7 +88,7 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initContractorsManager();
+    initCode = initContractorsManager(conf);
     if (initCode != 0) {
         return initCode;
     }
@@ -294,10 +294,13 @@ int Core::initStorageHandler()
     }
 }
 
-int Core::initContractorsManager()
+int Core::initContractorsManager(
+    const json &conf)
 {
     try {
         mContractorsManager = make_unique<ContractorsManager>(
+            mSettings->interface(&conf),
+            mSettings->port(&conf),
             mStorageHandler.get(),
             *mLog);
         info() << "Contractors manager is successfully initialised";

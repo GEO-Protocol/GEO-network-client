@@ -69,7 +69,8 @@ private:
 
     int initStorageHandler();
 
-    int initContractorsManager();
+    int initContractorsManager(
+        const json &conf);
 
     int initSubsystemsController();
 

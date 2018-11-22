@@ -14,6 +14,20 @@ TransactionMessage::TransactionMessage(
 {}
 
 TransactionMessage::TransactionMessage(
+    const SerializedEquivalent equivalent,
+    const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
+    const TransactionUUID &transactionUUID)
+    noexcept:
+
+    SenderMessage(
+        equivalent,
+        senderUUID,
+        senderAddresses),
+    mTransactionUUID(transactionUUID)
+{}
+
+TransactionMessage::TransactionMessage(
     BytesShared buffer)
     noexcept :
 

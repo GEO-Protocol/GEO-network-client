@@ -10,6 +10,8 @@ class ContractorsManager {
 
 public:
     ContractorsManager(
+        const Host &interface,
+        const Port port,
         StorageHandler *storageHandler,
         Logger &logger);
 
@@ -23,6 +25,8 @@ public:
 
     Contractor::Shared contractor(
         ContractorID contractorID);
+
+    vector<BaseAddress::Shared> ownAddresses() const;
 
 protected:
     const ContractorID nextFreeID(
@@ -40,7 +44,7 @@ protected: // log shortcuts
 
 private:
     map<ContractorID, Contractor::Shared> mContractors;
-
+    IPv4WithPortAddress::Shared mOwnIPv4;
     StorageHandler *mStorageHandler;
     Logger &mLogger;
 };

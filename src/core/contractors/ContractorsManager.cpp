@@ -1,11 +1,16 @@
 #include "ContractorsManager.h"
 
 ContractorsManager::ContractorsManager(
+    const Host &interface,
+    const Port port,
     StorageHandler *storageHandler,
     Logger &logger):
     mStorageHandler(storageHandler),
     mLogger(logger)
 {
+    mOwnIPv4 = make_shared<IPv4WithPortAddress>(
+        interface,
+        port);
     auto ioTransaction = mStorageHandler->beginTransaction();
     for (const auto &contractor : ioTransaction->contractorsHandler()->allContractors()) {
         mContractors.insert(
@@ -73,6 +78,13 @@ const ContractorID ContractorsManager::nextFreeID(
         prevElement = *it;
     }
     return prevElement + 1;
+}
+
+vector<BaseAddress::Shared> ContractorsManager::ownAddresses() const
+{
+    vector<BaseAddress::Shared> result;
+    result.push_back(mOwnIPv4);
+    return result;
 }
 
 const string ContractorsManager::logHeader() const

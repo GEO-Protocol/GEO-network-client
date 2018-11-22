@@ -19,7 +19,8 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
         message->equivalent(),
         logger),
     mContractorUUID(message->senderUUID),
-    mSenderAddress(message->senderAddress()),
+    mSenderIncomingIP(message->senderIncomingIP()),
+    mContractorAddresses(message->senderAddresses),
     mContractorsManager(contractorsManager),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler),
@@ -32,7 +33,11 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
 TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 {
     info() << "sender: " << mContractorUUID;
-    info() << "sender address " << mSenderAddress;
+    info() << "sender incoming IP " << mSenderIncomingIP;
+    for (auto &senderAddress : mContractorAddresses) {
+        auto ipv4Address = static_pointer_cast<IPv4WithPortAddress>(senderAddress);
+        info() << "contractor address " << ipv4Address->fullAddress();
+    }
 
     if (mContractorUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
@@ -88,7 +93,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         } else {
             auto contractorID = mContractorsManager->getContractorID(
                 ioTransaction,
-                mSenderAddress,
+                mSenderIncomingIP,
                 mContractorUUID);
             // todo : add parameter mSenderIsGateway
             mTrustLinesManager->accept(

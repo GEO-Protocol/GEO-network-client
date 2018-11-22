@@ -205,10 +205,9 @@ void OutgoingRemoteNodeNew::beginPacketsSending()
             mRemoteContractor->getIPv4()->port());
         debug() << "Endpoint address " << endpoint.address().to_string();
         debug() << "Endpoint port " << endpoint.port();
-
     } catch  (exception &) {
         errors()
-                << "Endpoint can't be fetched from uuid2address. "
+                << "Endpoint can't be fetched from Contractor. "
                 << "No messages can be sent. Outgoing queue cleared.";
 
         while (!mPacketsQueue.empty()) {
@@ -311,7 +310,7 @@ PacketHeader::ChannelIndex OutgoingRemoteNodeNew::nextChannelIndex()
 LoggerStream OutgoingRemoteNodeNew::errors() const
 {
     return mLog.warning(
-            string("Communicator / OutgoingRemoteNode [")
+            string("Communicator / OutgoingRemoteNodeNew [")
             + mRemoteContractor->getUUID().stringUUID()
             + string("]"));
 }
@@ -320,7 +319,7 @@ LoggerStream OutgoingRemoteNodeNew::debug() const
 {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     return mLog.debug(
-        string("Communicator / OutgoingRemoteNode [")
+        string("Communicator / OutgoingRemoteNodeNew [")
         + mRemoteContractor->getUUID().stringUUID()
         + string("]"));
 #endif

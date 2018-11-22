@@ -118,7 +118,7 @@ void IncomingMessagesHandler::handleReceivedInfo(
                 if (message != nullptr) {
                     stringstream ss;
                     ss << mRemoteEndpointBuffer.address().to_string() << ":" << mRemoteEndpointBuffer.port();
-                    message->setSenderAddress(ss.str());
+                    message->setSenderIncomingIP(ss.str());
                     signalMessageParsed(message);
                 }
                 else {

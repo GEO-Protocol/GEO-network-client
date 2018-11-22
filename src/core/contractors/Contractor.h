@@ -3,7 +3,7 @@
 
 #include "../common/Types.h"
 #include "../common/NodeUUID.h"
-#include "addresses/IPv4Address.h"
+#include "addresses/IPv4WithPortAddress.h"
 
 class Contractor {
 public:
@@ -19,12 +19,14 @@ public:
 
     const NodeUUID& getUUID() const;
 
-    const IPv4Address::Shared getIPv4() const;
+    const IPv4WithPortAddress::Shared getIPv4() const;
+
+    vector<BaseAddress::Shared> addresses() const;
 
 private:
     ContractorID mID;
     NodeUUID mUUID;
-    IPv4Address::Shared mIPv4;
+    IPv4WithPortAddress::Shared mIPv4;
 };
 
 

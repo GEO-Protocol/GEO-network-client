@@ -18,6 +18,15 @@ public:
     noexcept;
 
     TrustLineInitialMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &sender,
+        vector<BaseAddress::Shared> senderAddresses,
+        const TransactionUUID &transactionUUID,
+        const NodeUUID &destinationUUID,
+        bool isContractorGateway)
+    noexcept;
+
+    TrustLineInitialMessage(
         BytesShared buffer)
         noexcept;
 

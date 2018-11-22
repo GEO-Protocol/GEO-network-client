@@ -17,6 +17,24 @@ TrustLineInitialMessage::TrustLineInitialMessage(
 {}
 
 TrustLineInitialMessage::TrustLineInitialMessage(
+    const SerializedEquivalent equivalent,
+    const NodeUUID &sender,
+    vector<BaseAddress::Shared> senderAddresses,
+    const TransactionUUID &transactionUUID,
+    const NodeUUID &destinationUUID,
+    bool isContractorGateway)
+    noexcept:
+
+    DestinationMessage(
+        equivalent,
+        sender,
+        senderAddresses,
+        transactionUUID,
+        destinationUUID),
+    mIsContractorGateway(isContractorGateway)
+{}
+
+TrustLineInitialMessage::TrustLineInitialMessage(
     BytesShared buffer)
     noexcept :
     DestinationMessage(buffer)

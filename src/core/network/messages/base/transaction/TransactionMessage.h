@@ -21,6 +21,13 @@ public:
         noexcept;
 
     TransactionMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> senderAddresses,
+        const TransactionUUID &transactionUUID)
+        noexcept;
+
+    TransactionMessage(
         BytesShared buffer)
         noexcept;
 

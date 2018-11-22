@@ -139,6 +139,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
         mTrustLines->contractorID(mContractorUUID),
         mEquivalent,
         mNodeUUID,
+        mContractorsManager->ownAddresses(),
         mTransactionUUID,
         mContractorUUID,
         mIAmGateway);

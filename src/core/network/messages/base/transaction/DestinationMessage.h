@@ -18,6 +18,14 @@ public:
     noexcept;
 
     DestinationMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> senderAddresses,
+        const TransactionUUID &transactionUUID,
+        const NodeUUID &destinationUUID)
+    noexcept;
+
+    DestinationMessage(
         BytesShared buffer)
     noexcept;
 

@@ -5,8 +5,10 @@
 #include "EquivalentMessage.h"
 
 #include "../../common/NodeUUID.h"
+#include "../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../common/serialization/BytesDeserializer.h"
 #include "../../common/serialization/BytesSerializer.h"
+#include "../../logger/Logger.h"
 
 
 /*
@@ -17,11 +19,13 @@ class SenderMessage:
 
 public:
     const NodeUUID senderUUID;
+    vector<BaseAddress::Shared> senderAddresses;
 
 public:
     SenderMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID)
+        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> senderAddresses = {})
         noexcept;
 
     SenderMessage(

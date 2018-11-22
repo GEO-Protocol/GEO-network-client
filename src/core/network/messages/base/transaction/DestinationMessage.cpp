@@ -15,6 +15,22 @@ DestinationMessage::DestinationMessage(
 {}
 
 DestinationMessage::DestinationMessage(
+    const SerializedEquivalent equivalent,
+    const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
+    const TransactionUUID &transactionUUID,
+    const NodeUUID &destinationUUID)
+    noexcept:
+
+    TransactionMessage(
+        equivalent,
+        senderUUID,
+        senderAddresses,
+        transactionUUID),
+    mDestinationUUID(destinationUUID)
+{}
+
+DestinationMessage::DestinationMessage(
     BytesShared buffer)
     noexcept :
 

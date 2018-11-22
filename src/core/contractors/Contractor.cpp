@@ -6,7 +6,7 @@ Contractor::Contractor(
     const string &ipv4):
     mID(id),
     mUUID(uuid),
-    mIPv4(make_shared<IPv4Address>(ipv4))
+    mIPv4(make_shared<IPv4WithPortAddress>(ipv4))
 {}
 
 const ContractorID Contractor::getID() const
@@ -19,7 +19,14 @@ const NodeUUID& Contractor::getUUID() const
     return mUUID;
 }
 
-const IPv4Address::Shared Contractor::getIPv4() const
+const IPv4WithPortAddress::Shared Contractor::getIPv4() const
 {
     return mIPv4;
+}
+
+vector<BaseAddress::Shared> Contractor::addresses() const
+{
+    vector<BaseAddress::Shared> result;
+    result.push_back(mIPv4);
+    return result;
 }

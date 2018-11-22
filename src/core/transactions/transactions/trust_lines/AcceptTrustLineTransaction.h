@@ -51,7 +51,8 @@ protected:
 
 protected:
     NodeUUID mContractorUUID;
-    string mSenderAddress;
+    string mSenderIncomingIP;
+    vector<BaseAddress::Shared> mContractorAddresses;
 
     ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;

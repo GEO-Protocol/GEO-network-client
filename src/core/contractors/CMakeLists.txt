@@ -6,8 +6,10 @@ set(SOURCE_FILES
         ContractorsManager.h
         ContractorsManager.cpp
 
-        addresses/IPv4Address.h
-        addresses/IPv4Address.cpp)
+        addresses/BaseAddress.h
+        addresses/BaseAddress.cpp
+        addresses/IPv4WithPortAddress.h
+        addresses/IPv4WithPortAddress.cpp)
 
 add_library(contractors ${SOURCE_FILES})
 target_link_libraries(contractors

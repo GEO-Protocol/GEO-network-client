@@ -210,15 +210,15 @@ public:
             sizeof(SerializedProtocolVersion) + sizeof(kMessageType));
     }
 
-    void setSenderAddress(
-        const string &senderAddress)
+    void setSenderIncomingIP(
+        const string &senderIncomingIP)
     {
-        mSenderAddress = senderAddress;
+        mSenderIncomingIP = senderIncomingIP;
     }
 
-    string senderAddress()
+    string senderIncomingIP()
     {
-        return mSenderAddress;
+        return mSenderIncomingIP;
     }
 
 protected:
@@ -228,7 +228,7 @@ protected:
     }
 
 private:
-    string mSenderAddress;
+    string mSenderIncomingIP;
 };
 
 #endif //GEO_NETWORK_CLIENT_MESSAGE_H
