@@ -68,7 +68,7 @@ pair<BytesShared, size_t> RequestCycleMessage::serializeToBytes() const
 const size_t RequestCycleMessage::kOffsetToInheritedBytes() const
     noexcept
 {
-    static const size_t offset =
+    const size_t offset =
         TransactionMessage::kOffsetToInheritedBytes()
         + kTrustLineAmountBytesCount;
 

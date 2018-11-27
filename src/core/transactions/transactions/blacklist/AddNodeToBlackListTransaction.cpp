@@ -3,6 +3,7 @@
 AddNodeToBlackListTransaction::AddNodeToBlackListTransaction(
     NodeUUID &nodeUUID,
     AddNodeToBlackListCommand::Shared command,
+    ContractorsManager *contractorsManager,
     StorageHandler *storageHandler,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     SubsystemsController *subsystemsController,
@@ -15,6 +16,7 @@ AddNodeToBlackListTransaction::AddNodeToBlackListTransaction(
         0,      //none equivalent
         logger),
     mCommand(command),
+    mContractorsManager(contractorsManager),
     mStorageHandler(storageHandler),
     mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
     mSubsystemsController(subsystemsController),
@@ -50,6 +52,7 @@ TransactionResult::SharedConst AddNodeToBlackListTransaction::run()
             mNodeUUID,
             equivalent,
             kContractor,
+            mContractorsManager,
             trustLineManager,
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyTrustLineManager(equivalent),

@@ -84,13 +84,26 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
     info() << "Try init TL to " << mContractorUUID;
     info() << "Contractor address " << mCommand->contractorAddress();
 
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    try {
+        mContractorID = mContractorsManager->getContractorID(
+            ioTransaction,
+            mCommand->contractorAddress(),
+            mContractorUUID);
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        error() << "Error during getting ContractorID. Details: " << e.what();
+        return resultUnexpectedError();
+    }
+    info() << "Try init TL to " << mContractorID;
+
     if (mContractorUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
         return resultProtocolError();
     }
 
-    if (mTrustLines->trustLineIsPresent(mContractorUUID)) {
-        if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Archived) {
+    if (mTrustLines->trustLineIsPresent(mContractorID)) {
+        if (mTrustLines->trustLineState(mContractorID) != TrustLine::Archived) {
             warning() << "Trust line already present.";
             return resultProtocolError();
         } else {
@@ -98,25 +111,20 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
         }
     }
 
-    auto ioTransaction = mStorageHandler->beginTransaction();
     try {
-        if (mTrustLines->trustLineIsPresent(mContractorUUID)) {
+        if (mTrustLines->trustLineIsPresent(mContractorID)) {
             mTrustLines->setTrustLineState(
-                mContractorUUID,
+                mContractorID,
                 TrustLine::Init,
                 ioTransaction);
-            info() << "TrustLine to the node " << mContractorUUID
+            info() << "TrustLine to the node " << mContractorUUID << " " << mContractorID
                    << " successfully reinitialised.";
         } else {
-            auto contractorID = mContractorsManager->getContractorID(
-                ioTransaction,
-                mCommand->contractorAddress(),
-                mContractorUUID);
             mTrustLines->open(
-                contractorID,
+                mContractorID,
                 mContractorUUID,
                 ioTransaction);
-            info() << "TrustLine to the node " << mContractorUUID
+            info() << "TrustLine to the node " << mContractorUUID << " " << mContractorID
                    << " successfully initialised.";
         }
 
@@ -136,7 +144,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
     }
 
     sendMessage<TrustLineInitialMessage>(
-        mTrustLines->contractorID(mContractorUUID),
+        mContractorID,
         mEquivalent,
         mNodeUUID,
         mContractorsManager->ownAddresses(),
@@ -205,9 +213,10 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
         warning() << "Contractor don't send response.";
         if (mCountSendingAttempts < kMaxCountSendingAttempts) {
             sendMessage<TrustLineInitialMessage>(
-                mContractorUUID,
+                mContractorID,
                 mEquivalent,
                 mNodeUUID,
+                mContractorsManager->ownAddresses(),
                 mTransactionUUID,
                 mContractorUUID,
                 mIAmGateway);
@@ -226,11 +235,12 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
     }
     auto message = popNextMessage<TrustLineConfirmationMessage>();
     info() << "contractor " << message->senderUUID << " send response on opening TL. gateway: " << message->isContractorGateway();
+    // todo : check if sender is correct
     if (message->senderUUID != mContractorUUID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+    if (!mTrustLines->trustLineIsPresent(mContractorID)) {
         error() << "Something wrong, because TL must be created";
         // todo : need correct reaction
         return resultDone();
@@ -240,20 +250,20 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
     if (message->state() != ConfirmationMessage::OK) {
         warning() << "Contractor didn't accept opening TL. Response code: " << message->state();
         mTrustLines->removeTrustLine(
-            mContractorUUID,
+            mContractorID,
             ioTransaction);
         return resultDone();
     }
 
     try {
         mTrustLines->setTrustLineState(
-            mContractorUUID,
+            mContractorID,
             TrustLine::Active,
             ioTransaction);
         if (message->isContractorGateway()) {
             mTrustLines->setContractorAsGateway(
                 ioTransaction,
-                mContractorUUID,
+                mContractorID,
                 true);
         }
 
@@ -274,8 +284,8 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
         throw e;
     }
 
-    publicKeysSharingSignal(
-        mContractorUUID, mEquivalent);
+    publicKeysSharingNewSignal(
+        mContractorUUID, mContractorID, mEquivalent);
     return resultDone();
 }
 

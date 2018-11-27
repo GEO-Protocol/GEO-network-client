@@ -37,6 +37,10 @@ public:
         const NodeUUID &contractorUUID,
         const SerializedEquivalent equivalent);
 
+    void deleteTrustLine(
+        ContractorID contractorID,
+        const SerializedEquivalent equivalent);
+
     vector<SerializedEquivalent> equivalents();
 
     vector<TrustLineID> allIDs();

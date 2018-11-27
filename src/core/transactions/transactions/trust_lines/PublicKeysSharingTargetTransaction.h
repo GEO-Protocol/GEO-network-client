@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_PUBLICKEYSSHARINGTARGETTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
+#include "../../../contractors/ContractorsManager.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../crypto/keychain.h"
 #include "../../../crypto/lamportkeys.h"
@@ -21,6 +22,7 @@ public:
     PublicKeysSharingTargetTransaction(
         const NodeUUID &nodeUUID,
         PublicKeysSharingInitMessage::Shared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -55,11 +57,15 @@ protected:
     static const uint16_t kMaxCountSendingAttempts = 3;
 
 private:
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
 
     NodeUUID mContractorUUID;
+    ContractorID mContractorID;
+    string mSenderIncomingIP;
+    vector<BaseAddress::Shared> mContractorAddresses;
     KeyNumber mCurrentKeyNumber;
     lamport::PublicKey::Shared mCurrentPublicKey;
     KeysCount mContractorKeysCount;

@@ -169,6 +169,40 @@ void TrustLineHandler::deleteTrustLine(
     }
 }
 
+void TrustLineHandler::deleteTrustLine(
+    ContractorID contractorID,
+    const SerializedEquivalent equivalent)
+{
+    string query = "DELETE FROM " + mTableName + " WHERE id = ? AND equivalent = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::deleteTrustLine: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, contractorID);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::deleteTrustLine: "
+                          "Bad binding of ContractorID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 2, equivalent);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::deleteTrustLine: "
+                          "Bad binding of Equivalent; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "deleting is completed successfully";
+#endif
+    } else {
+        throw IOError("TrustLineHandler::deleteTrustLine: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+}
+
 void TrustLineHandler::saveTrustLine(
     TrustLine::Shared trustLine,
     const SerializedEquivalent equivalent)

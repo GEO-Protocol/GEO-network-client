@@ -20,6 +20,7 @@ public:
     AuditTargetTransaction(
         const NodeUUID &nodeUUID,
         AuditMessage::Shared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -48,6 +49,9 @@ private:
         TrustLineRecord::TrustLineOperationType operationType);
 
 private:
+    string mSenderIncomingIP;
+    vector<BaseAddress::Shared> mContractorAddresses;
+
     AuditMessage::Shared mMessage;
     TopologyTrustLinesManager *mTopologyTrustLinesManager;
     TopologyCacheManager *mTopologyCacheManager;

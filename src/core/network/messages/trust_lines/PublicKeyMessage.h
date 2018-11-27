@@ -20,6 +20,14 @@ public:
         const lamport::PublicKey::Shared publicKey);
 
     PublicKeyMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> senderAddresses,
+        const TransactionUUID &transactionUUID,
+        const KeyNumber number,
+        const lamport::PublicKey::Shared publicKey);
+
+    PublicKeyMessage(
         BytesShared buffer);
 
     const KeyNumber number() const;

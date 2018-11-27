@@ -18,6 +18,7 @@ public:
     CloseIncomingTrustLineTransaction(
         const NodeUUID &nodeUUID,
         CloseIncomingTrustLineCommand::Shared command,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         TopologyTrustLinesManager *topologyTrustLinesManager,
@@ -33,6 +34,7 @@ public:
         const NodeUUID &nodeUUID,
         SerializedEquivalent equivalent,
         const NodeUUID &contractorUUID,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         TopologyTrustLinesManager *topologyTrustLinesManager,

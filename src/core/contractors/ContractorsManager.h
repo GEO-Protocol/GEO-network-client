@@ -3,6 +3,7 @@
 
 #include "Contractor.h"
 #include "../io/storage/StorageHandler.h"
+#include "../common/exceptions/NotFoundError.h"
 
 #include <map>
 
@@ -19,6 +20,11 @@ public:
         IOTransaction::Shared ioTransaction,
         const string &fullAddress,
         const NodeUUID &contractorUUID);
+
+    ContractorID getContractorID(
+        IPv4WithPortAddress::Shared ipv4Address,
+        const NodeUUID &contractorUUID,
+        IOTransaction::Shared ioTransaction = nullptr);
 
     bool contractorPresent(
         ContractorID contractorID) const;

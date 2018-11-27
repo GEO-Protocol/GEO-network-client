@@ -25,6 +25,18 @@ public:
         const lamport::Signature::Shared signature);
 
     AuditMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> senderAddresses,
+        const TransactionUUID &transactionUUID,
+        const NodeUUID &destinationUUID,
+        const AuditNumber auditNumber,
+        const TrustLineAmount &incomingAmount,
+        const TrustLineAmount &outgoingAmount,
+        const KeyNumber keyNumber,
+        const lamport::Signature::Shared signature);
+
+    AuditMessage(
         BytesShared buffer);
 
     const AuditNumber auditNumber() const;

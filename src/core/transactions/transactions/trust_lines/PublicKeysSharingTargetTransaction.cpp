@@ -3,6 +3,7 @@
 PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
     const NodeUUID &nodeUUID,
     PublicKeysSharingInitMessage::Shared message,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
@@ -15,6 +16,9 @@ PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
         message->equivalent(),
         logger),
     mContractorUUID(message->senderUUID),
+    mSenderIncomingIP(message->senderIncomingIP()),
+    mContractorAddresses(message->senderAddresses),
+    mContractorsManager(contractorsManager),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
@@ -43,7 +47,30 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::run()
 TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runPublicKeyReceiverInitStage()
 {
     info() << "runPublicKeyReceiverInitStage " << mContractorUUID;
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+    info() << "sender incoming IP " << mSenderIncomingIP;
+    for (auto &senderAddress : mContractorAddresses) {
+        auto ipv4Address = static_pointer_cast<IPv4WithPortAddress>(senderAddress);
+        info() << "contractor address " << ipv4Address->fullAddress();
+    }
+
+    if (mContractorAddresses.empty()) {
+        warning() << "Contractor addresses are empty";
+        return resultDone();
+    }
+    auto contractorIPv4Address = static_pointer_cast<IPv4WithPortAddress>(
+        mContractorAddresses.at(0));
+
+    try {
+        mContractorID = mContractorsManager->getContractorID(
+            contractorIPv4Address,
+            mContractorUUID);
+    } catch (NotFoundError &e) {
+        error() << "Error during getting ContractorID. Details: " << e.what();
+        return resultDone();
+    }
+    info() << "ContractorID " << mContractorID;
+
+    if (!mTrustLines->trustLineIsPresent(mContractorID)) {
         warning() << "Trust line is absent.";
         return sendKeyErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
@@ -58,9 +85,9 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runPublicKeyR
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
 
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Archived or
-            mTrustLines->trustLineState(mContractorUUID) == TrustLine::Init) {
-        warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID)
+    if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived or
+            mTrustLines->trustLineState(mContractorID) == TrustLine::Init) {
+        warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorID)
                   << ". Waiting for state updating";
         return sendKeyErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
@@ -68,9 +95,9 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runPublicKeyR
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineID(mContractorUUID));
+        mTrustLines->trustLineID(mContractorID));
     try {
-        mTrustLines->setIsContractorKeysPresent(mContractorUUID, false);
+        mTrustLines->setIsContractorKeysPresent(mContractorID, false);
         keyChain.removeUnusedContractorKeys(ioTransaction);
     } catch (IOError &e) {
         ioTransaction->rollback();
@@ -90,8 +117,10 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
         return resultDone();
     }
 
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Archived) {
-        warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
+    // todo : check if contractor is correct
+
+    if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived) {
+        warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorID);
         return sendKeyErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
@@ -116,7 +145,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
 {
     info() << "runProcessKeyMessage";
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineID(mContractorUUID));
+        mTrustLines->trustLineID(mContractorID));
     try {
         keyChain.setContractorPublicKey(
             ioTransaction,
@@ -141,20 +170,18 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
     }
     info() << "Key saved, send hash confirmation";
     if (mCurrentKeyNumber == 0) {
-        sendMessageWithTemporaryCaching<PublicKeyHashConfirmation>(
-            mContractorUUID,
-            Message::TrustLines_PublicKeysSharingInit,
-            kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
+        // todo : use sendMessageWithTemporaryCaching
+        sendMessage<PublicKeyHashConfirmation>(
+            mContractorID,
             mEquivalent,
             mNodeUUID,
             mTransactionUUID,
             mCurrentKeyNumber,
             mCurrentPublicKey->hash());
     } else {
-        sendMessageWithTemporaryCaching<PublicKeyHashConfirmation>(
-            mContractorUUID,
-            Message::TrustLines_PublicKey,
-            kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
+        // todo : use sendMessageWithTemporaryCaching
+        sendMessage<PublicKeyHashConfirmation>(
+            mContractorID,
             mEquivalent,
             mNodeUUID,
             mTransactionUUID,
@@ -167,17 +194,18 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             info() << "All keys received";
             // todo maybe don't save TL state in storage only in memory (don't use ioTransaction and try catch)
             mTrustLines->setTrustLineState(
-                mContractorUUID,
+                mContractorID,
                 TrustLine::Active,
                 ioTransaction);
             mTrustLines->setIsContractorKeysPresent(
-                mContractorUUID,
+                mContractorID,
                 true);
-            if (mTrustLines->isTrustLineEmpty(mContractorUUID) and
+            if (mTrustLines->isTrustLineEmpty(mContractorID) and
                     !keyChain.ownKeysPresent(ioTransaction)) {
                 info() << "publicKeysSharing Signal";
-                publicKeysSharingSignal(
+                publicKeysSharingNewSignal(
                     mContractorUUID,
+                    mContractorID,
                     mEquivalent);
             }
             info() << "TL is ready for using";
@@ -197,7 +225,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::sendKeyErrorC
     ConfirmationMessage::OperationState errorState)
 {
     sendMessage<PublicKeyHashConfirmation>(
-        mContractorUUID,
+        mContractorID,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,

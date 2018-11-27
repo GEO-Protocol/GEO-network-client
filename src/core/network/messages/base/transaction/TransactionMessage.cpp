@@ -88,7 +88,7 @@ pair<BytesShared, size_t> TransactionMessage::serializeToBytes() const
 const size_t TransactionMessage::kOffsetToInheritedBytes() const
     noexcept
 {
-    static const auto kOffset =
+    const auto kOffset =
           SenderMessage::kOffsetToInheritedBytes()
         + TransactionUUID::kBytesSize;
 

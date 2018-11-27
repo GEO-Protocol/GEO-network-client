@@ -4,6 +4,7 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     const NodeUUID &nodeUUID,
     const NodeUUID &contractorUUID,
     const SerializedEquivalent equivalent,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
@@ -18,6 +19,7 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     mCurrentKeyNumber(0),
     mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
     mCountSendingAttempts(0),
+    mContractorsManager(contractorsManager),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
@@ -28,7 +30,39 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
 
 PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     const NodeUUID &nodeUUID,
+    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
+    const SerializedEquivalent equivalent,
+    ContractorsManager *contractorsManager,
+    TrustLinesManager *manager,
+    StorageHandler *storageHandler,
+    Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
+    Logger &logger) :
+    BaseTransaction(
+        BaseTransaction::PublicKeysSharingSourceTransactionType,
+        nodeUUID,
+        equivalent,
+        logger),
+    mContractorUUID(contractorUUID),
+    mContractorID(contractorID),
+    mCurrentKeyNumber(0),
+    mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
+    mCountSendingAttempts(0),
+    mContractorsManager(contractorsManager),
+    mTrustLines(manager),
+    mStorageHandler(storageHandler),
+    mKeysStore(keystore),
+    mTrustLinesInfluenceController(trustLinesInfluenceController)
+{
+    mStep = Initialization;
+}
+
+
+PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
+    const NodeUUID &nodeUUID,
     ShareKeysCommand::Shared command,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
@@ -41,9 +75,11 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
         logger),
     mCommand(command),
     mContractorUUID(mCommand->contractorUUID()),
+    mContractorID(mCommand->contractorID()),
     mCurrentKeyNumber(0),
     mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
     mCountSendingAttempts(0),
+    mContractorsManager(contractorsManager),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
@@ -72,21 +108,21 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::run()
 
 TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeysSharingInitializationStage()
 {
-    info() << "runPublicKeysSharingInitializationStage with " << mContractorUUID;
+    info() << "runPublicKeysSharingInitializationStage with " << mContractorUUID << " " << mContractorID;
 
     if (mContractorUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
         return resultDone();
     }
 
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Archived) {
-        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
+    if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
         return resultDone();
     }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineID(mContractorUUID));
+        mTrustLines->trustLineID(mContractorID));
     try {
         keyChain.removeUnusedOwnKeys(
             ioTransaction);
@@ -116,9 +152,10 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
     }
 
     sendMessage<PublicKeysSharingInitMessage>(
-        mContractorUUID,
+        mContractorID,
         mEquivalent,
         mNodeUUID,
+        mContractorsManager->ownAddresses(),
         mTransactionUUID,
         mKeysCount,
         mCurrentKeyNumber,
@@ -134,21 +171,21 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
 
 TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runCommandPublicKeysSharingInitializationStage()
 {
-    info() << "runCommandPublicKeysSharingInitializationStage with " << mContractorUUID;
+    info() << "runCommandPublicKeysSharingInitializationStage with " << mContractorUUID << " " << mContractorID;
 
     if (mContractorUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
         return resultProtocolError();
     }
 
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Archived) {
-        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
+    if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
         return resultProtocolError();
     }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineID(mContractorUUID));
+        mTrustLines->trustLineID(mContractorID));
     try {
         keyChain.removeUnusedOwnKeys(
             ioTransaction);
@@ -178,9 +215,10 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runCommandPub
     }
 
     sendMessage<PublicKeysSharingInitMessage>(
-        mContractorUUID,
+        mContractorID,
         mEquivalent,
         mNodeUUID,
+        mContractorsManager->ownAddresses(),
         mTransactionUUID,
         mKeysCount,
         mCurrentKeyNumber,
@@ -200,19 +238,21 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
         if (mCountSendingAttempts < kMaxCountSendingAttempts) {
             if (mCurrentKeyNumber == 0) {
                 sendMessage<PublicKeysSharingInitMessage>(
-                    mContractorUUID,
+                    mContractorID,
                     mEquivalent,
                     mNodeUUID,
+                    mContractorsManager->ownAddresses(),
                     mTransactionUUID,
                     mKeysCount,
                     mCurrentKeyNumber,
                     mCurrentPublicKey);
             } else {
                 sendMessage<PublicKeyMessage>(
-                    mContractorUUID,
+                    mContractorID,
                     mEquivalent,
                     mNodeUUID,
-                    currentTransactionUUID(),
+                    mContractorsManager->ownAddresses(),
+                    mTransactionUUID,
                     mCurrentKeyNumber,
                     mCurrentPublicKey);
             }
@@ -232,7 +272,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
         return resultContinuePreviousState();
     }
 
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+    if (!mTrustLines->trustLineIsPresent(mContractorID)) {
         warning() << "Something wrong, because TL must be created";
         // todo : need correct reaction
         return resultDone();
@@ -258,25 +298,25 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
     info() << "Key number: " << mCurrentKeyNumber << " confirmed";
     mCurrentKeyNumber++;
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineID(mContractorUUID));
+        mTrustLines->trustLineID(mContractorID));
     if (mCurrentKeyNumber >= TrustLineKeychain::kDefaultKeysSetSize) {
         info() << "all keys confirmed";
         auto ioTransaction = mStorageHandler->beginTransaction();
         try {
             mTrustLines->setTrustLineState(
-                mContractorUUID,
+                mContractorID,
                 TrustLine::Active,
                 ioTransaction);
             mTrustLines->setIsOwnKeysPresent(
-                mContractorUUID,
+                mContractorID,
                 true);
             info() << "TL is ready for using";
-            if (!mTrustLines->isTrustLineEmpty(mContractorUUID)) {
-                auditSignal(mContractorUUID, mEquivalent);
+            if (!mTrustLines->isTrustLineEmpty(mContractorID)) {
+                auditNewSignal(mContractorUUID, mContractorID, mEquivalent);
             } else {
-                if (mTrustLines->trustLineContractorKeysPresent(mContractorUUID)) {
+                if (mTrustLines->trustLineContractorKeysPresent(mContractorID)) {
                     info() << "Init audit signal";
-                    auditSignal(mContractorUUID, mEquivalent);
+                    auditNewSignal(mContractorUUID, mContractorID, mEquivalent);
                 }
             }
         } catch (IOError &e) {
@@ -312,10 +352,11 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
     }
 
     sendMessage<PublicKeyMessage>(
-        mContractorUUID,
+        mContractorID,
         mEquivalent,
         mNodeUUID,
-        currentTransactionUUID(),
+        mContractorsManager->ownAddresses(),
+        mTransactionUUID,
         mCurrentKeyNumber,
         mCurrentPublicKey);
     mCountSendingAttempts = 1;

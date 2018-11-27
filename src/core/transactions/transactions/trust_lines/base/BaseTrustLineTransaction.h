@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_BASETRUSTLINETRANSACTION_H
 
 #include "../../base/BaseTransaction.h"
+#include "../../../../contractors/ContractorsManager.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../crypto/keychain.h"
 #include "../../../../crypto/lamportkeys.h"
@@ -24,6 +25,20 @@ public:
         const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
         const NodeUUID &contractorUUID,
+        ContractorsManager *contractorsManager,
+        TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
+        Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
+        Logger &log);
+
+    BaseTrustLineTransaction(
+        const TransactionType type,
+        const NodeUUID &currentNodeUUID,
+        const SerializedEquivalent equivalent,
+        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -36,6 +51,21 @@ public:
         const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
         const NodeUUID &contractorUUID,
+        ContractorsManager *contractorsManager,
+        TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
+        Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
+        Logger &log);
+
+    BaseTrustLineTransaction(
+        const TransactionType type,
+        const TransactionUUID &transactionUUID,
+        const NodeUUID &currentNodeUUID,
+        const SerializedEquivalent equivalent,
+        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -63,11 +93,13 @@ protected:
     static const uint16_t kMaxCountSendingAttempts = 3;
 
 protected:
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
 
     NodeUUID mContractorUUID;
+    ContractorID mContractorID;
     AuditNumber mAuditNumber;
     pair<lamport::Signature::Shared, KeyNumber> mOwnSignatureAndKeyNumber;
 

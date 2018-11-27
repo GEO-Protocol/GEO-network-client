@@ -1,15 +1,12 @@
 #ifndef GEO_NETWORK_CLIENT_SENDERMESSAGE_H
 #define GEO_NETWORK_CLIENT_SENDERMESSAGE_H
 
-
 #include "EquivalentMessage.h"
 
 #include "../../common/NodeUUID.h"
 #include "../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../common/serialization/BytesDeserializer.h"
 #include "../../common/serialization/BytesSerializer.h"
-#include "../../logger/Logger.h"
-
 
 /*
  * Abstract base class for messages that must contain sender node UUID.

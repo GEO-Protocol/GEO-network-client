@@ -21,6 +21,7 @@ public:
     AddNodeToBlackListTransaction(
         NodeUUID &nodeUUID,
         AddNodeToBlackListCommand::Shared command,
+        ContractorsManager *contractorsManager,
         StorageHandler *storageHandler,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         SubsystemsController *subsystemsController,
@@ -42,6 +43,7 @@ protected:
 
 private:
     AddNodeToBlackListCommand::Shared mCommand;
+    ContractorsManager *mContractorsManager;
     StorageHandler *mStorageHandler;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     SubsystemsController *mSubsystemsController;

@@ -18,6 +18,15 @@ public:
         TrustLinesManager *manager,
         Logger &logger);
 
+    CheckTrustLineTransaction(
+        const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
+        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
+        bool isActionInitiator,
+        TrustLinesManager *manager,
+        Logger &logger);
+
     TransactionResult::SharedConst run();
 
 protected: // log
@@ -26,6 +35,7 @@ protected: // log
 
 private:
     const NodeUUID mContractorUUID;
+    ContractorID mContractorID;
     bool mIsActionInitiator;
     TrustLinesManager *mTrustLinesManager;
 };

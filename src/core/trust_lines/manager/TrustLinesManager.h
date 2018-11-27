@@ -86,6 +86,10 @@ public:
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount);
 
+    TrustLineOperationResult setOutgoing(
+        ContractorID contractorID,
+        const TrustLineAmount &amount);
+
     /**
      * Creates / Updates / Closes trust line FROM the contractor.
      *
@@ -103,6 +107,10 @@ public:
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount);
 
+    TrustLineOperationResult setIncoming(
+        ContractorID contractorID,
+        const TrustLineAmount &amount);
+
     /**
      * Closes outgoing trust line TO the contractor.
      *
@@ -112,6 +120,9 @@ public:
      */
     void closeOutgoing(
         const NodeUUID &contractorUUID);
+
+    void closeOutgoing(
+        ContractorID contractorID);
 
     /**
      * Closes incoming trust line FROM the contractor.
@@ -123,6 +134,9 @@ public:
     void closeIncoming(
         const NodeUUID &contractorUUID);
 
+    void closeIncoming(
+        ContractorID contractorID);
+
     /**
      * Set contractor as Gateway if contractorIsGateway equals true.
      *
@@ -133,6 +147,11 @@ public:
         const NodeUUID &contractorUUID,
         bool contractorIsGateway);
 
+    void setContractorAsGateway(
+        IOTransaction::Shared ioTransaction,
+        ContractorID contractorID,
+        bool contractorIsGateway);
+
     const bool isContractorGateway(
         const NodeUUID &contractor) const;
 
@@ -140,8 +159,16 @@ public:
         const NodeUUID &contractorUUID,
         bool isOwnKeysPresent);
 
+    void setIsOwnKeysPresent(
+        ContractorID contractorID,
+        bool isOwnKeysPresent);
+
     void setIsContractorKeysPresent(
         const NodeUUID &contractorUUID,
+        bool isContractorKeysPresent);
+
+    void setIsContractorKeysPresent(
+        ContractorID contractorID,
         bool isContractorKeysPresent);
 
     void setTrustLineState(
@@ -149,8 +176,17 @@ public:
         TrustLine::TrustLineState state,
         IOTransaction::Shared ioTransaction = nullptr);
 
+    void setTrustLineState(
+        ContractorID contractorID,
+        TrustLine::TrustLineState state,
+        IOTransaction::Shared ioTransaction = nullptr);
+
     void setTrustLineAuditNumber(
         const NodeUUID &contractorUUID,
+        AuditNumber newAuditNumber);
+
+    void setTrustLineAuditNumber(
+        ContractorID contractorID,
         AuditNumber newAuditNumber);
 
     /**
@@ -161,6 +197,9 @@ public:
     const TrustLineAmount &outgoingTrustAmount(
         const NodeUUID &contractorUUID) const;
 
+    const TrustLineAmount &outgoingTrustAmount(
+        ContractorID contractorID) const;
+
     /**
      * @returns incoming trust amount without considering present reservations.
      *
@@ -168,6 +207,9 @@ public:
      */
     const TrustLineAmount &incomingTrustAmount(
         const NodeUUID &contractorUUID) const;
+
+    const TrustLineAmount &incomingTrustAmount(
+        ContractorID contractorID) const;
 
     /**
      * @returns current balance on the trust line.
@@ -177,20 +219,38 @@ public:
     const TrustLineBalance &balance(
         const NodeUUID &contractorUUID) const;
 
+    const TrustLineBalance &balance(
+        ContractorID contractorID) const;
+
     const TrustLineID trustLineID(
         const NodeUUID &contractorUUID) const;
+
+    const TrustLineID trustLineID(
+        ContractorID contractorID) const;
 
     const AuditNumber auditNumber(
         const NodeUUID &contractorUUID) const;
 
+    const AuditNumber auditNumber(
+        ContractorID contractorID) const;
+
     const TrustLine::TrustLineState trustLineState(
         const NodeUUID &contractorUUID) const;
+
+    const TrustLine::TrustLineState trustLineState(
+        ContractorID contractorID) const;
 
     bool trustLineOwnKeysPresent(
         const NodeUUID &contractorUUID) const;
 
+    bool trustLineOwnKeysPresent(
+        ContractorID contractorID) const;
+
     bool trustLineContractorKeysPresent(
         const NodeUUID &contractorUUID) const;
+
+    bool trustLineContractorKeysPresent(
+        ContractorID contractorID) const;
 
     ContractorID contractorID(
         const NodeUUID &contractorUUID) const;
@@ -312,6 +372,9 @@ public:
     const bool trustLineIsPresent (
         const NodeUUID &contractorUUID) const;
 
+    const bool trustLineIsPresent (
+        ContractorID contractorID) const;
+
     const bool trustLineIsActive(
         const NodeUUID &contractorUUID) const;
 
@@ -323,14 +386,24 @@ public:
         const NodeUUID &contractorUUID,
         IOTransaction::Shared ioTransaction = nullptr);
 
+    void removeTrustLine(
+        ContractorID contractorID,
+        IOTransaction::Shared ioTransaction = nullptr);
+
     bool isTrustLineEmpty(
         const NodeUUID &contractorUUID);
+
+    bool isTrustLineEmpty(
+        ContractorID contractorID);
 
     bool isTrustLineOverflowed(
         const NodeUUID &contractorUUID);
 
     void resetTrustLineTotalReceiptsAmounts(
         const NodeUUID &contractorUUID);
+
+    void resetTrustLineTotalReceiptsAmounts(
+        ContractorID contractorID);
 
     vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;
 
@@ -410,6 +483,7 @@ protected: // log shortcuts
 
 private:
     unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>> mTrustLines;
+    unordered_map<ContractorID, TrustLine::Shared> mTrustLinesNew;
     SerializedEquivalent mEquivalent;
 
     unordered_map<NodeUUID, BaseAuditRule::Shared, boost::hash<boost::uuids::uuid>> mAuditRules;

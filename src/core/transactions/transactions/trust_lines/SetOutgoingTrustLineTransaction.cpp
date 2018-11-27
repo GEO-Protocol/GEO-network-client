@@ -4,6 +4,7 @@
 SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     const NodeUUID &nodeUUID,
     SetOutgoingTrustLineCommand::Shared command,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -20,6 +21,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
         nodeUUID,
         command->equivalent(),
         command->contractorUUID(),
+        contractorsManager,
         manager,
         storageHandler,
         keystore,

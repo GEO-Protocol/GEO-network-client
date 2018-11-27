@@ -45,8 +45,11 @@ public:
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
     typedef signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
     typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent, bool)> TrustLineActionSignal;
+    typedef signals::signal<void(const NodeUUID&, ContractorID, const SerializedEquivalent, bool)> TrustLineActionNewSignal;
     typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent)> PublicKeysSharingSignal;
+    typedef signals::signal<void(const NodeUUID&, ContractorID, const SerializedEquivalent)> PublicKeysSharingNewSignal;
     typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent)> AuditSignal;
+    typedef signals::signal<void(const NodeUUID&, ContractorID, const SerializedEquivalent)> AuditNewSignal;
     typedef signals::signal<void(const NodeUUID&)> ProcessPongMessageSignal;
 
 public:
@@ -321,8 +324,11 @@ public:
     mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;
     mutable ProcessPongMessageSignal processPongMessageSignal;
     mutable TrustLineActionSignal trustLineActionSignal;
+    mutable TrustLineActionNewSignal trustLineActionNewSignal;
     mutable PublicKeysSharingSignal publicKeysSharingSignal;
+    mutable PublicKeysSharingNewSignal publicKeysSharingNewSignal;
     mutable AuditSignal auditSignal;
+    mutable AuditNewSignal auditNewSignal;
 
 protected:
     static const uint16_t mkStandardConnectionTimeout = 1500; //milliseconds

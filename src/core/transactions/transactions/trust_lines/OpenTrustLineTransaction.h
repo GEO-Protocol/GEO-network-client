@@ -82,6 +82,7 @@ protected:
 protected:
     InitTrustLineCommand::Shared mCommand;
     NodeUUID mContractorUUID;
+    ContractorID mContractorID;
     ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;

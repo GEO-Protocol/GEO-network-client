@@ -3,6 +3,7 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/trust_lines/ShareKeysCommand.h"
+#include "../../../contractors/ContractorsManager.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../crypto/keychain.h"
 
@@ -22,6 +23,19 @@ public:
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
         const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
+        TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        Keystore *keystore,
+        TrustLinesInfluenceController *trustLinesInfluenceController,
+        Logger &logger);
+
+    PublicKeysSharingSourceTransaction(
+        const NodeUUID &nodeUUID,
+        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
+        const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -31,6 +45,7 @@ public:
     PublicKeysSharingSourceTransaction(
         const NodeUUID &nodeUUID,
         ShareKeysCommand::Shared command,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -70,11 +85,13 @@ protected:
 
 private:
     ShareKeysCommand::Shared mCommand;
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
 
     NodeUUID mContractorUUID;
+    ContractorID mContractorID;
     KeyNumber mCurrentKeyNumber;
     KeysCount mKeysCount;
     lamport::PublicKey::Shared mCurrentPublicKey;

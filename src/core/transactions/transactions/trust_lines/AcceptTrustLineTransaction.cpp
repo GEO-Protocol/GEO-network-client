@@ -39,14 +39,37 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         info() << "contractor address " << ipv4Address->fullAddress();
     }
 
+    if (mContractorAddresses.empty()) {
+        warning() << "Contractor addresses are empty";
+        return resultDone();
+    }
+    auto contractorIPv4Address = static_pointer_cast<IPv4WithPortAddress>(
+        mContractorAddresses.at(0));
+
+    // Trust line must be created (or updated) in the internal storage.
+    // Also, history record must be written about this operation.
+    // Both writes must be done atomically, so the IO transaction is used.
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    try {
+        mContractorID = mContractorsManager->getContractorID(
+            contractorIPv4Address,
+            mContractorUUID,
+            ioTransaction);
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        error() << "Error during getting ContractorID. Details: " << e.what();
+        throw e;
+    }
+    info() << "Try init TL to " << mContractorID;
+
     if (mContractorUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
         return resultDone();
     }
 
-    if (mTrustLinesManager->trustLineIsPresent(mContractorUUID)) {
-        if (mTrustLinesManager->isTrustLineEmpty(mContractorUUID)
-            and mTrustLinesManager->auditNumber(mContractorUUID) == 0) {
+    if (mTrustLinesManager->trustLineIsPresent(mContractorID)) {
+        if (mTrustLinesManager->isTrustLineEmpty(mContractorID)
+            and mTrustLinesManager->auditNumber(mContractorID) == 0) {
             info() << "Send confirmation on init TL again";
             sendMessageWithTemporaryCaching<TrustLineConfirmationMessage>(
                 mContractorUUID,
@@ -59,7 +82,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
                 ConfirmationMessage::OK);
             return resultDone();
         }
-        if (mTrustLinesManager->trustLineState(mContractorUUID) != TrustLine::Archived) {
+        if (mTrustLinesManager->trustLineState(mContractorID) != TrustLine::Archived) {
             warning() << "Trust line already present and not initial.";
             return sendTrustLineErrorConfirmation(
                 ConfirmationMessage::TrustLineAlreadyPresent);
@@ -67,11 +90,6 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
             info() << "Reopening of archived TL";
         }
     }
-
-    // Trust line must be created (or updated) in the internal storage.
-    // Also, history record must be written about this operation.
-    // Both writes must be done atomically, so the IO transaction is used.
-    auto ioTransaction = mStorageHandler->beginTransaction();
 
     // if contractor in black list we should reject operation with TL
     if (ioTransaction->blackListHandler()->checkIfNodeExists(mContractorUUID)) {
@@ -83,28 +101,24 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        if (mTrustLinesManager->trustLineIsPresent(mContractorUUID)) {
+        if (mTrustLinesManager->trustLineIsPresent(mContractorID)) {
             mTrustLinesManager->setTrustLineState(
-                mContractorUUID,
+                mContractorID,
                 TrustLine::Active,
                 ioTransaction);
-            info() << "TrustLine form the node " << mContractorUUID
+            info() << "TrustLine form the node " << mContractorUUID << " " << mContractorID
                    << " successfully reinitialised.";
         } else {
-            auto contractorID = mContractorsManager->getContractorID(
-                ioTransaction,
-                mSenderIncomingIP,
-                mContractorUUID);
             // todo : add parameter mSenderIsGateway
             mTrustLinesManager->accept(
-                contractorID,
+                mContractorID,
                 mContractorUUID,
                 ioTransaction);
             mTrustLinesManager->setTrustLineState(
-                mContractorUUID,
+                mContractorID,
                 TrustLine::Active,
                 ioTransaction);
-            info() << "Trust Line from the node " << mContractorUUID
+            info() << "Trust Line from the node " << mContractorUUID << " " << mContractorID
                    << " has been successfully initialised.";
         }
 
@@ -112,7 +126,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         if (mSenderIsGateway) {
             mTrustLinesManager->setContractorAsGateway(
                 ioTransaction,
-                mContractorUUID,
+                mContractorID,
                 true);
             info() << "Incoming trust line was opened from gateway";
         }
@@ -126,7 +140,8 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 
     } catch (IOError &e) {
         ioTransaction->rollback();
-        mTrustLinesManager->trustLines().erase(mContractorUUID);
+        mTrustLinesManager->removeTrustLine(
+            mContractorID);
         warning() << "Attempt to accept incoming trust line from the node " << mContractorUUID << " failed. "
                   << "IO transaction can't be completed. "
                   << "Details are: " << e.what();
@@ -137,10 +152,9 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     }
 
     // Sending confirmation back.
-    sendMessageWithTemporaryCaching<TrustLineConfirmationMessage>(
-        mContractorUUID,
-        Message::TrustLines_Initial,
-        kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
+    // todo : use sendMessageWithTemporaryCaching
+    sendMessage<TrustLineConfirmationMessage>(
+        mContractorID,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,
@@ -154,7 +168,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::sendTrustLineErrorCon
     ConfirmationMessage::OperationState errorState)
 {
     sendMessage<TrustLineConfirmationMessage>(
-        mContractorUUID,
+        mContractorID,
         mEquivalent,
         mNodeUUID,
         mTransactionUUID,

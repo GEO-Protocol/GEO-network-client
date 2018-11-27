@@ -65,7 +65,7 @@ pair<BytesShared, size_t> ConfirmationMessage::serializeToBytes() const
 const size_t ConfirmationMessage::kOffsetToInheritedBytes() const
     noexcept
 {
-    static const auto kOffset =
+    const auto kOffset =
         TransactionMessage::kOffsetToInheritedBytes()
         + sizeof(SerializedOperationState);
 

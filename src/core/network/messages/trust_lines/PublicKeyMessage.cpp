@@ -15,6 +15,22 @@ PublicKeyMessage::PublicKeyMessage(
 {}
 
 PublicKeyMessage::PublicKeyMessage(
+    const SerializedEquivalent equivalent,
+    const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
+    const TransactionUUID &transactionUUID,
+    const KeyNumber number,
+    const lamport::PublicKey::Shared publicKey):
+    TransactionMessage(
+        equivalent,
+        senderUUID,
+        senderAddresses,
+        transactionUUID),
+    mNumber(number),
+    mPublicKey(publicKey)
+{}
+
+PublicKeyMessage::PublicKeyMessage(
     BytesShared buffer) :
     TransactionMessage(buffer),
     mPublicKey()
@@ -88,7 +104,7 @@ pair<BytesShared, size_t> PublicKeyMessage::serializeToBytes() const
 const size_t PublicKeyMessage::kOffsetToInheritedBytes() const
     noexcept
 {
-    static const auto kOffset =
+    const auto kOffset =
             TransactionMessage::kOffsetToInheritedBytes()
             + sizeof(KeyNumber)
             + mPublicKey->keySize();

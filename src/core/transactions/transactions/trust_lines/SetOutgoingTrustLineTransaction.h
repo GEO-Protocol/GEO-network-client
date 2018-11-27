@@ -34,6 +34,7 @@ public:
     SetOutgoingTrustLineTransaction(
         const NodeUUID &nodeUUID,
         SetOutgoingTrustLineCommand::Shared command,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,

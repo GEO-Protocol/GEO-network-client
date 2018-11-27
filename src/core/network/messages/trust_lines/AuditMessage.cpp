@@ -23,6 +23,30 @@ AuditMessage::AuditMessage(
 {}
 
 AuditMessage::AuditMessage(
+    const SerializedEquivalent equivalent,
+    const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
+    const TransactionUUID &transactionUUID,
+    const NodeUUID &destinationUUID,
+    const AuditNumber auditNumber,
+    const TrustLineAmount &incomingAmount,
+    const TrustLineAmount &outgoingAmount,
+    const KeyNumber keyNumber,
+    const lamport::Signature::Shared signature):
+    DestinationMessage(
+        equivalent,
+        senderUUID,
+        senderAddresses,
+        transactionUUID,
+        destinationUUID),
+    mAuditNumber(auditNumber),
+    mIncomingAmount(incomingAmount),
+    mOutgoingAmount(outgoingAmount),
+    mSignature(signature),
+    mKeyNumber(keyNumber)
+{}
+
+AuditMessage::AuditMessage(
     BytesShared buffer) :
     DestinationMessage(buffer)
 {
@@ -149,7 +173,7 @@ pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
 const size_t AuditMessage::kOffsetToInheritedBytes() const
     noexcept
 {
-    static const auto kOffset =
+    const auto kOffset =
             DestinationMessage::kOffsetToInheritedBytes()
             + sizeof(AuditNumber)
             + kTrustLineAmountBytesCount

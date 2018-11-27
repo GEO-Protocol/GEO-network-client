@@ -28,11 +28,11 @@ SenderMessage::SenderMessage(
     memcpy(
         &senderAddressesCnt,
         buffer.get() + bytesBufferOffset,
-        sizeof(uint16_t));
-    bytesBufferOffset += sizeof(uint16_t);
+        sizeof(byte));
+    bytesBufferOffset += sizeof(byte);
 
     for (int idx = 0; idx < senderAddressesCnt; idx++) {
-        const BaseAddress::SerializedType kAddressType =
+        const uint16_t kAddressType =
             *(reinterpret_cast<BaseAddress::SerializedType *>(buffer.get() + bytesBufferOffset));
 
         switch (kAddressType) {
@@ -60,7 +60,7 @@ pair<BytesShared, size_t> SenderMessage::serializeToBytes() const
 
     serializer.enqueue(EquivalentMessage::serializeToBytes());
     serializer.enqueue(senderUUID);
-    serializer.copy((uint16_t)senderAddresses.size());
+    serializer.copy((byte)senderAddresses.size());
     for (const auto &address : senderAddresses) {
         serializer.enqueue(
             address->serializeToBytes(),
@@ -75,7 +75,7 @@ const size_t SenderMessage::kOffsetToInheritedBytes() const
     auto kOffset =
         EquivalentMessage::kOffsetToInheritedBytes()
         + NodeUUID::kBytesSize
-        + sizeof(uint16_t);
+        + sizeof(byte);
     for (const auto &address : senderAddresses) {
         kOffset += address->serializedSize();
     }

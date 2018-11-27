@@ -17,6 +17,24 @@ PublicKeysSharingInitMessage::PublicKeysSharingInitMessage(
 {}
 
 PublicKeysSharingInitMessage::PublicKeysSharingInitMessage(
+    const SerializedEquivalent equivalent,
+    const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
+    const TransactionUUID &transactionUUID,
+    const KeysCount keysCount,
+    const KeyNumber number,
+    const lamport::PublicKey::Shared publicKey):
+    PublicKeyMessage(
+        equivalent,
+        senderUUID,
+        senderAddresses,
+        transactionUUID,
+        number,
+        publicKey),
+    mKeysCount(keysCount)
+{}
+
+PublicKeysSharingInitMessage::PublicKeysSharingInitMessage(
     BytesShared buffer) :
     PublicKeyMessage(buffer)
 {

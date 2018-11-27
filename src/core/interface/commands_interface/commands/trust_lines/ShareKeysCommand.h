@@ -21,11 +21,15 @@ public:
     const NodeUUID &contractorUUID() const
         noexcept;
 
+    const ContractorID contractorID() const
+        noexcept;
+
     const SerializedEquivalent equivalent() const
         noexcept;
 
 private:
     NodeUUID mContractorUUID;
+    ContractorID mContractorID;
     SerializedEquivalent mEquivalent;
 };
 

@@ -15,6 +15,11 @@ public:
         const NodeUUID &uuid,
         const string &ipv4);
 
+    Contractor(
+        ContractorID id,
+        const NodeUUID &uuid,
+        IPv4WithPortAddress::Shared ipv4Address);
+
     const ContractorID getID() const;
 
     const NodeUUID& getUUID() const;

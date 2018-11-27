@@ -21,6 +21,7 @@ ContractorsManager::ContractorsManager(
     for (const auto &contractor : mContractors) {
         info() << contractor.second->getID() << " " << contractor.second->getUUID() << " " << contractor.second->getIPv4();
     }
+    info() << "Own ip " << mOwnIPv4->fullAddress();
 }
 
 ContractorID ContractorsManager::getContractorID(
@@ -42,6 +43,32 @@ ContractorID ContractorsManager::getContractorID(
     ioTransaction->contractorsHandler()->saveContractor(
         mContractors[id]);
     return id;
+}
+
+ContractorID ContractorsManager::getContractorID(
+    IPv4WithPortAddress::Shared ipv4Address,
+    const NodeUUID &contractorUUID,
+    IOTransaction::Shared ioTransaction)
+{
+    for (const auto &contractor : mContractors) {
+        if (contractor.second->getIPv4()->fullAddress() == ipv4Address->fullAddress()) {
+            return contractor.second->getID();
+        }
+    }
+
+    if (ioTransaction != nullptr) {
+        auto id = nextFreeID(ioTransaction);
+        info() << "New contractor initializing " << id;
+        mContractors[id] = make_shared<Contractor>(
+            id,
+            contractorUUID,
+            ipv4Address);
+        ioTransaction->contractorsHandler()->saveContractor(
+            mContractors[id]);
+        return id;
+    } else {
+        throw NotFoundError("There is no contractor with requested address");
+    }
 }
 
 bool ContractorsManager::contractorPresent(

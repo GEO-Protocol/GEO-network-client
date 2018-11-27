@@ -17,9 +17,28 @@ CheckTrustLineTransaction::CheckTrustLineTransaction(
     mTrustLinesManager(manager)
 {}
 
+CheckTrustLineTransaction::CheckTrustLineTransaction(
+    const NodeUUID &nodeUUID,
+    const SerializedEquivalent equivalent,
+    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
+    bool isActionInitiator,
+    TrustLinesManager *manager,
+    Logger &logger) :
+    BaseTransaction(
+        BaseTransaction::CheckTrustLineAfterPaymentTransactionType,
+        nodeUUID,
+        equivalent,
+        logger),
+    mContractorUUID(contractorUUID),
+    mContractorID(contractorID),
+    mIsActionInitiator(isActionInitiator),
+    mTrustLinesManager(manager)
+{}
+
 TransactionResult::SharedConst CheckTrustLineTransaction::run()
 {
-    info() << "run " << mContractorUUID;
+    info() << "run " << mContractorUUID << " " << mContractorID;
     if (mTrustLinesManager->trustLineState(mContractorUUID) == TrustLine::Archived) {
         info() << "TL is Archived";
         return resultDone();
@@ -30,15 +49,17 @@ TransactionResult::SharedConst CheckTrustLineTransaction::run()
     switch (action) {
         case TrustLinesManager::Audit: {
             info() << "Audit action";
-            auditSignal(
+            auditNewSignal(
                 mContractorUUID,
+                mContractorID,
                 mEquivalent);
             break;
         }
         case TrustLinesManager::KeysSharing: {
             info() << "Keys sharing action";
-            publicKeysSharingSignal(
+            publicKeysSharingNewSignal(
                 mContractorUUID,
+                mContractorID,
                 mEquivalent);
             break;
         }

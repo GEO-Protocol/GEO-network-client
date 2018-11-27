@@ -26,6 +26,8 @@ ShareKeysCommand::ShareKeysCommand(
                 "Error occurred while parsing 'Contractor UUID' token.");
     }
 
+    // todo : parse contractorID
+
     size_t equivalentOffset = NodeUUID::kHexSize + 1;
     string equivalentStr = command.substr(
         equivalentOffset,
@@ -50,6 +52,12 @@ const NodeUUID &ShareKeysCommand::contractorUUID() const
     noexcept
 {
     return mContractorUUID;
+}
+
+const ContractorID ShareKeysCommand::contractorID() const
+    noexcept
+{
+    return mContractorID;
 }
 
 const SerializedEquivalent ShareKeysCommand::equivalent() const

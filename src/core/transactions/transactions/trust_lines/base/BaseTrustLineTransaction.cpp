@@ -5,6 +5,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
     const NodeUUID &contractorUUID,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Keystore *keystore,
@@ -17,6 +18,34 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
         equivalent,
         log),
     mContractorUUID(contractorUUID),
+    mContractorsManager(contractorsManager),
+    mTrustLines(trustLines),
+    mStorageHandler(storageHandler),
+    mKeysStore(keystore),
+    mTrustLinesInfluenceController(trustLinesInfluenceController)
+{}
+
+BaseTrustLineTransaction::BaseTrustLineTransaction(
+    const TransactionType type,
+    const NodeUUID &currentNodeUUID,
+    const SerializedEquivalent equivalent,
+    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
+    ContractorsManager *contractorsManager,
+    TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
+    Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
+    Logger &log) :
+
+    BaseTransaction(
+        type,
+        currentNodeUUID,
+        equivalent,
+        log),
+    mContractorUUID(contractorUUID),
+    mContractorID(contractorID),
+    mContractorsManager(contractorsManager),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
@@ -29,6 +58,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
     const NodeUUID &contractorUUID,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Keystore *keystore,
@@ -42,6 +72,36 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
         equivalent,
         log),
     mContractorUUID(contractorUUID),
+    mContractorsManager(contractorsManager),
+    mTrustLines(trustLines),
+    mStorageHandler(storageHandler),
+    mKeysStore(keystore),
+    mTrustLinesInfluenceController(trustLinesInfluenceController)
+{}
+
+BaseTrustLineTransaction::BaseTrustLineTransaction(
+    const TransactionType type,
+    const TransactionUUID &transactionUUID,
+    const NodeUUID &currentNodeUUID,
+    const SerializedEquivalent equivalent,
+    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
+    ContractorsManager *contractorsManager,
+    TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
+    Keystore *keystore,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
+    Logger &log) :
+
+    BaseTransaction(
+        type,
+        transactionUUID,
+        currentNodeUUID,
+        equivalent,
+        log),
+    mContractorUUID(contractorUUID),
+    mContractorID(contractorID),
+    mContractorsManager(contractorsManager),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
@@ -52,7 +112,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::sendAuditErrorConfirmat
     ConfirmationMessage::OperationState errorState)
 {
     sendMessage<AuditResponseMessage>(
-        mContractorUUID,
+        mContractorID,
         mEquivalent,
         mNodeUUID,
         currentTransactionUUID(),
@@ -78,31 +138,31 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getOwnSerializedAuditData()
 
     vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->incomingTrustAmount(
-            mContractorUUID));
+            mContractorID));
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         incomingAmountBufferBytes.data(),
         kTrustLineAmountBytesCount);
     dataBytesOffset += kTrustLineAmountBytesCount;
-    info() << "own incoming amount " << mTrustLines->incomingTrustAmount(mContractorUUID);
+    info() << "own incoming amount " << mTrustLines->incomingTrustAmount(mContractorID);
 
     vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->outgoingTrustAmount(
-            mContractorUUID));
+            mContractorID));
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         outgoingAmountBufferBytes.data(),
         kTrustLineAmountBytesCount);
     dataBytesOffset += kTrustLineAmountBytesCount;
-    info() << "own outgoing amount " << mTrustLines->outgoingTrustAmount(mContractorUUID);
+    info() << "own outgoing amount " << mTrustLines->outgoingTrustAmount(mContractorID);
 
     vector<byte> balanceBufferBytes = trustLineBalanceToBytes(
-        const_cast<TrustLineBalance&>(mTrustLines->balance(mContractorUUID)));
+        const_cast<TrustLineBalance&>(mTrustLines->balance(mContractorID)));
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         balanceBufferBytes.data(),
         kTrustLineBalanceSerializeBytesCount);
-    info() << "own balance " << mTrustLines->balance(mContractorUUID);
+    info() << "own balance " << mTrustLines->balance(mContractorID);
 
     return make_pair(
         dataBytesShared,
@@ -127,25 +187,25 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getContractorSerializedAudit
 
     vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->outgoingTrustAmount(
-            mContractorUUID));
+            mContractorID));
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         outgoingAmountBufferBytes.data(),
         kTrustLineAmountBytesCount);
     dataBytesOffset += kTrustLineAmountBytesCount;
-    info() << "contractor outgoing amount " << mTrustLines->outgoingTrustAmount(mContractorUUID);
+    info() << "contractor outgoing amount " << mTrustLines->outgoingTrustAmount(mContractorID);
 
     vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(
         mTrustLines->incomingTrustAmount(
-            mContractorUUID));
+            mContractorID));
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         incomingAmountBufferBytes.data(),
         kTrustLineAmountBytesCount);
     dataBytesOffset += kTrustLineAmountBytesCount;
-    info() << "contractor incoming amount " << mTrustLines->incomingTrustAmount(mContractorUUID);
+    info() << "contractor incoming amount " << mTrustLines->incomingTrustAmount(mContractorID);
 
-    auto contractorBalance = -1 * mTrustLines->balance(mContractorUUID);
+    auto contractorBalance = -1 * mTrustLines->balance(mContractorID);
     vector<byte> balanceBufferBytes = trustLineBalanceToBytes(
         const_cast<TrustLineBalance&>(contractorBalance));
     memcpy(

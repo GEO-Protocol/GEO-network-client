@@ -52,11 +52,13 @@ IPv4WithPortAddress::IPv4WithPortAddress(
     size_t bytesBufferOffset = sizeof(SerializedType);
 
     for (int idx = 0; idx < 4; idx++) {
+        uint16_t nextIPByte;
         memcpy(
-            &mAddress + idx,
+            &nextIPByte,
             buffer + bytesBufferOffset,
             sizeof(byte));
         bytesBufferOffset += sizeof(byte);
+        mAddress[idx] = (byte)nextIPByte;
     }
 
     memcpy(
@@ -121,8 +123,8 @@ BytesShared IPv4WithPortAddress::serializeToBytes() const
 
 size_t IPv4WithPortAddress::serializedSize() const
 {
-    // 2 bytes - address type
+    // 1 bytes - address type
     // 4 bytes - ip
     // 2 bytes - port
-    return 8;
+    return 7;
 }
