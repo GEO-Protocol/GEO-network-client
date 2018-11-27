@@ -39,12 +39,12 @@ CheckTrustLineTransaction::CheckTrustLineTransaction(
 TransactionResult::SharedConst CheckTrustLineTransaction::run()
 {
     info() << "run " << mContractorUUID << " " << mContractorID;
-    if (mTrustLinesManager->trustLineState(mContractorUUID) == TrustLine::Archived) {
+    if (mTrustLinesManager->trustLineState(mContractorID) == TrustLine::Archived) {
         info() << "TL is Archived";
         return resultDone();
     }
     auto action = mTrustLinesManager->checkTrustLineAfterTransaction(
-        mContractorUUID,
+        mContractorID,
         mIsActionInitiator);
     switch (action) {
         case TrustLinesManager::Audit: {

@@ -28,6 +28,8 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
             "Error occurred while parsing 'Contractor UUID' token.");
     }
 
+    // todo : parse contractorID
+
     size_t tokenSeparatorPos = command.find(
             kTokensSeparator,
             amountTokenOffset);
@@ -67,6 +69,12 @@ const NodeUUID &SetOutgoingTrustLineCommand::contractorUUID() const
     noexcept
 {
     return mContractorUUID;
+}
+
+const ContractorID SetOutgoingTrustLineCommand::contractorID() const
+    noexcept
+{
+    return mContractorID;
 }
 
 const TrustLineAmount &SetOutgoingTrustLineCommand::amount() const

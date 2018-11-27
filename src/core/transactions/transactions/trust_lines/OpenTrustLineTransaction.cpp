@@ -33,6 +33,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     bool iAmGateway,
@@ -46,6 +47,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
         equivalent,
         logger),
     mContractorUUID(contractorUUID),
+    mContractorID(contractorID),
     mCountSendingAttempts(0),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
@@ -165,20 +167,20 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
         debug() << "It is forbidden run trust line transactions";
         return resultDone();
     }
-    info() << "Try init TL to " << mContractorUUID;
+    info() << "Try init TL to " << mContractorUUID << " " << mContractorID;
 
     if (mContractorUUID == mNodeUUID) {
         warning() << "Attempt to launch transaction against itself was prevented.";
         return resultDone();
     }
 
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+    if (!mTrustLines->trustLineIsPresent(mContractorID)) {
         warning() << "Trust line is absent.";
         return resultDone();
     }
 
-    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Init) {
-        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
+    if (mTrustLines->trustLineState(mContractorID) != TrustLine::Init) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
         return resultDone();
     }
 
@@ -192,9 +194,10 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
 #endif
 
     sendMessage<TrustLineInitialMessage>(
-        mContractorUUID,
+        mContractorID,
         mEquivalent,
         mNodeUUID,
+        mContractorsManager->ownAddresses(),
         mTransactionUUID,
         mContractorUUID,
         mIAmGateway);

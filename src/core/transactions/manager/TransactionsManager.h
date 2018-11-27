@@ -523,6 +523,7 @@ protected:
 
     void onResumeTransactionSlot(
         const NodeUUID& contractorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent,
         const BaseTransaction::TransactionType transactionType);
 

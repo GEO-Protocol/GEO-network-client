@@ -27,10 +27,18 @@ TransactionResult::SharedConst PongReactionTransaction::run()
         }
 
         if (trustLineManager->trustLineState(mContractorUUID) == TrustLine::Init) {
-            mResumeTransactionSignal(mContractorUUID, equivalent, BaseTransaction::OpenTrustLineTransaction);
+            mResumeTransactionSignal(
+                mContractorUUID,
+                trustLineManager->contractorID(mContractorUUID),
+                equivalent,
+                BaseTransaction::OpenTrustLineTransaction);
             isSignalSend = true;
         } else if (trustLineManager->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
-            mResumeTransactionSignal(mContractorUUID, equivalent, BaseTransaction::AuditSourceTransactionType);
+            mResumeTransactionSignal(
+                mContractorUUID,
+                trustLineManager->contractorID(mContractorUUID),
+                equivalent,
+                BaseTransaction::AuditSourceTransactionType);
             isSignalSend = true;
         }
     }

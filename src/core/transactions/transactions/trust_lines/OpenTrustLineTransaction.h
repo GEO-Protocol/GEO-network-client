@@ -34,6 +34,7 @@ public:
         const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         bool iAmGateway,

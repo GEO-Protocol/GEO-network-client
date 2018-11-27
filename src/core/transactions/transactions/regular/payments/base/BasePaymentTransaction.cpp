@@ -537,8 +537,9 @@ void BasePaymentTransaction::commit(
                 kNodeUUIDAndReservations.first,
                 kPathIDAndReservation.second);
         }
-        trustLineActionSignal(
+        trustLineActionNewSignal(
             kNodeUUIDAndReservations.first,
+            mTrustLines->contractorID(kNodeUUIDAndReservations.first),
             mEquivalent,
             reservationDirection == AmountReservation::Outgoing);
     }

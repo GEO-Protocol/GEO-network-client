@@ -36,6 +36,7 @@ public:
         const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,

@@ -399,6 +399,9 @@ public:
     bool isTrustLineOverflowed(
         const NodeUUID &contractorUUID);
 
+    bool isTrustLineOverflowed(
+        ContractorID contractorID);
+
     void resetTrustLineTotalReceiptsAmounts(
         const NodeUUID &contractorUUID);
 
@@ -450,6 +453,10 @@ public:
 
     TrustLineActionType checkTrustLineAfterTransaction(
         const NodeUUID &contractorUUID,
+        bool isActionInitiator);
+
+    TrustLineActionType checkTrustLineAfterTransaction(
+        ContractorID contractorID,
         bool isActionInitiator);
 
     vector<NodeUUID> contractorsShouldBePinged() const;

@@ -1095,6 +1095,18 @@ bool TrustLinesManager::isTrustLineOverflowed(
     return trustLine->isTrustLineOverflowed();
 }
 
+bool TrustLinesManager::isTrustLineOverflowed(
+    ContractorID contractorID)
+{
+    if (not trustLineIsPresent(contractorID)) {
+        throw NotFoundError(
+            logHeader() + "::isTrustLineOverflowed: "
+                "There is no trust line to the contractor " + to_string(contractorID));
+    }
+    auto trustLine = mTrustLinesNew[contractorID];
+    return trustLine->isTrustLineOverflowed();
+}
+
 void TrustLinesManager::resetTrustLineTotalReceiptsAmounts(
     const NodeUUID &contractorUUID)
 {
@@ -1522,14 +1534,14 @@ const TrustLineID TrustLinesManager::nextFreeID(
 }
 
 TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterTransaction(
-    const NodeUUID &contractorUUID,
-    bool isActionInitiator)
+        const NodeUUID &contractorUUID,
+        bool isActionInitiator)
 {
     info() << "checkTrustLineAfterTransaction";
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-            logHeader() + "::checkTrustLineAfterTransaction: "
-                "No trust line with the contractor is present.");
+                logHeader() + "::checkTrustLineAfterTransaction: "
+                        "No trust line with the contractor is present.");
     }
     auto ioTransaction = mStorageHandler->beginTransaction();
     if (isTrustLineEmpty(contractorUUID)) {
@@ -1557,11 +1569,60 @@ TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterTra
         // if both cases AuditSignal and PublicKeysSharingSignal occur simultaneously,
         // AuditSignal run and Audit Transaction and it include changing keys procedure
         auto keyChain = mKeysStore->keychain(
-            trustLineID(
-                contractorUUID));
+                trustLineID(
+                        contractorUUID));
         if (keyChain.ownKeysCriticalCount(ioTransaction)) {
             setIsOwnKeysPresent(
-                contractorUUID,
+                    contractorUUID,
+                    false);
+            info() << "Public key sharing signal";
+            return TrustLineActionType::KeysSharing;
+        }
+    }
+    return TrustLineActionType::NoActions;
+}
+
+TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterTransaction(
+    ContractorID contractorID,
+    bool isActionInitiator)
+{
+    info() << "checkTrustLineAfterTransaction";
+    if (not trustLineIsPresent(contractorID)) {
+        throw NotFoundError(
+            logHeader() + "::checkTrustLineAfterTransaction: "
+                "No trust line with the contractor is present " + to_string(contractorID));
+    }
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (isTrustLineEmpty(contractorID)) {
+        info() << "TL become empty";
+        // if TL become empty, it is necessary to run Audit TA.
+        // AuditSource TA run on node which pay
+        if (isActionInitiator) {
+            info() << "Audit signal";
+            return TrustLineActionType::Audit;
+        } else {
+            return TrustLineActionType::NoActions;
+        }
+    } else if (isTrustLineOverflowed(contractorID)) {
+        // todo : add audit rules
+        info() << "TL become overflowed";
+        // if TL become overflowed, it is necessary to run Audit TA.
+        // AuditSource TA run on node which pay
+        if (isActionInitiator) {
+            info() << "Audit signal";
+            return TrustLineActionType::Audit;
+        } else {
+            return TrustLineActionType::NoActions;
+        }
+    } else {
+        // if both cases AuditSignal and PublicKeysSharingSignal occur simultaneously,
+        // AuditSignal run and Audit Transaction and it include changing keys procedure
+        auto keyChain = mKeysStore->keychain(
+            trustLineID(
+                contractorID));
+        if (keyChain.ownKeysCriticalCount(ioTransaction)) {
+            setIsOwnKeysPresent(
+                contractorID,
                 false);
             info() << "Public key sharing signal";
             return TrustLineActionType::KeysSharing;

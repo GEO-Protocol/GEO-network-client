@@ -1911,7 +1911,8 @@ void TransactionsManager::launchPongReactionTransaction(
             this,
             _1,
             _2,
-            _3));
+            _3,
+            _4));
     prepareAndSchedule(
         transaction,
         true,
@@ -2541,6 +2542,7 @@ void TransactionsManager::onAuditNewSlot(
 
 void TransactionsManager::onResumeTransactionSlot(
     const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     const SerializedEquivalent equivalent,
     const BaseTransaction::TransactionType transactionType)
 {
@@ -2550,6 +2552,7 @@ void TransactionsManager::onResumeTransactionSlot(
                 mNodeUUID,
                 equivalent,
                 contractorUUID,
+                contractorID,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mStorageHandler,
                 mEquivalentsSubsystemsRouter->iAmGateway(equivalent),
@@ -2576,6 +2579,7 @@ void TransactionsManager::onResumeTransactionSlot(
                 mNodeUUID,
                 equivalent,
                 contractorUUID,
+                contractorID,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mStorageHandler,

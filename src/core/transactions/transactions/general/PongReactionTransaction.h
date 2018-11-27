@@ -14,7 +14,11 @@ public:
     typedef shared_ptr<PongReactionTransaction> Shared;
 
 public:
-    typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent, const TransactionType)> ResumeTransactionSignal;
+    typedef signals::signal<void(
+            const NodeUUID&,
+            ContractorID,
+            const SerializedEquivalent,
+            const TransactionType)> ResumeTransactionSignal;
 
 public:
     PongReactionTransaction(

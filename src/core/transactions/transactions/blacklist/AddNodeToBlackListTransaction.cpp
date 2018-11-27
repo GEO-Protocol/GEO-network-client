@@ -52,6 +52,7 @@ TransactionResult::SharedConst AddNodeToBlackListTransaction::run()
             mNodeUUID,
             equivalent,
             kContractor,
+            trustLineManager->contractorID(kContractor),
             mContractorsManager,
             trustLineManager,
             mStorageHandler,

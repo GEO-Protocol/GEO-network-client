@@ -33,6 +33,9 @@ public:
     const NodeUUID &contractorUUID() const
         noexcept;
 
+    const ContractorID contractorID() const
+        noexcept;
+
     const TrustLineAmount &amount() const
         noexcept;
 
@@ -41,6 +44,7 @@ public:
 
 private:
     NodeUUID mContractorUUID;
+    ContractorID mContractorID;
     TrustLineAmount mAmount;
     SerializedEquivalent mEquivalent;
 };
