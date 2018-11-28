@@ -412,9 +412,9 @@ void Core::connectCommunicatorSignals()
             this,
             _1));
 
-    for (const auto &contractorUUID : mEquivalentsSubsystemsRouter->contractorsShouldBePinged()) {
+    for (const auto &contractorID : mEquivalentsSubsystemsRouter->contractorsShouldBePinged()) {
         mCommunicator->enqueueContractorWithPostponedSending(
-            contractorUUID);
+            contractorID);
     }
     mEquivalentsSubsystemsRouter->clearContractorsShouldBePinged();
 }
@@ -640,10 +640,10 @@ void Core::onProcessConfirmationMessageSlot(
 }
 
 void Core::onProcessPongMessageSlot(
-    const NodeUUID &contractorUUID)
+    ContractorID contractorID)
 {
     mCommunicator->processPongMessage(
-        contractorUUID);
+        contractorID);
 }
 
 void Core::writePIDFile()

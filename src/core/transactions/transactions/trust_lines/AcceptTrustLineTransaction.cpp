@@ -19,6 +19,7 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
         message->equivalent(),
         logger),
     mContractorUUID(message->senderUUID),
+    mOwnIdOnContractorSide(message->contractorID()),
     mSenderIncomingIP(message->senderIncomingIP()),
     mContractorAddresses(message->senderAddresses),
     mContractorsManager(contractorsManager),
@@ -32,8 +33,7 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
 
 TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 {
-    info() << "sender: " << mContractorUUID;
-    info() << "sender incoming IP " << mSenderIncomingIP;
+    info() << "sender: " << mContractorUUID << "sender incoming IP " << mSenderIncomingIP;
     for (auto &senderAddress : mContractorAddresses) {
         auto ipv4Address = static_pointer_cast<IPv4WithPortAddress>(senderAddress);
         info() << "contractor address " << ipv4Address->fullAddress();
@@ -54,6 +54,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         mContractorID = mContractorsManager->getContractorID(
             contractorIPv4Address,
             mContractorUUID,
+            mOwnIdOnContractorSide,
             ioTransaction);
     } catch (IOError &e) {
         ioTransaction->rollback();
@@ -71,13 +72,14 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         if (mTrustLinesManager->isTrustLineEmpty(mContractorID)
             and mTrustLinesManager->auditNumber(mContractorID) == 0) {
             info() << "Send confirmation on init TL again";
-            sendMessageWithTemporaryCaching<TrustLineConfirmationMessage>(
-                mContractorUUID,
-                Message::TrustLines_Initial,
-                kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
+            // todo : use sendMessageWithTemporaryCaching
+            sendMessage<TrustLineConfirmationMessage>(
+                mContractorID,
                 mEquivalent,
                 mNodeUUID,
+                mOwnIdOnContractorSide,
                 mTransactionUUID,
+                mOwnIdOnContractorSide,
                 mIAmGateway,
                 ConfirmationMessage::OK);
             return resultDone();
@@ -157,7 +159,9 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         mContractorID,
         mEquivalent,
         mNodeUUID,
+        mOwnIdOnContractorSide,
         mTransactionUUID,
+        mOwnIdOnContractorSide,
         mIAmGateway,
         ConfirmationMessage::OK);
     info() << "Confirmation was sent";
@@ -171,7 +175,11 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::sendTrustLineErrorCon
         mContractorID,
         mEquivalent,
         mNodeUUID,
+        mOwnIdOnContractorSide,
         mTransactionUUID,
+        // todo : current node did't accept request and not send contractorID
+        // update messages hierarchy
+        0,
         false,
         errorState);
     return resultDone();

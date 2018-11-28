@@ -20,6 +20,7 @@ AuditTargetTransaction::AuditTargetTransaction(
         nodeUUID,
         message->equivalent(),
         message->senderUUID,
+        message->idOnSenderSide,
         contractorsManager,
         manager,
         storageHandler,
@@ -35,39 +36,13 @@ AuditTargetTransaction::AuditTargetTransaction(
     mSubsystemsController(subsystemsController),
     mVisualInterface(visualInterface)
 {
-    mAuditNumber = mTrustLines->auditNumber(message->senderUUID) + 1;
+    mAuditNumber = mTrustLines->auditNumber(message->idOnSenderSide) + 1;
 }
 
 TransactionResult::SharedConst AuditTargetTransaction::run()
 {
-    info() << "sender: " << mContractorUUID;
-    info() << "sender incoming IP " << mSenderIncomingIP;
-    for (auto &senderAddress : mContractorAddresses) {
-        auto ipv4Address = static_pointer_cast<IPv4WithPortAddress>(senderAddress);
-        info() << "contractor address " << ipv4Address->fullAddress();
-    }
-
-    if (mContractorAddresses.empty()) {
-        warning() << "Contractor addresses are empty";
-        return resultDone();
-    }
-    auto contractorIPv4Address = static_pointer_cast<IPv4WithPortAddress>(
-        mContractorAddresses.at(0));
-
-    try {
-        mContractorID = mContractorsManager->getContractorID(
-            contractorIPv4Address,
-            mContractorUUID);
-    } catch (NotFoundError &e) {
-        error() << "Error during getting ContractorID. Details: " << e.what();
-        return resultDone();
-    }
-    info() << "ContractorID " << mContractorID;
-
-    if (mContractorUUID == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
-        return resultDone();
-    }
+    info() << "sender: " << mContractorUUID << " "
+           << mContractorID << "sender incoming IP " << mSenderIncomingIP;
 
     if (!mTrustLines->trustLineIsPresent(mContractorID)) {
         warning() << "Trust line is absent.";
@@ -122,6 +97,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             mContractorID,
             mEquivalent,
             mNodeUUID,
+            mContractorsManager->idOnContractorSide(mContractorID),
             currentTransactionUUID(),
             mOwnSignatureAndKeyNumber.second,
             mOwnSignatureAndKeyNumber.first);
@@ -247,6 +223,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
         mContractorID,
         mEquivalent,
         mNodeUUID,
+        mContractorsManager->idOnContractorSide(mContractorID),
         currentTransactionUUID(),
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);

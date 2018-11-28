@@ -17,6 +17,7 @@ DestinationMessage::DestinationMessage(
 DestinationMessage::DestinationMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
+    ContractorID idOnSenderSide,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
     const NodeUUID &destinationUUID)
@@ -25,6 +26,24 @@ DestinationMessage::DestinationMessage(
     TransactionMessage(
         equivalent,
         senderUUID,
+        idOnSenderSide,
+        senderAddresses,
+        transactionUUID),
+    mDestinationUUID(destinationUUID)
+{}
+
+DestinationMessage::DestinationMessage(
+    const SerializedEquivalent equivalent,
+    const NodeUUID &senderUUID,
+    ContractorID idOnSenderSide,
+    const TransactionUUID &transactionUUID,
+    const NodeUUID &destinationUUID)
+    noexcept:
+
+    TransactionMessage(
+        equivalent,
+        senderUUID,
+        idOnSenderSide,
         senderAddresses,
         transactionUUID),
     mDestinationUUID(destinationUUID)

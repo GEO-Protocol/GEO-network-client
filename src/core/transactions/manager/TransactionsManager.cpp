@@ -2302,10 +2302,10 @@ void TransactionsManager::onProcessConfirmationMessageSlot(
 }
 
 void TransactionsManager::onProcessPongMessageSlot(
-    const NodeUUID& contractorUUID)
+    ContractorID contractorID)
 {
     ProcessPongMessageSignal(
-        contractorUUID);
+        contractorID);
 }
 
 void TransactionsManager::onGatewayNotificationSlot()

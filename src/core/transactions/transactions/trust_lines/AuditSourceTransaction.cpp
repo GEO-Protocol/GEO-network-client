@@ -81,7 +81,7 @@ AuditSourceTransaction::AuditSourceTransaction(
         logger),
     mCountSendingAttempts(0)
 {
-    mAuditNumber = mTrustLines->auditNumber(mContractorUUID);
+    mAuditNumber = mTrustLines->auditNumber(mContractorID);
     mStep = NextAttempt;
 }
 
@@ -106,10 +106,6 @@ TransactionResult::SharedConst AuditSourceTransaction::run()
 TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
 {
     info() << "runInitializationStage " << mContractorUUID << " " << mContractorID;
-    if (mContractorUUID == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
-        return resultDone();
-    }
 
     try {
         if (mTrustLines->trustLineState(mContractorID) != TrustLine::Active) {
@@ -192,7 +188,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
         mContractorID,
         mEquivalent,
         mNodeUUID,
-        mContractorsManager->ownAddresses(),
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mContractorUUID,
         mAuditNumber,
@@ -212,11 +208,6 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
 TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
 {
     info() << "runNextAttemptStage " << mContractorUUID << " " << mContractorID;
-    if (mContractorUUID == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
-        return resultDone();
-    }
-
     try {
         if (mTrustLines->trustLineState(mContractorID) != TrustLine::AuditPending) {
             warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
@@ -228,7 +219,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
         return resultDone();
     }
 
-    processPongMessage(mContractorUUID);
+    processPongMessage(mContractorID);
 
     // todo maybe check in storage (keyChain)
     if (!mTrustLines->trustLineOwnKeysPresent(mContractorID)) {
@@ -276,7 +267,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
         mContractorID,
         mEquivalent,
         mNodeUUID,
-        mContractorsManager->ownAddresses(),
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mContractorUUID,
         mAuditNumber,
@@ -303,7 +294,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
                 mContractorID,
                 mEquivalent,
                 mNodeUUID,
-                mContractorsManager->ownAddresses(),
+                mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
                 mContractorUUID,
                 mAuditNumber,
@@ -319,16 +310,16 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         }
         info() << "Transaction will be closed and send ping";
         sendMessage<PingMessage>(
-            mContractorUUID,
+            mContractorID,
             0,
-            mNodeUUID);
+            mNodeUUID,
+            mContractorsManager->idOnContractorSide(mContractorID));
         return resultDone();
     }
 
     auto message = popNextMessage<AuditResponseMessage>();
-    info() << "contractor " << message->senderUUID << " confirmed audit.";
-    // todo : check if sender is correct
-    if (message->senderUUID != mContractorUUID) {
+    info() << "contractor " << message->idOnSenderSide << " confirmed audit.";
+    if (message->idOnSenderSide != mContractorID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }

@@ -8,7 +8,8 @@ MaxFlowCalculationMessage::MaxFlowCalculationMessage(
 
     SenderMessage(
         equivalent,
-        senderUUID),
+        senderUUID,
+        0),
 
     mTargetUUID(targetUUID)
 {}

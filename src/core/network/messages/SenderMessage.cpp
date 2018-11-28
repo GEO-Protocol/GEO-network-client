@@ -4,11 +4,13 @@
 SenderMessage::SenderMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
+    ContractorID idOnSenderSide,
     vector<BaseAddress::Shared> senderAddresses)
     noexcept :
     EquivalentMessage(
         equivalent),
     senderUUID(senderUUID),
+    idOnSenderSide(idOnSenderSide),
     senderAddresses(senderAddresses)
 {}
 
@@ -23,6 +25,12 @@ SenderMessage::SenderMessage(
         buffer.get() + bytesBufferOffset,
         NodeUUID::kBytesSize);
     bytesBufferOffset += NodeUUID::kBytesSize;
+
+    memcpy(
+        &idOnSenderSide,
+        buffer.get() + bytesBufferOffset,
+        sizeof(ContractorID));
+    bytesBufferOffset += sizeof(ContractorID);
 
     uint16_t senderAddressesCnt;
     memcpy(
@@ -60,6 +68,7 @@ pair<BytesShared, size_t> SenderMessage::serializeToBytes() const
 
     serializer.enqueue(EquivalentMessage::serializeToBytes());
     serializer.enqueue(senderUUID);
+    serializer.copy(idOnSenderSide);
     serializer.copy((byte)senderAddresses.size());
     for (const auto &address : senderAddresses) {
         serializer.enqueue(
@@ -75,6 +84,7 @@ const size_t SenderMessage::kOffsetToInheritedBytes() const
     auto kOffset =
         EquivalentMessage::kOffsetToInheritedBytes()
         + NodeUUID::kBytesSize
+        + sizeof(ContractorID)
         + sizeof(byte);
     for (const auto &address : senderAddresses) {
         kOffset += address->serializedSize();

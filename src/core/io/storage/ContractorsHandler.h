@@ -20,6 +20,12 @@ public:
     void saveContractor(
         Contractor::Shared contractor);
 
+    void saveContractorFull(
+        Contractor::Shared contractor);
+
+    void saveIdOnContractorSide(
+        Contractor::Shared contractor);
+
     vector<Contractor::Shared> allContractors();
 
     vector<ContractorID> allIDs();

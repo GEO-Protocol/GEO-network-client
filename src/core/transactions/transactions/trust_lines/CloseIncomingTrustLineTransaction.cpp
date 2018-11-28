@@ -69,7 +69,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     mMaxFlowCacheManager(maxFlowCacheManager)
 {
     mStep = Stages::AddToBlackList;
-    mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
+    mAuditNumber = mTrustLines->auditNumber(mContractorID) + 1;
 }
 
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
@@ -96,11 +96,6 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializat
     if (!mSubsystemsController->isRunTrustLineTransactions()) {
         debug() << "It is forbidden run trust line transactions";
         return resultForbiddenRun();
-    }
-
-    if (mContractorUUID == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
-        return resultProtocolError();
     }
 
     try {
@@ -209,7 +204,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializat
         mContractorID,
         mEquivalent,
         mNodeUUID,
-        mContractorsManager->ownAddresses(),
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mContractorUUID,
         mAuditNumber,
@@ -233,7 +228,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
                 mContractorID,
                 mEquivalent,
                 mNodeUUID,
-                mContractorsManager->ownAddresses(),
+                mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
                 mContractorUUID,
                 mAuditNumber,
@@ -248,16 +243,16 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
                 kWaitMillisecondsForResponse);
         }
         sendMessage<PingMessage>(
-            mCommand->contractorUUID(),
+            mContractorID,
             0,
-            mNodeUUID);
+            mNodeUUID,
+            mContractorsManager->idOnContractorSide(mContractorID));
         info() << "Transaction will be closed and send ping";
         return resultDone();
     }
     auto message = popNextMessage<AuditResponseMessage>();
-    info() << "contractor " << message->senderUUID << " confirmed closing incoming TL.";
-    // todo : check if sender is correct
-    if (message->senderUUID != mContractorUUID) {
+    info() << "contractor " << message->idOnSenderSide << " confirmed closing incoming TL.";
+    if (message->idOnSenderSide != mContractorID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }
@@ -479,7 +474,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runAddToBlackL
         mContractorID,
         mEquivalent,
         mNodeUUID,
-        mContractorsManager->ownAddresses(),
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mContractorUUID,
         mAuditNumber,

@@ -51,7 +51,9 @@ void CollectTopologyTransaction::sendMessagesToContractors()
         sendMessage<InitiateMaxFlowCalculationMessage>(
             contractorUUID,
             mEquivalent,
-            currentNodeUUID());
+            currentNodeUUID(),
+            // todo : don't use contractorID
+            0);
 }
 
 void CollectTopologyTransaction::sendMessagesOnFirstLevel()
@@ -64,7 +66,9 @@ void CollectTopologyTransaction::sendMessagesOnFirstLevel()
             sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
                 *outgoingFlowUuidIt,
                 mEquivalent,
-                mNodeUUID);
+                mNodeUUID,
+                // todo : don't use contractorID
+                0);
             outgoingFlowUuids.erase(outgoingFlowUuidIt);
         } else {
             outgoingFlowUuidIt++;
@@ -74,7 +78,9 @@ void CollectTopologyTransaction::sendMessagesOnFirstLevel()
         sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
             nodeUUIDOutgoingFlow,
             mEquivalent,
-            mNodeUUID);
+            mNodeUUID,
+            // todo : don't use contractorID
+            0);
     }
 }
 

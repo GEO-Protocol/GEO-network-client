@@ -115,6 +115,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::sendAuditErrorConfirmat
         mContractorID,
         mEquivalent,
         mNodeUUID,
+        mContractorsManager->idOnContractorSide(mContractorID),
         currentTransactionUUID(),
         errorState);
     return resultDone();

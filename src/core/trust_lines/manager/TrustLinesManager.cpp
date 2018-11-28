@@ -65,7 +65,7 @@ void TrustLinesManager::loadTrustLinesFromStorage()
                 info() << "audit pending TL in storage with contractor " << kTrustLine->contractorNodeUUID();
                 kTrustLine->setState(TrustLine::AuditPending);
                 mContractorsShouldBePinged.push_back(
-                    kTrustLine->contractorNodeUUID());
+                    kTrustLine->contractorID());
             }
 
             if (keyChain.ownKeysPresent(ioTransaction)) {
@@ -85,7 +85,7 @@ void TrustLinesManager::loadTrustLinesFromStorage()
                 warning() << "Something wrong, because TL contains contractor's valid keys";
             }
             mContractorsShouldBePinged.push_back(
-                kTrustLine->contractorNodeUUID());
+                kTrustLine->contractorID());
         }
 
         mTrustLines.insert(
@@ -988,6 +988,8 @@ void TrustLinesManager::removeTrustLine(
             contractorID,
             mEquivalent);
     }
+
+    // todo remove contractor if need
 }
 
 void TrustLinesManager::updateTrustLineFromStorage(
@@ -1631,7 +1633,7 @@ TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterTra
     return TrustLineActionType::NoActions;
 }
 
-vector<NodeUUID> TrustLinesManager::contractorsShouldBePinged() const
+vector<ContractorID> TrustLinesManager::contractorsShouldBePinged() const
 {
     return mContractorsShouldBePinged;
 }

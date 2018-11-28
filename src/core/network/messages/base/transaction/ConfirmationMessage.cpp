@@ -14,6 +14,21 @@ ConfirmationMessage::ConfirmationMessage(
 {}
 
 ConfirmationMessage::ConfirmationMessage(
+    const SerializedEquivalent equivalent,
+    const NodeUUID &senderUUID,
+    ContractorID idOnSenderSide,
+    const TransactionUUID &transactionUUID,
+    const OperationState state) :
+
+    TransactionMessage(
+        equivalent,
+        senderUUID,
+        idOnSenderSide,
+        transactionUUID),
+    mState(state)
+{}
+
+ConfirmationMessage::ConfirmationMessage(
     BytesShared buffer):
 
     TransactionMessage(buffer)

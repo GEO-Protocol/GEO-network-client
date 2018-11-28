@@ -4,7 +4,7 @@
 #include "../../internal/common/Types.h"
 #include "../../../../common/exceptions/RuntimeError.h"
 #include "../../../../logger/LoggerMixin.hpp"
-#include "../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../contractors/ContractorsManager.h"
 #include "../../../messages/general/PingMessage.h"
 #include "../../../messages/general/PongMessage.h"
 
@@ -24,28 +24,29 @@ public:
      * This signal emits every time, when ends timeout of some queue,
      * and messages of this queue must be sent to the remote node once more time.
      */
-    signals::signal<void(pair<NodeUUID, PingMessage::Shared>)> signalOutgoingMessageReady;
+    signals::signal<void(pair<ContractorID, PingMessage::Shared>)> signalOutgoingMessageReady;
 
 public:
     PingMessagesHandler(
         const NodeUUID &nodeUUID,
+        ContractorsManager *contractorsManager,
         IOService &ioService,
         Logger &logger);
 
     /**
-     * @param contractorUUID - remote node UUID.
+     * @param contractorID - remote node ID.
      */
     void tryEnqueueContractor(
-        const NodeUUID &contractorUUID);
+        ContractorID contractorID);
 
     void enqueueContractorWithPostponedSending(
-        const NodeUUID &contractorUUID);
+        ContractorID contractorID);
 
     /**
      * @param contractorUUID - UUID of the remote node, that sent pong message.
      */
     void tryProcessPongMessage(
-        const NodeUUID& contractorUUID);
+        ContractorID contractorID);
 
 protected:
     const string logHeader() const
@@ -70,7 +71,8 @@ protected:
 
 private:
     NodeUUID mNodeUUID;
-    vector<NodeUUID> mContractors;
+    ContractorsManager *mContractorsManager;
+    vector<ContractorID> mContractors;
 
     IOService &mIOService;
     as::steady_timer mResendingTimer;

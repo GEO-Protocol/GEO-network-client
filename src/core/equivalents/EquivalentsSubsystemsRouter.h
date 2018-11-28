@@ -18,7 +18,6 @@ class EquivalentsSubsystemsRouter {
 
 public:
     typedef signals::signal<void()> GatewayNotificationSignal;
-    typedef signals::signal<void(const NodeUUID&)> PingMessageSignal;
 
 public:
     EquivalentsSubsystemsRouter(
@@ -53,7 +52,7 @@ public:
     void initNewEquivalent(
         const SerializedEquivalent equivalent);
 
-    set<NodeUUID> contractorsShouldBePinged() const;
+    set<ContractorID> contractorsShouldBePinged() const;
 
     void clearContractorsShouldBePinged();
 
@@ -63,8 +62,6 @@ public:
 
 public:
     mutable GatewayNotificationSignal gatewayNotificationSignal;
-
-    mutable PingMessageSignal pingMessageSignal;
 
 protected:
     string logHeader() const;
@@ -100,7 +97,7 @@ private:
     map<SerializedEquivalent, unique_ptr<PathsManager>> mPathsManagers;
     unique_ptr<GatewayNotificationAndRoutingTablesDelayedTask> mGatewayNotificationAndRoutingTablesDelayedTask;
 
-    set<NodeUUID> mContractorsShouldBePinged;
+    set<ContractorID> mContractorsShouldBePinged;
 };
 
 

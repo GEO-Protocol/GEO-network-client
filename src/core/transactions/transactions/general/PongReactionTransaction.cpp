@@ -44,7 +44,8 @@ TransactionResult::SharedConst PongReactionTransaction::run()
     }
     if (!isSignalSend) {
         info() << "No one signal was sent";
-        processPongMessage(mContractorUUID);
+        // todo : get real contractorID of sender node and process pong
+        //processPongMessage(mContractorUUID);
     }
     return resultDone();
 }

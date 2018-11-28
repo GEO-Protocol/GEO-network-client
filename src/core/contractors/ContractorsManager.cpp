@@ -19,7 +19,8 @@ ContractorsManager::ContractorsManager(
                 contractor));
     }
     for (const auto &contractor : mContractors) {
-        info() << contractor.second->getID() << " " << contractor.second->getUUID() << " " << contractor.second->getIPv4();
+        info() << contractor.second->getID() << " " << contractor.second->ownIdOnContractorSide() << " "
+               << contractor.second->getUUID() << " " << contractor.second->getIPv4()->fullAddress();
     }
     info() << "Own ip " << mOwnIPv4->fullAddress();
 }
@@ -48,6 +49,7 @@ ContractorID ContractorsManager::getContractorID(
 ContractorID ContractorsManager::getContractorID(
     IPv4WithPortAddress::Shared ipv4Address,
     const NodeUUID &contractorUUID,
+    ContractorID idOnContractorSide,
     IOTransaction::Shared ioTransaction)
 {
     for (const auto &contractor : mContractors) {
@@ -61,9 +63,10 @@ ContractorID ContractorsManager::getContractorID(
         info() << "New contractor initializing " << id;
         mContractors[id] = make_shared<Contractor>(
             id,
+            idOnContractorSide,
             contractorUUID,
             ipv4Address);
-        ioTransaction->contractorsHandler()->saveContractor(
+        ioTransaction->contractorsHandler()->saveContractorFull(
             mContractors[id]);
         return id;
     } else {
@@ -84,6 +87,29 @@ Contractor::Shared ContractorsManager::contractor(
         throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
     }
     return mContractors.at(contractorID);
+}
+
+const ContractorID ContractorsManager::idOnContractorSide(
+    ContractorID contractorID) const
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+    return mContractors.at(contractorID)->ownIdOnContractorSide();
+}
+
+void ContractorsManager::setIDOnContractorSide(
+    IOTransaction::Shared ioTransaction,
+    ContractorID contractorID,
+    ContractorID idOnContractorSide)
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+
+    auto contractor = mContractors[contractorID];
+    contractor->setOwnIdOnContractorSide(idOnContractorSide);
+    ioTransaction->contractorsHandler()->saveIdOnContractorSide(contractor);
 }
 
 const ContractorID ContractorsManager::nextFreeID(

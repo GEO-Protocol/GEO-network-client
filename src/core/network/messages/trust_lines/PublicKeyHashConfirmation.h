@@ -15,6 +15,7 @@ public:
     PublicKeyHashConfirmation(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         KeyNumber number,
         lamport::KeyHash::Shared hashConfirmation);
@@ -22,6 +23,7 @@ public:
     PublicKeyHashConfirmation(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         OperationState state);
 

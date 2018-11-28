@@ -114,7 +114,7 @@ private:
         ConfirmationMessage::Shared confirmationMessage);
 
     void onProcessPongMessageSlot(
-        const NodeUUID& contractorUUID);
+        ContractorID contractorID);
 
     void onPathsResourceRequestedSlot(
         const TransactionUUID &transactionUUID,

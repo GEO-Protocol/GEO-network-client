@@ -52,6 +52,7 @@ protected:
 protected:
     NodeUUID mContractorUUID;
     ContractorID mContractorID;
+    ContractorID mOwnIdOnContractorSide;
     string mSenderIncomingIP;
     vector<BaseAddress::Shared> mContractorAddresses;
 

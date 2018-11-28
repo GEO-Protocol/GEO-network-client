@@ -70,6 +70,7 @@ Communicator::Communicator(
     mPingMessagesHandler(
         make_unique<PingMessagesHandler>(
             mNodeUUID,
+            mContractorsManager,
             IOService,
             logger))
 {
@@ -168,10 +169,10 @@ void Communicator::sendMessage (
             message);
     }
 
-    if (message->typeID() == Message::General_Ping) {
-        mPingMessagesHandler->tryEnqueueContractor(
-            contractorUUID);
-    }
+//    if (message->typeID() == Message::General_Ping) {
+//        mPingMessagesHandler->tryEnqueueContractor(
+//            contractorUUID);
+//    }
 
     mOutgoingMessagesHandler->sendMessage(
         message,
@@ -195,11 +196,11 @@ void Communicator::sendMessage (
 //            contractorUUID,
 //            message);
 //    }
-//
-//    if (message->typeID() == Message::General_Ping) {
-//        mPingMessagesHandler->tryEnqueueContractor(
-//            contractorUUID);
-//    }
+
+    if (message->typeID() == Message::General_Ping) {
+        mPingMessagesHandler->tryEnqueueContractor(
+            contractorID);
+    }
 
     mOutgoingMessagesHandler->sendMessage(
         message,
@@ -232,17 +233,17 @@ void Communicator::processConfirmationMessage(
 }
 
 void Communicator::processPongMessage(
-    const NodeUUID &nodeUUID)
+    ContractorID contractorID)
 {
     mPingMessagesHandler->tryProcessPongMessage(
-        nodeUUID);
+        contractorID);
 }
 
 void Communicator::enqueueContractorWithPostponedSending(
-    const NodeUUID &contractorUUID)
+    ContractorID contractorID)
 {
     mPingMessagesHandler->enqueueContractorWithPostponedSending(
-        contractorUUID);
+        contractorID);
 }
 
 void Communicator::onMessageReceived(
@@ -294,7 +295,9 @@ void Communicator::onMessageReceived(
         sendMessage(
             make_shared<PongMessage>(
                 0,
-                mNodeUUID),
+                mNodeUUID,
+            mContractorsManager->idOnContractorSide(
+                pingMessage->idOnSenderSide)),
             pingMessage->senderUUID);
         return;
     }
@@ -349,7 +352,7 @@ void Communicator::onConfirmationNotStronglyRequiredMessageReadyToResend(
 }
 
 void Communicator::onPingMessageReadyToResend(
-    pair<NodeUUID, PingMessage::Shared> addresseeAndMessage)
+    pair<ContractorID, PingMessage::Shared> addresseeAndMessage)
 {
     mOutgoingMessagesHandler->sendMessage(
         addresseeAndMessage.second,

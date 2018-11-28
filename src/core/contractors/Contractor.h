@@ -17,10 +17,21 @@ public:
 
     Contractor(
         ContractorID id,
+        ContractorID idOnContractorSide,
         const NodeUUID &uuid,
         IPv4WithPortAddress::Shared ipv4Address);
 
+    Contractor(
+        ContractorID id,
+        ContractorID idOnContractorSide,
+        const NodeUUID &uuid,
+        const string &ipv4);
+
     const ContractorID getID() const;
+
+    const ContractorID ownIdOnContractorSide() const;
+
+    void setOwnIdOnContractorSide(ContractorID id);
 
     const NodeUUID& getUUID() const;
 
@@ -30,6 +41,7 @@ public:
 
 private:
     ContractorID mID;
+    ContractorID mOwnIdOnContractorSide;
     NodeUUID mUUID;
     IPv4WithPortAddress::Shared mIPv4;
 };

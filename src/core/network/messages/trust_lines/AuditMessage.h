@@ -27,7 +27,7 @@ public:
     AuditMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
-        vector<BaseAddress::Shared> senderAddresses,
+        ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         const NodeUUID &destinationUUID,
         const AuditNumber auditNumber,

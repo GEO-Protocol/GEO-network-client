@@ -7,7 +7,8 @@ MaxFlowCalculationConfirmationMessage::MaxFlowCalculationConfirmationMessage(
 
     SenderMessage(
         equivalent,
-        senderUUID),
+        senderUUID,
+        0),
     mConfirmationID(confirmationID)
 {}
 

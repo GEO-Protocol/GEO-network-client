@@ -20,7 +20,16 @@ public:
     DestinationMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        ContractorID idOnSenderSide,
         vector<BaseAddress::Shared> senderAddresses,
+        const TransactionUUID &transactionUUID,
+        const NodeUUID &destinationUUID)
+    noexcept;
+
+    DestinationMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         const NodeUUID &destinationUUID)
     noexcept;

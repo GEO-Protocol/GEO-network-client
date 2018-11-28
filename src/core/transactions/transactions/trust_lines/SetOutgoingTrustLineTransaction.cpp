@@ -61,11 +61,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
         return resultForbiddenRun();
     }
 
-    if (mContractorUUID == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
-        return resultProtocolError();
-    }
-
     try {
         if (mTrustLines->trustLineState(mContractorID) != TrustLine::Active) {
             warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
@@ -239,7 +234,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
         mContractorID,
         mEquivalent,
         mNodeUUID,
-        mContractorsManager->ownAddresses(),
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mContractorUUID,
         mAuditNumber,
@@ -264,7 +259,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
                 mContractorID,
                 mEquivalent,
                 mNodeUUID,
-                mContractorsManager->ownAddresses(),
+                mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
                 mContractorUUID,
                 mAuditNumber,
@@ -280,16 +275,17 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
         }
         info() << "Transaction will be closed and send ping";
         sendMessage<PingMessage>(
-            mCommand->contractorUUID(),
+            mContractorID,
             0,
-            mNodeUUID);
+            mNodeUUID,
+            mContractorsManager->idOnContractorSide(
+                mContractorID));
         return resultDone();
     }
 
     auto message = popNextMessage<AuditResponseMessage>();
-    info() << "contractor " << message->senderUUID << " confirmed modifying TL.";
-    // todo : check if sender is correct
-    if (message->senderUUID != mContractorUUID) {
+    info() << "contractor " << message->idOnSenderSide << " confirmed modifying TL.";
+    if (message->idOnSenderSide != mContractorID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }

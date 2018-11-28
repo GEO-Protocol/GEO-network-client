@@ -93,8 +93,8 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     }
 
     for (const auto &trustLinesManager : mTrustLinesManagers) {
-        for (const auto &contractorUUID : trustLinesManager.second->contractorsShouldBePinged()) {
-            mContractorsShouldBePinged.insert(contractorUUID);
+        for (const auto &contractorID : trustLinesManager.second->contractorsShouldBePinged()) {
+            mContractorsShouldBePinged.insert(contractorID);
         }
         trustLinesManager.second->clearContractorsShouldBePinged();
     }
@@ -256,7 +256,7 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
     mEquivalents.push_back(equivalent);
 }
 
-set<NodeUUID> EquivalentsSubsystemsRouter::contractorsShouldBePinged() const
+set<ContractorID> EquivalentsSubsystemsRouter::contractorsShouldBePinged() const
 {
     return mContractorsShouldBePinged;
 }

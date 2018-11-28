@@ -110,11 +110,6 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
 {
     info() << "runPublicKeysSharingInitializationStage with " << mContractorUUID << " " << mContractorID;
 
-    if (mContractorUUID == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
-        return resultDone();
-    }
-
     if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
         return resultDone();
@@ -155,7 +150,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
         mContractorID,
         mEquivalent,
         mNodeUUID,
-        mContractorsManager->ownAddresses(),
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mKeysCount,
         mCurrentKeyNumber,
@@ -172,11 +167,6 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
 TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runCommandPublicKeysSharingInitializationStage()
 {
     info() << "runCommandPublicKeysSharingInitializationStage with " << mContractorUUID << " " << mContractorID;
-
-    if (mContractorUUID == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
-        return resultProtocolError();
-    }
 
     if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
@@ -218,7 +208,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runCommandPub
         mContractorID,
         mEquivalent,
         mNodeUUID,
-        mContractorsManager->ownAddresses(),
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mKeysCount,
         mCurrentKeyNumber,
@@ -241,7 +231,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
                     mContractorID,
                     mEquivalent,
                     mNodeUUID,
-                    mContractorsManager->ownAddresses(),
+                    mContractorsManager->idOnContractorSide(mContractorID),
                     mTransactionUUID,
                     mKeysCount,
                     mCurrentKeyNumber,
@@ -251,7 +241,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
                     mContractorID,
                     mEquivalent,
                     mNodeUUID,
-                    mContractorsManager->ownAddresses(),
+                    mContractorsManager->idOnContractorSide(mContractorID),
                     mTransactionUUID,
                     mCurrentKeyNumber,
                     mCurrentPublicKey);
@@ -267,7 +257,8 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
     }
 
     auto message = popNextMessage<PublicKeyHashConfirmation>();
-    if (message->senderUUID != mContractorUUID) {
+    info() << "contractor " << message->idOnSenderSide << " send confirmation.";
+    if (message->idOnSenderSide != mContractorID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }
@@ -355,7 +346,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
         mContractorID,
         mEquivalent,
         mNodeUUID,
-        mContractorsManager->ownAddresses(),
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mCurrentKeyNumber,
         mCurrentPublicKey);

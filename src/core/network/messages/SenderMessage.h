@@ -16,12 +16,14 @@ class SenderMessage:
 
 public:
     const NodeUUID senderUUID;
+    ContractorID idOnSenderSide;
     vector<BaseAddress::Shared> senderAddresses;
 
 public:
     SenderMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        ContractorID idOnSenderSide,
         vector<BaseAddress::Shared> senderAddresses = {})
         noexcept;
 

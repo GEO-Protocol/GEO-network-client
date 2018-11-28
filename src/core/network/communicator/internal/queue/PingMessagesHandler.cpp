@@ -2,11 +2,13 @@
 
 PingMessagesHandler::PingMessagesHandler(
     const NodeUUID &nodeUUID,
+    ContractorsManager *contractorsManager,
     IOService &ioService,
     Logger &logger) :
 
     LoggerMixin(logger),
     mNodeUUID(nodeUUID),
+    mContractorsManager(contractorsManager),
     mIOService(ioService),
     mResendingTimer(ioService)
 {
@@ -22,19 +24,19 @@ PingMessagesHandler::PingMessagesHandler(
 }
 
 void PingMessagesHandler::tryEnqueueContractor(
-    const NodeUUID &contractorUUID)
+    ContractorID contractorID)
 {
     if (find(
             mContractors.begin(),
             mContractors.end(),
-            contractorUUID) != mContractors.end()) {
+            contractorID) != mContractors.end()) {
         return;
     }
 
-    mContractors.push_back(contractorUUID);
+    mContractors.push_back(contractorID);
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-    debug() << "Contractor " << contractorUUID << " enqueued for ping.";
+    debug() << "Contractor " << contractorID << " enqueued for ping.";
 #endif
 
     if (mContractors.size() == 1) {
@@ -44,33 +46,33 @@ void PingMessagesHandler::tryEnqueueContractor(
 }
 
 void PingMessagesHandler::enqueueContractorWithPostponedSending(
-    const NodeUUID &contractorUUID)
+    ContractorID contractorID)
 {
     if (find(
             mContractors.begin(),
             mContractors.end(),
-            contractorUUID) != mContractors.end()) {
+            contractorID) != mContractors.end()) {
         return;
     }
 
-    mContractors.push_back(contractorUUID);
+    mContractors.push_back(contractorID);
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-    debug() << "Contractor " << contractorUUID << " enqueued for postponed ping.";
+    debug() << "Contractor " << contractorID << " enqueued for postponed ping.";
 #endif
 
 }
 
 void PingMessagesHandler::tryProcessPongMessage(
-    const NodeUUID& contractorUUID)
+    ContractorID contractorID)
 {
     auto contractorIt = find(
         mContractors.begin(),
         mContractors.end(),
-        contractorUUID);
+        contractorID);
     if (contractorIt == mContractors.end()) {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        warning() << "tryProcessPongMessage: no contractor is present " << contractorUUID;
+        warning() << "tryProcessPongMessage: no contractor is present " << contractorID;
 #endif
         return;
     }
@@ -79,7 +81,7 @@ void PingMessagesHandler::tryProcessPongMessage(
         contractorIt);
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        debug() << "Pong message from contractor " << contractorUUID << " received.";
+        debug() << "Pong message from contractor " << contractorID << " received.";
 #endif
 }
 
@@ -117,11 +119,15 @@ void PingMessagesHandler::rescheduleResending()
 
 void PingMessagesHandler::sendPingMessages() const
 {
-    for (const auto &contractorUUID : mContractors) {
+    for (const auto &contractorID : mContractors) {
         signalOutgoingMessageReady(
             make_pair(
-                contractorUUID,
-                make_shared<PingMessage>(0, mNodeUUID)));
+                contractorID,
+                make_shared<PingMessage>(
+                    0,
+                    mNodeUUID,
+                    mContractorsManager->idOnContractorSide(
+                        contractorID))));
     }
 }
 

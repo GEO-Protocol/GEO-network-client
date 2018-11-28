@@ -20,7 +20,7 @@ public:
     PublicKeysSharingInitMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
-        vector<BaseAddress::Shared> senderAddresses,
+        ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         const KeysCount keysCount,
         const KeyNumber number,

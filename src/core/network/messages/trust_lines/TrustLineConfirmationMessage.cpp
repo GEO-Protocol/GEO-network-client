@@ -3,15 +3,19 @@
 TrustLineConfirmationMessage::TrustLineConfirmationMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
+    ContractorID idOnSenderSide,
     const TransactionUUID &transactionUUID,
+    ContractorID contractorID,
     bool isContractorGateway,
     const OperationState state) :
 
     ConfirmationMessage(
         equivalent,
         senderUUID,
+        idOnSenderSide,
         transactionUUID,
         state),
+    mContractorID(contractorID),
     mIsContractorGateway(isContractorGateway)
 {}
 
@@ -21,6 +25,11 @@ TrustLineConfirmationMessage::TrustLineConfirmationMessage(
     ConfirmationMessage(buffer)
 {
     size_t bytesBufferOffset = ConfirmationMessage::kOffsetToInheritedBytes();
+    memcpy(
+        &mContractorID,
+        buffer.get() + bytesBufferOffset,
+        sizeof(ContractorID));
+    bytesBufferOffset += sizeof(ContractorID);
     //----------------------------------------------------
     memcpy(
         &mIsContractorGateway,
@@ -31,6 +40,11 @@ TrustLineConfirmationMessage::TrustLineConfirmationMessage(
 const Message::MessageType TrustLineConfirmationMessage::typeID() const
 {
     return Message::TrustLines_Confirmation;
+}
+
+const ContractorID TrustLineConfirmationMessage::contractorID() const
+{
+    return mContractorID;
 }
 
 const bool TrustLineConfirmationMessage::isContractorGateway() const
@@ -45,6 +59,7 @@ pair<BytesShared, size_t> TrustLineConfirmationMessage::serializeToBytes() const
 
     size_t bytesCount =
             parentBytesAndCount.second
+            + sizeof(ContractorID)
             + sizeof(byte);
 
     BytesShared dataBytesShared = tryMalloc(bytesCount);
@@ -55,6 +70,12 @@ pair<BytesShared, size_t> TrustLineConfirmationMessage::serializeToBytes() const
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
+    //----------------------------------------------------
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &mContractorID,
+        sizeof(ContractorID));
+    dataBytesOffset += sizeof(ContractorID);
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,

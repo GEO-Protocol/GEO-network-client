@@ -22,7 +22,7 @@ public:
     PublicKeyMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
-        vector<BaseAddress::Shared> senderAddresses,
+        ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         const KeyNumber number,
         const lamport::PublicKey::Shared publicKey);

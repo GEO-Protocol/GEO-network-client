@@ -16,6 +16,7 @@ PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
         message->equivalent(),
         logger),
     mContractorUUID(message->senderUUID),
+    mContractorID(message->idOnSenderSide),
     mSenderIncomingIP(message->senderIncomingIP()),
     mContractorAddresses(message->senderAddresses),
     mContractorsManager(contractorsManager),
@@ -46,29 +47,8 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::run()
 
 TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runPublicKeyReceiverInitStage()
 {
-    info() << "runPublicKeyReceiverInitStage " << mContractorUUID;
-    info() << "sender incoming IP " << mSenderIncomingIP;
-    for (auto &senderAddress : mContractorAddresses) {
-        auto ipv4Address = static_pointer_cast<IPv4WithPortAddress>(senderAddress);
-        info() << "contractor address " << ipv4Address->fullAddress();
-    }
-
-    if (mContractorAddresses.empty()) {
-        warning() << "Contractor addresses are empty";
-        return resultDone();
-    }
-    auto contractorIPv4Address = static_pointer_cast<IPv4WithPortAddress>(
-        mContractorAddresses.at(0));
-
-    try {
-        mContractorID = mContractorsManager->getContractorID(
-            contractorIPv4Address,
-            mContractorUUID);
-    } catch (NotFoundError &e) {
-        error() << "Error during getting ContractorID. Details: " << e.what();
-        return resultDone();
-    }
-    info() << "ContractorID " << mContractorID;
+    info() << "runPublicKeyReceiverInitStage " << mContractorUUID << " "
+           << mContractorID << "sender incoming IP " << mSenderIncomingIP;
 
     if (!mTrustLines->trustLineIsPresent(mContractorID)) {
         warning() << "Trust line is absent.";
@@ -117,8 +97,6 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
         return resultDone();
     }
 
-    // todo : check if contractor is correct
-
     if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived) {
         warning() << "invalid TL state " << mTrustLines->trustLineState(mContractorID);
         return sendKeyErrorConfirmation(
@@ -126,6 +104,12 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
     }
 
     auto message = popNextMessage<PublicKeyMessage>();
+    info() << "contractor " << message->idOnSenderSide << " send next key.";
+    if (message->idOnSenderSide != mContractorID) {
+        warning() << "Sender is not contractor of this transaction";
+        return resultContinuePreviousState();
+    }
+
     if (message->number() != mCurrentKeyNumber + 1) {
         warning() << "Invalid key number " << message->number() << ". Wait for another";
         return resultContinuePreviousState();
@@ -175,6 +159,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             mContractorID,
             mEquivalent,
             mNodeUUID,
+            mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             mCurrentKeyNumber,
             mCurrentPublicKey->hash());
@@ -184,6 +169,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             mContractorID,
             mEquivalent,
             mNodeUUID,
+            mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             mCurrentKeyNumber,
             mCurrentPublicKey->hash());
@@ -228,6 +214,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::sendKeyErrorC
         mContractorID,
         mEquivalent,
         mNodeUUID,
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         errorState);
     return resultDone();

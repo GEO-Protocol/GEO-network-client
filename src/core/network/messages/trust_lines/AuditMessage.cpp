@@ -25,7 +25,7 @@ AuditMessage::AuditMessage(
 AuditMessage::AuditMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
-    vector<BaseAddress::Shared> senderAddresses,
+    ContractorID idOnSenderSide,
     const TransactionUUID &transactionUUID,
     const NodeUUID &destinationUUID,
     const AuditNumber auditNumber,
@@ -36,7 +36,7 @@ AuditMessage::AuditMessage(
     DestinationMessage(
         equivalent,
         senderUUID,
-        senderAddresses,
+        idOnSenderSide,
         transactionUUID,
         destinationUUID),
     mAuditNumber(auditNumber),

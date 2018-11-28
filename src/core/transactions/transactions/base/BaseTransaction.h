@@ -50,7 +50,7 @@ public:
     typedef signals::signal<void(const NodeUUID&, ContractorID, const SerializedEquivalent)> PublicKeysSharingNewSignal;
     typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent)> AuditSignal;
     typedef signals::signal<void(const NodeUUID&, ContractorID, const SerializedEquivalent)> AuditNewSignal;
-    typedef signals::signal<void(const NodeUUID&)> ProcessPongMessageSignal;
+    typedef signals::signal<void(ContractorID)> ProcessPongMessageSignal;
 
 public:
     virtual ~BaseTransaction() = default;
@@ -263,10 +263,10 @@ protected:
     }
 
     void processPongMessage(
-        const NodeUUID &contractorUUID)
+        ContractorID contractorID)
     {
         processPongMessageSignal(
-            contractorUUID);
+            contractorID);
     }
 
     void launchSubsidiaryTransaction(

@@ -68,10 +68,10 @@ public:
         ConfirmationMessage::Shared confirmationMessage);
 
     void processPongMessage(
-        const NodeUUID &nodeUUID);
+        ContractorID contractorID);
 
     void enqueueContractorWithPostponedSending(
-        const NodeUUID &contractorUUID);
+        ContractorID contractorID);
 
 protected:
     /**
@@ -91,7 +91,7 @@ protected:
         pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared>);
 
     void onPingMessageReadyToResend(
-        pair<NodeUUID, PingMessage::Shared>);
+        pair<ContractorID, PingMessage::Shared>);
 
     void onClearTopologyCache(
         const SerializedEquivalent equivalent,

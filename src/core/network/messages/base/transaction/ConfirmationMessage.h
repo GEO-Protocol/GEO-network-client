@@ -33,6 +33,13 @@ public:
         const OperationState state = OK);
 
     ConfirmationMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        ContractorID idOnSenderSide,
+        const TransactionUUID &transactionUUID,
+        const OperationState state = OK);
+
+    ConfirmationMessage(
         BytesShared buffer);
 
     const MessageType typeID() const;

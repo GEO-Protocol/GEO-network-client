@@ -24,6 +24,7 @@ public:
     ContractorID getContractorID(
         IPv4WithPortAddress::Shared ipv4Address,
         const NodeUUID &contractorUUID,
+        ContractorID idOnContractorSide,
         IOTransaction::Shared ioTransaction = nullptr);
 
     bool contractorPresent(
@@ -31,6 +32,14 @@ public:
 
     Contractor::Shared contractor(
         ContractorID contractorID);
+
+    const ContractorID idOnContractorSide(
+        ContractorID contractorID) const;
+
+    void setIDOnContractorSide(
+        IOTransaction::Shared ioTransaction,
+        ContractorID id,
+        ContractorID idOnContractorSide);
 
     vector<BaseAddress::Shared> ownAddresses() const;
 

@@ -3,34 +3,22 @@
 TrustLineInitialMessage::TrustLineInitialMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &sender,
-    const TransactionUUID &transactionUUID,
-    const NodeUUID &destinationUUID,
-    bool isContractorGateway)
-    noexcept :
-
-    DestinationMessage(
-        equivalent,
-        sender,
-        transactionUUID,
-        destinationUUID),
-    mIsContractorGateway(isContractorGateway)
-{}
-
-TrustLineInitialMessage::TrustLineInitialMessage(
-    const SerializedEquivalent equivalent,
-    const NodeUUID &sender,
+    ContractorID idOnSenderSide,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
     const NodeUUID &destinationUUID,
+    ContractorID contractorID,
     bool isContractorGateway)
     noexcept:
 
     DestinationMessage(
         equivalent,
         sender,
+        idOnSenderSide,
         senderAddresses,
         transactionUUID,
         destinationUUID),
+    mContractorID(contractorID),
     mIsContractorGateway(isContractorGateway)
 {}
 
@@ -44,6 +32,12 @@ TrustLineInitialMessage::TrustLineInitialMessage(
     size_t bytesBufferOffset = DestinationMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     memcpy(
+        &mContractorID,
+        buffer.get() + bytesBufferOffset,
+        sizeof(ContractorID));
+    bytesBufferOffset += sizeof(ContractorID);
+    //----------------------------------------------------
+    memcpy(
         &mIsContractorGateway,
         buffer.get() + bytesBufferOffset,
         sizeof(byte));
@@ -54,6 +48,12 @@ const Message::MessageType TrustLineInitialMessage::typeID() const
     noexcept
 {
     return Message::TrustLines_Initial;
+}
+
+const ContractorID TrustLineInitialMessage::contractorID() const
+    noexcept
+{
+    return mContractorID;
 }
 
 const bool TrustLineInitialMessage::isContractorGateway() const
@@ -74,6 +74,7 @@ pair<BytesShared, size_t> TrustLineInitialMessage::serializeToBytes() const
     auto parentBytesAndCount = DestinationMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
+                        + sizeof(ContractorID)
                         + sizeof(byte);
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -84,6 +85,12 @@ pair<BytesShared, size_t> TrustLineInitialMessage::serializeToBytes() const
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
+    //----------------------------
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &mContractorID,
+        sizeof(ContractorID));
+    dataBytesOffset += sizeof(ContractorID);
     //----------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,

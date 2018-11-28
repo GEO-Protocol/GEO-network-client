@@ -459,7 +459,7 @@ public:
         ContractorID contractorID,
         bool isActionInitiator);
 
-    vector<NodeUUID> contractorsShouldBePinged() const;
+    vector<ContractorID> contractorsShouldBePinged() const;
 
     void clearContractorsShouldBePinged();
 
@@ -494,7 +494,7 @@ private:
     SerializedEquivalent mEquivalent;
 
     unordered_map<NodeUUID, BaseAuditRule::Shared, boost::hash<boost::uuids::uuid>> mAuditRules;
-    vector<NodeUUID> mContractorsShouldBePinged;
+    vector<ContractorID> mContractorsShouldBePinged;
 
     unique_ptr<AmountReservationsHandler> mAmountReservationsHandler;
     StorageHandler *mStorageHandler;

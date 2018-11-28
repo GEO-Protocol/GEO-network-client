@@ -142,7 +142,7 @@ public:
             Message::MessageType,
             uint32_t)> transactionOutgoingMessageWithCachingReadySignal;
     signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
-    signals::signal<void(const NodeUUID&)> ProcessPongMessageSignal;
+    signals::signal<void(ContractorID)> ProcessPongMessageSignal;
 
 public:
     TransactionsManager(
@@ -488,7 +488,7 @@ protected:
         ConfirmationMessage::Shared confirmationMessage);
 
     void onProcessPongMessageSlot(
-        const NodeUUID &contractorUUID);
+        ContractorID contractorID);
 
     void onGatewayNotificationSlot();
 
