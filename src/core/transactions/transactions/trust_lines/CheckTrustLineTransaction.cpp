@@ -3,24 +3,6 @@
 CheckTrustLineTransaction::CheckTrustLineTransaction(
     const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
-    const NodeUUID &contractorUUID,
-    bool isActionInitiator,
-    TrustLinesManager *manager,
-    Logger &logger) :
-    BaseTransaction(
-        BaseTransaction::CheckTrustLineAfterPaymentTransactionType,
-        nodeUUID,
-        equivalent,
-        logger),
-    mContractorUUID(contractorUUID),
-    mIsActionInitiator(isActionInitiator),
-    mTrustLinesManager(manager)
-{}
-
-CheckTrustLineTransaction::CheckTrustLineTransaction(
-    const NodeUUID &nodeUUID,
-    const SerializedEquivalent equivalent,
-    const NodeUUID &contractorUUID,
     ContractorID contractorID,
     bool isActionInitiator,
     TrustLinesManager *manager,
@@ -30,7 +12,6 @@ CheckTrustLineTransaction::CheckTrustLineTransaction(
         nodeUUID,
         equivalent,
         logger),
-    mContractorUUID(contractorUUID),
     mContractorID(contractorID),
     mIsActionInitiator(isActionInitiator),
     mTrustLinesManager(manager)
@@ -38,7 +19,7 @@ CheckTrustLineTransaction::CheckTrustLineTransaction(
 
 TransactionResult::SharedConst CheckTrustLineTransaction::run()
 {
-    info() << "run " << mContractorUUID << " " << mContractorID;
+    info() << "run " << mContractorID;
     if (mTrustLinesManager->trustLineState(mContractorID) == TrustLine::Archived) {
         info() << "TL is Archived";
         return resultDone();
@@ -49,16 +30,14 @@ TransactionResult::SharedConst CheckTrustLineTransaction::run()
     switch (action) {
         case TrustLinesManager::Audit: {
             info() << "Audit action";
-            auditNewSignal(
-                mContractorUUID,
+            auditSignal(
                 mContractorID,
                 mEquivalent);
             break;
         }
         case TrustLinesManager::KeysSharing: {
             info() << "Keys sharing action";
-            publicKeysSharingNewSignal(
-                mContractorUUID,
+            publicKeysSharingSignal(
                 mContractorID,
                 mEquivalent);
             break;

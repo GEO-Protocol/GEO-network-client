@@ -6,18 +6,16 @@ TrustLineInitialMessage::TrustLineInitialMessage(
     ContractorID idOnSenderSide,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
-    const NodeUUID &destinationUUID,
     ContractorID contractorID,
     bool isContractorGateway)
     noexcept:
 
-    DestinationMessage(
+    TransactionMessage(
         equivalent,
         sender,
         idOnSenderSide,
         senderAddresses,
-        transactionUUID,
-        destinationUUID),
+        transactionUUID),
     mContractorID(contractorID),
     mIsContractorGateway(isContractorGateway)
 {}
@@ -25,11 +23,11 @@ TrustLineInitialMessage::TrustLineInitialMessage(
 TrustLineInitialMessage::TrustLineInitialMessage(
     BytesShared buffer)
     noexcept :
-    DestinationMessage(buffer)
+    TransactionMessage(buffer)
 {
     // todo: use desrializer
 
-    size_t bytesBufferOffset = DestinationMessage::kOffsetToInheritedBytes();
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     memcpy(
         &mContractorID,
@@ -71,7 +69,7 @@ pair<BytesShared, size_t> TrustLineInitialMessage::serializeToBytes() const
 {
     // todo: use serializer
 
-    auto parentBytesAndCount = DestinationMessage::serializeToBytes();
+    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(ContractorID)

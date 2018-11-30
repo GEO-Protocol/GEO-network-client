@@ -51,7 +51,6 @@ TransactionResult::SharedConst AddNodeToBlackListTransaction::run()
         const auto kTransaction = make_shared<CloseIncomingTrustLineTransaction>(
             mNodeUUID,
             equivalent,
-            kContractor,
             trustLineManager->contractorID(kContractor),
             mContractorsManager,
             trustLineManager,

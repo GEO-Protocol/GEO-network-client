@@ -38,6 +38,7 @@ public:
 
 private:
     NodeUUID mContractorUUID;
+    ContractorID mContractorID;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     StorageHandler *mStorageHandler;
 };

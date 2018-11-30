@@ -18,9 +18,6 @@ public:
     static const string &identifier()
         noexcept;
 
-    const NodeUUID &contractorUUID() const
-        noexcept;
-
     const ContractorID contractorID() const
         noexcept;
 
@@ -28,7 +25,6 @@ public:
         noexcept;
 
 private:
-    NodeUUID mContractorUUID;
     ContractorID mContractorID;
     SerializedEquivalent mEquivalent;
 };

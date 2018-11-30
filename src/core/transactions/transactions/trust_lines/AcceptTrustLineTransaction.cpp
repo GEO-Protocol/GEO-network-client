@@ -33,7 +33,7 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
 
 TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 {
-    info() << "sender: " << mContractorUUID << "sender incoming IP " << mSenderIncomingIP;
+    info() << "sender incoming IP " << mSenderIncomingIP;
     for (auto &senderAddress : mContractorAddresses) {
         auto ipv4Address = static_pointer_cast<IPv4WithPortAddress>(senderAddress);
         info() << "contractor address " << ipv4Address->fullAddress();
@@ -63,18 +63,14 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     }
     info() << "Try init TL to " << mContractorID;
 
-    if (mContractorUUID == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
-        return resultDone();
-    }
-
     if (mTrustLinesManager->trustLineIsPresent(mContractorID)) {
         if (mTrustLinesManager->isTrustLineEmpty(mContractorID)
             and mTrustLinesManager->auditNumber(mContractorID) == 0) {
             info() << "Send confirmation on init TL again";
-            // todo : use sendMessageWithTemporaryCaching
-            sendMessage<TrustLineConfirmationMessage>(
+            sendMessageWithTemporaryCaching<TrustLineConfirmationMessage>(
                 mContractorID,
+                Message::TrustLines_Initial,
+                kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
                 mEquivalent,
                 mNodeUUID,
                 mOwnIdOnContractorSide,
@@ -94,11 +90,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     }
 
     // if contractor in black list we should reject operation with TL
-    if (ioTransaction->blackListHandler()->checkIfNodeExists(mContractorUUID)) {
-        warning() << "Contractor " << mContractorUUID << " is in black list. Transaction rejected";
-        return sendTrustLineErrorConfirmation(
-            ConfirmationMessage::ContractorBanned);
-    }
+    // todo : check black list if need
 
     try {
         // note: io transaction would commit automatically on destructor call.
@@ -108,7 +100,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
                 mContractorID,
                 TrustLine::Active,
                 ioTransaction);
-            info() << "TrustLine form the node " << mContractorUUID << " " << mContractorID
+            info() << "TrustLine form the node " << mContractorID
                    << " successfully reinitialised.";
         } else {
             // todo : add parameter mSenderIsGateway
@@ -120,7 +112,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
                 mContractorID,
                 TrustLine::Active,
                 ioTransaction);
-            info() << "Trust Line from the node " << mContractorUUID << " " << mContractorID
+            info() << "Trust Line from the node " << mContractorID
                    << " has been successfully initialised.";
         }
 
@@ -144,7 +136,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         ioTransaction->rollback();
         mTrustLinesManager->removeTrustLine(
             mContractorID);
-        warning() << "Attempt to accept incoming trust line from the node " << mContractorUUID << " failed. "
+        warning() << "Attempt to accept incoming trust line from the node " << mContractorID << " failed. "
                   << "IO transaction can't be completed. "
                   << "Details are: " << e.what();
 
@@ -154,9 +146,10 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     }
 
     // Sending confirmation back.
-    // todo : use sendMessageWithTemporaryCaching
-    sendMessage<TrustLineConfirmationMessage>(
+    sendMessageWithTemporaryCaching<TrustLineConfirmationMessage>(
         mContractorID,
+        Message::TrustLines_Initial,
+        kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
         mEquivalent,
         mNodeUUID,
         mOwnIdOnContractorSide,

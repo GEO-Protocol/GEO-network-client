@@ -92,6 +92,11 @@ void TrustLinesManager::loadTrustLinesFromStorage()
             make_pair(
                 kTrustLine->contractorNodeUUID(),
                 kTrustLine));
+
+        mTrustLinesNew.insert(
+            make_pair(
+                kTrustLine->contractorID(),
+                kTrustLine));
     }
 }
 

@@ -11,7 +11,6 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
     Keystore *keystore,
-    VisualInterface *visualInterface,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger)
     noexcept :
@@ -20,7 +19,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
         BaseTransaction::SetOutgoingTrustLineTransaction,
         nodeUUID,
         command->equivalent(),
-        command->contractorUUID(),
+        NodeUUID::empty(),
         command->contractorID(),
         contractorsManager,
         manager,
@@ -32,8 +31,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     mCountSendingAttempts(0),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
-    mSubsystemsController(subsystemsController),
-    mVisualInterface(visualInterface)
+    mSubsystemsController(subsystemsController)
 {
     mAuditNumber = mTrustLines->auditNumber(mContractorID) + 1;
 }
@@ -55,10 +53,15 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
 
 TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializationStage()
 {
-    info() << "runInitializationStage " << mContractorUUID << " " << mContractorID << " " << mCommand->amount();
+    info() << "runInitializationStage " << mContractorID << " " << mCommand->amount();
     if (!mSubsystemsController->isRunTrustLineTransactions()) {
         debug() << "It is forbidden run trust line transactions";
         return resultForbiddenRun();
+    }
+
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
+        return resultProtocolError();
     }
 
     try {
@@ -106,19 +109,19 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
 
         switch (mOperationResult) {
             case TrustLinesManager::TrustLineOperationResult::Opened: {
-                info() << "Outgoing trust line to the node " << mContractorUUID << " " << mContractorID
+                info() << "Outgoing trust line to the node " << mContractorID
                        << " successfully initialised with " << mCommand->amount();
                 break;
             }
 
             case TrustLinesManager::TrustLineOperationResult::Updated: {
-                info() << "Outgoing trust line to the node " << mContractorUUID << " " << mContractorID
+                info() << "Outgoing trust line to the node " << mContractorID
                        << " successfully set to " << mCommand->amount();
                 break;
             }
 
             case TrustLinesManager::TrustLineOperationResult::Closed: {
-                info() << "Outgoing trust line to the node " << mContractorUUID << " " << mContractorID
+                info() << "Outgoing trust line to the node " << mContractorID
                        << " successfully closed.";
                 break;
             }
@@ -129,49 +132,11 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
                 // but this transaction might be launched only by the user,
                 // so, in case if new amount is the same - then user knows it,
                 // and new history record must be written too.
-                info() << "Outgoing trust line to the node " << mContractorUUID << " " << mContractorID
+                info() << "Outgoing trust line to the node " << mContractorID
                        << " successfully set to " << mCommand->amount();
                 break;
             }
         }
-
-        if (mSubsystemsController->isWriteVisualResults()) {
-            if (mOperationResult == TrustLinesManager::TrustLineOperationResult::Opened) {
-                stringstream s;
-                s << VisualResult::OutgoingTrustLineOpen << kTokensSeparator
-                  << microsecondsSinceUnixEpoch() << kTokensSeparator
-                  << currentTransactionUUID() << kTokensSeparator
-                  << mContractorUUID << kCommandsSeparator;
-                auto message = s.str();
-
-                try {
-                    mVisualInterface->writeResult(
-                        message.c_str(),
-                        message.size());
-                } catch (IOError &e) {
-                    error() << "SetOutgoingTrustLineTransaction: "
-                            "Error occurred when visual result has accepted. Details: " << e.message();
-                }
-            }
-            if (mOperationResult == TrustLinesManager::TrustLineOperationResult::Closed) {
-                stringstream s;
-                s << VisualResult::OutgoingTrustLineClose << kTokensSeparator
-                  << microsecondsSinceUnixEpoch() << kTokensSeparator
-                  << currentTransactionUUID() << kTokensSeparator
-                  << mContractorUUID << kCommandsSeparator;
-                auto message = s.str();
-
-                try {
-                    mVisualInterface->writeResult(
-                        message.c_str(),
-                        message.size());
-                } catch (IOError &e) {
-                    error() << "SetOutgoingTrustLineTransaction: "
-                            "Error occurred when visual result has accepted. Details: " << e.message();
-                }
-            }
-        }
-
     } catch (ValueError &) {
         warning() << "Attempt to set outgoing trust line to the node " << mContractorID << " failed. "
                   << "Cannot open TL with zero amount.";
@@ -236,7 +201,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
         mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
-        mContractorUUID,
+        mContractorID,
         mAuditNumber,
         mTrustLines->incomingTrustAmount(mContractorID),
         mTrustLines->outgoingTrustAmount(mContractorID),
@@ -261,7 +226,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
                 mNodeUUID,
                 mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
-                mContractorUUID,
+                mContractorID,
                 mAuditNumber,
                 mTrustLines->incomingTrustAmount(mContractorID),
                 mTrustLines->outgoingTrustAmount(mContractorID),
@@ -284,8 +249,8 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
     }
 
     auto message = popNextMessage<AuditResponseMessage>();
-    info() << "contractor " << message->idOnSenderSide << " confirmed modifying TL.";
-    if (message->idOnSenderSide != mContractorID) {
+    info() << "contractor " << message->idOnReceiverSide << " confirmed modifying TL.";
+    if (message->idOnReceiverSide != mContractorID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }
@@ -413,8 +378,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
         throw e;
     }
 
-    trustLineActionNewSignal(
-        mContractorUUID,
+    trustLineActionSignal(
         mContractorID,
         mEquivalent,
         false);

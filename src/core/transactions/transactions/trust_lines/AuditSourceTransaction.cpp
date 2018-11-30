@@ -2,34 +2,6 @@
 
 AuditSourceTransaction::AuditSourceTransaction(
     const NodeUUID &nodeUUID,
-    const NodeUUID &contractorUUID,
-    const SerializedEquivalent equivalent,
-    ContractorsManager *contractorsManager,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    Keystore *keystore,
-    TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger) :
-    BaseTrustLineTransaction(
-        BaseTransaction::AuditSourceTransactionType,
-        nodeUUID,
-        equivalent,
-        contractorUUID,
-        contractorsManager,
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger),
-    mCountSendingAttempts(0)
-{
-    mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
-    mStep = Initialization;
-}
-
-AuditSourceTransaction::AuditSourceTransaction(
-    const NodeUUID &nodeUUID,
-    const NodeUUID &contractorUUID,
     ContractorID contractorID,
     const SerializedEquivalent equivalent,
     ContractorsManager *contractorsManager,
@@ -42,7 +14,7 @@ AuditSourceTransaction::AuditSourceTransaction(
         BaseTransaction::AuditSourceTransactionType,
         nodeUUID,
         equivalent,
-        contractorUUID,
+        NodeUUID::empty(),
         contractorID,
         contractorsManager,
         manager,
@@ -105,7 +77,12 @@ TransactionResult::SharedConst AuditSourceTransaction::run()
 
 TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
 {
-    info() << "runInitializationStage " << mContractorUUID << " " << mContractorID;
+    info() << "runInitializationStage " << mContractorID;
+
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
+        return resultDone();
+    }
 
     try {
         if (mTrustLines->trustLineState(mContractorID) != TrustLine::Active) {
@@ -190,7 +167,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
         mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
-        mContractorUUID,
+        mContractorID,
         mAuditNumber,
         mTrustLines->incomingTrustAmount(mContractorID),
         mTrustLines->outgoingTrustAmount(mContractorID),
@@ -207,7 +184,13 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
 
 TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
 {
-    info() << "runNextAttemptStage " << mContractorUUID << " " << mContractorID;
+    info() << "runNextAttemptStage " << mContractorID;
+
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
+        return resultDone();
+    }
+
     try {
         if (mTrustLines->trustLineState(mContractorID) != TrustLine::AuditPending) {
             warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
@@ -269,7 +252,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
         mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
-        mContractorUUID,
+        mContractorID,
         mAuditNumber,
         mTrustLines->incomingTrustAmount(mContractorID),
         mTrustLines->outgoingTrustAmount(mContractorID),
@@ -296,7 +279,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
                 mNodeUUID,
                 mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
-                mContractorUUID,
+                mContractorID,
                 mAuditNumber,
                 mTrustLines->incomingTrustAmount(mContractorID),
                 mTrustLines->outgoingTrustAmount(mContractorID),
@@ -318,8 +301,8 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
     }
 
     auto message = popNextMessage<AuditResponseMessage>();
-    info() << "contractor " << message->idOnSenderSide << " confirmed audit.";
-    if (message->idOnSenderSide != mContractorID) {
+    info() << "contractor " << message->idOnReceiverSide << " confirmed audit.";
+    if (message->idOnReceiverSide != mContractorID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }
@@ -420,8 +403,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         throw e;
     }
 
-    trustLineActionNewSignal(
-        mContractorUUID,
+    trustLineActionSignal(
         mContractorID,
         mEquivalent,
         false);

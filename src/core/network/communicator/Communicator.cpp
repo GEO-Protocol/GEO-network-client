@@ -163,11 +163,11 @@ void Communicator::sendMessage (
             message);
     }
 
-    else if (message->isAddToConfirmationRequiredMessagesHandler()) {
-        mConfirmationRequiredMessagesHandler->tryEnqueueMessage(
-            contractorUUID,
-            message);
-    }
+//    else if (message->isAddToConfirmationRequiredMessagesHandler()) {
+//        mConfirmationRequiredMessagesHandler->tryEnqueueMessage(
+//            contractorUUID,
+//            message);
+//    }
 
 //    if (message->typeID() == Message::General_Ping) {
 //        mPingMessagesHandler->tryEnqueueContractor(
@@ -191,11 +191,11 @@ void Communicator::sendMessage (
 //            message);
 //    }
 //
-//    else if (message->isAddToConfirmationRequiredMessagesHandler()) {
-//        mConfirmationRequiredMessagesHandler->tryEnqueueMessage(
-//            contractorUUID,
-//            message);
-//    }
+    /*else*/ if (message->isAddToConfirmationRequiredMessagesHandler()) {
+        mConfirmationRequiredMessagesHandler->tryEnqueueMessage(
+            contractorID,
+            message);
+    }
 
     if (message->typeID() == Message::General_Ping) {
         mPingMessagesHandler->tryEnqueueContractor(
@@ -209,20 +209,20 @@ void Communicator::sendMessage (
 
 void Communicator::sendMessageWithCacheSaving(
     const TransactionMessage::Shared message,
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     Message::MessageType incomingMessageTypeFilter,
     uint32_t cacheLivingTime)
     noexcept
 {
     mConfirmationResponseMessagesHandler->addCachedMessage(
-        contractorUUID,
+        contractorID,
         message,
         incomingMessageTypeFilter,
         cacheLivingTime);
 
     mOutgoingMessagesHandler->sendMessage(
         message,
-        contractorUUID);
+        contractorID);
 }
 
 void Communicator::processConfirmationMessage(
@@ -279,12 +279,13 @@ void Communicator::onMessageReceived(
     else if (message->isDestinationMessage()) {
         const auto kDestinationMessage =
             static_pointer_cast<DestinationMessage>(message);
-        if (kDestinationMessage->destinationUUID() != mNodeUUID) {
-            error() << "onMessageReceived: "
-                    << "Invalid destinationUUID. "
+        if (kDestinationMessage->destinationID() !=
+                mContractorsManager->idOnContractorSide(kDestinationMessage->idOnReceiverSide)) {
+            error() << "onMessageReceived: Invalid destinationID. "
                     << "Message type: " << kDestinationMessage->typeID()
-                    << ", destination UUID: " << kDestinationMessage->destinationUUID()
-                    << ", sender UUID: " << kDestinationMessage->senderUUID;
+                    << ", destination ID: " << kDestinationMessage->destinationID()
+                    << ", idOnReceiverSide: " << kDestinationMessage->idOnReceiverSide
+                    << ", idOnContractorSide: " << mContractorsManager->idOnContractorSide(kDestinationMessage->idOnReceiverSide);
             return;
         }
     }
@@ -296,8 +297,10 @@ void Communicator::onMessageReceived(
             make_shared<PongMessage>(
                 0,
                 mNodeUUID,
-            mContractorsManager->idOnContractorSide(
-                pingMessage->idOnSenderSide)),
+                // PingMessage contains our id on contractor side instead of his id on our side
+                // and we should include it to PongMessage
+                // todo : maybe separate logic into InitTLMessage and others and check if contractor exists
+                pingMessage->idOnReceiverSide),
             pingMessage->senderUUID);
         return;
     }
@@ -336,7 +339,7 @@ void Communicator::onMessageReceived(
 }
 
 void Communicator::onConfirmationRequiredMessageReadyToResend(
-    pair<NodeUUID, TransactionMessage::Shared> addresseeAndMessage)
+    pair<ContractorID, TransactionMessage::Shared> addresseeAndMessage)
 {
     mOutgoingMessagesHandler->sendMessage(
         addresseeAndMessage.second,

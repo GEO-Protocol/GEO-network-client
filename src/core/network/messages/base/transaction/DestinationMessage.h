@@ -13,17 +13,10 @@ public:
     DestinationMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
-        const TransactionUUID &transactionUUID,
-        const NodeUUID &destinationUUID)
-    noexcept;
-
-    DestinationMessage(
-        const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnSenderSide,
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
-        const NodeUUID &destinationUUID)
+        ContractorID destinationID)
     noexcept;
 
     DestinationMessage(
@@ -31,7 +24,7 @@ public:
         const NodeUUID &senderUUID,
         ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
-        const NodeUUID &destinationUUID)
+        ContractorID destinationID)
     noexcept;
 
     DestinationMessage(
@@ -40,7 +33,7 @@ public:
 
     pair<BytesShared, size_t> serializeToBytes() const override;
 
-    const NodeUUID &destinationUUID() const
+    const ContractorID destinationID() const
     noexcept;
 
     const bool isDestinationMessage() const override;
@@ -50,8 +43,7 @@ protected:
     noexcept;
 
 protected:
-    NodeUUID mDestinationUUID;
-
+    ContractorID mDestinationID;
 };
 
 

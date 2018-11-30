@@ -10,7 +10,7 @@ SenderMessage::SenderMessage(
     EquivalentMessage(
         equivalent),
     senderUUID(senderUUID),
-    idOnSenderSide(idOnSenderSide),
+    idOnReceiverSide(idOnSenderSide),
     senderAddresses(senderAddresses)
 {}
 
@@ -27,7 +27,7 @@ SenderMessage::SenderMessage(
     bytesBufferOffset += NodeUUID::kBytesSize;
 
     memcpy(
-        &idOnSenderSide,
+        &idOnReceiverSide,
         buffer.get() + bytesBufferOffset,
         sizeof(ContractorID));
     bytesBufferOffset += sizeof(ContractorID);
@@ -68,7 +68,7 @@ pair<BytesShared, size_t> SenderMessage::serializeToBytes() const
 
     serializer.enqueue(EquivalentMessage::serializeToBytes());
     serializer.enqueue(senderUUID);
-    serializer.copy(idOnSenderSide);
+    serializer.copy(idOnReceiverSide);
     serializer.copy((byte)senderAddresses.size());
     for (const auto &address : senderAddresses) {
         serializer.enqueue(

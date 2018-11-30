@@ -39,17 +39,14 @@ public:
     typedef signals::signal<void(Message::Shared, const ContractorID)> SendMessageNewSignal;
     typedef signals::signal<void(
             TransactionMessage::Shared,
-            const NodeUUID&,
+            ContractorID,
             Message::MessageType,
             uint32_t)> SendMessageWithCachingSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
     typedef signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
-    typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent, bool)> TrustLineActionSignal;
-    typedef signals::signal<void(const NodeUUID&, ContractorID, const SerializedEquivalent, bool)> TrustLineActionNewSignal;
-    typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent)> PublicKeysSharingSignal;
-    typedef signals::signal<void(const NodeUUID&, ContractorID, const SerializedEquivalent)> PublicKeysSharingNewSignal;
-    typedef signals::signal<void(const NodeUUID&, const SerializedEquivalent)> AuditSignal;
-    typedef signals::signal<void(const NodeUUID&, ContractorID, const SerializedEquivalent)> AuditNewSignal;
+    typedef signals::signal<void(ContractorID, const SerializedEquivalent, bool)> TrustLineActionSignal;
+    typedef signals::signal<void(ContractorID, const SerializedEquivalent)> PublicKeysSharingSignal;
+    typedef signals::signal<void(ContractorID, const SerializedEquivalent)> AuditSignal;
     typedef signals::signal<void(ContractorID)> ProcessPongMessageSignal;
 
 public:
@@ -242,7 +239,7 @@ protected:
 
     template <typename MessageType, typename... Args>
     inline void sendMessageWithTemporaryCaching(
-        const NodeUUID &addressee,
+        ContractorID addressee,
         Message::MessageType incomingMessageTypeFilter,
         uint32_t cacheLivingSecondsTime,
         Args&&... args) const
@@ -324,11 +321,8 @@ public:
     mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;
     mutable ProcessPongMessageSignal processPongMessageSignal;
     mutable TrustLineActionSignal trustLineActionSignal;
-    mutable TrustLineActionNewSignal trustLineActionNewSignal;
     mutable PublicKeysSharingSignal publicKeysSharingSignal;
-    mutable PublicKeysSharingNewSignal publicKeysSharingNewSignal;
     mutable AuditSignal auditSignal;
-    mutable AuditNewSignal auditNewSignal;
 
 protected:
     static const uint16_t mkStandardConnectionTimeout = 1500; //milliseconds

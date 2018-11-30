@@ -33,7 +33,6 @@ public:
     CloseIncomingTrustLineTransaction(
         const NodeUUID &nodeUUID,
         SerializedEquivalent equivalent,
-        const NodeUUID &contractorUUID,
         ContractorID contractorID,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,

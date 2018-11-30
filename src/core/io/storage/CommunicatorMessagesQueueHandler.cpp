@@ -10,13 +10,14 @@ CommunicatorMessagesQueueHandler::CommunicatorMessagesQueueHandler(
     mLog(logger)
 {
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
-                   " (contractor_uuid BLOB NOT NULL, "
+                   " (contractor_id BLOB NOT NULL, "
                    "equivalent INT NOT NULL, "
                    "transaction_uuid BLOB NOT NULL, "
                    "message_type INT NOT NULL, "
                    "message BLOB NOT NULL, "
                    "message_bytes_count INT NOT NULL, "
-                   "recording_time INT NOT NULL);";
+                   "recording_time INT NOT NULL, "
+                   "FOREIGN KEY(contractor_id) REFERENCES contractors(id) ON DELETE CASCADE ON UPDATE CASCADE);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -34,7 +35,7 @@ CommunicatorMessagesQueueHandler::CommunicatorMessagesQueueHandler(
 }
 
 void CommunicatorMessagesQueueHandler::saveRecord(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     const SerializedEquivalent equivalent,
     const TransactionUUID &transactionUUID,
     const Message::SerializedType messageType,
@@ -42,7 +43,7 @@ void CommunicatorMessagesQueueHandler::saveRecord(
     size_t messageBytesCount)
 {
     string query = "INSERT INTO " + mTableName +
-                   " (contractor_uuid, equivalent, transaction_uuid, message_type, "
+                   " (contractor_id, equivalent, transaction_uuid, message_type, "
                    "message, message_bytes_count, recording_time) "
                    "VALUES(?, ?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
@@ -51,10 +52,10 @@ void CommunicatorMessagesQueueHandler::saveRecord(
         throw IOError("CommunicatorMessagesQueueHandler::insert: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 1, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_int(stmt, 1, contractorID);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::insert: "
-                          "Bad binding of ContractorUUID; sqlite error: " + to_string(rc));
+                          "Bad binding of ContractorID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_int(stmt, 2, equivalent);
     if (rc != SQLITE_OK) {
@@ -105,22 +106,22 @@ void CommunicatorMessagesQueueHandler::saveRecord(
 }
 
 void CommunicatorMessagesQueueHandler::deleteRecord(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     const SerializedEquivalent equivalent,
     const Message::SerializedType messageType)
 {
     string query = "DELETE FROM " + mTableName
-                   + " WHERE contractor_uuid = ? AND equivalent = ? AND message_type = ?;";
+                   + " WHERE contractor_id = ? AND equivalent = ? AND message_type = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::delete: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 1, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_int(stmt, 1, contractorID);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::delete: "
-                          "Bad binding of ContractorUUID; sqlite error: " + to_string(rc));
+                          "Bad binding of ContractorID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_int(stmt, 2, equivalent);
     if (rc != SQLITE_OK) {
@@ -146,20 +147,20 @@ void CommunicatorMessagesQueueHandler::deleteRecord(
 }
 
 void CommunicatorMessagesQueueHandler::deleteRecord(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     const TransactionUUID &transactionUUID)
 {
-    string query = "DELETE FROM " + mTableName + " WHERE contractor_uuid = ? AND transaction_uuid = ?;";
+    string query = "DELETE FROM " + mTableName + " WHERE contractor_id = ? AND transaction_uuid = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::delete: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 1, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_int(stmt, 1, contractorID);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::delete: "
-                          "Bad binding of ContractorUUID; sqlite error: " + to_string(rc));
+                          "Bad binding of ContractorID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 2, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
@@ -179,7 +180,7 @@ void CommunicatorMessagesQueueHandler::deleteRecord(
     }
 }
 
-vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> CommunicatorMessagesQueueHandler::allMessages()
+vector<tuple<ContractorID, BytesShared, Message::SerializedType>> CommunicatorMessagesQueueHandler::allMessages()
 {
     string queryCount = "SELECT count(*) FROM " + mTableName;
     sqlite3_stmt *stmt;
@@ -192,9 +193,9 @@ vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> Communicator
     auto rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> result;
+    vector<tuple<ContractorID, BytesShared, Message::SerializedType>> result;
     result.reserve(rowCount);
-    string query = "SELECT contractor_uuid, message_type, message, message_bytes_count FROM "
+    string query = "SELECT contractor_id, message_type, message, message_bytes_count FROM "
                    + mTableName + ";";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -203,7 +204,7 @@ vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> Communicator
     }
     while (sqlite3_step(stmt) == SQLITE_ROW) {
 
-        NodeUUID contractorUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
+        auto contractorID((ContractorID)sqlite3_column_int(stmt, 0));
         auto messageType = (Message::SerializedType)sqlite3_column_int(stmt, 1);
 
         auto messageBytesCount = (size_t) sqlite3_column_int(stmt, 3);
@@ -214,7 +215,7 @@ vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> Communicator
             messageBytesCount);
 
         result.emplace_back(
-            contractorUUID,
+            contractorID,
             message,
             messageType);
     }

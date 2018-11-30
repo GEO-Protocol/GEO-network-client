@@ -20,7 +20,7 @@ public:
         Logger &logger);
 
     void addCachedMessage(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         TransactionMessage::Shared cachedMessage,
         Message::MessageType incomingMessageTypeFilter,
         uint32_t cacheLivingTime);
@@ -52,7 +52,7 @@ protected:
     void clearLegacyCacheMessages();
 
 private:
-    map<pair<SerializedEquivalent, NodeUUID>, ConfirmationCachedResponseMessage::Shared> mCachedMessages;
+    map<pair<SerializedEquivalent, ContractorID>, ConfirmationCachedResponseMessage::Shared> mCachedMessages;
     IOService &mIOService;
     as::steady_timer mCleaningTimer;
 };

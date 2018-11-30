@@ -18,7 +18,7 @@ ConfirmationRequiredMessagesHandler::ConfirmationRequiredMessagesHandler(
 }
 
 void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     const Message::Shared message)
 {
     // Only messages on which method isAddToConfirmationRequiredMessagesHandler returns true
@@ -27,11 +27,11 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
     // In case if no queue is present for this contractor - new one must be created.
     const auto queueKey = make_pair(
         message->equivalent(),
-        contractorUUID);
+        contractorID);
     if (mQueues.count(queueKey) == 0) {
         auto newQueue = make_shared<ConfirmationRequiredMessagesQueue>(
             queueKey.first,
-            contractorUUID);
+            contractorID);
         newQueue->signalSaveMessageToStorage.connect(
             boost::bind(
                 &ConfirmationRequiredMessagesHandler::addMessageToStorage,
@@ -76,7 +76,7 @@ void ConfirmationRequiredMessagesHandler::tryProcessConfirmation(
 {
     const auto queueKey = make_pair(
         confirmationMessage->equivalent(),
-        confirmationMessage->senderUUID);
+        confirmationMessage->idOnReceiverSide);
     if (mQueues.count(queueKey) == 0) {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         warning() << "tryProcessConfirmation: no queue is present for contractor "
@@ -190,13 +190,13 @@ void ConfirmationRequiredMessagesHandler::sendPostponedMessages() const
 }
 
 void ConfirmationRequiredMessagesHandler::addMessageToStorage(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     TransactionMessage::Shared message)
 {
     auto bufferAndSize = message->serializeToBytes();
     try {
         ioTransactionUnique->communicatorMessagesQueueHandler()->saveRecord(
-            contractorUUID,
+            contractorID,
             message->equivalent(),
             message->transactionUUID(),
             message->typeID(),
@@ -208,13 +208,13 @@ void ConfirmationRequiredMessagesHandler::addMessageToStorage(
 }
 
 void ConfirmationRequiredMessagesHandler::removeMessageFromStorage(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     const SerializedEquivalent equivalent,
     Message::SerializedType messageType)
 {
     try {
         ioTransactionUnique->communicatorMessagesQueueHandler()->deleteRecord(
-            contractorUUID,
+            contractorID,
             equivalent,
             messageType);
     } catch (IOError &e) {
@@ -224,7 +224,7 @@ void ConfirmationRequiredMessagesHandler::removeMessageFromStorage(
 
 void ConfirmationRequiredMessagesHandler::deserializeMessages()
 {
-    vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> messages;
+    vector<tuple<ContractorID, BytesShared, Message::SerializedType>> messages;
     try {
         auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
         messages = ioTransaction->communicatorMessagesQueueHandler()->allMessages();
@@ -237,35 +237,15 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
     }
     info() << "Serialized messages count: " << messages.size();
     for (auto &message : messages) {
-        NodeUUID contractorUUID = NodeUUID::empty();
+        ContractorID contractorID;
         BytesShared messageBody;
         Message::SerializedType messageType;
         TransactionMessage::Shared sendingMessage;
-        std::tie(contractorUUID, messageBody, messageType) = message;
+        std::tie(contractorID, messageBody, messageType) = message;
         switch (messageType) {
-            case Message::TrustLines_Initial:
-                sendingMessage = static_pointer_cast<TransactionMessage>(
-                    make_shared<TrustLineInitialMessage>(messageBody));
-                break;
             case Message::GatewayNotification:
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<GatewayNotificationMessage>(messageBody));
-                break;
-            case Message::TrustLines_Audit:
-                sendingMessage = static_pointer_cast<TransactionMessage>(
-                    make_shared<AuditMessage>(messageBody));
-                break;
-            case Message::TrustLines_PublicKeysSharingInit:
-                sendingMessage = static_pointer_cast<TransactionMessage>(
-                    make_shared<PublicKeysSharingInitMessage>(messageBody));
-                break;
-            case Message::TrustLines_PublicKey:
-                sendingMessage = static_pointer_cast<TransactionMessage>(
-                    make_shared<PublicKeyMessage>(messageBody));
-                break;
-            case Message::TrustLines_ConflictResolver:
-                sendingMessage = static_pointer_cast<TransactionMessage>(
-                    make_shared<ConflictResolverMessage>(messageBody));
                 break;
             default:
                 mLog.error("ConfirmationRequiredMessagesHandler::deserializeMessages "
@@ -273,7 +253,7 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
                 continue;
         }
         tryEnqueueMessageWithoutConnectingSignalsToSlots(
-            contractorUUID,
+            contractorID,
             sendingMessage);
     }
     for (auto contractorAndQueue : mQueues) {
@@ -301,16 +281,16 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
 }
 
 void ConfirmationRequiredMessagesHandler::tryEnqueueMessageWithoutConnectingSignalsToSlots(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     const TransactionMessage::Shared message)
 {
     const auto queueKey = make_pair(
         message->equivalent(),
-        contractorUUID);
+        contractorID);
     if (mQueues.count(queueKey) == 0) {
         auto newQueue = make_shared<ConfirmationRequiredMessagesQueue>(
             queueKey.first,
-            contractorUUID);
+            contractorID);
         mQueues[queueKey] = newQueue;
     }
 

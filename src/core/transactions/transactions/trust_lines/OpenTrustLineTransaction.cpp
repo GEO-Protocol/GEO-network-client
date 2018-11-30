@@ -34,6 +34,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     const SerializedEquivalent equivalent,
     const NodeUUID &contractorUUID,
     ContractorID contractorID,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     bool iAmGateway,
@@ -49,6 +50,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mContractorUUID(contractorUUID),
     mContractorID(contractorID),
     mCountSendingAttempts(0),
+    mContractorsManager(contractorsManager),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mSubsystemsController(subsystemsController),
@@ -83,8 +85,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
         debug() << "It is forbidden run trust line transactions";
         return resultForbiddenRun();
     }
-    info() << "Try init TL to " << mContractorUUID;
-    info() << "Contractor address " << mCommand->contractorAddress();
+    info() << "Try init TL to Contractor on address " << mCommand->contractorAddress();
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
@@ -114,14 +115,14 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
                 mContractorID,
                 TrustLine::Init,
                 ioTransaction);
-            info() << "TrustLine to the node " << mContractorUUID << " " << mContractorID
+            info() << "TrustLine to the node " << mContractorID
                    << " successfully reinitialised.";
         } else {
             mTrustLines->open(
                 mContractorID,
                 mContractorUUID,
                 ioTransaction);
-            info() << "TrustLine to the node " << mContractorUUID << " " << mContractorID
+            info() << "TrustLine to the node " << mContractorID
                    << " successfully initialised.";
         }
 
@@ -149,7 +150,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
         0,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
-        mContractorUUID,
         mContractorID,
         mIAmGateway);
     mCountSendingAttempts++;
@@ -166,7 +166,11 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
         debug() << "It is forbidden run trust line transactions";
         return resultDone();
     }
-    info() << "Try init TL to " << mContractorUUID << " " << mContractorID;
+    info() << "Try init TL to " << mContractorID;
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
+        return resultProtocolError();
+    }
 
     if (!mTrustLines->trustLineIsPresent(mContractorID)) {
         warning() << "Trust line is absent.";
@@ -196,7 +200,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
         0,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
-        mContractorUUID,
         mContractorID,
         mIAmGateway);
     mCountSendingAttempts++;
@@ -222,7 +225,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
                 0,
                 mContractorsManager->ownAddresses(),
                 mTransactionUUID,
-                mContractorUUID,
                 mContractorID,
                 mIAmGateway);
             mCountSendingAttempts++;
@@ -236,14 +238,15 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
             mContractorID,
             0,
             mNodeUUID,
-            // todo : contractor don't have info about current node yet
-            0);
+            // todo : contractor don't have info about current node yet, that's why we send contractorID on our side
+            // and contractor will return this id for pong identifying
+            mContractorID);
         return resultDone();
     }
     auto message = popNextMessage<TrustLineConfirmationMessage>();
-    info() << "contractor " << message->idOnSenderSide << " send response on opening TL. gateway: " << message->isContractorGateway();
+    info() << "contractor " << message->idOnReceiverSide << " send response on opening TL. gateway: " << message->isContractorGateway();
     // todo : check if sender is correct, this not work now, because contractor don't send idOnSenderSide
-    if (message->idOnSenderSide != mContractorID) {
+    if (message->idOnReceiverSide != mContractorID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }
@@ -290,13 +293,12 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
             TrustLineRecord::Opening);
     } catch (IOError &e) {
         ioTransaction->rollback();
-        error() << "Attempt to process confirmation from contractor " << mContractorUUID << " failed. "
+        error() << "Attempt to process confirmation from contractor " << mContractorID << " failed. "
                 << "IO transaction can't be completed. Details are: " << e.what();
         throw e;
     }
 
-    publicKeysSharingNewSignal(
-        mContractorUUID, mContractorID, mEquivalent);
+    publicKeysSharingSignal(mContractorID, mEquivalent);
     return resultDone();
 }
 

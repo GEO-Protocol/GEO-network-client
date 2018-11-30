@@ -9,21 +9,21 @@ ConfirmationResponseMessagesHandler::ConfirmationResponseMessagesHandler(
 {}
 
 void ConfirmationResponseMessagesHandler::addCachedMessage(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     TransactionMessage::Shared cachedMessage,
     Message::MessageType incomingMessageTypeFilter,
     uint32_t cacheLivingTime)
 {
     auto keyMap = make_pair(
         cachedMessage->equivalent(),
-        contractorUUID);
+        contractorID);
     mCachedMessages[keyMap] = make_shared<ConfirmationCachedResponseMessage>(
         cachedMessage,
         incomingMessageTypeFilter,
         cacheLivingTime);
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     debug() << "Message " << cachedMessage->typeID() << " added for " << incomingMessageTypeFilter
-            << " from contractor" << contractorUUID << " equivalent " << cachedMessage->equivalent();
+            << " from contractor" << contractorID << " equivalent " << cachedMessage->equivalent();
     debug() << "mCachedMessages size " << mCachedMessages.size();
 #endif
     if (mCachedMessages.size() == 1) {
@@ -36,7 +36,7 @@ Message::Shared ConfirmationResponseMessagesHandler::getCachedMessage(
 {
     auto keyMap = make_pair(
         incomingMessage->equivalent(),
-        incomingMessage->senderUUID);
+        incomingMessage->idOnReceiverSide);
 
     auto confirmationCachedResponseMessage = mCachedMessages.find(keyMap);
     if (confirmationCachedResponseMessage == mCachedMessages.end()) {
@@ -102,9 +102,9 @@ void ConfirmationResponseMessagesHandler::rescheduleResending()
 
 void ConfirmationResponseMessagesHandler::clearLegacyCacheMessages()
 {
-    for (const auto &contractorUUIDAndCachedMessage : mCachedMessages) {
-        const auto key = contractorUUIDAndCachedMessage.first;
-        const auto kCachedMessage = contractorUUIDAndCachedMessage.second;
+    for (const auto &contractorIDAndCachedMessage : mCachedMessages) {
+        const auto key = contractorIDAndCachedMessage.first;
+        const auto kCachedMessage = contractorIDAndCachedMessage.second;
 
         if (kCachedMessage->isLegacyCache()) {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR

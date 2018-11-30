@@ -138,7 +138,7 @@ public:
     signals::signal<void(Message::Shared, const ContractorID)> transactionOutgoingMessageReadyNewSignal;
     signals::signal<void(
             TransactionMessage::Shared,
-            const NodeUUID&,
+            ContractorID,
             Message::MessageType,
             uint32_t)> transactionOutgoingMessageWithCachingReadySignal;
     signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
@@ -424,20 +424,11 @@ protected:
     void subscribeForTrustLineActionSignal(
         BasePaymentTransaction::TrustLineActionSignal &signal);
 
-    void subscribeForTrustLineActionNewSignal(
-        BasePaymentTransaction::TrustLineActionNewSignal &signal);
-
     void subscribeForKeysSharingSignal(
         BaseTransaction::PublicKeysSharingSignal &signal);
 
-    void subscribeForKeysSharingNewSignal(
-        BaseTransaction::PublicKeysSharingNewSignal &signal);
-
     void subscribeForAuditSignal(
         BaseTransaction::AuditSignal &signal);
-
-    void subscribeForAuditNewSignal(
-        BaseTransaction::AuditNewSignal &signal);
 
     // Slots
     void onSubsidiaryTransactionReady(
@@ -453,7 +444,7 @@ protected:
 
     void onTransactionOutgoingMessageWithCachingReady(
         TransactionMessage::Shared message,
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         Message::MessageType incomingMessageTypeFilter,
         uint32_t cacheTimeLiving);
 
@@ -493,31 +484,15 @@ protected:
     void onGatewayNotificationSlot();
 
     void onTrustLineActionSlot(
-        const NodeUUID &contractorUUID,
-        const SerializedEquivalent equivalent,
-        bool isActionInitiator);
-
-    void onTrustLineActionNewSlot(
-        const NodeUUID &contractorUUID,
         ContractorID contractorID,
         const SerializedEquivalent equivalent,
         bool isActionInitiator);
 
     void onPublicKeysSharingSlot(
-        const NodeUUID &contractorUUID,
-        const SerializedEquivalent equivalent);
-
-    void onPublicKeysSharingNewSlot(
-        const NodeUUID &contractorUUID,
         ContractorID contractorID,
         const SerializedEquivalent equivalent);
 
     void onAuditSlot(
-        const NodeUUID &contractorUUID,
-        const SerializedEquivalent equivalent);
-
-    void onAuditNewSlot(
-        const NodeUUID &contractorUUID,
         ContractorID contractorID,
         const SerializedEquivalent equivalent);
 

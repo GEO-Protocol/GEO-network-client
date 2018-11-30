@@ -7,9 +7,6 @@
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
-#include "../../../subsystems_controller/SubsystemsController.h"
-#include "../../../interface/visual_interface/interface/VisualInterface.h"
-#include "../../../interface/visual_interface/visual/VisualResult.h"
 
 class AuditTargetTransaction : public BaseTrustLineTransaction {
 
@@ -27,9 +24,7 @@ public:
         TopologyTrustLinesManager *topologyTrustLinesManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
-        SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController,
-        VisualInterface *visualInterface,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -56,8 +51,6 @@ private:
     TopologyTrustLinesManager *mTopologyTrustLinesManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
-    SubsystemsController *mSubsystemsController;
-    VisualInterface *mVisualInterface;
 
     TrustLineAmount mPreviousIncomingAmount;
     TrustLineAmount mPreviousOutgoingAmount;

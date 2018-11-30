@@ -62,7 +62,6 @@ private:
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
 
-    NodeUUID mContractorUUID;
     ContractorID mContractorID;
     string mSenderIncomingIP;
     vector<BaseAddress::Shared> mContractorAddresses;

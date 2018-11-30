@@ -49,7 +49,7 @@ public:
 
     void sendMessage (
         const Message::Shared kMessage,
-        const NodeUUID &kContractorUUID)
+        const NodeUUID &contractorUUID)
         noexcept;
 
     void sendMessage (
@@ -59,7 +59,7 @@ public:
 
     void sendMessageWithCacheSaving (
         const TransactionMessage::Shared kMessage,
-        const NodeUUID &kContractorUUID,
+        ContractorID contractorID,
         Message::MessageType incomingMessageTypeFilter,
         uint32_t cacheLivingTime)
         noexcept;
@@ -85,7 +85,7 @@ protected:
      * from the confirmation messages queue.
      */
     void onConfirmationRequiredMessageReadyToResend(
-        pair<NodeUUID, TransactionMessage::Shared>);
+        pair<ContractorID, TransactionMessage::Shared>);
 
     void onConfirmationNotStronglyRequiredMessageReadyToResend(
         pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared>);

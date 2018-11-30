@@ -21,18 +21,6 @@ public:
 public:
     PublicKeysSharingSourceTransaction(
         const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
-        const SerializedEquivalent equivalent,
-        ContractorsManager *contractorsManager,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger);
-
-    PublicKeysSharingSourceTransaction(
-        const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
         ContractorID contractorID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,
@@ -90,7 +78,6 @@ private:
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
 
-    NodeUUID mContractorUUID;
     ContractorID mContractorID;
     KeyNumber mCurrentKeyNumber;
     KeysCount mKeysCount;

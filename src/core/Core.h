@@ -106,7 +106,7 @@ private:
 
     void onMessageSendWithCachingSlot(
         TransactionMessage::Shared message,
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         Message::MessageType incomingMessageTypeFilter,
         uint32_t cacheTimeLiving);
 

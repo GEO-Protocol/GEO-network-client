@@ -580,7 +580,7 @@ void Core::onMessageSendNewSlot(
 
 void Core::onMessageSendWithCachingSlot(
     TransactionMessage::Shared message,
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     Message::MessageType incomingMessageTypeFilter,
     uint32_t cacheTimeLiving)
 {
@@ -595,7 +595,7 @@ void Core::onMessageSendWithCachingSlot(
     try {
         mCommunicator->sendMessageWithCacheSaving(
             message,
-            contractorUUID,
+            contractorID,
             incomingMessageTypeFilter,
             cacheTimeLiving);
 

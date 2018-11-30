@@ -15,8 +15,7 @@ PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
         nodeUUID,
         message->equivalent(),
         logger),
-    mContractorUUID(message->senderUUID),
-    mContractorID(message->idOnSenderSide),
+    mContractorID(message->idOnReceiverSide),
     mSenderIncomingIP(message->senderIncomingIP()),
     mContractorAddresses(message->senderAddresses),
     mContractorsManager(contractorsManager),
@@ -47,8 +46,13 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::run()
 
 TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runPublicKeyReceiverInitStage()
 {
-    info() << "runPublicKeyReceiverInitStage " << mContractorUUID << " "
-           << mContractorID << "sender incoming IP " << mSenderIncomingIP;
+    info() << "runPublicKeyReceiverInitStage " << mContractorID << "sender incoming IP " << mSenderIncomingIP;
+
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
+        return sendKeyErrorConfirmation(
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+    }
 
     if (!mTrustLines->trustLineIsPresent(mContractorID)) {
         warning() << "Trust line is absent.";
@@ -104,8 +108,8 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runReceiveNex
     }
 
     auto message = popNextMessage<PublicKeyMessage>();
-    info() << "contractor " << message->idOnSenderSide << " send next key.";
-    if (message->idOnSenderSide != mContractorID) {
+    info() << "contractor " << message->idOnReceiverSide << " send next key.";
+    if (message->idOnReceiverSide != mContractorID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }
@@ -154,9 +158,10 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
     }
     info() << "Key saved, send hash confirmation";
     if (mCurrentKeyNumber == 0) {
-        // todo : use sendMessageWithTemporaryCaching
-        sendMessage<PublicKeyHashConfirmation>(
+        sendMessageWithTemporaryCaching<PublicKeyHashConfirmation>(
             mContractorID,
+            Message::TrustLines_PublicKeysSharingInit,
+            kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
             mEquivalent,
             mNodeUUID,
             mContractorsManager->idOnContractorSide(mContractorID),
@@ -164,9 +169,10 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             mCurrentKeyNumber,
             mCurrentPublicKey->hash());
     } else {
-        // todo : use sendMessageWithTemporaryCaching
-        sendMessage<PublicKeyHashConfirmation>(
+        sendMessageWithTemporaryCaching<PublicKeyHashConfirmation>(
             mContractorID,
+            Message::TrustLines_PublicKey,
+            kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
             mEquivalent,
             mNodeUUID,
             mContractorsManager->idOnContractorSide(mContractorID),
@@ -189,8 +195,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             if (mTrustLines->isTrustLineEmpty(mContractorID) and
                     !keyChain.ownKeysPresent(ioTransaction)) {
                 info() << "publicKeysSharing Signal";
-                publicKeysSharingNewSignal(
-                    mContractorUUID,
+                publicKeysSharingSignal(
                     mContractorID,
                     mEquivalent);
             }

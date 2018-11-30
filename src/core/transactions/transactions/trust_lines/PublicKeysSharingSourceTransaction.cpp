@@ -2,35 +2,6 @@
 
 PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     const NodeUUID &nodeUUID,
-    const NodeUUID &contractorUUID,
-    const SerializedEquivalent equivalent,
-    ContractorsManager *contractorsManager,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    Keystore *keystore,
-    TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger) :
-    BaseTransaction(
-        BaseTransaction::PublicKeysSharingSourceTransactionType,
-        nodeUUID,
-        equivalent,
-        logger),
-    mContractorUUID(contractorUUID),
-    mCurrentKeyNumber(0),
-    mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
-    mCountSendingAttempts(0),
-    mContractorsManager(contractorsManager),
-    mTrustLines(manager),
-    mStorageHandler(storageHandler),
-    mKeysStore(keystore),
-    mTrustLinesInfluenceController(trustLinesInfluenceController)
-{
-    mStep = Initialization;
-}
-
-PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
-    const NodeUUID &nodeUUID,
-    const NodeUUID &contractorUUID,
     ContractorID contractorID,
     const SerializedEquivalent equivalent,
     ContractorsManager *contractorsManager,
@@ -44,7 +15,6 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
         nodeUUID,
         equivalent,
         logger),
-    mContractorUUID(contractorUUID),
     mContractorID(contractorID),
     mCurrentKeyNumber(0),
     mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
@@ -74,7 +44,6 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
         mCommand->equivalent(),
         logger),
     mCommand(command),
-    mContractorUUID(mCommand->contractorUUID()),
     mContractorID(mCommand->contractorID()),
     mCurrentKeyNumber(0),
     mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
@@ -108,7 +77,12 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::run()
 
 TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeysSharingInitializationStage()
 {
-    info() << "runPublicKeysSharingInitializationStage with " << mContractorUUID << " " << mContractorID;
+    info() << "runPublicKeysSharingInitializationStage with " << mContractorID;
+
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
+        return resultDone();
+    }
 
     if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
@@ -166,7 +140,12 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
 
 TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runCommandPublicKeysSharingInitializationStage()
 {
-    info() << "runCommandPublicKeysSharingInitializationStage with " << mContractorUUID << " " << mContractorID;
+    info() << "runCommandPublicKeysSharingInitializationStage with " << mContractorID;
+
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
+        return resultProtocolError();
+    }
 
     if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
@@ -257,8 +236,8 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
     }
 
     auto message = popNextMessage<PublicKeyHashConfirmation>();
-    info() << "contractor " << message->idOnSenderSide << " send confirmation.";
-    if (message->idOnSenderSide != mContractorID) {
+    info() << "contractor " << message->idOnReceiverSide << " send confirmation.";
+    if (message->idOnReceiverSide != mContractorID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }
@@ -303,11 +282,11 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
                 true);
             info() << "TL is ready for using";
             if (!mTrustLines->isTrustLineEmpty(mContractorID)) {
-                auditNewSignal(mContractorUUID, mContractorID, mEquivalent);
+                auditSignal(mContractorID, mEquivalent);
             } else {
                 if (mTrustLines->trustLineContractorKeysPresent(mContractorID)) {
                     info() << "Init audit signal";
-                    auditNewSignal(mContractorUUID, mContractorID, mEquivalent);
+                    auditSignal(mContractorID, mEquivalent);
                 }
             }
         } catch (IOError &e) {

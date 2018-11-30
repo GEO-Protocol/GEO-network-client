@@ -1,9 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_TRUSTLINEINITIALMESSAGE_H
 #define GEO_NETWORK_CLIENT_TRUSTLINEINITIALMESSAGE_H
 
-#include "../base/transaction/DestinationMessage.h"
+#include "../base/transaction/TransactionMessage.h"
 
-class TrustLineInitialMessage : public DestinationMessage {
+class TrustLineInitialMessage : public TransactionMessage {
 
 public:
     typedef shared_ptr<TrustLineInitialMessage> Shared;
@@ -15,7 +15,6 @@ public:
         ContractorID idOnSenderSide,
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
-        const NodeUUID &destinationUUID,
         ContractorID contractorID,
         bool isContractorGateway)
     noexcept;

@@ -8,8 +8,6 @@
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../network/messages/trust_lines/AuditMessage.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
-#include "../../../interface/visual_interface/interface/VisualInterface.h"
-#include "../../../interface/visual_interface/visual/VisualResult.h"
 
 
 /**
@@ -41,7 +39,6 @@ public:
         MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
         Keystore *keystore,
-        VisualInterface *visualInterface,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger)
         noexcept;
@@ -78,7 +75,6 @@ private:
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
     SubsystemsController *mSubsystemsController;
-    VisualInterface *mVisualInterface;
 
     uint16_t mCountSendingAttempts;
 

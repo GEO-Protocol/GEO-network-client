@@ -3,10 +3,10 @@
 
 ConfirmationRequiredMessagesQueue::ConfirmationRequiredMessagesQueue(
     const SerializedEquivalent equivalent,
-    const NodeUUID &contractorUUID)
+    ContractorID contractorID)
     noexcept:
     mEquivalent(equivalent),
-    mContractorUUID(contractorUUID)
+    mContractorID(contractorID)
 {
     resetInternalTimeout();
     mNextSendingAttemptDateTime = utc_now() + boost::posix_time::seconds(mNextTimeoutSeconds);
@@ -16,35 +16,11 @@ bool ConfirmationRequiredMessagesQueue::enqueue(
     TransactionMessage::Shared message)
 {
     switch (message->typeID()) {
-        case Message::TrustLines_Initial: {
-            updateTrustLineInitialNotificationInTheQueue(
-                message);
-            break;
-        }
         case Message::GatewayNotification: {
             updateGatewayNotificationInTheQueue(
                 message);
             break;
         }
-        case Message::TrustLines_Audit: {
-            updateAuditInTheQueue(
-                message);
-            break;
-        }
-        case Message::TrustLines_PublicKeysSharingInit: {
-            updatePublicKeysSharingInitInTheQueue(
-                message);
-            break;
-        }
-        case Message::TrustLines_PublicKey: {
-            updatePublicKeyInTheQueue(
-                message);
-            break;
-        }
-        case Message::TrustLines_ConflictResolver:
-            updateConflictResolverInTheQueue(
-                message);
-            break;
         default:
             return false;
     }
@@ -97,31 +73,6 @@ void ConfirmationRequiredMessagesQueue::resetInternalTimeout()
     mNextTimeoutSeconds = 4;
 }
 
-void ConfirmationRequiredMessagesQueue::updateTrustLineInitialNotificationInTheQueue(
-    TransactionMessage::Shared message)
-{
-    // Only one TrustLineInitialMessage should be in the queue in one moment of time.
-    // queue must contains only newest one notification, all other must be removed.
-    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
-        const auto kMessage = it->second;
-
-        if (kMessage->typeID() == Message::TrustLines_Initial) {
-            mMessages.erase(it++);
-            signalRemoveMessageFromStorage(
-                mContractorUUID,
-                mEquivalent,
-                kMessage->typeID());
-        } else {
-            ++it;
-        }
-    }
-
-    mMessages[message->transactionUUID()] = message;
-    signalSaveMessageToStorage(
-        mContractorUUID,
-        message);
-}
-
 void ConfirmationRequiredMessagesQueue::updateGatewayNotificationInTheQueue(
     TransactionMessage::Shared message)
 {
@@ -132,110 +83,10 @@ void ConfirmationRequiredMessagesQueue::updateGatewayNotificationInTheQueue(
 
         if (kMessage->typeID() == Message::GatewayNotification) {
             mMessages.erase(it++);
-            signalRemoveMessageFromStorage(
-                mContractorUUID,
-                mEquivalent,
-                kMessage->typeID());
         } else {
             ++it;
         }
     }
 
     mMessages[message->transactionUUID()] = message;
-    signalSaveMessageToStorage(
-        mContractorUUID,
-        message);
-}
-
-void ConfirmationRequiredMessagesQueue::updateAuditInTheQueue(
-    TransactionMessage::Shared message)
-{
-    // Only one AuditMessage should be in the queue in one moment of time.
-    // queue must contains only newest one message, all other must be removed.
-    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
-        const auto kMessage = it->second;
-
-        if (kMessage->typeID() == Message::TrustLines_Audit) {
-            mMessages.erase(it++);
-            signalRemoveMessageFromStorage(
-                mContractorUUID,
-                mEquivalent,
-                kMessage->typeID());
-        } else {
-            ++it;
-        }
-    }
-
-    mMessages[message->transactionUUID()] = message;
-    signalSaveMessageToStorage(
-        mContractorUUID,
-        message);
-}
-
-void ConfirmationRequiredMessagesQueue::updatePublicKeysSharingInitInTheQueue(
-    TransactionMessage::Shared message)
-{
-    // Only one PublicKeysSharingInitMessage should be in the queue in one moment of time.
-    // queue must contains only newest one message, all other must be removed.
-    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
-        const auto kMessage = it->second;
-
-        if (kMessage->typeID() == Message::TrustLines_PublicKeysSharingInit) {
-            mMessages.erase(it++);
-        } else {
-            ++it;
-        }
-    }
-
-    mMessages[message->transactionUUID()] = message;
-}
-
-void ConfirmationRequiredMessagesQueue::updatePublicKeyInTheQueue(
-    TransactionMessage::Shared message)
-{
-    // Only one PublicKeyMessage should be in the queue in one moment of time.
-    // queue must contains only newest one message, all other must be removed.
-    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
-        const auto kMessage = it->second;
-
-        if (kMessage->typeID() == Message::TrustLines_PublicKey) {
-            mMessages.erase(it++);
-            signalRemoveMessageFromStorage(
-                mContractorUUID,
-                mEquivalent,
-                kMessage->typeID());
-        } else {
-            ++it;
-        }
-    }
-
-    mMessages[message->transactionUUID()] = message;
-    signalSaveMessageToStorage(
-        mContractorUUID,
-        message);
-}
-
-void ConfirmationRequiredMessagesQueue::updateConflictResolverInTheQueue(
-    TransactionMessage::Shared message)
-{
-    // Only one ConflictResolverMessage should be in the queue in one moment of time.
-    // queue must contains only newest one message, all other must be removed.
-    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
-        const auto kMessage = it->second;
-
-        if (kMessage->typeID() == Message::TrustLines_ConflictResolver) {
-            mMessages.erase(it++);
-            signalRemoveMessageFromStorage(
-                mContractorUUID,
-                mEquivalent,
-                kMessage->typeID());
-        } else {
-            ++it;
-        }
-    }
-
-    mMessages[message->transactionUUID()] = message;
-    signalSaveMessageToStorage(
-        mContractorUUID,
-        message);
 }

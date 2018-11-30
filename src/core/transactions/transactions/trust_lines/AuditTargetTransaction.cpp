@@ -10,9 +10,7 @@ AuditTargetTransaction::AuditTargetTransaction(
     TopologyTrustLinesManager *topologyTrustLinesManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
-    SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController,
-    VisualInterface *visualInterface,
     Logger &logger):
     BaseTrustLineTransaction(
         BaseTransaction::AuditTargetTransactionType,
@@ -20,7 +18,7 @@ AuditTargetTransaction::AuditTargetTransaction(
         nodeUUID,
         message->equivalent(),
         message->senderUUID,
-        message->idOnSenderSide,
+        message->idOnReceiverSide,
         contractorsManager,
         manager,
         storageHandler,
@@ -32,17 +30,20 @@ AuditTargetTransaction::AuditTargetTransaction(
     mContractorAddresses(message->senderAddresses),
     mTopologyTrustLinesManager(topologyTrustLinesManager),
     mTopologyCacheManager(topologyCacheManager),
-    mMaxFlowCacheManager(maxFlowCacheManager),
-    mSubsystemsController(subsystemsController),
-    mVisualInterface(visualInterface)
+    mMaxFlowCacheManager(maxFlowCacheManager)
 {
-    mAuditNumber = mTrustLines->auditNumber(message->idOnSenderSide) + 1;
+    mAuditNumber = mTrustLines->auditNumber(message->idOnReceiverSide) + 1;
 }
 
 TransactionResult::SharedConst AuditTargetTransaction::run()
 {
-    info() << "sender: " << mContractorUUID << " "
-           << mContractorID << "sender incoming IP " << mSenderIncomingIP;
+    info() << "sender: " << mContractorID << "sender incoming IP " << mSenderIncomingIP;
+
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
+        return sendAuditErrorConfirmation(
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+    }
 
     if (!mTrustLines->trustLineIsPresent(mContractorID)) {
         warning() << "Trust line is absent.";
@@ -92,9 +93,10 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
         info() << "Contractor send current audit " << mMessage->auditNumber();
         mOwnSignatureAndKeyNumber = keyChain.getCurrentAuditSignatureAndKeyNumber(ioTransaction);
         // Sending confirmation back.
-        // todo : use sendMessageWithTemporaryCaching
-        sendMessage<AuditResponseMessage>(
+        sendMessageWithTemporaryCaching<AuditResponseMessage>(
             mContractorID,
+            Message::TrustLines_Audit,
+            kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
             mEquivalent,
             mNodeUUID,
             mContractorsManager->idOnContractorSide(mContractorID),
@@ -115,13 +117,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
 
         if (mMessage->outgoingAmount() != mTrustLines->incomingTrustAmount(mContractorID)) {
             info() << "setIncomingTrustLineAmount " << mMessage->outgoingAmount();
-            // if contractor in black list we should reject operation with TL
-            if (ioTransaction->blackListHandler()->checkIfNodeExists(mContractorUUID)) {
-                warning() << "Contractor " << mContractorUUID << " " << mContractorID
-                          << " is in black list. Transaction rejected";
-                return sendAuditErrorConfirmation(
-                    ConfirmationMessage::ContractorBanned);
-            }
+            // todo : check black list if need
             setIncomingTrustLineAmount(ioTransaction);
         }
 
@@ -218,9 +214,10 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
     }
 
     // Sending confirmation back.
-    // todo : use sendMessageWithTemporaryCaching
-    sendMessage<AuditResponseMessage>(
+    sendMessageWithTemporaryCaching<AuditResponseMessage>(
         mContractorID,
+        Message::TrustLines_Audit,
+        kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
         mEquivalent,
         mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
@@ -229,8 +226,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
         mOwnSignatureAndKeyNumber.first);
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
 
-    trustLineActionNewSignal(
-        mContractorUUID,
+    trustLineActionSignal(
         mContractorID,
         mEquivalent,
         false);
@@ -249,7 +245,7 @@ void AuditTargetTransaction::setIncomingTrustLineAmount(
             populateHistory(ioTransaction, TrustLineRecord::Accepting);
             mTopologyCacheManager->resetInitiatorCache();
             mMaxFlowCacheManager->clearCashes();
-            info() << "Incoming trust line from the node " << mContractorUUID << " " << mContractorID
+            info() << "Incoming trust line from the node " << mContractorID
                    << " has been successfully initialised with " << mMessage->outgoingAmount();
             break;
         }
@@ -258,7 +254,7 @@ void AuditTargetTransaction::setIncomingTrustLineAmount(
             populateHistory(ioTransaction, TrustLineRecord::Updating);
             mTopologyCacheManager->resetInitiatorCache();
             mMaxFlowCacheManager->clearCashes();
-            info() << "Incoming trust line from the node " << mContractorUUID << " " << mContractorID
+            info() << "Incoming trust line from the node " << mContractorID
                    << " has been successfully set to " << mMessage->outgoingAmount();
             break;
         }
@@ -273,7 +269,7 @@ void AuditTargetTransaction::setIncomingTrustLineAmount(
                     make_shared<const TrustLineAmount>(0)));
             mTopologyCacheManager->resetInitiatorCache();
             mMaxFlowCacheManager->clearCashes();
-            info() << "Incoming trust line from the node " << mContractorUUID << " " << mContractorID
+            info() << "Incoming trust line from the node " << mContractorID
                    << " has been successfully closed.";
             break;
         }
@@ -281,46 +277,9 @@ void AuditTargetTransaction::setIncomingTrustLineAmount(
         case TrustLinesManager::TrustLineOperationResult::NoChanges: {
             // It is possible, that set trust line request will arrive twice or more times,
             // but only first processed update must be written to the trust lines history.
-            info() << "Incoming trust line from the node " << mContractorUUID << " " << mContractorID
+            info() << "Incoming trust line from the node " << mContractorID
                    << " has not been changed.";
             break;
-        }
-    }
-
-    if (mSubsystemsController->isWriteVisualResults()) {
-        if (kOperationResult == TrustLinesManager::TrustLineOperationResult::Opened) {
-            stringstream s;
-            s << VisualResult::IncomingTrustLineOpen << kTokensSeparator
-              << microsecondsSinceUnixEpoch() << kTokensSeparator
-              << currentTransactionUUID() << kTokensSeparator
-              << mContractorUUID << kCommandsSeparator;
-            auto message = s.str();
-
-            try {
-                mVisualInterface->writeResult(
-                    message.c_str(),
-                    message.size());
-            } catch (IOError &e) {
-                error() << "SetIncomingTrustLineTransaction: "
-                        "Error occurred when visual result has accepted. Details: " << e.message();
-            }
-        }
-        if (kOperationResult == TrustLinesManager::TrustLineOperationResult::Closed) {
-            stringstream s;
-            s << VisualResult::IncomingTrustLineClose << kTokensSeparator
-              << microsecondsSinceUnixEpoch() << kTokensSeparator
-              << currentTransactionUUID() << kTokensSeparator
-              << mContractorUUID << kCommandsSeparator;
-            auto message = s.str();
-
-            try {
-                mVisualInterface->writeResult(
-                    message.c_str(),
-                    message.size());
-            } catch (IOError &e) {
-                error() << "SetIncomingTrustLineTransaction: "
-                        "Error occurred when visual result has accepted. Details: " << e.message();
-            }
         }
     }
 }
@@ -333,7 +292,7 @@ void AuditTargetTransaction::closeOutgoingTrustLine(
     populateHistory(ioTransaction, TrustLineRecord::RejectingOutgoing);
     mTopologyCacheManager->resetInitiatorCache();
     mMaxFlowCacheManager->clearCashes();
-    info() << "Outgoing trust line to the node " << mContractorUUID << " " << mContractorID
+    info() << "Outgoing trust line to the node " << mContractorID
            << " has been successfully closed by remote node.";
 }
 

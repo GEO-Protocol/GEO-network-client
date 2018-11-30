@@ -16,20 +16,9 @@ public:
     AuditMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
-        const TransactionUUID &transactionUUID,
-        const NodeUUID &destinationUUID,
-        const AuditNumber auditNumber,
-        const TrustLineAmount &incomingAmount,
-        const TrustLineAmount &outgoingAmount,
-        const KeyNumber keyNumber,
-        const lamport::Signature::Shared signature);
-
-    AuditMessage(
-        const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
-        const NodeUUID &destinationUUID,
+        ContractorID destinationID,
         const AuditNumber auditNumber,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,

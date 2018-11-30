@@ -8,27 +8,27 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
         commandUUID,
         identifier())
 {
-    static const auto minCommandLength = NodeUUID::kHexSize + 1;
+    static const auto minCommandLength = 3;
 
     if (command.size() < minCommandLength) {
         throw ValueError(
             "CloseIncomingTrustLineCommand: can't parse command. "
-                    "Received command is to short.");
+                "Received command is to short.");
     }
 
+    size_t tokenSeparatorPos = command.find(
+        kTokensSeparator,
+        0);
+    string contractorIDStr = command.substr(0, tokenSeparatorPos);
     try {
-        string hexUUID = command.substr(0, NodeUUID::kHexSize);
-        mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
-
+        mContractorID = (uint32_t)std::stoul(contractorIDStr);
     } catch (...) {
         throw ValueError(
             "CloseIncomingTrustLineCommand: can't parse command. "
-                    "Error occurred while parsing 'Contractor UUID' token.");
+                "Error occurred while parsing 'contractorID' token.");
     }
 
-    // todo : parse contractorID
-
-    size_t equivalentOffset = NodeUUID::kHexSize + 1;
+    size_t equivalentOffset = tokenSeparatorPos + 1;
     string equivalentStr = command.substr(
         equivalentOffset,
         command.size() - equivalentOffset - 1);
@@ -36,8 +36,8 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
         mEquivalent = (uint32_t)std::stoul(equivalentStr);
     } catch (...) {
         throw ValueError(
-                "CloseIncomingTrustLineCommand: can't parse command. "
-                    "Error occurred while parsing  'equivalent' token.");
+            "CloseIncomingTrustLineCommand: can't parse command. "
+                "Error occurred while parsing  'equivalent' token.");
     }
 }
 
@@ -46,12 +46,6 @@ const string &CloseIncomingTrustLineCommand::identifier()
 {
     static const string identifier = "DELETE:contractors/incoming-trust-line";
     return identifier;
-}
-
-const NodeUUID &CloseIncomingTrustLineCommand::contractorUUID() const
-    noexcept
-{
-    return mContractorUUID;
 }
 
 const ContractorID CloseIncomingTrustLineCommand::contractorID() const

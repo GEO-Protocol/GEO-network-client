@@ -11,18 +11,6 @@ public:
 public:
     AuditSourceTransaction(
         const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
-        const SerializedEquivalent equivalent,
-        ContractorsManager *contractorsManager,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger);
-
-    AuditSourceTransaction(
-        const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
         ContractorID contractorID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,

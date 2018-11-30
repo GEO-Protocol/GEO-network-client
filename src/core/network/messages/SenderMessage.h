@@ -16,7 +16,7 @@ class SenderMessage:
 
 public:
     const NodeUUID senderUUID;
-    ContractorID idOnSenderSide;
+    ContractorID idOnReceiverSide;
     vector<BaseAddress::Shared> senderAddresses;
 
 public:

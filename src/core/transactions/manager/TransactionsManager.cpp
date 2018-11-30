@@ -103,8 +103,6 @@ void TransactionsManager::loadTransactionsFromStorage()
                         transaction->mBuildCycleFourNodesSignal);
                     subscribeForTrustLineActionSignal(
                         transaction->trustLineActionSignal);
-                    subscribeForTrustLineActionNewSignal(
-                        transaction->trustLineActionNewSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -136,8 +134,6 @@ void TransactionsManager::loadTransactionsFromStorage()
                         transaction->mBuildCycleFourNodesSignal);
                     subscribeForTrustLineActionSignal(
                         transaction->trustLineActionSignal);
-                    subscribeForTrustLineActionNewSignal(
-                        transaction->trustLineActionNewSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -165,8 +161,6 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mSubsystemsController);
                     subscribeForTrustLineActionSignal(
                         transaction->trustLineActionSignal);
-                    subscribeForTrustLineActionNewSignal(
-                        transaction->trustLineActionNewSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -516,8 +510,6 @@ void TransactionsManager::launchInitTrustLineTransaction(
         transaction->processConfirmationMessageSignal);
     subscribeForKeysSharingSignal(
         transaction->publicKeysSharingSignal);
-    subscribeForKeysSharingNewSignal(
-        transaction->publicKeysSharingNewSignal);
     prepareAndSchedule(
         transaction,
         true,
@@ -540,15 +532,12 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
             mSubsystemsController,
             mKeysStore,
-            mVisualInterface.get(),
             mTrustLinesInfluenceController,
             mLog);
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
-        subscribeForTrustLineActionNewSignal(
-            transaction->trustLineActionNewSignal);
         prepareAndSchedule(
             transaction,
             true,
@@ -589,8 +578,6 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
             transaction->processConfirmationMessageSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
-        subscribeForTrustLineActionNewSignal(
-            transaction->trustLineActionNewSignal);
         prepareAndSchedule(
             transaction,
             true,
@@ -627,8 +614,6 @@ void TransactionsManager::launchPublicKeysSharingSourceTransaction(
             transaction->processConfirmationMessageSignal);
         subscribeForAuditSignal(
             transaction->auditSignal);
-        subscribeForAuditNewSignal(
-            transaction->auditNewSignal);
         prepareAndSchedule(
             transaction,
             true,
@@ -700,8 +685,6 @@ void TransactionsManager::launchPublicKeysSharingTargetTransaction(
             mLog);
         subscribeForKeysSharingSignal(
             transaction->publicKeysSharingSignal);
-        subscribeForKeysSharingNewSignal(
-            transaction->publicKeysSharingNewSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -727,14 +710,10 @@ void TransactionsManager::launchAuditTargetTransaction(
             mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
             mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
-            mSubsystemsController,
             mTrustLinesInfluenceController,
-            mVisualInterface.get(),
             mLog);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
-        subscribeForTrustLineActionNewSignal(
-            transaction->trustLineActionNewSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -1051,8 +1030,6 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             transaction->mBuildCycleFourNodesSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
-        subscribeForTrustLineActionNewSignal(
-            transaction->trustLineActionNewSignal);
         prepareAndSchedule(transaction, true, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CoordinatorPaymentTransaction "
@@ -1090,8 +1067,6 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             transaction->mBuildCycleFourNodesSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
-        subscribeForTrustLineActionNewSignal(
-            transaction->trustLineActionNewSignal);
         prepareAndSchedule(transaction, false, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for ReceiverPaymentTransaction "
@@ -1128,8 +1103,6 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
             transaction->mBuildCycleFourNodesSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
-        subscribeForTrustLineActionNewSignal(
-            transaction->trustLineActionNewSignal);
         prepareAndSchedule(transaction, false, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for IntermediateNodePaymentTransaction "
@@ -1184,8 +1157,6 @@ void TransactionsManager::onCloseCycleTransaction(
             mSubsystemsController);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
-        subscribeForTrustLineActionNewSignal(
-            transaction->trustLineActionNewSignal);
         prepareAndSchedule(
             transaction,
             true,
@@ -1216,8 +1187,6 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
             mSubsystemsController);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
-        subscribeForTrustLineActionNewSignal(
-            transaction->trustLineActionNewSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -2100,19 +2069,6 @@ void TransactionsManager::subscribeForTrustLineActionSignal(
             _3));
 }
 
-void TransactionsManager::subscribeForTrustLineActionNewSignal(
-    BasePaymentTransaction::TrustLineActionNewSignal &signal)
-{
-    signal.connect(
-        boost::bind(
-            &TransactionsManager::onTrustLineActionNewSlot,
-            this,
-            _1,
-            _2,
-            _3,
-            _4));
-}
-
 void TransactionsManager::subscribeForKeysSharingSignal(
     BaseTransaction::PublicKeysSharingSignal &signal)
 {
@@ -2124,18 +2080,6 @@ void TransactionsManager::subscribeForKeysSharingSignal(
             _2));
 }
 
-void TransactionsManager::subscribeForKeysSharingNewSignal(
-    BaseTransaction::PublicKeysSharingNewSignal &signal)
-{
-    signal.connect(
-        boost::bind(
-            &TransactionsManager::onPublicKeysSharingNewSlot,
-            this,
-            _1,
-            _2,
-            _3));
-}
-
 void TransactionsManager::subscribeForAuditSignal(
     BaseTransaction::AuditSignal &signal)
 {
@@ -2145,18 +2089,6 @@ void TransactionsManager::subscribeForAuditSignal(
             this,
             _1,
             _2));
-}
-
-void TransactionsManager::subscribeForAuditNewSignal(
-    BaseTransaction::AuditNewSignal &signal)
-{
-    signal.connect(
-        boost::bind(
-            &TransactionsManager::onAuditNewSlot,
-            this,
-            _1,
-            _2,
-            _3));
 }
 
 void TransactionsManager::onTransactionOutgoingMessageReady(
@@ -2179,13 +2111,13 @@ void TransactionsManager::onTransactionOutgoingNewMessageReady(
 
 void TransactionsManager::onTransactionOutgoingMessageWithCachingReady(
     TransactionMessage::Shared message,
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     Message::MessageType incomingMessageTypeFilter,
     uint32_t cacheLivingTime)
 {
     transactionOutgoingMessageWithCachingReadySignal(
         message,
-        contractorUUID,
+        contractorID,
         incomingMessageTypeFilter,
         cacheLivingTime);
 }
@@ -2239,8 +2171,6 @@ void TransactionsManager::onSubsidiaryTransactionReady(
 
     subscribeForTrustLineActionSignal(
         transaction->trustLineActionSignal);
-    subscribeForTrustLineActionNewSignal(
-        transaction->trustLineActionNewSignal);
 
     mScheduler->postponeTransaction(
         transaction,
@@ -2314,42 +2244,6 @@ void TransactionsManager::onGatewayNotificationSlot()
 }
 
 void TransactionsManager::onTrustLineActionSlot(
-    const NodeUUID &contractorUUID,
-    const SerializedEquivalent equivalent,
-    bool isActionInitiator)
-{
-    try {
-        auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-        auto transaction = make_shared<CheckTrustLineTransaction>(
-            mNodeUUID,
-            equivalent,
-            contractorUUID,
-            isActionInitiator,
-            trustLinesManager,
-            mLog);
-
-        subscribeForKeysSharingSignal(
-            transaction->publicKeysSharingSignal);
-        subscribeForKeysSharingNewSignal(
-            transaction->publicKeysSharingNewSignal);
-
-        subscribeForAuditSignal(
-            transaction->auditSignal);
-        subscribeForAuditNewSignal(
-            transaction->auditNewSignal);
-
-        // wait for finish of contractor payment TA
-        mScheduler->postponeTransaction(
-            transaction,
-            500);
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for onTrustLineActionSlot "
-                "with equivalent " << equivalent << " Details are: " << e.what();
-    }
-}
-
-void TransactionsManager::onTrustLineActionNewSlot(
-    const NodeUUID &contractorUUID,
     ContractorID contractorID,
     const SerializedEquivalent equivalent,
     bool isActionInitiator)
@@ -2359,7 +2253,6 @@ void TransactionsManager::onTrustLineActionNewSlot(
         auto transaction = make_shared<CheckTrustLineTransaction>(
             mNodeUUID,
             equivalent,
-            contractorUUID,
             contractorID,
             isActionInitiator,
             trustLinesManager,
@@ -2367,13 +2260,9 @@ void TransactionsManager::onTrustLineActionNewSlot(
 
         subscribeForKeysSharingSignal(
             transaction->publicKeysSharingSignal);
-        subscribeForKeysSharingNewSignal(
-            transaction->publicKeysSharingNewSignal);
 
         subscribeForAuditSignal(
             transaction->auditSignal);
-        subscribeForAuditNewSignal(
-            transaction->auditNewSignal);
 
         // wait for finish of contractor payment TA
         mScheduler->postponeTransaction(
@@ -2386,44 +2275,6 @@ void TransactionsManager::onTrustLineActionNewSlot(
 }
 
 void TransactionsManager::onPublicKeysSharingSlot(
-    const NodeUUID &contractorUUID,
-    const SerializedEquivalent equivalent)
-{
-    try {
-        auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-        auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
-            mNodeUUID,
-            contractorUUID,
-            equivalent,
-            mContractorsManager,
-            trustLinesManager,
-            mStorageHandler,
-            mKeysStore,
-            mTrustLinesInfluenceController,
-            mLog);
-
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        subscribeForProcessingConfirmationMessage(
-            transaction->processConfirmationMessageSignal);
-
-        subscribeForAuditSignal(
-            transaction->auditSignal);
-        subscribeForAuditNewSignal(
-            transaction->auditNewSignal);
-
-        mScheduler->postponeTransaction(
-            transaction,
-            5);
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for onPublicKeysSharingSlot "
-                "with equivalent " << equivalent << " Details are: " << e.what();
-    }
-}
-
-void TransactionsManager::onPublicKeysSharingNewSlot(
-    const NodeUUID &contractorUUID,
     ContractorID contractorID,
     const SerializedEquivalent equivalent)
 {
@@ -2431,7 +2282,6 @@ void TransactionsManager::onPublicKeysSharingNewSlot(
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
         auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
             mNodeUUID,
-            contractorUUID,
             contractorID,
             equivalent,
             mContractorsManager,
@@ -2452,8 +2302,6 @@ void TransactionsManager::onPublicKeysSharingNewSlot(
 
         subscribeForAuditSignal(
             transaction->auditSignal);
-        subscribeForAuditNewSignal(
-            transaction->auditNewSignal);
 
         mScheduler->postponeTransaction(
             transaction,
@@ -2465,44 +2313,6 @@ void TransactionsManager::onPublicKeysSharingNewSlot(
 }
 
 void TransactionsManager::onAuditSlot(
-    const NodeUUID &contractorUUID,
-    const SerializedEquivalent equivalent)
-{
-    try {
-        auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-        auto transaction = make_shared<AuditSourceTransaction>(
-            mNodeUUID,
-            contractorUUID,
-            equivalent,
-            mContractorsManager,
-            trustLinesManager,
-            mStorageHandler,
-            mKeysStore,
-            mTrustLinesInfluenceController,
-            mLog);
-
-        subscribeForProcessingConfirmationMessage(
-            transaction->processConfirmationMessageSignal);
-        subscribeForTrustLineActionSignal(
-            transaction->trustLineActionSignal);
-        subscribeForTrustLineActionNewSignal(
-            transaction->trustLineActionNewSignal);
-        subscribeForProcessingPongMessage(
-            transaction->processPongMessageSignal);
-
-        prepareAndSchedule(
-            transaction,
-            true,
-            false,
-            true);
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for onAuditSlot "
-                "with equivalent " << equivalent << " Details are: " << e.what();
-    }
-}
-
-void TransactionsManager::onAuditNewSlot(
-    const NodeUUID &contractorUUID,
     ContractorID contractorID,
     const SerializedEquivalent equivalent)
 {
@@ -2510,7 +2320,6 @@ void TransactionsManager::onAuditNewSlot(
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
         auto transaction = make_shared<AuditSourceTransaction>(
             mNodeUUID,
-            contractorUUID,
             contractorID,
             equivalent,
             mContractorsManager,
@@ -2524,8 +2333,6 @@ void TransactionsManager::onAuditNewSlot(
             transaction->processConfirmationMessageSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
-        subscribeForTrustLineActionNewSignal(
-            transaction->trustLineActionNewSignal);
         subscribeForProcessingPongMessage(
             transaction->processPongMessageSignal);
 
@@ -2553,6 +2360,7 @@ void TransactionsManager::onResumeTransactionSlot(
                 equivalent,
                 contractorUUID,
                 contractorID,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mStorageHandler,
                 mEquivalentsSubsystemsRouter->iAmGateway(equivalent),
@@ -2563,8 +2371,6 @@ void TransactionsManager::onResumeTransactionSlot(
                 transaction->processConfirmationMessageSignal);
             subscribeForKeysSharingSignal(
                 transaction->publicKeysSharingSignal);
-            subscribeForKeysSharingNewSignal(
-                transaction->publicKeysSharingNewSignal);
             subscribeForProcessingPongMessage(
                 transaction->processPongMessageSignal);
             prepareAndSchedule(
@@ -2590,8 +2396,6 @@ void TransactionsManager::onResumeTransactionSlot(
                 transaction->processConfirmationMessageSignal);
             subscribeForTrustLineActionSignal(
                 transaction->trustLineActionSignal);
-            subscribeForTrustLineActionNewSignal(
-                transaction->trustLineActionNewSignal);
             subscribeForProcessingPongMessage(
                 transaction->processPongMessageSignal);
             prepareAndSchedule(

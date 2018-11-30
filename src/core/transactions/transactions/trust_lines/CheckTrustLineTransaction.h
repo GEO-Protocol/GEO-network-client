@@ -13,15 +13,6 @@ public:
     CheckTrustLineTransaction(
         const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
-        const NodeUUID &contractorUUID,
-        bool isActionInitiator,
-        TrustLinesManager *manager,
-        Logger &logger);
-
-    CheckTrustLineTransaction(
-        const NodeUUID &nodeUUID,
-        const SerializedEquivalent equivalent,
-        const NodeUUID &contractorUUID,
         ContractorID contractorID,
         bool isActionInitiator,
         TrustLinesManager *manager,
@@ -34,7 +25,6 @@ protected: // log
     noexcept;
 
 private:
-    const NodeUUID mContractorUUID;
     ContractorID mContractorID;
     bool mIsActionInitiator;
     TrustLinesManager *mTrustLinesManager;

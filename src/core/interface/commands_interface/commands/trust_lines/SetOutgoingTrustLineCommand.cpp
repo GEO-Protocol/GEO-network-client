@@ -9,8 +9,7 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
         commandUUID,
         identifier())
 {
-    static const auto amountTokenOffset = NodeUUID::kHexSize + 1;
-    static const auto minCommandLength = amountTokenOffset + 1;
+    static const auto minCommandLength = 5;
 
     if (command.size() < minCommandLength) {
         throw ValueError(
@@ -18,21 +17,22 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
             "Received command is to short.");
     }
 
+    size_t tokenSeparatorPos = command.find(
+        kTokensSeparator,
+        0);
+    string contractorIDStr = command.substr(0, tokenSeparatorPos);
     try {
-        string hexUUID = command.substr(0, NodeUUID::kHexSize);
-        mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
-
+        mContractorID = (uint32_t)std::stoul(contractorIDStr);
     } catch (...) {
         throw ValueError(
-            "SetOutgoingTrustLineCommand: can't parse command. "
-            "Error occurred while parsing 'Contractor UUID' token.");
+            "SetTrustLineCommand: can't parse command. "
+                "Error occurred while parsing  'contractorID' token.");
     }
 
-    // todo : parse contractorID
-
-    size_t tokenSeparatorPos = command.find(
-            kTokensSeparator,
-            amountTokenOffset);
+    size_t amountTokenOffset = tokenSeparatorPos + 1;
+    tokenSeparatorPos = command.find(
+        kTokensSeparator,
+        amountTokenOffset);
     try {
         mAmount = TrustLineAmount(
             command.substr(
@@ -63,12 +63,6 @@ const string &SetOutgoingTrustLineCommand::identifier()
 {
     static const string identifier = "SET:contractors/trust-lines";
     return identifier;
-}
-
-const NodeUUID &SetOutgoingTrustLineCommand::contractorUUID() const
-    noexcept
-{
-    return mContractorUUID;
 }
 
 const ContractorID SetOutgoingTrustLineCommand::contractorID() const
