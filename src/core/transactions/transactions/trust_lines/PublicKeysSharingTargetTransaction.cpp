@@ -46,7 +46,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::run()
 
 TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runPublicKeyReceiverInitStage()
 {
-    info() << "runPublicKeyReceiverInitStage " << mContractorID << "sender incoming IP " << mSenderIncomingIP;
+    info() << "runPublicKeyReceiverInitStage " << mContractorID << " sender incoming IP " << mSenderIncomingIP;
 
     if (!mContractorsManager->contractorPresent(mContractorID)) {
         warning() << "There is no contractor with requested id";

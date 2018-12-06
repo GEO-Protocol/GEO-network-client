@@ -19,6 +19,7 @@ public:
         const NodeUUID &contractorUUID,
         const TransactionUUID &requestedTransactionUUID,
         const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
         PathsManager *pathsManager,
         ResourcesManager *resourcesManager,
         TrustLinesManager *manager,

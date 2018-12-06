@@ -21,6 +21,7 @@ public:
     InitiateMaxFlowCalculationTransaction(
         NodeUUID &nodeUUID,
         InitiateMaxFlowCalculationCommand::Shared command,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
@@ -40,15 +41,20 @@ private:
     TrustLineAmount calculateMaxFlow(
         const NodeUUID &contractorUUID);
 
-    TrustLineAmount calculateMaxFlowUpdated(
-        const NodeUUID &contractorUUID);
+    TrustLineAmount calculateMaxFlowNew(
+        ContractorID contractorID);
 
     void calculateMaxFlowOnOneLevel();
 
-    void calculateMaxFlowOnOneLevelUpdated();
+    void calculateMaxFlowOnOneLevelNew();
 
     TrustLineAmount calculateOneNode(
         const NodeUUID& nodeUUID,
+        const TrustLineAmount& currentFlow,
+        byte level);
+
+    TrustLineAmount calculateOneNodeNew(
+        ContractorID nodeID,
         const TrustLineAmount& currentFlow,
         byte level);
 
@@ -71,12 +77,17 @@ private:
 private:
     InitiateMaxFlowCalculationCommand::Shared mCommand;
     vector<NodeUUID> mForbiddenNodeUUIDs;
+    vector<ContractorID> mForbiddenNodeIDs;
     byte mCurrentPathLength;
     TrustLineAmount mCurrentMaxFlow;
     NodeUUID mCurrentContractor;
+    ContractorID mCurrentContractorNew;
     size_t mCountProcessCollectingTopologyRun;
     TopologyTrustLinesManager::TrustLineWithPtrHashSet mFirstLevelTopology;
+    TopologyTrustLinesManager::TrustLineWithPtrHashSetNew mFirstLevelTopologyNew;
     map<NodeUUID, TrustLineAmount> mMaxFlows;
+    vector<pair<ContractorID, BaseAddress::Shared>> mContractorIDs;
+    map<ContractorID, TrustLineAmount> mMaxFlowsNew;
     uint16_t mResultStep;
     bool mShortMaxFlowsCalculated;
     bool mGatewayResponseProcessed;

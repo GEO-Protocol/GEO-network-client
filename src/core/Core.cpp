@@ -391,6 +391,13 @@ void Core::connectCommunicatorSignals()
             _1,
             _2));
 
+    mTransactionsManager->transactionOutgoingMessageToAddressReadySignal.connect(
+        boost::bind(
+            &Core::onMessageSendToAddressSlot,
+            this,
+            _1,
+            _2));
+
     mTransactionsManager->transactionOutgoingMessageWithCachingReadySignal.connect(
         boost::bind(
             &Core::onMessageSendWithCachingSlot,
@@ -524,10 +531,10 @@ void Core::onMessageReceivedSlot(
 
 void Core::onClearTopologyCacheSlot(
     const SerializedEquivalent equivalent,
-    const NodeUUID &nodeUUID)
+    BaseAddress::Shared nodeAddress)
 {
     try {
-        mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent)->removeCache(nodeUUID);
+        mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent)->removeCache(nodeAddress);
     } catch (NotFoundError &e) {
         error() << "There are no topologyCacheManager for onClearTopologyCacheSlot "
                 "with equivalent " << equivalent << " Details are: " << e.what();
@@ -572,6 +579,28 @@ void Core::onMessageSendNewSlot(
         mCommunicator->sendMessage(
             message,
             contractorID);
+
+    } catch (exception &e) {
+        mLog->logException("Core", e);
+    }
+}
+
+void Core::onMessageSendToAddressSlot(
+    Message::Shared message,
+    BaseAddress::Shared address)
+{
+#ifdef TESTS
+    if (not mSubsystemsController->isNetworkOn()) {
+        // Ignore outgoing message in case if network was disabled.
+        debug() << "Ignore send message";
+        return;
+    }
+#endif
+
+    try {
+        mCommunicator->sendMessage(
+            message,
+            address);
 
     } catch (exception &e) {
         mLog->logException("Core", e);

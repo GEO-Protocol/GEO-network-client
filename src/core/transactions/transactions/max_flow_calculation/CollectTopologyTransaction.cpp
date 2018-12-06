@@ -4,6 +4,7 @@ CollectTopologyTransaction::CollectTopologyTransaction(
     const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     const vector<NodeUUID> &contractors,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
@@ -16,6 +17,31 @@ CollectTopologyTransaction::CollectTopologyTransaction(
         equivalent,
         logger),
     mContractors(contractors),
+    mContractorsManager(contractorsManager),
+    mTrustLinesManager(manager),
+    mTopologyTrustLineManager(topologyTrustLineManager),
+    mTopologyCacheManager(topologyCacheManager),
+    mMaxFlowCacheManager(maxFlowCacheManager)
+{}
+
+CollectTopologyTransaction::CollectTopologyTransaction(
+    const NodeUUID &nodeUUID,
+    const SerializedEquivalent equivalent,
+    const vector<BaseAddress::Shared> &contractorAddresses,
+    ContractorsManager *contractorsManager,
+    TrustLinesManager *manager,
+    TopologyTrustLinesManager *topologyTrustLineManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
+    Logger &logger) :
+
+    BaseTransaction(
+        BaseTransaction::TransactionType::CollectTopologyTransactionType,
+        nodeUUID,
+        equivalent,
+        logger),
+    mContractorAddresses(contractorAddresses),
+    mContractorsManager(contractorsManager),
     mTrustLinesManager(manager),
     mTopologyTrustLineManager(topologyTrustLineManager),
     mTopologyCacheManager(topologyCacheManager),
@@ -24,7 +50,7 @@ CollectTopologyTransaction::CollectTopologyTransaction(
 
 TransactionResult::SharedConst CollectTopologyTransaction::run()
 {
-    debug() << "Collect topology to " << mContractors.size() << " contractors";
+    debug() << "Collect topology to " << mContractorAddresses.size() << " contractors";
     // Check if Node does not have outgoing FlowAmount;
     if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().empty()){
         return resultDone();
@@ -38,6 +64,15 @@ TransactionResult::SharedConst CollectTopologyTransaction::run()
                 nodeUUIDAndOutgoingFlow.first,
                 trustLineAmountShared));
     }
+    for (auto const &nodeAddressAndOutgoingFlow : mTrustLinesManager->outgoingFlowsNew()) {
+        auto targetID = mTopologyTrustLineManager->getID(nodeAddressAndOutgoingFlow.first);
+        auto trustLineAmountShared = nodeAddressAndOutgoingFlow.second;
+        mTopologyTrustLineManager->addTrustLineNew(
+            make_shared<TopologyTrustLineNew>(
+                0,
+                targetID,
+                trustLineAmountShared));
+    }
     if (!mTopologyCacheManager->isInitiatorCached()) {
         sendMessagesOnFirstLevel();
         mTopologyCacheManager->setInitiatorCache();
@@ -47,40 +82,37 @@ TransactionResult::SharedConst CollectTopologyTransaction::run()
 
 void CollectTopologyTransaction::sendMessagesToContractors()
 {
-    for (const auto &contractorUUID : mContractors)
+    for (const auto &contractorAddress : mContractorAddresses)
         sendMessage<InitiateMaxFlowCalculationMessage>(
-            contractorUUID,
+            contractorAddress,
             mEquivalent,
             currentNodeUUID(),
-            // todo : don't use contractorID
-            0);
+            mContractorsManager->ownAddresses());
 }
 
 void CollectTopologyTransaction::sendMessagesOnFirstLevel()
 {
-    vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
-    auto outgoingFlowUuidIt = outgoingFlowUuids.begin();
-    while (outgoingFlowUuidIt != outgoingFlowUuids.end()) {
+    auto outgoingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
+    auto outgoingFlowIDIt = outgoingFlowIDs.begin();
+    while (outgoingFlowIDIt != outgoingFlowIDs.end()) {
         // firstly send message to gateways
-        if (mTrustLinesManager->isContractorGateway(*outgoingFlowUuidIt)) {
+        if (mTrustLinesManager->isContractorGateway(*outgoingFlowIDIt)) {
             sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
-                *outgoingFlowUuidIt,
+                *outgoingFlowIDIt,
                 mEquivalent,
                 mNodeUUID,
-                // todo : don't use contractorID
-                0);
-            outgoingFlowUuids.erase(outgoingFlowUuidIt);
+                mContractorsManager->idOnContractorSide(*outgoingFlowIDIt));
+            outgoingFlowIDs.erase(outgoingFlowIDIt);
         } else {
-            outgoingFlowUuidIt++;
+            outgoingFlowIDIt++;
         }
     }
-    for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
+    for (auto const &nodeIDWithOutgoingFlow : outgoingFlowIDs) {
         sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
-            nodeUUIDOutgoingFlow,
+            nodeIDWithOutgoingFlow,
             mEquivalent,
             mNodeUUID,
-            // todo : don't use contractorID
-            0);
+            mContractorsManager->idOnContractorSide(nodeIDWithOutgoingFlow));
     }
 }
 

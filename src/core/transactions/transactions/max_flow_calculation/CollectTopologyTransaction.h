@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_COLLECTTOPOLOGYTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
+#include "../../../contractors/ContractorsManager.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../topology/manager/TopologyTrustLinesManager.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
@@ -20,6 +21,18 @@ public:
         const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         const vector<NodeUUID> &contractors,
+        ContractorsManager *contractorsManager,
+        TrustLinesManager *manager,
+        TopologyTrustLinesManager *topologyTrustLineManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
+        Logger &logger);
+
+    CollectTopologyTransaction(
+        const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
+        const vector<BaseAddress::Shared> &contractorAddresses,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
@@ -37,12 +50,14 @@ private:
     void sendMessagesOnFirstLevel();
 
 private:
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     TopologyTrustLinesManager *mTopologyTrustLineManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
 
     vector<NodeUUID> mContractors;
+    vector<BaseAddress::Shared> mContractorAddresses;
 };
 
 

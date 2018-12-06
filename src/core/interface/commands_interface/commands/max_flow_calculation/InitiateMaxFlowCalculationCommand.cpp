@@ -8,7 +8,7 @@ InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
         uuid,
         identifier())
 {
-    const auto minCommandLength = NodeUUID::kHexSize + 2;
+    const auto minCommandLength = 3;
     if (command.size() < minCommandLength) {
         throw ValueError(
                 "InitiateMaxFlowCalculationCommand: can't parse command. "
@@ -25,6 +25,7 @@ InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
                 "InitiateMaxFlowCalculationCommand: can't parse command. "
                     "Error occurred while parsing  'count contractors' token.");
     }
+
     mContractors.reserve(mContractorsCount);
     size_t contractorStartPoint = tokenSeparatorPos + 1;
     for (size_t idx = 0; idx < mContractorsCount; idx++) {
@@ -43,7 +44,28 @@ InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
         }
     }
 
-    size_t equivalentStartPoint = contractorStartPoint;
+    mContractorAddresses.reserve(mContractorsCount);
+    size_t contractorAddressStartPoint = contractorStartPoint;
+    for (size_t idx = 0; idx < mContractorsCount; idx++) {
+        try {
+            tokenSeparatorPos = command.find(
+                kTokensSeparator,
+                contractorAddressStartPoint);
+            string addressStr = command.substr(
+                contractorAddressStartPoint,
+                tokenSeparatorPos - contractorAddressStartPoint);
+            mContractorAddresses.push_back(
+                make_shared<IPv4WithPortAddress>(
+                    addressStr));
+            contractorAddressStartPoint = tokenSeparatorPos + 1;
+        } catch (...) {
+            throw ValueError(
+                    "InitiateMaxFlowCalculationCommand: can't parse command. "
+                        "Error occurred while parsing 'Contractor Address' token.");
+        }
+    }
+
+    size_t equivalentStartPoint = contractorAddressStartPoint;
     string equivalentStr = command.substr(
         equivalentStartPoint,
         command.size() - equivalentStartPoint - 1);
@@ -65,6 +87,11 @@ const string &InitiateMaxFlowCalculationCommand::identifier()
 const vector<NodeUUID>& InitiateMaxFlowCalculationCommand::contractors() const
 {
     return mContractors;
+}
+
+const vector<BaseAddress::Shared>& InitiateMaxFlowCalculationCommand::contractorAddresses() const
+{
+    return mContractorAddresses;
 }
 
 const SerializedEquivalent InitiateMaxFlowCalculationCommand::equivalent() const

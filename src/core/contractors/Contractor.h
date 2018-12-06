@@ -39,6 +39,8 @@ public:
 
     vector<BaseAddress::Shared> addresses() const;
 
+    BaseAddress::Shared mainAddress() const;
+
 private:
     ContractorID mID;
     ContractorID mOwnIdOnContractorSide;

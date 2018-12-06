@@ -1,11 +1,9 @@
 #include "ConfirmationNotStronglyRequiredMessagesQueue.h"
 
 ConfirmationNotStronglyRequiredMessagesQueue::ConfirmationNotStronglyRequiredMessagesQueue(
-    const SerializedEquivalent equivalent,
-    const NodeUUID &contractorUUID)
+    const SerializedEquivalent equivalent)
     noexcept:
-    mEquivalent(equivalent),
-    mContractorUUID(contractorUUID)
+    mEquivalent(equivalent)
 {
     resetInternalTimeout();
     mNextSendingAttemptDateTime = utc_now() + boost::posix_time::seconds(mNextTimeoutSeconds);

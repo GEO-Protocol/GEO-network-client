@@ -26,7 +26,7 @@ class Communicator {
 public:
     signals::signal<void(Message::Shared)> signalMessageReceived;
 
-    signals::signal<void(const SerializedEquivalent, const NodeUUID&)> signalClearTopologyCache;
+    signals::signal<void(const SerializedEquivalent, BaseAddress::Shared)> signalClearTopologyCache;
 
 public:
     explicit Communicator(
@@ -55,6 +55,11 @@ public:
     void sendMessage (
         const Message::Shared kMessage,
         const ContractorID contractorID)
+        noexcept;
+
+    void sendMessage(
+        const Message::Shared kMessage,
+        const BaseAddress::Shared contractorAddress)
         noexcept;
 
     void sendMessageWithCacheSaving (
@@ -88,14 +93,15 @@ protected:
         pair<ContractorID, TransactionMessage::Shared>);
 
     void onConfirmationNotStronglyRequiredMessageReadyToResend(
-        pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared>);
+        BaseAddress::Shared contractorAddress,
+        MaxFlowCalculationConfirmationMessage::Shared message);
 
     void onPingMessageReadyToResend(
         pair<ContractorID, PingMessage::Shared>);
 
     void onClearTopologyCache(
         const SerializedEquivalent equivalent,
-        const NodeUUID& nodeUUID);
+        BaseAddress::Shared nodeAddress);
 
     static string logHeader()
     noexcept;

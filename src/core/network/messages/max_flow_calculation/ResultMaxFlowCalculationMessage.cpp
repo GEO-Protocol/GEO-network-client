@@ -3,15 +3,21 @@
 ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows) :
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows,
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &outgoingFlowsNew,
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &incomingFlowsNew) :
 
     MaxFlowCalculationConfirmationMessage(
         equivalent,
         senderUUID,
+        senderAddresses,
         0),
     mOutgoingFlows(outgoingFlows),
-    mIncomingFlows(incomingFlows)
+    mIncomingFlows(incomingFlows),
+    mOutgoingFlowsNew(outgoingFlowsNew),
+    mIncomingFlowsNew(incomingFlowsNew)
 {}
 
 ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
@@ -60,6 +66,73 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
             make_shared<const TrustLineAmount>(
                 trustLineAmount));
     }
+
+    //----------------------------------------------------
+    auto *trustLinesOutCountNew = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
+    //-----------------------------------------------------
+    mOutgoingFlowsNew.reserve(*trustLinesOutCountNew);
+    for (SerializedRecordNumber idx = 0; idx < *trustLinesOutCountNew; idx++) {
+        const uint16_t kAddressType =
+            *(reinterpret_cast<BaseAddress::SerializedType *>(buffer.get() + bytesBufferOffset));
+
+        BaseAddress::Shared address;
+        switch (kAddressType) {
+            case BaseAddress::IPv4_IncludingPort: {
+                address = make_shared<IPv4WithPortAddress>(
+                    buffer.get() + bytesBufferOffset);
+                bytesBufferOffset += address->serializedSize();
+                break;
+            }
+            default: {
+                // todo : need correct reaction
+            }
+        }
+        //---------------------------------------------------
+        vector<byte> bufferTrustLineAmount(
+            buffer.get() + bytesBufferOffset,
+            buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+        bytesBufferOffset += kTrustLineAmountBytesCount;
+        //---------------------------------------------------
+        TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
+        mOutgoingFlowsNew.emplace_back(
+            address,
+            make_shared<const TrustLineAmount>(
+                trustLineAmount));
+    }
+    //----------------------------------------------------
+    auto *trustLinesInCountNew = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
+    //-----------------------------------------------------
+    mIncomingFlowsNew.reserve(*trustLinesInCountNew);
+    for (SerializedRecordNumber idx = 0; idx < *trustLinesInCount; idx++) {
+        const uint16_t kAddressType =
+            *(reinterpret_cast<BaseAddress::SerializedType *>(buffer.get() + bytesBufferOffset));
+
+        BaseAddress::Shared address;
+        switch (kAddressType) {
+            case BaseAddress::IPv4_IncludingPort: {
+                address = make_shared<IPv4WithPortAddress>(
+                    buffer.get() + bytesBufferOffset);
+                bytesBufferOffset += address->serializedSize();
+                break;
+            }
+            default: {
+                // todo : need correct reaction
+            }
+        }
+        //---------------------------------------------------
+        vector<byte> bufferTrustLineAmount(
+            buffer.get() + bytesBufferOffset,
+            buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+        bytesBufferOffset += kTrustLineAmountBytesCount;
+        //---------------------------------------------------
+        TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
+        mIncomingFlowsNew.emplace_back(
+            address,
+            make_shared<const TrustLineAmount>(
+                trustLineAmount));
+    }
 }
 
 const Message::MessageType ResultMaxFlowCalculationMessage::typeID() const
@@ -80,8 +153,16 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() co
                         + sizeof(SerializedRecordsCount) + mOutgoingFlows.size()
                                                            * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount)
                         + sizeof(SerializedRecordsCount) + mIncomingFlows.size()
-                                                           * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount);
+                                                           * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount)
+                        + sizeof(SerializedRecordsCount) + sizeof(SerializedRecordsCount);
+    for (const auto &outgoingFlow : mOutgoingFlowsNew) {
+        bytesCount += outgoingFlow.first->serializedSize() + kTrustLineAmountBytesCount;
+    }
+    for (const auto &incomingFlow : mIncomingFlowsNew) {
+        bytesCount += incomingFlow.first->serializedSize() + kTrustLineAmountBytesCount;
+    }
     BytesShared dataBytesShared = tryCalloc(bytesCount);
+
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
     memcpy(
@@ -134,6 +215,53 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() co
         dataBytesOffset += kTrustLineAmountBytesCount;
     }
     //----------------------------------------------------
+
+    trustLinesOutCount = (SerializedRecordsCount)mOutgoingFlowsNew.size();
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &trustLinesOutCount,
+        sizeof(SerializedRecordsCount));
+    dataBytesOffset += sizeof(SerializedRecordsCount);
+    //----------------------------------------------------
+    for (auto const &outgoingFlow : mOutgoingFlowsNew) {
+        auto serializedData = outgoingFlow.first->serializeToBytes();
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            serializedData.get(),
+            outgoingFlow.first->serializedSize());
+        dataBytesOffset += outgoingFlow.first->serializedSize();
+        //------------------------------------------------
+        vector<byte> buffer = trustLineAmountToBytes(*outgoingFlow.second.get());
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            buffer.data(),
+            buffer.size());
+        dataBytesOffset += kTrustLineAmountBytesCount;
+    }
+    //----------------------------------------------------
+    trustLinesInCount = (SerializedRecordsCount)mIncomingFlowsNew.size();
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &trustLinesInCount,
+        sizeof(SerializedRecordsCount));
+    dataBytesOffset += sizeof(SerializedRecordsCount);
+    //----------------------------------------------------
+    for (auto const &incomingFlow : mIncomingFlowsNew) {
+        auto serializedData = incomingFlow.first->serializeToBytes();
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            serializedData.get(),
+            incomingFlow.first->serializedSize());
+        dataBytesOffset += incomingFlow.first->serializedSize();
+        //------------------------------------------------
+        vector<byte> buffer = trustLineAmountToBytes(*incomingFlow.second.get());
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            buffer.data(),
+            buffer.size());
+        dataBytesOffset += kTrustLineAmountBytesCount;
+    }
+    //----------------------------------------------------
     return make_pair(
         dataBytesShared,
         bytesCount);
@@ -147,4 +275,14 @@ const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> ResultMaxFlowCalculatio
 const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> ResultMaxFlowCalculationMessage::incomingFlows() const
 {
     return mIncomingFlows;
+}
+
+const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> ResultMaxFlowCalculationMessage::outgoingFlowsNew() const
+{
+    return mOutgoingFlowsNew;
+}
+
+const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> ResultMaxFlowCalculationMessage::incomingFlowsNew() const
+{
+    return mIncomingFlowsNew;
 }

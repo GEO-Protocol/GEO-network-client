@@ -4,13 +4,24 @@
 SenderMessage::SenderMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
-    ContractorID idOnSenderSide,
+    ContractorID idOnReceiverSide,
     vector<BaseAddress::Shared> senderAddresses)
     noexcept :
     EquivalentMessage(
         equivalent),
     senderUUID(senderUUID),
-    idOnReceiverSide(idOnSenderSide),
+    idOnReceiverSide(idOnReceiverSide),
+    senderAddresses(senderAddresses)
+{}
+
+SenderMessage::SenderMessage(
+    const SerializedEquivalent equivalent,
+    const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> senderAddresses)
+    noexcept :
+    EquivalentMessage(
+        equivalent),
+    senderUUID(senderUUID),
     senderAddresses(senderAddresses)
 {}
 

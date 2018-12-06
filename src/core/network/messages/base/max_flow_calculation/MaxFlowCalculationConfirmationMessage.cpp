@@ -3,12 +3,13 @@
 MaxFlowCalculationConfirmationMessage::MaxFlowCalculationConfirmationMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
     const ConfirmationID confirmationID) :
 
     SenderMessage(
         equivalent,
         senderUUID,
-        0),
+        senderAddresses),
     mConfirmationID(confirmationID)
 {}
 

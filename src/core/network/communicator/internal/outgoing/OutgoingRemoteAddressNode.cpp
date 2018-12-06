@@ -1,13 +1,13 @@
-#include "OutgoingRemoteNodeNew.h"
+#include "OutgoingRemoteAddressNode.h"
 
-OutgoingRemoteNodeNew::OutgoingRemoteNodeNew(
-    Contractor::Shared remoteContractor,
+OutgoingRemoteAddressNode::OutgoingRemoteAddressNode(
+    BaseAddress::Shared address,
     UDPSocket &socket,
     IOService &ioService,
     Logger &logger)
     noexcept :
 
-    mRemoteContractor(remoteContractor),
+    mAddress(address),
     mIOService(ioService),
     mSocket(socket),
     mLog(logger),
@@ -16,7 +16,7 @@ OutgoingRemoteNodeNew::OutgoingRemoteNodeNew(
     mSendingDelayTimer(mIOService)
 {}
 
-void OutgoingRemoteNodeNew::sendMessage(
+void OutgoingRemoteAddressNode::sendMessage(
     Message::Shared message)
     noexcept
 {
@@ -58,22 +58,22 @@ void OutgoingRemoteNodeNew::sendMessage(
     }
 }
 
-bool OutgoingRemoteNodeNew::containsPacketsInQueue() const
+bool OutgoingRemoteAddressNode::containsPacketsInQueue() const
 {
     return !mPacketsQueue.empty();
 }
 
-uint32_t OutgoingRemoteNodeNew::crc32Checksum(
+uint32_t OutgoingRemoteAddressNode::crc32Checksum(
     byte *data,
     size_t bytesCount) const
-    noexcept
+noexcept
 {
     boost::crc_32_type result;
     result.process_bytes(data, bytesCount);
     return result.checksum();
 }
 
-void OutgoingRemoteNodeNew::populateQueueWithNewPackets(
+void OutgoingRemoteAddressNode::populateQueueWithNewPackets(
     byte *messageData,
     const size_t messageBytesCount)
 {
@@ -86,12 +86,10 @@ void OutgoingRemoteNodeNew::populateQueueWithNewPackets(
     if (kMessageContentWithCRC32BytesCount % Packet::kMaxSize != 0)
         kTotalPacketsCount += 1;
 
-
     PacketHeader::ChannelIndex channelIndex = nextChannelIndex();
     uint32_t crcChecksum = crc32Checksum(
         messageData,
         messageBytesCount);
-
 
     size_t messageContentBytesProcessed = 0;
     Packet::Index packetIndex = 0;
@@ -192,7 +190,7 @@ void OutgoingRemoteNodeNew::populateQueueWithNewPackets(
             kLastPacketSize));
 }
 
-void OutgoingRemoteNodeNew::beginPacketsSending()
+void OutgoingRemoteAddressNode::beginPacketsSending()
 {
     if (mPacketsQueue.empty()) {
         return;
@@ -201,14 +199,14 @@ void OutgoingRemoteNodeNew::beginPacketsSending()
     UDPEndpoint endpoint;
     try {
         endpoint = as::ip::udp::endpoint(
-            as::ip::address_v4::from_string(mRemoteContractor->getIPv4()->host()),
-            mRemoteContractor->getIPv4()->port());
+            as::ip::address_v4::from_string(mAddress->host()),
+            mAddress->port());
         debug() << "Endpoint address " << endpoint.address().to_string();
         debug() << "Endpoint port " << endpoint.port();
     } catch  (exception &) {
         errors()
-                << "Endpoint can't be fetched from Contractor. "
-                << "No messages can be sent. Outgoing queue cleared.";
+            << "Endpoint can't be fetched from Contractor. "
+            << "No messages can be sent. Outgoing queue cleared.";
 
         while (!mPacketsQueue.empty()) {
             const auto packetDataAndSize = mPacketsQueue.front();
@@ -218,7 +216,6 @@ void OutgoingRemoteNodeNew::beginPacketsSending()
 
         return;
     }
-
 
     // The next code inserts delay between sending packets in case of high traffic.
     const auto kShortSendingTimeInterval = boost::posix_time::milliseconds(20);
@@ -243,7 +240,6 @@ void OutgoingRemoteNodeNew::beginPacketsSending()
         mCyclesStats.second = 0;
     }
 
-
     const auto packetDataAndSize = mPacketsQueue.front();
     mSocket.async_send_to(
         boost::asio::buffer(
@@ -251,12 +247,13 @@ void OutgoingRemoteNodeNew::beginPacketsSending()
             packetDataAndSize.second),
         endpoint,
         [this, endpoint] (const boost::system::error_code &error, const size_t bytesTransferred) {
+
             const auto packetDataAndSize = mPacketsQueue.front();
             if (bytesTransferred != packetDataAndSize.second) {
                 if (error) {
                     errors()
                         << "OutgoingRemoteNode::beginPacketsSending: "
-                        << "Next packet can't be sent to the node (" << mRemoteContractor->getID() << "). "
+                        << "Next packet can't be sent to the node (" << mAddress->fullAddress() << "). "
                         << "Error code: " << error.value();
                 }
 
@@ -272,13 +269,13 @@ void OutgoingRemoteNodeNew::beginPacketsSending()
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
             const PacketHeader::ChannelIndex channelIndex =
-                *(new(packetDataAndSize.first + PacketHeader::kChannelIndexOffset) PacketHeader::ChannelIndex);
+                 *(new(packetDataAndSize.first + PacketHeader::kChannelIndexOffset) PacketHeader::ChannelIndex);
 
             const PacketHeader::PacketIndex packetIndex =
-                *(new(packetDataAndSize.first + PacketHeader::kPacketIndexOffset) PacketHeader::PacketIndex) + 1;
+                 *(new(packetDataAndSize.first + PacketHeader::kPacketIndexOffset) PacketHeader::PacketIndex) + 1;
 
             const PacketHeader::TotalPacketsCount totalPacketsCount =
-                *(new(packetDataAndSize.first + PacketHeader::kPacketsCountOffset) PacketHeader::TotalPacketsCount);
+                 *(new(packetDataAndSize.first + PacketHeader::kPacketsCountOffset) PacketHeader::TotalPacketsCount);
 
             this->debug()
                 << setw(4) << bytesTransferred <<  "B TX [ => ] "
@@ -299,27 +296,27 @@ void OutgoingRemoteNodeNew::beginPacketsSending()
         });
 }
 
-PacketHeader::ChannelIndex OutgoingRemoteNodeNew::nextChannelIndex()
-    noexcept
+PacketHeader::ChannelIndex OutgoingRemoteAddressNode::nextChannelIndex()
+noexcept
 {
     // Integer overflow is normal here.
     return mNextAvailableChannelIndex++;
 }
 
-LoggerStream OutgoingRemoteNodeNew::errors() const
+LoggerStream OutgoingRemoteAddressNode::errors() const
 {
     return mLog.warning(
-            string("Communicator / OutgoingRemoteNodeNew [")
-            + to_string(mRemoteContractor->getID())
-            + string("]"));
+        string("Communicator / OutgoingRemoteAddressNode [")
+        + mAddress->fullAddress()
+        + string("]"));
 }
 
-LoggerStream OutgoingRemoteNodeNew::debug() const
+LoggerStream OutgoingRemoteAddressNode::debug() const
 {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     return mLog.debug(
-        string("Communicator / OutgoingRemoteNodeNew [")
-        + to_string(mRemoteContractor->getID())
+        string("Communicator / OutgoingRemoteAddressNode [")
+        + mAddress->fullAddress()
         + string("]"));
 #endif
 

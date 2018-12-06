@@ -537,6 +537,18 @@ const bool TrustLinesManager::isContractorGateway(
     return mTrustLines.at(contractorUUID)->isContractorGateway();
 }
 
+const bool TrustLinesManager::isContractorGateway(
+    ContractorID contractorID) const
+{
+    if (not trustLineIsPresent(contractorID)) {
+        throw NotFoundError(
+            logHeader() + "::isContractorGateway: "
+                "There is no trust line to this contractor.");
+    }
+
+    return mTrustLinesNew.at(contractorID)->isContractorGateway();
+}
+
 const TrustLineAmount &TrustLinesManager::incomingTrustAmount(
     const NodeUUID &contractorUUID) const
 {
@@ -829,6 +841,27 @@ ConstSharedTrustLineAmount TrustLinesManager::outgoingTrustAmountConsideringRese
         *kAvailableAmount - *kAlreadyReservedAmount);
 }
 
+ConstSharedTrustLineAmount TrustLinesManager::outgoingTrustAmountConsideringReservations(
+    ContractorID contractorID) const
+{
+    const auto kTL = trustLineReadOnly(contractorID);
+    if (kTL->state() != TrustLine::Active) {
+        return make_shared<const TrustLineAmount>(0);
+    }
+    const auto kAvailableAmount = kTL->availableOutgoingAmount();
+
+    SharedTrustLineAmount kAlreadyReservedAmount(new TrustLineAmount(0));
+    // todo : use this code when reservationsHandler be adapted on ContractorID instead of ContractorUUID
+//    const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
+//        contractor, AmountReservation::Outgoing);
+
+    if (*kAlreadyReservedAmount >= *kAvailableAmount) {
+        return make_shared<const TrustLineAmount>(0);
+    }
+    return make_shared<const TrustLineAmount>(
+        *kAvailableAmount - *kAlreadyReservedAmount);
+}
+
 ConstSharedTrustLineAmount TrustLinesManager::incomingTrustAmountConsideringReservations(
     const NodeUUID& contractor) const
 {
@@ -839,6 +872,27 @@ ConstSharedTrustLineAmount TrustLinesManager::incomingTrustAmountConsideringRese
     const auto kAvailableAmount = kTL->availableIncomingAmount();
     const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
         contractor, AmountReservation::Incoming);
+
+    if (*kAlreadyReservedAmount >= *kAvailableAmount) {
+        return make_shared<const TrustLineAmount>(0);
+    }
+    return make_shared<const TrustLineAmount>(
+        *kAvailableAmount - *kAlreadyReservedAmount);
+}
+
+ConstSharedTrustLineAmount TrustLinesManager::incomingTrustAmountConsideringReservations(
+    ContractorID contractorID) const
+{
+    const auto kTL = trustLineReadOnly(contractorID);
+    if (kTL->state() != TrustLine::Active) {
+        return make_shared<const TrustLineAmount>(0);
+    }
+    const auto kAvailableAmount = kTL->availableIncomingAmount();
+
+    SharedTrustLineAmount kAlreadyReservedAmount(new TrustLineAmount(0));
+    // todo : use this code when reservationsHandler be adapted on ContractorID instead of ContractorUUID
+//    const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
+//        contractor, AmountReservation::Incoming);
 
     if (*kAlreadyReservedAmount >= *kAvailableAmount) {
         return make_shared<const TrustLineAmount>(0);
@@ -1138,10 +1192,10 @@ void TrustLinesManager::resetTrustLineTotalReceiptsAmounts(
     trustLine->resetTotalReceiptsAmounts();
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const
 {
-    vector<NodeUUID> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+    vector<ContractorID> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLinesNew) {
         if (nodeUUIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
         }
@@ -1156,10 +1210,10 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const
     return result;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFlow() const
+vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFlow() const
 {
-    vector<NodeUUID> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+    vector<ContractorID> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLinesNew) {
         if (nodeUUIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
         }
@@ -1177,10 +1231,10 @@ vector<NodeUUID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFlow()
     return result;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const
 {
-    vector<NodeUUID> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+    vector<ContractorID> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLinesNew) {
         if (nodeUUIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
         }
@@ -1196,10 +1250,10 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const
     return result;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNonGatewayNeighborsWithIncomingFlow() const
+vector<ContractorID> TrustLinesManager::firstLevelNonGatewayNeighborsWithIncomingFlow() const
 {
-    vector<NodeUUID> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+    vector<ContractorID> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLinesNew) {
         if (nodeUUIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
         }
@@ -1233,6 +1287,22 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFl
     return result;
 }
 
+vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlowsNew() const
+{
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLinesNew) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
+            continue;
+        }
+        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
+            nodeIDAndTrustLine.first);
+        result.emplace_back(
+            mContractorsManager->contractorAddresses(nodeIDAndTrustLine.first).at(0),
+            trustLineAmountShared);
+    }
+    return result;
+}
+
 vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlows() const
 {
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
@@ -1249,6 +1319,22 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFl
     return result;
 }
 
+vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlowsNew() const
+{
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLinesNew) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
+            continue;
+        }
+        auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
+            nodeIDAndTrustLine.first);
+        result.emplace_back(
+            mContractorsManager->contractorAddresses(nodeIDAndTrustLine.first).at(0),
+            trustLineAmountShared);
+    }
+    return result;
+}
+
 pair<NodeUUID, ConstSharedTrustLineAmount> TrustLinesManager::incomingFlow(
     const NodeUUID &contractorUUID) const
 {
@@ -1258,6 +1344,15 @@ pair<NodeUUID, ConstSharedTrustLineAmount> TrustLinesManager::incomingFlow(
             contractorUUID));
 }
 
+pair<BaseAddress::Shared, ConstSharedTrustLineAmount> TrustLinesManager::incomingFlow(
+    ContractorID contractorID) const
+{
+    return make_pair(
+        mContractorsManager->contractorAddresses(contractorID).at(0),
+        incomingTrustAmountConsideringReservations(
+            contractorID));
+}
+
 pair<NodeUUID, ConstSharedTrustLineAmount> TrustLinesManager::outgoingFlow(
     const NodeUUID &contractorUUID) const
 {
@@ -1265,6 +1360,15 @@ pair<NodeUUID, ConstSharedTrustLineAmount> TrustLinesManager::outgoingFlow(
         contractorUUID,
         outgoingTrustAmountConsideringReservations(
             contractorUUID));
+}
+
+pair<BaseAddress::Shared, ConstSharedTrustLineAmount> TrustLinesManager::outgoingFlow(
+    ContractorID contractorID) const
+{
+    return make_pair(
+        mContractorsManager->contractorAddresses(contractorID).at(0),
+        outgoingTrustAmountConsideringReservations(
+            contractorID));
 }
 
 vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlowsFromNonGateways() const
@@ -1286,6 +1390,25 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFl
     return result;
 }
 
+vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlowsFromNonGatewaysNew() const
+{
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLinesNew) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
+            continue;
+        }
+        if (nodeIDAndTrustLine.second->isContractorGateway()) {
+            continue;
+        }
+        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
+            nodeIDAndTrustLine.first);
+        result.emplace_back(
+            mContractorsManager->contractorAddresses(nodeIDAndTrustLine.first).at(0),
+            trustLineAmountShared);
+    }
+    return result;
+}
+
 vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlowsToGateways() const
 {
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
@@ -1300,6 +1423,25 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFl
             nodeUUIDAndTrustLine.first);
         result.emplace_back(
             nodeUUIDAndTrustLine.first,
+            trustLineAmountShared);
+    }
+    return result;
+}
+
+vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlowsToGatewaysNew() const
+{
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLinesNew) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
+            continue;
+        }
+        if (!nodeIDAndTrustLine.second->isContractorGateway()) {
+            continue;
+        }
+        auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
+            nodeIDAndTrustLine.first);
+        result.emplace_back(
+            mContractorsManager->contractorAddresses(nodeIDAndTrustLine.first).at(0),
             trustLineAmountShared);
     }
     return result;
@@ -1364,7 +1506,30 @@ const TrustLine::ConstShared TrustLinesManager::trustLineReadOnly(
     } else {
         throw NotFoundError(
             logHeader() + "::trustLineReadOnly: " + contractorUUID.stringUUID() +
-                    " Trust line to such an contractor does not exists.");
+                " Trust line to such an contractor does not exists.");
+    }
+}
+
+const TrustLine::ConstShared TrustLinesManager::trustLineReadOnly(
+    ContractorID contractorID) const
+{
+    if (trustLineIsPresent(contractorID)) {
+        // Since c++11, a return value is an rvalue.
+        //
+        // -> mTrustLines.at(contractorID)
+        //
+        // In this case, there will be no shared_ptr copy done due to RVO.
+        // But the copy is strongly needed here. Otherwise, moved shared_ptr would
+        // try to free the memory, that is also used by the shared_ptr in the map.
+        // As a result - map would be corrupted.
+        const auto temp = const_pointer_cast<const TrustLine>(
+            mTrustLinesNew.at(contractorID));
+        return temp;
+
+    } else {
+        throw NotFoundError(
+            logHeader() + "::trustLineReadOnly: " + to_string(contractorID) +
+                " Trust line to such an contractor does not exists.");
     }
 }
 

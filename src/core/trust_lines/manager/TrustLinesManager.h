@@ -155,6 +155,9 @@ public:
     const bool isContractorGateway(
         const NodeUUID &contractor) const;
 
+    const bool isContractorGateway(
+        ContractorID contractorID) const;
+
     void setIsOwnKeysPresent(
         const NodeUUID &contractorUUID,
         bool isOwnKeysPresent);
@@ -326,6 +329,9 @@ public:
     ConstSharedTrustLineAmount outgoingTrustAmountConsideringReservations(
         const NodeUUID &contractor) const;
 
+    ConstSharedTrustLineAmount outgoingTrustAmountConsideringReservations(
+        ContractorID contractorID) const;
+
     /**
      * @returns incoming trust amount with total reserved amount EXCLUDED.
      *
@@ -333,6 +339,9 @@ public:
      */
     ConstSharedTrustLineAmount incomingTrustAmountConsideringReservations(
         const NodeUUID &contractor) const;
+
+    ConstSharedTrustLineAmount incomingTrustAmountConsideringReservations(
+        ContractorID contractorID) const;
 
     //ToDo: comment this method
     // available outgoing amount considering reservations for cycles
@@ -408,13 +417,13 @@ public:
     void resetTrustLineTotalReceiptsAmounts(
         ContractorID contractorID);
 
-    vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;
+    vector<ContractorID> firstLevelNeighborsWithOutgoingFlow() const;
 
-    vector<NodeUUID> firstLevelGatewayNeighborsWithOutgoingFlow() const;
+    vector<ContractorID> firstLevelGatewayNeighborsWithOutgoingFlow() const;
 
-    vector<NodeUUID> firstLevelNeighborsWithIncomingFlow() const;
+    vector<ContractorID> firstLevelNeighborsWithIncomingFlow() const;
 
-    vector<NodeUUID> firstLevelNonGatewayNeighborsWithIncomingFlow() const;
+    vector<ContractorID> firstLevelNonGatewayNeighborsWithIncomingFlow() const;
 
     vector<NodeUUID> firstLevelNeighborsWithPositiveBalance() const;
 
@@ -424,17 +433,31 @@ public:
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
 
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsNew() const;
+
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
+
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsNew() const;
 
     pair<NodeUUID, ConstSharedTrustLineAmount> incomingFlow(
         const NodeUUID &contractorUUID) const;
 
+    pair<BaseAddress::Shared, ConstSharedTrustLineAmount> incomingFlow(
+        ContractorID contractorID) const;
+
     pair<NodeUUID, ConstSharedTrustLineAmount> outgoingFlow(
         const NodeUUID &contractorUUID) const;
 
+    pair<BaseAddress::Shared, ConstSharedTrustLineAmount> outgoingFlow(
+        ContractorID contractorID) const;
+
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlowsFromNonGateways() const;
 
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsFromNonGatewaysNew() const;
+
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlowsToGateways() const;
+
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsToGatewaysNew() const;
 
     vector<NodeUUID> gateways() const;
 
@@ -445,6 +468,9 @@ public:
 
     const TrustLine::ConstShared trustLineReadOnly(
         const NodeUUID &contractorUUID) const;
+
+    const TrustLine::ConstShared trustLineReadOnly(
+        ContractorID contractorID) const;
 
     unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>>& trustLines();
 

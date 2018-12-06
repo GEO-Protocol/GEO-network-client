@@ -3,6 +3,7 @@
 
 
 #include "../BaseUserCommand.h"
+#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/exceptions/ValueError.h"
 
 class InitiateMaxFlowCalculationCommand : public BaseUserCommand {
@@ -19,6 +20,8 @@ public:
 
     const vector<NodeUUID> &contractors() const;
 
+    const vector<BaseAddress::Shared> &contractorAddresses() const;
+
     const SerializedEquivalent equivalent() const;
 
     CommandResult::SharedConst responseOk(
@@ -27,6 +30,7 @@ public:
 private:
     size_t mContractorsCount;
     vector<NodeUUID> mContractors;
+    vector<BaseAddress::Shared> mContractorAddresses;
     SerializedEquivalent mEquivalent;
 };
 

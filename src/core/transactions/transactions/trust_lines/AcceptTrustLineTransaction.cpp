@@ -75,7 +75,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
                 mNodeUUID,
                 mOwnIdOnContractorSide,
                 mTransactionUUID,
-                mOwnIdOnContractorSide,
+                mContractorID,
                 mIAmGateway,
                 ConfirmationMessage::OK);
             return resultDone();
@@ -154,7 +154,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         mNodeUUID,
         mOwnIdOnContractorSide,
         mTransactionUUID,
-        mOwnIdOnContractorSide,
+        mContractorID,
         mIAmGateway,
         ConfirmationMessage::OK);
     info() << "Confirmation was sent";

@@ -3,12 +3,13 @@
 
 #include "../../common/NodeUUID.h"
 #include "TopologyCache.h"
+#include "TopologyCacheNew.h"
+#include "../../contractors/addresses/BaseAddress.h"
 #include "../../common/time/TimeUtils.h"
 #include "../../logger/Logger.h"
 
 #include <map>
 #include <unordered_map>
-#include <boost/functional/hash.hpp>
 
 class TopologyCacheManager {
 
@@ -18,11 +19,18 @@ public:
         Logger &logger);
 
     void addCache(
-        const NodeUUID &keyUUID,
+        BaseAddress::Shared keyAddress,
         TopologyCache::Shared cache);
 
-    TopologyCache::Shared cacheByNode(
-        const NodeUUID &nodeUUID) const;
+    void addCacheNew(
+        BaseAddress::Shared keyAddress,
+        TopologyCacheNew::Shared cache);
+
+    TopologyCache::Shared cacheByAddress(
+        BaseAddress::Shared nodeAddress) const;
+
+    TopologyCacheNew::Shared cacheByAddressNew(
+        BaseAddress::Shared nodeAddress) const;
 
     void updateCaches();
 
@@ -35,7 +43,7 @@ public:
     void resetInitiatorCache();
 
     void removeCache(
-        const NodeUUID &nodeUUID);
+        BaseAddress::Shared nodeAddress);
 
 private:
     static const byte kResetSenderCacheHours = 0;
@@ -70,8 +78,12 @@ private:
     const string logHeader() const;
 
 private:
-    unordered_map<NodeUUID, TopologyCache::Shared, boost::hash<boost::uuids::uuid>> mCaches;
-    map<DateTime, NodeUUID*> msCache;
+    unordered_map<string, TopologyCache::Shared> mCaches;
+    map<DateTime, BaseAddress::Shared> msCache;
+
+    unordered_map<string, TopologyCacheNew::Shared> mCachesNew;
+    map<DateTime, BaseAddress::Shared> msCacheNew;
+
     pair<bool, DateTime> mInitiatorCache;
     SerializedEquivalent mEquivalent;
     Logger &mLog;

@@ -140,6 +140,37 @@ vector<BaseAddress::Shared> ContractorsManager::ownAddresses() const
     return result;
 }
 
+vector<BaseAddress::Shared> ContractorsManager::contractorAddresses(
+    ContractorID contractorID) const
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+    return mContractors.at(contractorID)->addresses();
+}
+
+BaseAddress::Shared ContractorsManager::contractorMainAddress(
+    ContractorID contractorID) const
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+    return mContractors.at(contractorID)->mainAddress();
+}
+
+ContractorID ContractorsManager::contractorIDByAddress(
+    BaseAddress::Shared address) const
+{
+    for (const auto &contractor : mContractors) {
+        for (const auto &contractorAddress : contractor.second->addresses()) {
+            if (contractorAddress == address) {
+                return contractor.first;
+            }
+        }
+    }
+    return kNotFoundContractorID;
+}
+
 const string ContractorsManager::logHeader() const
     noexcept
 {

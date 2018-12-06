@@ -37,6 +37,7 @@ public:
 
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
     typedef signals::signal<void(Message::Shared, const ContractorID)> SendMessageNewSignal;
+    typedef signals::signal<void(Message::Shared, BaseAddress::Shared)> SendMessageToAddressSignal;
     typedef signals::signal<void(
             TransactionMessage::Shared,
             ContractorID,
@@ -228,6 +229,17 @@ protected:
             addressee);
     }
 
+    template <typename MessageType, typename... Args>
+    inline void sendMessage(
+        BaseAddress::Shared addressee,
+        Args&&... args) const
+    {
+        const auto message = make_shared<MessageType>(args...);
+        outgoingMessageToAddressReadySignal(
+            message,
+            addressee);
+    }
+
     inline void sendMessage(
         const NodeUUID &addressee,
         const Message::Shared message) const
@@ -316,6 +328,7 @@ protected:
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
     mutable SendMessageNewSignal outgoingMessageIsReadyNewSignal;
+    mutable SendMessageToAddressSignal outgoingMessageToAddressReadySignal;
     mutable SendMessageWithCachingSignal sendMessageWithCachingSignal;
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
     mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;

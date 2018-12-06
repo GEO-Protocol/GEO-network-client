@@ -91,7 +91,7 @@ private:
 
     void onClearTopologyCacheSlot(
         const SerializedEquivalent equivalent,
-        const NodeUUID &nodeUUID);
+        BaseAddress::Shared nodeAddress);
 
     void onMessageReceivedSlot(
         Message::Shared message);
@@ -103,6 +103,10 @@ private:
     void onMessageSendNewSlot(
         Message::Shared message,
         const ContractorID contractorID);
+
+    void onMessageSendToAddressSlot(
+        Message::Shared message,
+        BaseAddress::Shared address);
 
     void onMessageSendWithCachingSlot(
         TransactionMessage::Shared message,

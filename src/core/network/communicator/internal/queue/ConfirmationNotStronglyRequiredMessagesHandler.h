@@ -3,6 +3,7 @@
 
 #include "../../internal/common/Types.h"
 #include "ConfirmationNotStronglyRequiredMessagesQueue.h"
+#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/exceptions/RuntimeError.h"
 #include "../../../../logger/LoggerMixin.hpp"
 
@@ -25,9 +26,9 @@ public:
      *
      * This signal would be emitted for each message in the queue.
      */
-    signals::signal<void(pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared>)> signalOutgoingMessageReady;
+    signals::signal<void(BaseAddress::Shared, MaxFlowCalculationConfirmationMessage::Shared)> signalOutgoingMessageReady;
 
-    signals::signal<void(const SerializedEquivalent, const NodeUUID&)> signalClearTopologyCache;
+    signals::signal<void(const SerializedEquivalent, BaseAddress::Shared)> signalClearTopologyCache;
 
 public:
     ConfirmationNotStronglyRequiredMessagesHandler(
@@ -42,18 +43,16 @@ public:
      *
      * (This method might be expended with other messages types).
      *
-     * @param contractorUUID - remote node UUID.
+     * @param contractorAddress - remote node Address.
      * @param message - message that must be confirmed by the remote node.
      */
     void tryEnqueueMessage(
-        const NodeUUID &contractorUUID,
+        BaseAddress::Shared contractorAddress,
         const Message::Shared message);
 
     /**
      * Tries to find corresponding postponed message to the received confirmation message.
      * In case of success - postponed message would be removed from the queue, as confirmed.
-     *
-     * @param contractorUUID - UUID of the remote node, that sent confirmation.
      */
     void tryProcessConfirmation(
         const MaxFlowCalculationConfirmationMessage::Shared confirmationMessage);
@@ -89,7 +88,7 @@ protected:
      * Current GCC realisation of the "map" and "unordered_map"
      * makes simple "map" faster up to several thousand of items.
      */
-    map<pair<SerializedEquivalent, NodeUUID>, ConfirmationNotStronglyRequiredMessagesQueue::Shared> mQueues;
+    map<pair<SerializedEquivalent, string>, ConfirmationNotStronglyRequiredMessagesQueue::Shared> mQueues;
 
     IOService &mIOService;
 

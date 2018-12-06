@@ -136,6 +136,7 @@ class TransactionsManager {
 public:
     signals::signal<void(Message::Shared, const NodeUUID&)> transactionOutgoingMessageReadySignal;
     signals::signal<void(Message::Shared, const ContractorID)> transactionOutgoingMessageReadyNewSignal;
+    signals::signal<void(Message::Shared, BaseAddress::Shared)> transactionOutgoingMessageToAddressReadySignal;
     signals::signal<void(
             TransactionMessage::Shared,
             ContractorID,
@@ -385,6 +386,9 @@ protected:
     void subscribeForOutgoingNewMessages(
         BaseTransaction::SendMessageNewSignal &signal);
 
+    void subscribeForOutgoingMessagesToAddress(
+        BaseTransaction::SendMessageToAddressSignal &signal);
+
     void subscribeForOutgoingMessagesWithCaching(
         BaseTransaction::SendMessageWithCachingSignal &signal);
 
@@ -441,6 +445,10 @@ protected:
     void onTransactionOutgoingNewMessageReady(
         Message::Shared message,
         const ContractorID contractorID);
+
+    void onTransactionOutgoingMessageToAddressReady(
+        Message::Shared message,
+        BaseAddress::Shared address);
 
     void onTransactionOutgoingMessageWithCachingReady(
         TransactionMessage::Shared message,

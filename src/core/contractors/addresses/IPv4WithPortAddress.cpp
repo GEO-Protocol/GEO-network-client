@@ -67,19 +67,19 @@ IPv4WithPortAddress::IPv4WithPortAddress(
         sizeof(Port));
 }
 
-string IPv4WithPortAddress::host() const
+const string IPv4WithPortAddress::host() const
 {
     stringstream ss;
     ss << (int)mAddress[0] << "." << (int)mAddress[1] << "." << (int)mAddress[2] << "." << (int)mAddress[3];
     return ss.str();
 }
 
-uint16_t IPv4WithPortAddress::port() const
+const uint16_t IPv4WithPortAddress::port() const
 {
     return mPort;
 }
 
-string IPv4WithPortAddress::fullAddress() const
+const string IPv4WithPortAddress::fullAddress() const
 {
     stringstream ss;
     ss << (int)mAddress[0] << "." << (int)mAddress[1] << "." << (int)mAddress[2] << "."

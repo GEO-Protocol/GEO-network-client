@@ -3,6 +3,7 @@
 
 #include "OutgoingRemoteNode.h"
 #include "OutgoingRemoteNodeNew.h"
+#include "OutgoingRemoteAddressNode.h"
 #include "../../../../contractors/ContractorsManager.h"
 
 #include <boost/unordered/unordered_map.hpp>
@@ -29,6 +30,10 @@ public:
         const ContractorID contractorID)
         noexcept;
 
+    OutgoingRemoteAddressNode* handler(
+        const BaseAddress::Shared address)
+        noexcept;
+
 protected:
     static chrono::seconds kHandlersTTL()
         noexcept;
@@ -40,6 +45,12 @@ protected:
     void removeOutdatedHandlers()
         noexcept;
 
+    void removeOutdatedHandlersNew()
+        noexcept;
+
+    void removeOutdatedAddressHandlers()
+        noexcept;
+
     static string logHeader()
         noexcept;
 
@@ -49,7 +60,11 @@ protected:
 protected:
     boost::unordered_map<NodeUUID, OutgoingRemoteNode::Unique> mNodes;
     boost::unordered_map<ContractorID, OutgoingRemoteNodeNew::Unique> mNodesNew;
+    boost::unordered_map<string, OutgoingRemoteAddressNode::Unique> mAddressNodes;
     boost::unordered_map<NodeUUID, DateTime> mLastAccessDateTimes;
+    boost::unordered_map<ContractorID, DateTime> mLastAccessDateTimesNew;
+    boost::unordered_map<string, DateTime> mLastAccessDateTimesAddress;
+
     boost::asio::steady_timer mCleaningTimer;
 
     IOService &mIOService;

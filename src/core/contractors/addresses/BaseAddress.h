@@ -33,9 +33,19 @@ public:
 
     virtual const AddressType typeID() const = 0;
 
+    virtual const string host() const = 0;
+
+    virtual const uint16_t port() const = 0;
+
+    virtual const string fullAddress() const = 0;
+
     virtual BytesShared serializeToBytes() const = 0;
 
     virtual size_t serializedSize() const = 0;
+
+    friend bool operator== (
+        BaseAddress::Shared address1,
+        BaseAddress::Shared address2);
 };
 
 

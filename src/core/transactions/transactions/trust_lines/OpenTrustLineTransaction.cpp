@@ -270,6 +270,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
             ioTransaction,
             mContractorID,
             message->contractorID());
+        info() << "Our id on contractor side " << message->contractorID();
         mTrustLines->setTrustLineState(
             mContractorID,
             TrustLine::Active,

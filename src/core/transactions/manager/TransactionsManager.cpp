@@ -762,6 +762,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
             make_shared<InitiateMaxFlowCalculationTransaction>(
                 mNodeUUID,
                 command,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyTrustLineManager(command->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyCacheManager(command->equivalent()),
@@ -798,6 +799,7 @@ void TransactionsManager::launchMaxFlowCalculationFullyTransaction(
             make_shared<MaxFlowCalculationFullyTransaction>(
                 mNodeUUID,
                 command,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyTrustLineManager(command->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyCacheManager(command->equivalent()),
@@ -834,6 +836,7 @@ void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
             make_shared<ReceiveMaxFlowCalculationOnTargetTransaction>(
                 mNodeUUID,
                 message,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mLog),
@@ -912,6 +915,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
             make_shared<MaxFlowCalculationSourceFstLevelTransaction>(
                 mNodeUUID,
                 message,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog,
                 mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent())),
@@ -938,6 +942,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
             make_shared<MaxFlowCalculationTargetFstLevelTransaction>(
                 mNodeUUID,
                 message,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog,
                 mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent())),
@@ -964,6 +969,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
             make_shared<MaxFlowCalculationSourceSndLevelTransaction>(
                 mNodeUUID,
                 message,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mLog,
@@ -991,6 +997,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
             make_shared<MaxFlowCalculationTargetSndLevelTransaction>(
                 mNodeUUID,
                 message,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mLog,
@@ -1845,6 +1852,7 @@ void TransactionsManager::launchFindPathByMaxFlowTransaction(
                 destinationNodeUUID,
                 requestedTransactionUUID,
                 equivalent,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->pathsManager(equivalent),
                 mResourcesManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
@@ -1927,6 +1935,17 @@ void TransactionsManager::subscribeForOutgoingNewMessages(
     signal.connect(
         boost::bind(
             &TransactionsManager::onTransactionOutgoingNewMessageReady,
+            this,
+            _1,
+            _2));
+}
+
+void TransactionsManager::subscribeForOutgoingMessagesToAddress(
+    BaseTransaction::SendMessageToAddressSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onTransactionOutgoingMessageToAddressReady,
             this,
             _1,
             _2));
@@ -2109,6 +2128,15 @@ void TransactionsManager::onTransactionOutgoingNewMessageReady(
         contractorID);
 }
 
+void TransactionsManager::onTransactionOutgoingMessageToAddressReady(
+    Message::Shared message,
+    BaseAddress::Shared address)
+{
+    transactionOutgoingMessageToAddressReadySignal(
+        message,
+        address);
+}
+
 void TransactionsManager::onTransactionOutgoingMessageWithCachingReady(
     TransactionMessage::Shared message,
     ContractorID contractorID,
@@ -2165,6 +2193,12 @@ void TransactionsManager::onSubsidiaryTransactionReady(
 
     subscribeForOutgoingMessages(
         transaction->outgoingMessageIsReadySignal);
+    subscribeForOutgoingNewMessages(
+        transaction->outgoingMessageIsReadyNewSignal);
+    subscribeForOutgoingMessagesToAddress(
+        transaction->outgoingMessageToAddressReadySignal);
+    subscribeForOutgoingMessagesWithCaching(
+        transaction->sendMessageWithCachingSignal);
 
     subscribeForProcessingConfirmationMessage(
         transaction->processConfirmationMessageSignal);
@@ -2293,9 +2327,10 @@ void TransactionsManager::onPublicKeysSharingSlot(
 
         subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
-
         subscribeForOutgoingNewMessages(
             transaction->outgoingMessageIsReadyNewSignal);
+        subscribeForOutgoingMessagesWithCaching(
+            transaction->sendMessageWithCachingSignal);
 
         subscribeForProcessingConfirmationMessage(
             transaction->processConfirmationMessageSignal);
@@ -2426,6 +2461,8 @@ void TransactionsManager::prepareAndSchedule(
             transaction->outgoingMessageIsReadySignal);
         subscribeForOutgoingNewMessages(
             transaction->outgoingMessageIsReadyNewSignal);
+        subscribeForOutgoingMessagesToAddress(
+            transaction->outgoingMessageToAddressReadySignal);
         subscribeForOutgoingMessagesWithCaching(
             transaction->sendMessageWithCachingSignal);
     }

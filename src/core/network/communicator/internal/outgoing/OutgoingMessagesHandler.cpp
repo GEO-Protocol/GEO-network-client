@@ -49,3 +49,19 @@ void OutgoingMessagesHandler::sendMessage(
             << "Message type: " << message->typeID();
     }
 }
+
+void OutgoingMessagesHandler::sendMessage(
+    const Message::Shared message,
+    const BaseAddress::Shared address)
+{
+    try {
+        auto node = mNodes.handler(address);
+        node->sendMessage(message);
+
+    } catch (exception &e) {
+        mLog.error("OutgoingMessagesHandler::sendMessage")
+                << "Attempt to send message to the node (" << address->fullAddress() << ") failed with exception. "
+                << "Details are: " << e.what() << ". "
+                << "Message type: " << message->typeID();
+    }
+}

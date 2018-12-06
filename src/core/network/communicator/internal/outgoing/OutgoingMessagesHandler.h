@@ -24,6 +24,10 @@ public:
         const Message::Shared message,
         const ContractorID addressee);
 
+    void sendMessage(
+        const Message::Shared message,
+        const BaseAddress::Shared address);
+
 protected:
     Logger &mLog;
     OutgoingNodesHandler mNodes;

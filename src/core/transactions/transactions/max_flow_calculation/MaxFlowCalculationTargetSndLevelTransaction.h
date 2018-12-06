@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTARGETSNDLEVELTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
+#include "../../../contractors/ContractorsManager.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetSndLevelMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
@@ -17,6 +18,7 @@ public:
     MaxFlowCalculationTargetSndLevelTransaction(
         const NodeUUID &nodeUUID,
         MaxFlowCalculationTargetSndLevelMessage::Shared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         TopologyCacheManager *topologyCacheManager,
         Logger &logger,
@@ -31,15 +33,18 @@ private:
     void sendResultToInitiator();
 
     void sendCachedResultToInitiator(
-        TopologyCache::Shared maxFlowCalculationCachePtr);
+        TopologyCache::Shared maxFlowCalculationCachePtr,
+        TopologyCacheNew::Shared maxFlowCalculationCachePtrNew);
 
     void sendGatewayResultToInitiator();
 
     void sendCachedGatewayResultToInitiator(
-        TopologyCache::Shared maxFlowCalculationCachePtr);
+        TopologyCache::Shared maxFlowCalculationCachePtr,
+        TopologyCacheNew::Shared maxFlowCalculationCachePtrNew);
 
 private:
     MaxFlowCalculationTargetSndLevelMessage::Shared mMessage;
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     TopologyCacheManager *mTopologyCacheManager;
     bool mIAmGateway;

@@ -21,6 +21,7 @@ public:
         const TransactionType type,
         const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
@@ -32,6 +33,7 @@ public:
         const TransactionUUID &transactionUUID,
         const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
@@ -60,11 +62,13 @@ protected:
     const uint16_t kFinalStep = 10;
 
 protected:
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     TopologyTrustLinesManager *mTopologyTrustLineManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
     set<NodeUUID> mGateways;
+    set<ContractorID> mGatewaysNew;
 };
 
 

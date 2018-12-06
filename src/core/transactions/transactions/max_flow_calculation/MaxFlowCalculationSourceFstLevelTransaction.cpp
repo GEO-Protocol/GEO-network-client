@@ -3,6 +3,7 @@
 MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTransaction(
     const NodeUUID &nodeUUID,
     MaxFlowCalculationSourceFstLevelMessage::Shared message,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
     Logger &logger,
     bool iAmGateway) :
@@ -13,6 +14,7 @@ MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTra
         message->equivalent(),
         logger),
     mMessage(message),
+    mContractorsManager (contractorsManager),
     mTrustLinesManager(trustLinesManager),
     mIAmGateway(iAmGateway)
 {}
@@ -26,33 +28,42 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
     info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 #endif
-    vector<NodeUUID> outgoingFlowUuids;
+    vector<ContractorID> outgoingFlowIDs;
     if (mIAmGateway) {
         vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
         vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows;
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsNew;
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsNew;
         // inform that I am is gateway
+        // todo : it is not required inform about gateway, because this info initiator can obtain on it side
+        auto contractorsAddresses = mContractorsManager->contractorAddresses(mMessage->idOnReceiverSide);
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
-            mMessage->senderUUID,
+            contractorsAddresses.at(0),
             mEquivalent,
             mNodeUUID,
+            mContractorsManager->ownAddresses(),
             outgoingFlows,
-            incomingFlows);
-        outgoingFlowUuids = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow();
+            incomingFlows,
+            outgoingFlowsNew,
+            incomingFlowsNew);
+        outgoingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow();
     } else {
-        outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
+        outgoingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
     }
-    for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
-        if (nodeUUIDOutgoingFlow == mMessage->senderUUID) {
+    for (auto const &nodeIDWithOutgoingFlow : outgoingFlowIDs) {
+        if (nodeIDWithOutgoingFlow == mMessage->idOnReceiverSide) {
             continue;
         }
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-        info() << "sendFirst\t" << nodeUUIDOutgoingFlow;
+        info() << "sendFirst\t" << nodeIDWithOutgoingFlow;
 #endif
         sendMessage<MaxFlowCalculationSourceSndLevelMessage>(
-            nodeUUIDOutgoingFlow,
+            nodeIDWithOutgoingFlow,
             mEquivalent,
             mNodeUUID,
-            mMessage->senderUUID);
+            mContractorsManager->idOnContractorSide(nodeIDWithOutgoingFlow),
+            mMessage->senderUUID,
+            mContractorsManager->contractorAddresses(mMessage->idOnReceiverSide));
     }
     return resultDone();
 }

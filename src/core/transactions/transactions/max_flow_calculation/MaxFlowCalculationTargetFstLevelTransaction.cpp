@@ -3,6 +3,7 @@
 MaxFlowCalculationTargetFstLevelTransaction::MaxFlowCalculationTargetFstLevelTransaction(
     const NodeUUID &nodeUUID,
     MaxFlowCalculationTargetFstLevelMessage::Shared message,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     Logger &logger,
     bool iAmGateway) :
@@ -13,6 +14,7 @@ MaxFlowCalculationTargetFstLevelTransaction::MaxFlowCalculationTargetFstLevelTra
         message->equivalent(),
         logger),
     mMessage(message),
+    mContractorsManager (contractorsManager),
     mTrustLinesManager(manager),
     mIAmGateway(iAmGateway)
 {}
@@ -27,33 +29,42 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
     info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 #endif
-    vector<NodeUUID> incomingFlowUuids;
+    vector<ContractorID> incomingFlowIDs;
     if (mIAmGateway) {
         vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
         vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows;
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsNew;
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsNew;
         // inform that I am is gateway
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
-            mMessage->targetUUID(),
+            mMessage->targetAddresses().at(0),
             mEquivalent,
             mNodeUUID,
+            mContractorsManager->ownAddresses(),
             outgoingFlows,
-            incomingFlows);
-        incomingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
+            incomingFlows,
+            outgoingFlowsNew,
+            incomingFlowsNew);
+        incomingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
     } else {
-        incomingFlowUuids = mTrustLinesManager->firstLevelNonGatewayNeighborsWithIncomingFlow();
+        incomingFlowIDs = mTrustLinesManager->firstLevelNonGatewayNeighborsWithIncomingFlow();
     }
-    for (auto const &nodeUUIDIncomingFlow : incomingFlowUuids) {
-        if (nodeUUIDIncomingFlow == mMessage->senderUUID || nodeUUIDIncomingFlow == mMessage->targetUUID()) {
+    auto targetContractorID = mContractorsManager->contractorIDByAddress(mMessage->targetAddresses().at(0));
+    for (auto const &nodeIDWithIncomingFlow : incomingFlowIDs) {
+        if (nodeIDWithIncomingFlow == mMessage->idOnReceiverSide ||
+                nodeIDWithIncomingFlow == targetContractorID) {
             continue;
         }
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-        info() << "sendFirst\t" << nodeUUIDIncomingFlow;
+        info() << "sendFirst\t" << nodeIDWithIncomingFlow;
 #endif
         sendMessage<MaxFlowCalculationTargetSndLevelMessage>(
-            nodeUUIDIncomingFlow,
+            nodeIDWithIncomingFlow,
             mEquivalent,
             mNodeUUID,
-            mMessage->targetUUID());
+            mContractorsManager->idOnContractorSide(nodeIDWithIncomingFlow),
+            mMessage->targetUUID(),
+            mMessage->targetAddresses());
     }
     return resultDone();
 }

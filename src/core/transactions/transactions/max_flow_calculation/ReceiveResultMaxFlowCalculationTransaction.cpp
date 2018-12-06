@@ -46,9 +46,11 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
     info() << "receivedTrustLinesOut: " << mMessage->outgoingFlows().size();
 #endif
 
+    auto senderID = mTopologyTrustLineManager->getID(mMessage->senderAddresses.at(0));
     if (mSenderIsGateway) {
         mTopologyTrustLineManager->addGateway(
             mMessage->senderUUID);
+        mTopologyTrustLineManager->addGatewayNew(senderID);
     }
 
     for (auto const &outgoingFlow : mMessage->outgoingFlows()) {
@@ -72,6 +74,33 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
             make_shared<TopologyTrustLine>(
                 incomingFlow.first,
                 mMessage->senderUUID,
+                incomingFlow.second));
+    }
+    ////////////////////////////////////////////////////////
+    info() << "receivedTrustLinesOutNew: " << mMessage->outgoingFlowsNew().size();
+    for (auto const &outgoingFlow : mMessage->outgoingFlowsNew()) {
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+        info() << "\t" << outgoingFlow.first->fullAddress() << " " << *outgoingFlow.second.get();
+#endif
+        auto targetID = mTopologyTrustLineManager->getID(outgoingFlow.first);
+        mTopologyTrustLineManager->addTrustLineNew(
+            make_shared<TopologyTrustLineNew>(
+                senderID,
+                targetID,
+                outgoingFlow.second));
+    }
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+    info() << "receivedTrustLinesInNew: " << mMessage->incomingFlowsNew().size();
+#endif
+    for (auto const &incomingFlow : mMessage->incomingFlowsNew()) {
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+        info() << "\t" << incomingFlow.first->fullAddress() << " " << *incomingFlow.second.get();
+#endif
+        auto sourceID = mTopologyTrustLineManager->getID(incomingFlow.first);
+        mTopologyTrustLineManager->addTrustLineNew(
+            make_shared<TopologyTrustLineNew>(
+                sourceID,
+                senderID,
                 incomingFlow.second));
     }
     return resultDone();

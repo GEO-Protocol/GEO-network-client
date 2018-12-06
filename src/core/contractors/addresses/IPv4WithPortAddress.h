@@ -23,11 +23,11 @@ public:
     IPv4WithPortAddress(
         byte* buffer);
 
-    string host() const;
+    const string host() const override;
 
-    Port port() const;
+    const Port port() const override;
 
-    string fullAddress() const;
+    const string fullAddress() const override;
 
     const AddressType typeID() const override;
 

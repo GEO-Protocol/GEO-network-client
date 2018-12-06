@@ -16,8 +16,7 @@ public:
 
 public:
     ConfirmationNotStronglyRequiredMessagesQueue(
-        const SerializedEquivalent equivalent,
-        const NodeUUID &contractorUUID)
+        const SerializedEquivalent equivalent)
         noexcept;
 
     /**
@@ -83,7 +82,6 @@ protected:
     // On each sending attempt this timeout must be increased by the mNextTimeoutSeconds.
     DateTime mNextSendingAttemptDateTime;
 
-    NodeUUID mContractorUUID;
     SerializedEquivalent mEquivalent;
 
     uint8_t mCountResendingAttempts;

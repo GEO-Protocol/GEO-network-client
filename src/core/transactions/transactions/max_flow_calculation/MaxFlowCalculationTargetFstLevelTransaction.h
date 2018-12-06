@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTARGETFSTLEVELTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
+#include "../../../contractors/ContractorsManager.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetFstLevelMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetSndLevelMessage.h"
@@ -16,6 +17,7 @@ public:
     MaxFlowCalculationTargetFstLevelTransaction(
         const NodeUUID &nodeUUID,
         MaxFlowCalculationTargetFstLevelMessage::Shared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         Logger &logger,
         bool iAmGateway);
@@ -27,6 +29,7 @@ protected:
 
 private:
     MaxFlowCalculationTargetFstLevelMessage::Shared mMessage;
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     bool mIAmGateway;
 };

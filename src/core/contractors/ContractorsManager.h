@@ -43,6 +43,16 @@ public:
 
     vector<BaseAddress::Shared> ownAddresses() const;
 
+    vector<BaseAddress::Shared> contractorAddresses(
+        ContractorID contractorID) const;
+
+    BaseAddress::Shared contractorMainAddress(
+        ContractorID contractorID) const;
+
+    // returns id of contractor if address will be founded and kNotFoundContractorID otherwise
+    ContractorID contractorIDByAddress(
+        BaseAddress::Shared address) const;
+
 protected:
     const ContractorID nextFreeID(
         IOTransaction::Shared ioTransaction) const;
@@ -56,6 +66,9 @@ protected: // log shortcuts
 
     LoggerStream warning() const
     noexcept;
+
+public:
+    static const ContractorID kNotFoundContractorID = std::numeric_limits<ContractorID>::max();
 
 private:
     map<ContractorID, Contractor::Shared> mContractors;

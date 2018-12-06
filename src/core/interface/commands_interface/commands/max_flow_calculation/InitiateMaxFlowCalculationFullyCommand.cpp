@@ -8,7 +8,7 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
         uuid,
         identifier())
 {
-    const auto minCommandLength = NodeUUID::kHexSize + 2;
+    const auto minCommandLength = 3;
     if (command.size() < minCommandLength) {
         throw ValueError(
                 "InitiateMaxFlowCalculationFullyCommand: can't parse command. "
@@ -45,7 +45,28 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
         }
     }
 
-    size_t equivalentStartPoint = contractorStartPoint;
+    mContractorAddresses.reserve(mContractorsCount);
+    size_t contractorAddressStartPoint = contractorStartPoint;
+    for (size_t idx = 0; idx < mContractorsCount; idx++) {
+        try {
+            tokenSeparatorPos = command.find(
+                kTokensSeparator,
+                contractorAddressStartPoint);
+            string addressStr = command.substr(
+                contractorAddressStartPoint,
+                tokenSeparatorPos - contractorAddressStartPoint);
+            mContractorAddresses.push_back(
+                make_shared<IPv4WithPortAddress>(
+                    addressStr));
+            contractorAddressStartPoint = tokenSeparatorPos + 1;
+        } catch (...) {
+            throw ValueError(
+                    "InitiateMaxFlowCalculationFullyCommand: can't parse command. "
+                        "Error occurred while parsing 'Contractor Address' token.");
+        }
+    }
+
+    size_t equivalentStartPoint = contractorAddressStartPoint;
     string equivalentStr = command.substr(
         equivalentStartPoint,
         command.size() - equivalentStartPoint - 1);
@@ -67,6 +88,11 @@ const string &InitiateMaxFlowCalculationFullyCommand::identifier()
 const vector<NodeUUID>& InitiateMaxFlowCalculationFullyCommand::contractors() const
 {
     return mContractors;
+}
+
+const vector<BaseAddress::Shared>& InitiateMaxFlowCalculationFullyCommand::contractorAddresses() const
+{
+    return mContractorAddresses;
 }
 
 const SerializedEquivalent InitiateMaxFlowCalculationFullyCommand::equivalent() const

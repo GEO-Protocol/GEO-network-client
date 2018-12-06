@@ -63,3 +63,8 @@ vector<BaseAddress::Shared> Contractor::addresses() const
     result.push_back(mIPv4);
     return result;
 }
+
+BaseAddress::Shared Contractor::mainAddress() const
+{
+    return mIPv4;
+}
