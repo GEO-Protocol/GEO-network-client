@@ -57,6 +57,14 @@ void TransactionsScheduler::postponeTransaction(
     BaseTransaction::Shared transaction,
     uint32_t millisecondsDelay)
 {
+    for (const auto &transactionAndState : *mTransactions){
+        if (transaction->currentTransactionUUID() == transactionAndState.first->currentTransactionUUID()) {
+            warning() << "scheduleTransaction: Duplicate TransactionUUID. Already exists. "
+                      << "Current TA type: " << transaction->transactionType()
+                      << ". Conflicted TA type:" << transactionAndState.first->transactionType();
+            throw ConflictError("Duplicate Transaction UUID");
+        }
+    }
     (*mTransactions)[transaction] = TransactionState::awakeAfterMilliseconds(millisecondsDelay);
 
     adjustAwakeningToNextTransaction();
@@ -106,7 +114,7 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
     throw NotFoundError(
         "TransactionsScheduler::tryAttachMessageToTransaction: " +
             transactionMessage->transactionUUID().stringUUID() +
-            " invalid/unexpected message/response received " +
+            " there is no requested transaction for message " +
             to_string(message->typeID()));
 }
 

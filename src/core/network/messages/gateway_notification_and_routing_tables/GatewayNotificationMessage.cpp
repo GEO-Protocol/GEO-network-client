@@ -2,12 +2,14 @@
 
 GatewayNotificationMessage::GatewayNotificationMessage(
     const NodeUUID& senderUUID,
+    ContractorID idOnReceiverSide,
     const TransactionUUID& transactionUUID,
     const vector<SerializedEquivalent> gatewayEquivalents) :
 
     TransactionMessage(
         0,
         senderUUID,
+        idOnReceiverSide,
         transactionUUID),
     mGatewayEquivalents(gatewayEquivalents)
 {}

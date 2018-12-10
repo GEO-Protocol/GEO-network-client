@@ -54,8 +54,8 @@ public:
     typedef shared_ptr<BasePaymentTransaction> Shared;
 
 public:
-    typedef signals::signal<void(set<NodeUUID>&, const SerializedEquivalent)> BuildCycleThreeNodesSignal;
-    typedef signals::signal<void(set<NodeUUID>&, const SerializedEquivalent)> BuildCycleFourNodesSignal;
+    typedef signals::signal<void(set<ContractorID>&, const SerializedEquivalent)> BuildCycleThreeNodesSignal;
+    typedef signals::signal<void(set<ContractorID>&, const SerializedEquivalent)> BuildCycleFourNodesSignal;
 
 public:
     BasePaymentTransaction(
@@ -431,7 +431,7 @@ protected:
     map<NodeUUID, vector<pair<PathID, AmountReservation::ConstShared>>> mReservations;
 
     // Nodes which with current node will be trying to close cycle
-    set<NodeUUID> mCreditorsForCycles;
+    set<ContractorID> mContractorsForCycles;
     bool mIAmGateway;
 
     // Votes recovery

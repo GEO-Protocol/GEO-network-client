@@ -2,11 +2,13 @@
 
 RoutingTableResponseMessage::RoutingTableResponseMessage(
     const NodeUUID &sender,
+    ContractorID idOnReceiverSide,
     const TransactionUUID &transactionUUID,
-    vector<pair<SerializedEquivalent, set<NodeUUID>>> neighbors):
+    vector<pair<SerializedEquivalent, vector<BaseAddress::Shared>>> neighbors):
     ConfirmationMessage(
         0,
         sender,
+        idOnReceiverSide,
         transactionUUID),
     mNeighbors(neighbors)
 {}
@@ -18,6 +20,7 @@ RoutingTableResponseMessage::RoutingTableResponseMessage(
     size_t bytesBufferOffset = ConfirmationMessage::kOffsetToInheritedBytes();
     auto *equivalentsNumber = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
     bytesBufferOffset += sizeof(SerializedRecordsCount);
+    mNeighbors.reserve(*equivalentsNumber);
     for (SerializedRecordNumber idxEq = 0; idxEq < *equivalentsNumber; idxEq++) {
         SerializedEquivalent equivalentTmp;
         memcpy(
@@ -27,15 +30,17 @@ RoutingTableResponseMessage::RoutingTableResponseMessage(
         bytesBufferOffset += sizeof(SerializedEquivalent);
         auto *neighborsNumber = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
         bytesBufferOffset += sizeof(SerializedRecordsCount);
-        set<NodeUUID> neighbors;
+        vector<BaseAddress::Shared> neighborsAddresses;
+        neighborsAddresses.reserve(*neighborsNumber);
         for (SerializedRecordNumber idx = 0; idx < *neighborsNumber; idx++) {
-            NodeUUID nodeUUID(buffer.get() + bytesBufferOffset);
-            bytesBufferOffset += NodeUUID::kBytesSize;
-            neighbors.insert(nodeUUID);
+            auto address = deserializeAddress(
+                buffer.get() + bytesBufferOffset);
+            bytesBufferOffset += address->serializedSize();
+            neighborsAddresses.push_back(address);
         }
         mNeighbors.emplace_back(
             equivalentTmp,
-            neighbors);
+            neighborsAddresses);
     }
 }
 
@@ -51,9 +56,10 @@ pair<BytesShared, size_t> RoutingTableResponseMessage::serializeToBytes() const
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(SerializedRecordsCount);
     for (const auto &equivalentAndNeighbors : mNeighbors) {
-        auto neighborsSize = (SerializedRecordsCount)equivalentAndNeighbors.second.size();
-        bytesCount += sizeof(SerializedEquivalent) + sizeof(SerializedRecordsCount)
-                      + neighborsSize * (NodeUUID::kBytesSize);
+        bytesCount += sizeof(SerializedEquivalent) + sizeof(SerializedRecordsCount);
+        for (const auto &neighborAddress : equivalentAndNeighbors.second) {
+            bytesCount += neighborAddress->serializedSize();
+        }
     }
 
     BytesShared dataBytesShared = tryMalloc(bytesCount);
@@ -85,12 +91,13 @@ pair<BytesShared, size_t> RoutingTableResponseMessage::serializeToBytes() const
             &neighborsCount,
             sizeof(SerializedRecordsCount));
         dataBytesOffset += sizeof(SerializedRecordsCount);
-        for (const auto &kNodeUUUID: equivalentAndNeighbors.second) {
+        for (const auto &neighborAddress: equivalentAndNeighbors.second) {
+            auto serializeAddress = neighborAddress->serializeToBytes();
             memcpy(
                 dataBytesShared.get() + dataBytesOffset,
-                &kNodeUUUID,
-                NodeUUID::kBytesSize);
-            dataBytesOffset += NodeUUID::kBytesSize;
+                serializeAddress.get(),
+                neighborAddress->serializedSize());
+            dataBytesOffset += neighborAddress->serializedSize();
         }
     }
     return make_pair(
@@ -98,7 +105,7 @@ pair<BytesShared, size_t> RoutingTableResponseMessage::serializeToBytes() const
         bytesCount);
 }
 
-vector<pair<SerializedEquivalent, set<NodeUUID>>> RoutingTableResponseMessage::neighborsByEquivalents() const
+vector<pair<SerializedEquivalent, vector<BaseAddress::Shared>>> RoutingTableResponseMessage::neighborsByEquivalents() const
 {
     return mNeighbors;
 }

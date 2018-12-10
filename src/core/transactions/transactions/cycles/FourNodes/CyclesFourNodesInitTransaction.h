@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_GETFOURNODESNEIGHBORBALANCESTRANSACTION_H
 
 #include "../../base/BaseTransaction.h"
+#include "../../../../contractors/ContractorsManager.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../cycles/CyclesManager.h"
 #include "../../../../cycles/RoutingTableManager.h"
@@ -18,8 +19,9 @@ class CyclesFourNodesInitTransaction :
 public:
     CyclesFourNodesInitTransaction(
         const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         RoutingTableManager *routingTable,
         CyclesManager *cyclesManager,
@@ -40,12 +42,13 @@ protected:
 protected:
     const string logHeader() const;
 
-    vector<NodeUUID> getCommonNodes(
-        const NodeUUID &creditorNeighborNode,
-        vector<NodeUUID> currentNodeSuitableNeighbors);
+    vector<BaseAddress::Shared> getCommonNodes(
+        BaseAddress::Shared creditorNeighborNode,
+        vector<ContractorID> currentNodeSuitableNeighbors);
 
 protected:
-    NodeUUID mContractorUUID;
+    ContractorID mContractorID;
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     CyclesManager *mCyclesManager;
     RoutingTableManager *mRoutingTable;

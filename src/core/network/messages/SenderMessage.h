@@ -42,6 +42,9 @@ public:
 protected:
     virtual const size_t kOffsetToInheritedBytes() const
         noexcept;
+
+    static BaseAddress::Shared deserializeAddress(
+        byte* offset);
 };
 
 #endif //GEO_NETWORK_CLIENT_SENDERMESSAGE_H

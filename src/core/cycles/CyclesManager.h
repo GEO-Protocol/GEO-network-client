@@ -4,6 +4,7 @@
 #include "../transactions/scheduler/TransactionsScheduler.h"
 #include "../transactions/transactions/regular/payments/base/BasePaymentTransaction.h"
 #include "../paths/lib/Path.h"
+#include "../paths/lib/PathNew.h"
 #include "../logger/Logger.h"
 #include "../common/time/TimeUtils.h"
 #include "../subsystems_controller/SubsystemsController.h"
@@ -48,6 +49,9 @@ public:
 
     void addCycle(
         Path::ConstShared);
+
+    void addCycle(
+        PathNew::ConstShared);
 
     bool resolveReservationConflict(
         const TransactionUUID &challengerTransactionUUID,

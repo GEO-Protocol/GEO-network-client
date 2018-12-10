@@ -3,6 +3,7 @@
 CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
     const NodeUUID &nodeUUID,
     CyclesFourNodesNegativeBalanceRequestMessage::Shared message,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     Logger &logger) :
     BaseTransaction(
@@ -11,6 +12,7 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
         nodeUUID,
         message->equivalent(),
         logger),
+    mContractorsManager(contractorsManager),
     mTrustLinesManager(manager),
     mRequestMessage(message),
     mNegativeCycleBalance(true)
@@ -19,6 +21,7 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
 CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
     const NodeUUID &nodeUUID,
     CyclesFourNodesPositiveBalanceRequestMessage::Shared message,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     Logger &logger) :
     BaseTransaction(
@@ -27,6 +30,7 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
         nodeUUID,
         message->equivalent(),
         logger),
+    mContractorsManager(contractorsManager),
     mTrustLinesManager(manager),
     mRequestMessage(message),
     mNegativeCycleBalance(false)
@@ -34,8 +38,17 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
 
 TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run()
 {
-    if (!mTrustLinesManager->trustLineIsPresent(mRequestMessage->contractor())) {
-        warning() << "Contractor node " << mRequestMessage->contractor() << " is not a neighbor";
+    info() << "Neighbor " << mRequestMessage->contractorAddress()->fullAddress() << " send request with "
+           << mRequestMessage->checkedNodes().size() << " to check";
+    mNeighborID = mContractorsManager->contractorIDByAddress(
+        mRequestMessage->contractorAddress());
+    if (mNeighborID == ContractorsManager::kNotFoundContractorID) {
+        warning() << "Neighbor " << mRequestMessage->contractorAddress()->fullAddress() << " is not a neighbor";
+        return resultDone();
+    }
+    info() << "Neighbor ID " << mNeighborID;
+    if (!mTrustLinesManager->trustLineIsPresent(mNeighborID)) {
+        warning() << "There is no TL with neighbor " << mRequestMessage->contractorAddress()->fullAddress();
         return resultDone();
     }
 
@@ -50,8 +63,11 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run()
             mRequestMessage->senderUUID,
             mEquivalent,
             mNodeUUID,
+            mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             mSuitableNodes);
+    } else {
+        info() << "There are no suitable nodes";
     }
 
     return resultDone();
@@ -59,46 +75,58 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run()
 
 void CyclesFourNodesReceiverTransaction::buildSuitableDebtorsForCycleNegativeBalance()
 {
-    auto creditorBalance = mTrustLinesManager->balance(mRequestMessage->contractor());
+    auto creditorBalance = mTrustLinesManager->balance(mNeighborID);
     if (creditorBalance <= TrustLine::kZeroBalance()) {
         info() << "Not positive balance with contractor node";
         return;
     }
 
-    for (const auto &debtor : mRequestMessage->checkedNodes()) {
-        if (!mTrustLinesManager->trustLineIsPresent(debtor)) {
-            warning() << "Checked node " << debtor << " is not a neighbor";
+    for (const auto &checkedNode : mRequestMessage->checkedNodes()) {
+        auto checkedContractorID = mContractorsManager->contractorIDByAddress(
+            checkedNode);
+        if (checkedContractorID == ContractorsManager::kNotFoundContractorID) {
+            warning() << "Checked node " << checkedNode->fullAddress() << " is not a neighbor";
             continue;
         }
-        if (!mTrustLinesManager->trustLineIsActive(debtor)) {
-            warning() << "TL with checked node " << debtor << " is not active";
+        if (!mTrustLinesManager->trustLineIsPresent(checkedContractorID)) {
+            warning() << "There is no TL with checked node " << checkedNode->fullAddress();
             continue;
         }
-        if (mTrustLinesManager->balance(debtor) < TrustLine::kZeroBalance()) {
-            mSuitableNodes.push_back(debtor);
+        if (!mTrustLinesManager->trustLineIsActive(checkedContractorID)) {
+            warning() << "TL with checked node " << checkedNode->fullAddress() << " is not active";
+            continue;
+        }
+        if (mTrustLinesManager->balance(checkedContractorID) < TrustLine::kZeroBalance()) {
+            mSuitableNodes.push_back(checkedNode);
         }
     }
 }
 
 void CyclesFourNodesReceiverTransaction::buildSuitableDebtorsForCyclePositiveBalance()
 {
-    auto creditorBalance = mTrustLinesManager->balance(mRequestMessage->contractor());
+    auto creditorBalance = mTrustLinesManager->balance(mNeighborID);
     if (creditorBalance >= TrustLine::kZeroBalance()) {
         info() << "Not negative balance with contractor node";
         return;
     }
 
-    for (const auto &debtor : mRequestMessage->checkedNodes()) {
-        if (!mTrustLinesManager->trustLineIsPresent(debtor)) {
-            warning() << "Checked node " << debtor << " is not a neighbor";
+    for (const auto &checkedNode : mRequestMessage->checkedNodes()) {
+        auto checkedContractorID = mContractorsManager->contractorIDByAddress(
+            checkedNode);
+        if (checkedContractorID == ContractorsManager::kNotFoundContractorID) {
+            warning() << "Checked node " << checkedNode->fullAddress() << " is not a neighbor";
             continue;
         }
-        if (!mTrustLinesManager->trustLineIsActive(debtor)) {
-            warning() << "TL with checked node " << debtor << " is not active";
+        if (!mTrustLinesManager->trustLineIsPresent(checkedContractorID)) {
+            warning() << "There is no TL with checked node " << checkedNode->fullAddress();
             continue;
         }
-        if (mTrustLinesManager->balance(debtor) > TrustLine::kZeroBalance()) {
-            mSuitableNodes.push_back(debtor);
+        if (!mTrustLinesManager->trustLineIsActive(checkedContractorID)) {
+            warning() << "TL with checked node " << checkedNode->fullAddress() << " is not active";
+            continue;
+        }
+        if (mTrustLinesManager->balance(checkedContractorID) > TrustLine::kZeroBalance()) {
+            mSuitableNodes.push_back(checkedNode);
         }
     }
 }

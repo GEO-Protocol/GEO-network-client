@@ -17,7 +17,7 @@ TransactionMessage::TransactionMessage(
 TransactionMessage::TransactionMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
-    ContractorID idOnSenderSide,
+    ContractorID idOnReceiverSide,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID)
     noexcept:
@@ -25,7 +25,7 @@ TransactionMessage::TransactionMessage(
     SenderMessage(
         equivalent,
         senderUUID,
-        idOnSenderSide,
+        idOnReceiverSide,
         senderAddresses),
     mTransactionUUID(transactionUUID)
 {}
@@ -33,14 +33,14 @@ TransactionMessage::TransactionMessage(
 TransactionMessage::TransactionMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
-    ContractorID idOnSenderSide,
+    ContractorID idOnReceiverSide,
     const TransactionUUID &transactionUUID)
     noexcept:
 
     SenderMessage(
         equivalent,
         senderUUID,
-        idOnSenderSide),
+        idOnReceiverSide),
     mTransactionUUID(transactionUUID)
 {}
 

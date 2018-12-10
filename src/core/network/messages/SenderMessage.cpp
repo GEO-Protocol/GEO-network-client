@@ -51,21 +51,10 @@ SenderMessage::SenderMessage(
     bytesBufferOffset += sizeof(byte);
 
     for (int idx = 0; idx < senderAddressesCnt; idx++) {
-        const uint16_t kAddressType =
-            *(reinterpret_cast<BaseAddress::SerializedType *>(buffer.get() + bytesBufferOffset));
-
-        switch (kAddressType) {
-            case BaseAddress::IPv4_IncludingPort: {
-                auto ipv4WithPortAddress = make_shared<IPv4WithPortAddress>(
-                    buffer.get() + bytesBufferOffset);
-                senderAddresses.push_back(ipv4WithPortAddress);
-                bytesBufferOffset += ipv4WithPortAddress->serializedSize();
-                break;
-            }
-            default: {
-                // todo : need correct reaction
-            }
-        }
+        auto senderAddress = deserializeAddress(
+            buffer.get() + bytesBufferOffset);
+        senderAddresses.push_back(senderAddress);
+        bytesBufferOffset += senderAddress->serializedSize();
     }
 }
 
@@ -101,4 +90,22 @@ const size_t SenderMessage::kOffsetToInheritedBytes() const
         kOffset += address->serializedSize();
     }
     return kOffset;
+}
+
+BaseAddress::Shared SenderMessage::deserializeAddress(
+    byte *offset)
+{
+    const uint16_t kAddressType =
+            *(reinterpret_cast<BaseAddress::SerializedType *>(offset));
+
+    switch (kAddressType) {
+        case BaseAddress::IPv4_IncludingPort: {
+            return make_shared<IPv4WithPortAddress>(
+                offset);
+        }
+        default: {
+            // todo : need correct reaction
+            return nullptr;
+        }
+    }
 }

@@ -43,7 +43,7 @@ Message::Shared ConfirmationResponseMessagesHandler::getCachedMessage(
         return nullptr;
     }
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-    debug() << "Cache was found for " << incomingMessage->senderUUID
+    debug() << "Cache was found for " << incomingMessage->idOnReceiverSide
             << " equivalent " << incomingMessage->equivalent();
 #endif
     return confirmationCachedResponseMessage->second->getCachedMessage(

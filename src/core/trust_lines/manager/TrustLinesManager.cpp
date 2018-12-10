@@ -998,6 +998,16 @@ const bool TrustLinesManager::trustLineIsActive(
     return mTrustLines.at(contractorUUID)->state() == TrustLine::Active;
 }
 
+const bool TrustLinesManager::trustLineIsActive(
+    ContractorID contractorID) const
+{
+    if (!trustLineIsPresent(contractorID)) {
+        throw NotFoundError(logHeader() +
+            " There is no trust line to contractor " + to_string(contractorID));
+    }
+    return mTrustLinesNew.at(contractorID)->state() == TrustLine::Active;
+}
+
 bool TrustLinesManager::isReservationsPresentOnTrustLine(
     const NodeUUID &contractorUUID) const
 {
@@ -1471,6 +1481,19 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighbors() const
     return result;
 }
 
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsNew() const
+{
+    vector<ContractorID> result;
+    result.reserve(mTrustLinesNew.size());
+    for (auto &nodeIDAndTrustLine : mTrustLinesNew) {
+        if (nodeIDAndTrustLine.second->state() == TrustLine::Active) {
+            result.push_back(
+                nodeIDAndTrustLine.first);
+        }
+    }
+    return result;
+}
+
 ConstSharedTrustLineBalance TrustLinesManager::totalBalance() const
 {
     TrustLineBalance result = TrustLine::kZeroBalance();
@@ -1538,6 +1561,11 @@ unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>> &Tru
     return mTrustLines;
 }
 
+unordered_map<ContractorID, TrustLine::Shared> &TrustLinesManager::trustLinesNew()
+{
+    return mTrustLinesNew;
+}
+
 vector<NodeUUID> TrustLinesManager::getFirstLevelNodesForCycles(
     TrustLineBalance maxFlow)
 {
@@ -1580,12 +1608,43 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() con
     return nodes;
 }
 
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithPositiveBalanceNew() const
+{
+    vector<ContractorID> nodes;
+    TrustLineBalance stepBalance;
+    for (auto const& nodeAndTrustLine : mTrustLinesNew){
+        if (nodeAndTrustLine.second->state() != TrustLine::Active) {
+            continue;
+        }
+        stepBalance = nodeAndTrustLine.second->balance();
+        if (stepBalance > TrustLine::kZeroBalance())
+            nodes.push_back(nodeAndTrustLine.first);
+    }
+    return nodes;
+}
+
 vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNegativeBalance() const
 {
     // todo change vector to set
     vector<NodeUUID> nodes;
     TrustLineBalance stepBalance;
     for (const auto &nodeAndTrustLine : mTrustLines){
+        if (nodeAndTrustLine.second->state() != TrustLine::Active) {
+            continue;
+        }
+        stepBalance = nodeAndTrustLine.second->balance();
+        if (stepBalance < TrustLine::kZeroBalance())
+            nodes.push_back(nodeAndTrustLine.first);
+    }
+    return nodes;
+}
+
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithNegativeBalanceNew() const
+{
+    // todo change vector to set
+    vector<ContractorID> nodes;
+    TrustLineBalance stepBalance;
+    for (const auto &nodeAndTrustLine : mTrustLinesNew){
         if (nodeAndTrustLine.second->state() != TrustLine::Active) {
             continue;
         }
@@ -1833,13 +1892,13 @@ LoggerStream TrustLinesManager::warning() const
     return mLogger.warning(logHeader());
 }
 
-void TrustLinesManager::printRTs()
+void TrustLinesManager::printTLs()
 {
-    LoggerStream debug = mLogger.debug("TrustLinesManager::printRts");
+    LoggerStream debug = mLogger.debug("TrustLinesManager::printTLs");
     auto ioTransaction = mStorageHandler->beginTransaction();
-    debug << "printRTs\tRT1 size: " << trustLines().size() << endl;
+    debug << "printTLs\t size: " << trustLines().size() << endl;
     for (const auto &itTrustLine : trustLines()) {
-        debug << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
+        debug << "printTLs\t" << itTrustLine.second->contractorNodeUUID() << " "
                << itTrustLine.second->incomingTrustAmount() << " "
                << itTrustLine.second->outgoingTrustAmount() << " "
                << itTrustLine.second->balance() << " "

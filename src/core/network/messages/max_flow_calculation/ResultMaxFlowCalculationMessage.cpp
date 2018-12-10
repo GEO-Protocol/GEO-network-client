@@ -73,21 +73,9 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
     //-----------------------------------------------------
     mOutgoingFlowsNew.reserve(*trustLinesOutCountNew);
     for (SerializedRecordNumber idx = 0; idx < *trustLinesOutCountNew; idx++) {
-        const uint16_t kAddressType =
-            *(reinterpret_cast<BaseAddress::SerializedType *>(buffer.get() + bytesBufferOffset));
-
-        BaseAddress::Shared address;
-        switch (kAddressType) {
-            case BaseAddress::IPv4_IncludingPort: {
-                address = make_shared<IPv4WithPortAddress>(
-                    buffer.get() + bytesBufferOffset);
-                bytesBufferOffset += address->serializedSize();
-                break;
-            }
-            default: {
-                // todo : need correct reaction
-            }
-        }
+        auto address = deserializeAddress(
+            buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += address->serializedSize();
         //---------------------------------------------------
         vector<byte> bufferTrustLineAmount(
             buffer.get() + bytesBufferOffset,
@@ -106,21 +94,9 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
     //-----------------------------------------------------
     mIncomingFlowsNew.reserve(*trustLinesInCountNew);
     for (SerializedRecordNumber idx = 0; idx < *trustLinesInCount; idx++) {
-        const uint16_t kAddressType =
-            *(reinterpret_cast<BaseAddress::SerializedType *>(buffer.get() + bytesBufferOffset));
-
-        BaseAddress::Shared address;
-        switch (kAddressType) {
-            case BaseAddress::IPv4_IncludingPort: {
-                address = make_shared<IPv4WithPortAddress>(
-                    buffer.get() + bytesBufferOffset);
-                bytesBufferOffset += address->serializedSize();
-                break;
-            }
-            default: {
-                // todo : need correct reaction
-            }
-        }
+        auto address = deserializeAddress(
+            buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += address->serializedSize();
         //---------------------------------------------------
         vector<byte> bufferTrustLineAmount(
             buffer.get() + bytesBufferOffset,

@@ -3,6 +3,7 @@
 GatewayNotificationReceiverTransaction::GatewayNotificationReceiverTransaction(
     const NodeUUID &nodeUUID,
     GatewayNotificationMessage::Shared message,
+    ContractorsManager *contractorsManager,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     StorageHandler *storageHandler,
     Logger &logger) :
@@ -14,6 +15,7 @@ GatewayNotificationReceiverTransaction::GatewayNotificationReceiverTransaction(
         message->equivalent(),
         logger),
     mMessage(message),
+    mContractorsManager(contractorsManager),
     mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
     mStorageHandler(storageHandler)
 {}
@@ -25,7 +27,7 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
     for (const auto &equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
         if (!trustLinesManager->trustLineIsPresent(
-                mMessage->senderUUID)) {
+                mMessage->idOnReceiverSide)) {
             continue;
         }
         isContractorNeighbor = true;
@@ -36,17 +38,18 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
         try {
             trustLinesManager->setContractorAsGateway(
                 ioTransaction,
-                mMessage->senderUUID,
+                mMessage->idOnReceiverSide,
                 isContractorGateway);
         } catch (IOError &e) {
             ioTransaction->rollback();
-            warning() << "Attempt to set contractor " << mMessage->senderUUID << " as gateway failed. "
+            warning() << "Attempt to set contractor " << mMessage->idOnReceiverSide << " as gateway failed. "
                       << "IO transaction can't be completed. "
                       << "Details are: " << e.what();
             sendMessage<ConfirmationMessage>(
-                mMessage->senderUUID,
+                mMessage->idOnReceiverSide,
                 mEquivalent,
                 mNodeUUID,
+                mContractorsManager->idOnContractorSide(mMessage->idOnReceiverSide),
                 mMessage->transactionUUID(),
                 ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
             return resultDone();
@@ -54,47 +57,51 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
     }
 
     if (!isContractorNeighbor) {
-        warning() << "Sender " << mMessage->senderUUID << " is not neighbor of current node on all equivalents";
+        warning() << "Sender " << mMessage->idOnReceiverSide << " is not neighbor of current node on all equivalents";
         sendMessage<ConfirmationMessage>(
-            mMessage->senderUUID,
+            mMessage->idOnReceiverSide,
             mEquivalent,
-            currentNodeUUID(),
+            mNodeUUID,
+            mContractorsManager->idOnContractorSide(mMessage->idOnReceiverSide),
             mMessage->transactionUUID(),
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         return resultDone();
     }
 
-    vector<pair<SerializedEquivalent, set<NodeUUID>>> neighborsByEquivalents;
+    vector<pair<SerializedEquivalent, vector<BaseAddress::Shared>>> neighborsAddressesByEquivalents;
     for (const auto &equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
         // if node is gateway it not share by routing tables, because they are very large
         if (mEquivalentsSubsystemsRouter->iAmGateway(equivalent)) {
             continue;
         }
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-        if (trustLinesManager->trustLineIsPresent(mMessage->senderUUID)) {
-            neighborsByEquivalents.emplace_back(
+        if (trustLinesManager->trustLineIsPresent(mMessage->idOnReceiverSide)) {
+            neighborsAddressesByEquivalents.emplace_back(
                 equivalent,
                 getNeighborsForEquivalent(equivalent));
         }
     }
-    debug() << "Send routing tables to node " << mMessage->senderUUID;
+    debug() << "Send routing tables to node " << mMessage->idOnReceiverSide;
     sendMessage<RoutingTableResponseMessage>(
-        mMessage->senderUUID,
+        mMessage->idOnReceiverSide,
         mNodeUUID,
-        currentTransactionUUID(),
-        neighborsByEquivalents);
+        mContractorsManager->idOnContractorSide(mMessage->idOnReceiverSide),
+        mTransactionUUID,
+        neighborsAddressesByEquivalents);
     return resultDone();
 }
 
-set<NodeUUID> GatewayNotificationReceiverTransaction::getNeighborsForEquivalent(
+vector<BaseAddress::Shared> GatewayNotificationReceiverTransaction::getNeighborsForEquivalent(
     const SerializedEquivalent equivalent) const
 {
-    auto neighbors = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->firstLevelNeighbors();
-    set<NodeUUID> result;
+    auto neighbors = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->firstLevelNeighborsNew();
+    vector<BaseAddress::Shared> result;
     for(auto &node:neighbors){
-        if(node == mMessage->senderUUID)
+        if(node == mMessage->idOnReceiverSide)
             continue;
-        result.insert(node);
+        result.push_back(
+            mContractorsManager->contractorMainAddress(
+                node));
     }
     return result;
 }

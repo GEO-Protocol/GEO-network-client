@@ -387,6 +387,9 @@ public:
     const bool trustLineIsActive(
         const NodeUUID &contractorUUID) const;
 
+    const bool trustLineIsActive(
+        ContractorID contractorID) const;
+
     void updateTrustLineFromStorage(
         const NodeUUID &contractorUUID,
         IOTransaction::Shared ioTransaction);
@@ -427,7 +430,11 @@ public:
 
     vector<NodeUUID> firstLevelNeighborsWithPositiveBalance() const;
 
+    vector<ContractorID> firstLevelNeighborsWithPositiveBalanceNew() const;
+
     vector<NodeUUID> firstLevelNeighborsWithNegativeBalance() const;
+
+    vector<ContractorID> firstLevelNeighborsWithNegativeBalanceNew() const;
 
     vector<NodeUUID> firstLevelNeighborsWithNoneZeroBalance() const;
 
@@ -463,6 +470,8 @@ public:
 
     vector<NodeUUID> firstLevelNeighbors() const;
 
+    vector<ContractorID> firstLevelNeighborsNew() const;
+
     // total balance to all 1st level neighbors
     ConstSharedTrustLineBalance totalBalance() const;
 
@@ -473,6 +482,8 @@ public:
         ContractorID contractorID) const;
 
     unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>>& trustLines();
+
+    unordered_map<ContractorID, TrustLine::Shared>& trustLinesNew();
 
     vector<NodeUUID> getFirstLevelNodesForCycles(
         TrustLineBalance maxFlow);
@@ -490,7 +501,7 @@ public:
     void clearContractorsShouldBePinged();
 
     // TODO remove after testing
-    void printRTs();
+    void printTLs();
 
 protected:
     /**

@@ -115,7 +115,6 @@ pair<bool, Message::Shared> IncomingChannel::tryCollectMessage()
         currentBufferOffset += kPacketBytesAndBytesCount.second;
     }
 
-
     // CRC Checking
     boost::crc_32_type crc;
     crc.process_bytes(

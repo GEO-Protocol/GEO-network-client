@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_GATEWAYNOTIFICATIONSENDERTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
+#include "../../../contractors/ContractorsManager.h"
 #include "../../../equivalents/EquivalentsSubsystemsRouter.h"
 #include "../../../equivalents/EquivalentsCyclesSubsystemsRouter.h"
 #include "../../../network/messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
@@ -17,6 +18,7 @@ public:
 public:
     GatewayNotificationSenderTransaction(
         const NodeUUID &nodeUUID,
+        ContractorsManager *contractorsManager,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         EquivalentsCyclesSubsystemsRouter *equivalentsCyclesSubsystemsRouter,
         Logger &logger);
@@ -63,11 +65,12 @@ private:
     }
 
 private:
+    ContractorsManager *mContractorsManager;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     EquivalentsCyclesSubsystemsRouter *mEquivalentsCyclesSubsystemsRouter;
-    set<NodeUUID> allNeighborsRequestShouldBeSend;
-    set<NodeUUID> allNeighborsRequestAlreadySent;
-    set<NodeUUID> allNeighborsResponseReceive;
+    set<ContractorID> allNeighborsRequestShouldBeSend;
+    set<ContractorID> allNeighborsRequestAlreadySent;
+    set<ContractorID> allNeighborsResponseReceive;
     vector<SerializedEquivalent> mGatewaysEquivalents;
     DateTime mTransactionStarted;
     DateTime mPreviousStepStarted;

@@ -2,13 +2,13 @@
 #define GEO_NETWORK_CLIENT_THREENODESRESPONSETRANSACTION_H
 
 #include "../../base/BaseTransaction.h"
+#include "../../../../contractors/ContractorsManager.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../io/storage/StorageHandler.h"
 #include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
 #include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
 
-#include <set>
-
+#include <vector>
 
 class CyclesThreeNodesReceiverTransaction :
     public BaseTransaction {
@@ -17,6 +17,7 @@ public:
     CyclesThreeNodesReceiverTransaction(
         const NodeUUID &nodeUUID,
         CyclesThreeNodesBalancesRequestMessage::Shared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         Logger &logger);
 
@@ -27,6 +28,7 @@ protected:
 
 protected:
     CyclesThreeNodesBalancesRequestMessage::Shared mRequestMessage;
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
 };
 #endif //GEO_NETWORK_CLIENT_THREENODESRESPONSETRANSACTION_H

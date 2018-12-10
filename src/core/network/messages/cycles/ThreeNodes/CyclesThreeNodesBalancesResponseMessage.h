@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_BALANCESRESPONCEMESSAGE_H
 
 #include "../../base/transaction/TransactionMessage.h"
+#include "../../../../contractors/addresses/BaseAddress.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
 
@@ -15,8 +16,9 @@ public:
     CyclesThreeNodesBalancesResponseMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        ContractorID idOnReceiverSide,
         const TransactionUUID &transactionUUID,
-        vector<NodeUUID> &neighborsUUUID);
+        vector<BaseAddress::Shared> &neighbors);
 
     CyclesThreeNodesBalancesResponseMessage(
         BytesShared buffer);
@@ -27,11 +29,11 @@ public:
     const MessageType typeID() const
         noexcept;
 
-    vector<NodeUUID> commonNodes()
+    vector<BaseAddress::Shared> commonNodes()
         noexcept;
 
 protected:
-    vector<NodeUUID> mNeighborsUUUID;
+    vector<BaseAddress::Shared> mNeighbors;
 };
 
 #endif //GEO_NETWORK_CLIENT_BALANCESRESPONCEMESSAGE_H

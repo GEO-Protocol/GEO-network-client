@@ -273,7 +273,7 @@ protected: // Transactions
      * Cycles building Transactions
      */
     void launchFourNodesCyclesInitTransaction(
-        const NodeUUID &creditorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent);
 
     void launchFourNodesCyclesResponseTransaction(
@@ -283,7 +283,7 @@ protected: // Transactions
         CyclesFourNodesPositiveBalanceRequestMessage::Shared message);
 
     void launchThreeNodesCyclesInitTransaction(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent);
 
     void launchThreeNodesCyclesResponseTransaction(
@@ -463,11 +463,11 @@ protected:
         BaseTransaction::Shared transaction);
 
     void onBuildCycleThreeNodesTransaction(
-        set<NodeUUID> &contractorsUUID,
+        set<ContractorID> &contractorsIDs,
         const SerializedEquivalent equivalent);
 
     void onBuildCycleFourNodesTransaction(
-        set<NodeUUID> &creditors,
+        set<ContractorID> &contractorsIDs,
         const SerializedEquivalent equivalent);
 
     void onBuildCycleFiveNodesTransaction(
@@ -513,6 +513,13 @@ protected:
 protected:
     void prepareAndSchedule(
         BaseTransaction::Shared transaction,
+        bool regenerateUUID=false,
+        bool subsidiaryTransactionSubscribe=false,
+        bool outgoingMessagesSubscribe=false);
+
+    void prepareAndSchedulePostponed(
+        BaseTransaction::Shared transaction,
+        uint32_t millisecondsDelay,
         bool regenerateUUID=false,
         bool subsidiaryTransactionSubscribe=false,
         bool outgoingMessagesSubscribe=false);

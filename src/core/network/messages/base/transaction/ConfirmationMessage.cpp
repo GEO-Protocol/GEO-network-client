@@ -16,14 +16,14 @@ ConfirmationMessage::ConfirmationMessage(
 ConfirmationMessage::ConfirmationMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
-    ContractorID idOnSenderSide,
+    ContractorID idOnReceiverSide,
     const TransactionUUID &transactionUUID,
     const OperationState state) :
 
     TransactionMessage(
         equivalent,
         senderUUID,
-        idOnSenderSide,
+        idOnReceiverSide,
         transactionUUID),
     mState(state)
 {}

@@ -85,6 +85,12 @@ void CyclesManager::addCycle(
     }
 }
 
+void CyclesManager::addCycle(
+    PathNew::ConstShared cycle)
+{
+    // todo : implement me
+}
+
 void CyclesManager::closeOneCycle(
     bool nextCycleShouldBeRunned)
 {

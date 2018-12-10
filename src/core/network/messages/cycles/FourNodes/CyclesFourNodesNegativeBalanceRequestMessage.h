@@ -17,9 +17,10 @@ public:
     CyclesFourNodesNegativeBalanceRequestMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
-        const NodeUUID &contractor,
-        vector<NodeUUID> &checkedNodes);
+        BaseAddress::Shared contractorAddress,
+        vector<BaseAddress::Shared> checkedNodes);
 
     CyclesFourNodesNegativeBalanceRequestMessage(
         BytesShared buffer);
@@ -29,13 +30,13 @@ public:
 
     const MessageType typeID() const;
 
-    vector<NodeUUID> checkedNodes() const;
+    vector<BaseAddress::Shared> checkedNodes() const;
 
-    const NodeUUID contractor() const;
+    BaseAddress::Shared contractorAddress() const;
 
 protected:
-    vector<NodeUUID> mCheckedNodes;
-    NodeUUID mContractorUUID;
+    vector<BaseAddress::Shared> mCheckedNodes;
+    BaseAddress::Shared mContractorAddress;
 };
 
 #endif //GEO_NETWORK_CLIENT_FOURNODESNEGATIVEBALANCEREQUESTMESSAGE_H

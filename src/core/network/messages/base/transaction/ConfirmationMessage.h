@@ -35,7 +35,7 @@ public:
     ConfirmationMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
-        ContractorID idOnSenderSide,
+        ContractorID idOnReceiverSide,
         const TransactionUUID &transactionUUID,
         const OperationState state = OK);
 

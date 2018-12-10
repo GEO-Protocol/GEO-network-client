@@ -506,8 +506,6 @@ void TransactionsManager::launchInitTrustLineTransaction(
         mSubsystemsController,
         mTrustLinesInfluenceController,
         mLog);
-    subscribeForProcessingConfirmationMessage(
-        transaction->processConfirmationMessageSignal);
     subscribeForKeysSharingSignal(
         transaction->publicKeysSharingSignal);
     prepareAndSchedule(
@@ -534,8 +532,6 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mKeysStore,
             mTrustLinesInfluenceController,
             mLog);
-        subscribeForProcessingConfirmationMessage(
-            transaction->processConfirmationMessageSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
         prepareAndSchedule(
@@ -574,8 +570,6 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
             mKeysStore,
             mTrustLinesInfluenceController,
             mLog);
-        subscribeForProcessingConfirmationMessage(
-            transaction->processConfirmationMessageSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
         prepareAndSchedule(
@@ -610,8 +604,6 @@ void TransactionsManager::launchPublicKeysSharingSourceTransaction(
             mKeysStore,
             mTrustLinesInfluenceController,
             mLog);
-        subscribeForProcessingConfirmationMessage(
-            transaction->processConfirmationMessageSignal);
         subscribeForAuditSignal(
             transaction->auditSignal);
         prepareAndSchedule(
@@ -656,8 +648,6 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
             mSubsystemsController,
             mTrustLinesInfluenceController,
             mLog);
-        subscribeForProcessingConfirmationMessage(
-            transaction->processConfirmationMessageSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -1216,19 +1206,21 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
 }
 
 void TransactionsManager::launchThreeNodesCyclesInitTransaction(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     const SerializedEquivalent equivalent)
 {
     try {
-        prepareAndSchedule(
+        prepareAndSchedulePostponed(
             make_shared<CyclesThreeNodesInitTransaction>(
                 mNodeUUID,
-                contractorUUID,
+                contractorID,
                 equivalent,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
                 mLog),
+            50,
             true,
             false,
             true);
@@ -1248,6 +1240,7 @@ void TransactionsManager::launchThreeNodesCyclesResponseTransaction(
             make_shared<CyclesThreeNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog),
             false,
@@ -1348,19 +1341,21 @@ void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
 }
 
 void TransactionsManager::launchFourNodesCyclesInitTransaction(
-    const NodeUUID &creditorUUID,
+    ContractorID creditorID,
     const SerializedEquivalent equivalent)
 {
     try {
-        prepareAndSchedule(
+        prepareAndSchedulePostponed(
             make_shared<CyclesFourNodesInitTransaction>(
                 mNodeUUID,
-                creditorUUID,
+                creditorID,
                 equivalent,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
                 mLog),
+            50,
             true,
             false,
             true);
@@ -1380,6 +1375,7 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(
             make_shared<CyclesFourNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog),
             false,
@@ -1401,6 +1397,7 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(
             make_shared<CyclesFourNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog),
             false,
@@ -1791,6 +1788,7 @@ void TransactionsManager::launchGatewayNotificationSenderTransaction()
         prepareAndSchedule(
             make_shared<GatewayNotificationSenderTransaction>(
                 mNodeUUID,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter,
                 mEquivalentsCyclesSubsystemsRouter.get(),
                 mLog),
@@ -1810,6 +1808,7 @@ void TransactionsManager::launchGatewayNotificationReceiverTransaction(
             make_shared<GatewayNotificationReceiverTransaction>(
                 mNodeUUID,
                 message,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter,
                 mStorageHandler,
                 mLog),
@@ -2212,23 +2211,23 @@ void TransactionsManager::onSubsidiaryTransactionReady(
 }
 
 void TransactionsManager::onBuildCycleThreeNodesTransaction(
-    set<NodeUUID> &contractorsUUID,
+    set<ContractorID> &contractorsIDs,
     const SerializedEquivalent equivalent)
 {
-    for (const auto &contractorUUID : contractorsUUID) {
+    for (const auto &contractorID : contractorsIDs) {
         launchThreeNodesCyclesInitTransaction(
-            contractorUUID,
+            contractorID,
             equivalent);
     }
 }
 
 void TransactionsManager::onBuildCycleFourNodesTransaction(
-    set<NodeUUID> &creditors,
+    set<ContractorID> &contractorsIDs,
     const SerializedEquivalent equivalent)
 {
-    for (const auto &kCreditor : creditors) {
+    for (const auto &contractorID : contractorsIDs) {
         launchFourNodesCyclesInitTransaction(
-            kCreditor,
+            contractorID,
             equivalent);
     }
 }
@@ -2332,9 +2331,6 @@ void TransactionsManager::onPublicKeysSharingSlot(
         subscribeForOutgoingMessagesWithCaching(
             transaction->sendMessageWithCachingSignal);
 
-        subscribeForProcessingConfirmationMessage(
-            transaction->processConfirmationMessageSignal);
-
         subscribeForAuditSignal(
             transaction->auditSignal);
 
@@ -2364,8 +2360,6 @@ void TransactionsManager::onAuditSlot(
             mTrustLinesInfluenceController,
             mLog);
 
-        subscribeForProcessingConfirmationMessage(
-            transaction->processConfirmationMessageSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
         subscribeForProcessingPongMessage(
@@ -2402,8 +2396,6 @@ void TransactionsManager::onResumeTransactionSlot(
                 mSubsystemsController,
                 mTrustLinesInfluenceController,
                 mLog);
-            subscribeForProcessingConfirmationMessage(
-                transaction->processConfirmationMessageSignal);
             subscribeForKeysSharingSignal(
                 transaction->publicKeysSharingSignal);
             subscribeForProcessingPongMessage(
@@ -2427,8 +2419,6 @@ void TransactionsManager::onResumeTransactionSlot(
                 mKeysStore,
                 mTrustLinesInfluenceController,
                 mLog);
-            subscribeForProcessingConfirmationMessage(
-                transaction->processConfirmationMessageSignal);
             subscribeForTrustLineActionSignal(
                 transaction->trustLineActionSignal);
             subscribeForProcessingPongMessage(
@@ -2489,6 +2479,55 @@ void TransactionsManager::prepareAndSchedule(
                 transaction->recreateTransactionUUID();
             } else {
                 warning() << "prepareAndSchedule:" << "TransactionUUID: " << transaction->currentTransactionUUID()
+                          << " New TransactionType:" << transaction->transactionType()
+                          << " Exit.";
+                return;
+            }
+        }
+    }
+}
+
+void TransactionsManager::prepareAndSchedulePostponed(
+    BaseTransaction::Shared transaction,
+    uint32_t millisecondsDelay,
+    bool regenerateUUID,
+    bool subsidiaryTransactionSubscribe,
+    bool outgoingMessagesSubscribe)
+{
+    if (outgoingMessagesSubscribe) {
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+        subscribeForOutgoingNewMessages(
+            transaction->outgoingMessageIsReadyNewSignal);
+        subscribeForOutgoingMessagesToAddress(
+            transaction->outgoingMessageToAddressReadySignal);
+        subscribeForOutgoingMessagesWithCaching(
+            transaction->sendMessageWithCachingSignal);
+    }
+    if (subsidiaryTransactionSubscribe) {
+        subscribeForSubsidiaryTransactions(
+            transaction->runSubsidiaryTransactionSignal);
+    }
+
+    while (true) {
+        try {
+
+            mScheduler->postponeTransaction(
+                transaction,
+                millisecondsDelay);
+            return;
+
+        } catch(bad_alloc &) {
+            throw bad_alloc();
+
+        } catch(ConflictError &e) {
+            if (regenerateUUID) {
+                warning() << "prepareAndSchedulePostponed:" << "TransactionUUID: " << transaction->currentTransactionUUID()
+                          << " New TransactionType:" << transaction->transactionType()
+                          << " Recreate.";
+                transaction->recreateTransactionUUID();
+            } else {
+                warning() << "prepareAndSchedulePostponed:" << "TransactionUUID: " << transaction->currentTransactionUUID()
                           << " New TransactionType:" << transaction->transactionType()
                           << " Exit.";
                 return;

@@ -520,7 +520,9 @@ void BasePaymentTransaction::commit(
                 debug() << "Committed reservation: [ => ] " << kPathIDAndReservation.second->amount()
                         << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathIDAndReservation.first
                         << "]";
-                mCreditorsForCycles.insert(kNodeUUIDAndReservations.first);
+                mContractorsForCycles.insert(
+                    mTrustLines->contractorID(
+                        kNodeUUIDAndReservations.first));
             }
             else if (kPathIDAndReservation.second->direction() == AmountReservation::Incoming) {
                 debug() << "Committed reservation: [ <= ] " << kPathIDAndReservation.second->amount()
@@ -528,7 +530,9 @@ void BasePaymentTransaction::commit(
                         << "]";
                 if (mIAmGateway) {
                     // gateway try build cycles on both directions, because it don't shared by own routing tables
-                    mCreditorsForCycles.insert(kNodeUUIDAndReservations.first);
+                    mContractorsForCycles.insert(
+                        mTrustLines->contractorID(
+                            kNodeUUIDAndReservations.first));
                 }
             }
 
@@ -1296,13 +1300,13 @@ void BasePaymentTransaction::setRollbackByOtherTransactionStage()
 
 void BasePaymentTransaction::runThreeNodesCyclesTransactions() {
     mBuildCycleThreeNodesSignal(
-        mCreditorsForCycles,
+        mContractorsForCycles,
         mEquivalent);
 }
 
 void BasePaymentTransaction::runFourNodesCyclesTransactions() {
     mBuildCycleFourNodesSignal(
-        mCreditorsForCycles,
+        mContractorsForCycles,
         mEquivalent);
 }
 

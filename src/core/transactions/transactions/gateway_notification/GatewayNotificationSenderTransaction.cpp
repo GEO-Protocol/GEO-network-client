@@ -2,6 +2,7 @@
 
 GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
     const NodeUUID &nodeUUID,
+    ContractorsManager *contractorsManager,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     EquivalentsCyclesSubsystemsRouter *equivalentsCyclesSubsystemsRouter,
     Logger &logger) :
@@ -11,6 +12,7 @@ GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
         nodeUUID,
         0,
         logger),
+    mContractorsManager(contractorsManager),
     mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
     mEquivalentsCyclesSubsystemsRouter(equivalentsCyclesSubsystemsRouter),
     mTransactionStarted(utc_now())
@@ -34,11 +36,14 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::run()
 TransactionResult::SharedConst GatewayNotificationSenderTransaction::sendGatewayNotification()
 {
     for (const auto &equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
+#ifdef DEBUG_LOG_ROUTING_TABLES_PROCESSING
+        mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent)->printRT();
+#endif
         if (mEquivalentsSubsystemsRouter->iAmGateway(equivalent)) {
             mGatewaysEquivalents.push_back(
                 equivalent);
         }
-        for (const auto &neighbor : mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->firstLevelNeighbors()) {
+        for (const auto &neighbor : mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->firstLevelNeighborsNew()) {
             allNeighborsRequestShouldBeSend.insert(
                 neighbor);
         }
@@ -48,8 +53,9 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::sendGateway
         info() << "Send Gateway notification to node " << neighbor;
         sendMessage<GatewayNotificationMessage>(
             neighbor,
-            currentNodeUUID(),
-            currentTransactionUUID(),
+            mNodeUUID,
+            mContractorsManager->idOnContractorSide(neighbor),
+            mTransactionUUID,
             mGatewaysEquivalents);
         allNeighborsRequestAlreadySent.insert(neighbor);
         cntRequestedNeighbors++;
@@ -69,21 +75,21 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
     while (!mContext.empty()) {
         if (mContext.at(0)->typeID() == Message::RoutingTableResponse) {
             const auto kMessage = popNextMessage<RoutingTableResponseMessage>();
-            info() << "node " << kMessage->senderUUID << " send response";
-            allNeighborsResponseReceive.insert(kMessage->senderUUID);
+            info() << "node " << kMessage->idOnReceiverSide << " send response";
+            allNeighborsResponseReceive.insert(kMessage->idOnReceiverSide);
             for (const auto &equivalentAndNeighbors : kMessage->neighborsByEquivalents()) {
                 try {
                     auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(
-                            equivalentAndNeighbors.first);
+                        equivalentAndNeighbors.first);
                     auto routingTablesManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(
-                            equivalentAndNeighbors.first);
-                    if(!trustLinesManager->trustLineIsPresent(kMessage->senderUUID)){
-                        warning() << "Node " << kMessage->senderUUID << " is not a neighbor on equivalent "
+                        equivalentAndNeighbors.first);
+                    if(!trustLinesManager->trustLineIsPresent(kMessage->idOnReceiverSide)){
+                        warning() << "Node " << kMessage->idOnReceiverSide << " is not a neighbor on equivalent "
                                   << equivalentAndNeighbors.first;
                         continue;
                     }
                     routingTablesManager->updateMapAddSeveralNeighbors(
-                        kMessage->senderUUID,
+                        kMessage->idOnReceiverSide,
                         equivalentAndNeighbors.second);
                 } catch (NotFoundError &e) {
                     warning() << "There is no subsystems for equivalent " << equivalentAndNeighbors.first;
@@ -113,8 +119,9 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
             info() << "Send Gateway notification to node " << neighbor;
             sendMessage<GatewayNotificationMessage>(
                 neighbor,
-                currentNodeUUID(),
-                currentTransactionUUID(),
+                mNodeUUID,
+                mContractorsManager->idOnContractorSide(neighbor),
+                mTransactionUUID,
                 mGatewaysEquivalents);
             allNeighborsRequestAlreadySent.insert(neighbor);
             cntRequestedNeighbors++;

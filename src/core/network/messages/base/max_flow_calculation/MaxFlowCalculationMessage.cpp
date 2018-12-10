@@ -37,21 +37,10 @@ MaxFlowCalculationMessage::MaxFlowCalculationMessage (
     bytesBufferOffset += sizeof(byte);
 
     for (int idx = 0; idx < senderAddressesCnt; idx++) {
-        const uint16_t kAddressType =
-            *(reinterpret_cast<BaseAddress::SerializedType *>(buffer.get() + bytesBufferOffset));
-
-        switch (kAddressType) {
-            case BaseAddress::IPv4_IncludingPort: {
-                auto ipv4WithPortAddress = make_shared<IPv4WithPortAddress>(
-                    buffer.get() + bytesBufferOffset);
-                mTargetAddresses.push_back(ipv4WithPortAddress);
-                bytesBufferOffset += ipv4WithPortAddress->serializedSize();
-                break;
-            }
-            default: {
-                // todo : need correct reaction
-            }
-        }
+        auto targetAddress = deserializeAddress(
+            buffer.get() + bytesBufferOffset);
+        mTargetAddresses.push_back(targetAddress);
+        bytesBufferOffset += targetAddress->serializedSize();
     }
 }
 
