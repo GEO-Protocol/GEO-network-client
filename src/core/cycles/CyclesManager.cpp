@@ -88,7 +88,31 @@ void CyclesManager::addCycle(
 void CyclesManager::addCycle(
     PathNew::ConstShared cycle)
 {
-    // todo : implement me
+    if (!mSubsystemsController->isRunCycleClosingTransactions()) {
+        debug() << "Adding cycles is forbidden";
+        return;
+    }
+    switch (cycle->length()) {
+        case 3:
+            debug() << "add three nodes cycle";
+            mThreeNodesCyclesNew.push_back(cycle);
+            break;
+        case 4:
+            debug() << "add four nodes cycle";
+            mFourNodesCyclesNew.push_back(cycle);
+            break;
+        case 5:
+            debug() << "add five nodes cycle";
+            mFiveNodesCyclesNew.push_back(cycle);
+            break;
+        case 6:
+            debug() << "add six nodes cycle";
+            mSixNodesCyclesNew.push_back(cycle);
+            break;
+        default:
+            throw ValueError("CyclesManager::addCycle: "
+                                 "illegal length of cycle");
+    }
 }
 
 void CyclesManager::closeOneCycle(
@@ -134,6 +158,49 @@ void CyclesManager::closeOneCycle(
     mIsCycleInProcess = false;
 }
 
+void CyclesManager::closeOneCycleNew(
+    bool nextCycleShouldBeRunned)
+{
+    if (!mSubsystemsController->isRunCycleClosingTransactions()) {
+        debug() << "Closing cycles is forbidden";
+        return;
+    }
+    // nextCycleShouldBeRunned equals true when method closeOneCycle was called
+    // by TransactionManager after finishing transaction of closing cycle.
+    // When method closeOneCycle was called by transactions of building cycles it equals false
+    if (nextCycleShouldBeRunned) {
+        mIsCycleInProcess = false;
+    }
+    clearClosedCyclesNew();
+    debug() << "closeOneCycle";
+    debug() << "currentCycleClosingState: " << mCurrentCycleClosingState;
+    debug() << "3 NC count: " << mThreeNodesCyclesNew.size()
+            << " 4 NC count: " << mFourNodesCyclesNew.size()
+            << " 5 NC count: " << mFiveNodesCyclesNew.size()
+            << " 6 NC count: " << mSixNodesCyclesNew.size();
+    if (mIsCycleInProcess) {
+        debug() << "Postpone closing this cycle, because another one in process";
+        return;
+    }
+    CycleClosingState currentCycleClosingState = mCurrentCycleClosingState;
+    do {
+        auto cycles = cyclesVectorNew(
+            mCurrentCycleClosingState);
+        if (!cycles->empty()) {
+            auto cycle = *cycles->begin();
+            cycles->erase(cycles->begin());
+            debug() << "closeCycleSignal " << cycle->toString();
+            closeCycleSignalNew(
+                mEquivalent,
+                cycle);
+            mIsCycleInProcess = true;
+            return;
+        }
+        incrementCurrentCycleClosingState();
+    } while (currentCycleClosingState != mCurrentCycleClosingState);
+    mIsCycleInProcess = false;
+}
+
 vector<Path::ConstShared>* CyclesManager::cyclesVector(
     CycleClosingState currentCycleClosingState)
 {
@@ -146,6 +213,21 @@ vector<Path::ConstShared>* CyclesManager::cyclesVector(
             return &mFiveNodesCycles;
         case CycleClosingState::SixNodes:
             return &mSixNodesCycles;
+    }
+}
+
+vector<PathNew::ConstShared>* CyclesManager::cyclesVectorNew(
+    CycleClosingState currentCycleClosingState)
+{
+    switch (currentCycleClosingState) {
+        case CycleClosingState::ThreeNodes:
+            return &mThreeNodesCyclesNew;
+        case CycleClosingState::FourNodes:
+            return &mFourNodesCyclesNew;
+        case CycleClosingState::FiveNodes:
+            return &mFiveNodesCyclesNew;
+        case CycleClosingState::SixNodes:
+            return &mSixNodesCyclesNew;
     }
 }
 
@@ -288,6 +370,17 @@ void CyclesManager::addClosedTrustLine(
                 destination)));
 }
 
+void CyclesManager::addClosedTrustLineNew(
+    BaseAddress::Shared source,
+    BaseAddress::Shared destination)
+{
+    mClosedTrustLinesNew.insert(
+        make_pair(utc_now(),
+            make_pair(
+                source,
+                destination)));
+}
+
 void CyclesManager::addOfflineNode(
     const NodeUUID &nodeUUID)
 {
@@ -295,6 +388,15 @@ void CyclesManager::addOfflineNode(
         make_pair(
             utc_now(),
             nodeUUID));
+}
+
+void CyclesManager::addOfflineNodeNew(
+    BaseAddress::Shared nodeAddress)
+{
+    mOfflineNodesNew.insert(
+        make_pair(
+            utc_now(),
+            nodeAddress));
 }
 
 void CyclesManager::removeCyclesWithClosedTrustLine(
@@ -315,9 +417,43 @@ void CyclesManager::removeCyclesWithClosedTrustLine(
     }
 }
 
+void CyclesManager::removeCyclesWithClosedTrustLineNew(
+    BaseAddress::Shared sourceClosed,
+    BaseAddress::Shared destinationClosed,
+    vector<PathNew::ConstShared> &cycles)
+{
+    auto itCycle = cycles.begin();
+    while (itCycle != cycles.end()) {
+        if ((*itCycle)->containsTrustLine(
+            sourceClosed,
+            destinationClosed)) {
+            cycles.erase(
+                itCycle);
+        } else {
+            itCycle++;
+        }
+    }
+}
+
 void CyclesManager::removeCyclesWithOfflineNode(
     const NodeUUID &offlineNode,
     vector<Path::ConstShared> &cycles)
+{
+    auto itCycle = cycles.begin();
+    while (itCycle != cycles.end()) {
+        if ((*itCycle)->positionOfNode(
+            offlineNode) >= 0) {
+            cycles.erase(
+                itCycle);
+        } else {
+            itCycle++;
+        }
+    }
+}
+
+void CyclesManager::removeCyclesWithOfflineNodeNew(
+    BaseAddress::Shared offlineNode,
+    vector<PathNew::ConstShared> &cycles)
 {
     auto itCycle = cycles.begin();
     while (itCycle != cycles.end()) {
@@ -381,6 +517,59 @@ void CyclesManager::clearClosedCycles()
         removeCyclesWithOfflineNode(
             offlineNode,
             mSixNodesCycles);
+    }
+}
+
+void CyclesManager::clearClosedCyclesNew()
+{
+    debug() << "clearClosedCycles closed trust lines cnt: " << mClosedTrustLinesNew.size();
+    if (!mClosedTrustLinesNew.empty()) {
+        auto source = mClosedTrustLinesNew.begin()->second.first;
+        auto destination = mClosedTrustLinesNew.begin()->second.second;
+        mClosedTrustLinesNew.erase(mClosedTrustLinesNew.begin());
+
+        removeCyclesWithClosedTrustLineNew(
+            source,
+            destination,
+            mThreeNodesCyclesNew);
+
+        removeCyclesWithClosedTrustLineNew(
+            source,
+            destination,
+            mFourNodesCyclesNew);
+
+        removeCyclesWithClosedTrustLineNew(
+            source,
+            destination,
+            mFiveNodesCyclesNew);
+
+        removeCyclesWithClosedTrustLineNew(
+            source,
+            destination,
+            mSixNodesCyclesNew);
+    }
+
+    debug() << "clearClosedCycles offline nodes cnt: " << mOfflineNodesNew.size();
+    if (!mOfflineNodesNew.empty()) {
+        auto offlineNode = mOfflineNodesNew.begin()->second;
+        mOfflineNodesNew.erase(
+            mOfflineNodesNew.begin());
+
+        removeCyclesWithOfflineNodeNew(
+            offlineNode,
+            mThreeNodesCyclesNew);
+
+        removeCyclesWithOfflineNodeNew(
+            offlineNode,
+            mFourNodesCyclesNew);
+
+        removeCyclesWithOfflineNodeNew(
+            offlineNode,
+            mFiveNodesCyclesNew);
+
+        removeCyclesWithOfflineNodeNew(
+            offlineNode,
+            mSixNodesCyclesNew);
     }
 }
 

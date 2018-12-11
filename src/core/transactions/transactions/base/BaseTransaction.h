@@ -249,6 +249,15 @@ protected:
             addressee);
     }
 
+    inline void sendMessage(
+        const ContractorID addressee,
+        const Message::Shared message) const
+    {
+        outgoingMessageIsReadyNewSignal(
+            message,
+            addressee);
+    }
+
     template <typename MessageType, typename... Args>
     inline void sendMessageWithTemporaryCaching(
         ContractorID addressee,

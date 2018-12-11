@@ -46,6 +46,10 @@ public:
     friend bool operator== (
         BaseAddress::Shared address1,
         BaseAddress::Shared address2);
+
+    friend bool operator!= (
+        BaseAddress::Shared address1,
+        BaseAddress::Shared address2);
 };
 
 

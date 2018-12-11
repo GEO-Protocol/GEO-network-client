@@ -1262,6 +1262,7 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction(
             make_shared<CyclesSixNodesInitTransaction>(
                 mNodeUUID,
                 equivalent,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
                 mLog),
@@ -1284,6 +1285,7 @@ void TransactionsManager::launchSixNodesCyclesResponseTransaction(
             make_shared<CyclesSixNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog),
             false,
@@ -1305,6 +1307,7 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction(
             make_shared<CyclesFiveNodesInitTransaction>(
                 mNodeUUID,
                 equivalent,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
                 mLog),
@@ -1327,6 +1330,7 @@ void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
             make_shared<CyclesFiveNodesReceiverTransaction>(
                 mNodeUUID,
                 message,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mLog),
             false,

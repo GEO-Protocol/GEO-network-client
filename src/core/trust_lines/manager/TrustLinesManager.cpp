@@ -1593,6 +1593,25 @@ vector<NodeUUID> TrustLinesManager::getFirstLevelNodesForCycles(
     return nodes;
 }
 
+vector<ContractorID> TrustLinesManager::getFirstLevelNodesForCyclesNew(
+    bool isCreditorBranch)
+{
+    vector<ContractorID> nodes;
+    TrustLineBalance stepBalance;
+    for (auto const& nodeAndTrustLine : mTrustLinesNew) {
+        if (nodeAndTrustLine.second->state() != TrustLine::Active) {
+            continue;
+        }
+        stepBalance = nodeAndTrustLine.second->balance();
+        if (isCreditorBranch and stepBalance > TrustLine::kZeroBalance()) {
+            nodes.push_back(nodeAndTrustLine.first);
+        } else if (!isCreditorBranch and stepBalance < TrustLine::kZeroBalance()) {
+            nodes.push_back(nodeAndTrustLine.first);
+        }
+    }
+    return nodes;
+}
+
 vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() const
 {
     vector<NodeUUID> nodes;
@@ -1660,6 +1679,21 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNoneZeroBalance() con
     vector<NodeUUID> nodes;
     TrustLineBalance stepBalance;
     for (auto const &nodeAndTrustLine : mTrustLines) {
+        if (nodeAndTrustLine.second->state() != TrustLine::Active) {
+            continue;
+        }
+        stepBalance = nodeAndTrustLine.second->balance();
+        if (stepBalance != TrustLine::kZeroBalance())
+            nodes.push_back(nodeAndTrustLine.first);
+    }
+    return nodes;
+}
+
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithNoneZeroBalanceNew() const
+{
+    vector<ContractorID> nodes;
+    TrustLineBalance stepBalance;
+    for (auto const &nodeAndTrustLine : mTrustLinesNew) {
         if (nodeAndTrustLine.second->state() != TrustLine::Active) {
             continue;
         }

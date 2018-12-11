@@ -3,52 +3,70 @@
 CyclesFiveNodesReceiverTransaction::CyclesFiveNodesReceiverTransaction(
     const NodeUUID &nodeUUID,
     CyclesFiveNodesInBetweenMessage::Shared message,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     Logger &logger) :
     BaseTransaction(
-        BaseTransaction::TransactionType::Cycles_FiveNodesReceiverTransaction,
+        BaseTransaction::Cycles_FiveNodesReceiverTransaction,
         nodeUUID,
         message->equivalent(),
         logger),
+    mContractorsManager(contractorsManager),
     mTrustLinesManager(manager),
     mInBetweenNodeTopologyMessage(message)
 {}
 
 TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run()
 {
-    vector<NodeUUID> path = mInBetweenNodeTopologyMessage->Path();
-    if (!mTrustLinesManager->trustLineIsActive(path.back())) {
-        warning() << "TL with previous node " << path.back() << " is not active";
+    auto contractorID = mInBetweenNodeTopologyMessage->idOnReceiverSide;
+    if (!mContractorsManager->contractorPresent(contractorID)) {
+        warning() << "There is no contractor " << contractorID;
         return resultDone();
     }
-    // Direction has mirror sign for initiator node and receiver node.
-    // Direction is calculated based on initiator node
-    TrustLineBalance maxFlow = (-1) * mTrustLinesManager->balance(path.back());
-    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
+    vector<BaseAddress::Shared> path = mInBetweenNodeTopologyMessage->Path();
+    if (!mTrustLinesManager->trustLineIsActive(contractorID)) {
+        warning() << "TL with previous node " << contractorID << " is not active";
+        return resultDone();
+    }
+
+    auto contractorBalance = mTrustLinesManager->balance(contractorID);
+    //  If balance to previous node equal zero finish transaction
+    if (contractorBalance == TrustLine::kZeroBalance()) {
+        return resultDone();
+    }
+    bool creditorsBranch = true;
+    if (contractorBalance > TrustLine::kZeroBalance()) {
+        creditorsBranch = false;
+    }
+    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCyclesNew(creditorsBranch);
     if (firstLevelNodes.empty()){
         info() << "CyclesFiveNodesReceiverTransaction: No suitable firstLevelNodes " << endl;
         return resultDone();
     }
-    bool creditorsBranch = true;
-    if (maxFlow < TrustLine::kZeroBalance())
-        creditorsBranch = false;
 
     auto currentDepth = (SerializedPathLengthSize)path.size();
-    if ((creditorsBranch and currentDepth==1)) {
-        mInBetweenNodeTopologyMessage->addNodeToPath(mNodeUUID);
-        for(const auto &kNodeUUID: firstLevelNodes)
+    if (creditorsBranch and currentDepth == 1) {
+        mInBetweenNodeTopologyMessage->addNodeToPath(
+            mContractorsManager->ownAddresses().at(0));
+        for(const auto &neighborID: firstLevelNodes)
             sendMessage(
-                kNodeUUID,
+                neighborID,
                 mInBetweenNodeTopologyMessage);
         return resultDone();
     }
-    if ((creditorsBranch and currentDepth==2) or (not creditorsBranch and currentDepth==1)){
-        path.push_back(mNodeUUID);
+    if ((creditorsBranch and currentDepth==2) or (not creditorsBranch and currentDepth==1)) {
+        path.push_back(
+            mContractorsManager->ownAddresses().at(0));
+        vector<BaseAddress::Shared> boundaryNodes;
+        for (const auto &neighborID: firstLevelNodes) {
+            boundaryNodes.push_back(
+                mContractorsManager->contractorMainAddress(neighborID));
+        }
         sendMessage<CyclesFiveNodesBoundaryMessage>(
             path.front(),
             mEquivalent,
             path,
-            firstLevelNodes);
+            boundaryNodes);
         return resultDone();
     }
     else {

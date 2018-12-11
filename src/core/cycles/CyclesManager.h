@@ -34,6 +34,9 @@ public:
     typedef signals::signal<void(
             const SerializedEquivalent equivalent,
             Path::ConstShared cycle)> CloseCycleSignal;
+    typedef signals::signal<void(
+            const SerializedEquivalent equivalent,
+            PathNew::ConstShared cycle)> CloseCycleSignalNew;
 
 public:
     CyclesManager(
@@ -45,6 +48,9 @@ public:
         SubsystemsController *subsystemsController);
 
     void closeOneCycle(
+        bool nextCycleShouldBeRunned = false);
+
+    void closeOneCycleNew(
         bool nextCycleShouldBeRunned = false);
 
     void addCycle(
@@ -64,8 +70,15 @@ public:
         const NodeUUID &source,
         const NodeUUID &destination);
 
+    void addClosedTrustLineNew(
+        BaseAddress::Shared source,
+        BaseAddress::Shared destination);
+
     void addOfflineNode(
         const NodeUUID &nodeUUID);
+
+    void addOfflineNodeNew(
+        BaseAddress::Shared nodeAddress);
 
 private:
     void runSignalSixNodes(
@@ -80,6 +93,9 @@ private:
     vector<Path::ConstShared>* cyclesVector(
         CycleClosingState currentCycleClosingState);
 
+    vector<PathNew::ConstShared>* cyclesVectorNew(
+        CycleClosingState currentCycleClosingState);
+
     void incrementCurrentCycleClosingState();
 
     bool isChallengerTransactionWinReservation(
@@ -88,14 +104,25 @@ private:
 
     void clearClosedCycles();
 
+    void clearClosedCyclesNew();
+
     void removeCyclesWithClosedTrustLine(
         const NodeUUID &sourceClosed,
         const NodeUUID &destinationClosed,
         vector<Path::ConstShared> &cycles);
 
+    void removeCyclesWithClosedTrustLineNew(
+        BaseAddress::Shared sourceClosed,
+        BaseAddress::Shared destinationClosed,
+        vector<PathNew::ConstShared> &cycles);
+
     void removeCyclesWithOfflineNode(
         const NodeUUID &offlineNode,
         vector<Path::ConstShared> &cycles);
+
+    void removeCyclesWithOfflineNodeNew(
+        BaseAddress::Shared offlineNode,
+        vector<PathNew::ConstShared> &cycles);
 
     uint32_t randomInitializer() const;
 
@@ -109,6 +136,8 @@ private:
 
 public:
     mutable CloseCycleSignal closeCycleSignal;
+
+    mutable CloseCycleSignalNew closeCycleSignalNew;
 
     mutable BuildSixNodesCyclesSignal buildSixNodesCyclesSignal;
 
@@ -142,8 +171,16 @@ private:
     vector<Path::ConstShared> mFiveNodesCycles;
     vector<Path::ConstShared> mSixNodesCycles;
 
+    vector<PathNew::ConstShared> mThreeNodesCyclesNew;
+    vector<PathNew::ConstShared> mFourNodesCyclesNew;
+    vector<PathNew::ConstShared> mFiveNodesCyclesNew;
+    vector<PathNew::ConstShared> mSixNodesCyclesNew;
+
     map<DateTime, pair<NodeUUID, NodeUUID>> mClosedTrustLines;
     map<DateTime, NodeUUID> mOfflineNodes;
+
+    map<DateTime, pair<BaseAddress::Shared, BaseAddress::Shared>> mClosedTrustLinesNew;
+    map<DateTime, BaseAddress::Shared> mOfflineNodesNew;
 
     CycleClosingState mCurrentCycleClosingState;
     Logger &mLog;

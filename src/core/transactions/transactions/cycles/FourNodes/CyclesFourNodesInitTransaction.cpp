@@ -11,7 +11,7 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::Cycles_FourNodesInitTransaction,
+        BaseTransaction::Cycles_FourNodesInitTransaction,
         nodeUUID,
         equivalent,
         logger),
@@ -111,7 +111,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
     }
 
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
-    vector<PathNew::ConstShared> ResultCycles;
+    vector<PathNew::ConstShared> resultCycles;
 #endif
     while (!mContext.empty()) {
         const auto kMessage = popNextMessage<CyclesFourNodesBalancesResponseMessage>();
@@ -139,15 +139,15 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
             mCyclesManager->addCycle(
                 cyclePath);
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
-            ResultCycles.push_back(cyclePath);
+            resultCycles.push_back(cyclePath);
 #endif
         }
     }
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
-    debug() << "ResultCyclesCount " << ResultCycles.size();
-    for (auto &KCyclePath: ResultCycles){
+    debug() << "ResultCyclesCount " << resultCycles.size();
+    for (auto &cyclePath: resultCycles){
         stringstream ss;
-        for (const auto &address : KCyclePath->nodes) {
+        for (const auto &address : cyclePath->nodes) {
             ss << address->fullAddress() << " ";
         }
         debug() << "CyclePath " << ss.str();

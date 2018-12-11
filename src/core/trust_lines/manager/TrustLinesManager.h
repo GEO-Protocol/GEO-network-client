@@ -438,6 +438,8 @@ public:
 
     vector<NodeUUID> firstLevelNeighborsWithNoneZeroBalance() const;
 
+    vector<ContractorID> firstLevelNeighborsWithNoneZeroBalanceNew() const;
+
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
 
     vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsNew() const;
@@ -487,6 +489,9 @@ public:
 
     vector<NodeUUID> getFirstLevelNodesForCycles(
         TrustLineBalance maxFlow);
+
+    vector<ContractorID> getFirstLevelNodesForCyclesNew(
+        bool isCreditorBranch);
 
     TrustLineActionType checkTrustLineAfterTransaction(
         const NodeUUID &contractorUUID,

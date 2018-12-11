@@ -7,7 +7,7 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
     TrustLinesManager *manager,
     Logger &logger) :
     BaseTransaction(
-        BaseTransaction::TransactionType::Cycles_FourNodesReceiverTransaction,
+        BaseTransaction::Cycles_FourNodesReceiverTransaction,
         message->transactionUUID(),
         nodeUUID,
         message->equivalent(),
@@ -25,7 +25,7 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
     TrustLinesManager *manager,
     Logger &logger) :
     BaseTransaction(
-        BaseTransaction::TransactionType::Cycles_FourNodesReceiverTransaction,
+        BaseTransaction::Cycles_FourNodesReceiverTransaction,
         message->transactionUUID(),
         nodeUUID,
         message->equivalent(),

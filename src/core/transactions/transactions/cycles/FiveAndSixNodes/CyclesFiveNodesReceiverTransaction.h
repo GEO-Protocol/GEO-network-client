@@ -2,17 +2,17 @@
 #define GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESRESPOSETRANSACTION_H
 
 #include "../../base/BaseTransaction.h"
+#include "../../../../contractors/ContractorsManager.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesInBetweenMessage.hpp"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
-
-#include <set>
 
 class CyclesFiveNodesReceiverTransaction : public BaseTransaction {
 public:
     CyclesFiveNodesReceiverTransaction(
         const NodeUUID &nodeUUID,
         CyclesFiveNodesInBetweenMessage::Shared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         Logger &logger);
 
@@ -23,6 +23,7 @@ protected:
 
 protected:
     CyclesFiveNodesInBetweenMessage::Shared mInBetweenNodeTopologyMessage;
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
 };
 #endif //GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESRESPOSETRANSACTION_H

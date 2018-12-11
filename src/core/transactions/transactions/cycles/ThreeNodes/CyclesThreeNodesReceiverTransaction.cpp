@@ -8,7 +8,7 @@ CyclesThreeNodesReceiverTransaction::CyclesThreeNodesReceiverTransaction(
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::Cycles_ThreeNodesReceiverTransaction,
+        BaseTransaction::Cycles_ThreeNodesReceiverTransaction,
         message->transactionUUID(),
         nodeUUID,
         message->equivalent(),

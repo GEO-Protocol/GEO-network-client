@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESINITTRANSACTION_H
 
 #include "../../../base/BaseTransaction.h"
+#include "../../../../../contractors/ContractorsManager.h"
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../cycles/CyclesManager.h"
 
@@ -10,14 +11,15 @@ class CyclesBaseFiveSixNodesInitTransaction :
 
 public:
     typedef shared_ptr<CyclesBaseFiveSixNodesInitTransaction> Shared;
-    typedef multimap<NodeUUID, const shared_ptr<vector<NodeUUID>>> CycleMap;
+    typedef multimap<string, vector<BaseAddress::Shared>> CycleMap;
 
 public:
     CyclesBaseFiveSixNodesInitTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
-        TrustLinesManager *manager,
+        ContractorsManager *contractorsManager,
+        TrustLinesManager *trustLinesManager,
         CyclesManager *cyclesManager,
         Logger &logger);
 
@@ -34,6 +36,7 @@ protected:
     virtual const string logHeader() const = 0;
 
 protected:
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     CyclesManager *mCyclesManager;
 };

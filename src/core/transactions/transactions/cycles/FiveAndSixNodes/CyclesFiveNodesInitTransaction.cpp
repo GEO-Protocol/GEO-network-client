@@ -3,41 +3,39 @@
 CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
     const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
-    TrustLinesManager *manager,
+    ContractorsManager *contractorsManager,
+    TrustLinesManager *trustLinesManager,
     CyclesManager *cyclesManager,
     Logger &logger) :
     CyclesBaseFiveSixNodesInitTransaction(
-        BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction,
+        BaseTransaction::Cycles_FiveNodesInitTransaction,
         nodeUUID,
         equivalent,
-        manager,
+        contractorsManager,
+        trustLinesManager,
         cyclesManager,
         logger)
 {}
 
-const BaseTransaction::TransactionType CyclesFiveNodesInitTransaction::transactionType() const
-{
-    return BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction;
-}
-
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAndSendMessagesStage()
 {
     debug() << "runCollectDataAndSendMessagesStage";
-    vector<NodeUUID> firstLevelNodesNegativeBalance = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
-    vector<NodeUUID> firstLevelNodesPositiveBalance = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
-    vector<NodeUUID> path;
-    path.push_back(mNodeUUID);
+    vector<BaseAddress::Shared> path;
+    path.push_back(
+        mContractorsManager->ownAddresses().at(0));
     TrustLineBalance zeroBalance = 0;
-    for(const auto &value: firstLevelNodesNegativeBalance) {
+    for(const auto &neighborID: mTrustLinesManager->firstLevelNeighborsWithNegativeBalanceNew()) {
         sendMessage<CyclesFiveNodesInBetweenMessage>(
-            value,
+            neighborID,
             mEquivalent,
+            mContractorsManager->idOnContractorSide(neighborID),
             path);
     }
-    for(const auto &value: firstLevelNodesPositiveBalance) {
+    for(const auto &neighborID: mTrustLinesManager->firstLevelNeighborsWithPositiveBalanceNew()) {
         sendMessage<CyclesFiveNodesInBetweenMessage>(
-            value,
+            neighborID,
             mEquivalent,
+            mContractorsManager->idOnContractorSide(neighborID),
             path);
     }
     mStep = Stages::ParseMessageAndCreateCycles;
@@ -51,86 +49,116 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
         info() << "No responses messages are present. Can't create cycles paths";
         return resultDone();
     }
-    debug() << "Try to collect path";
-    CycleMap mCreditors;
+    CycleMap creditors;
     TrustLineBalance creditorsStepFlow;
     for (const auto &mess: mContext) {
         auto message = static_pointer_cast<CyclesFiveNodesBoundaryMessage>(mess);
-        const auto stepPath = make_shared<vector<NodeUUID>>(message->Path());
+        auto stepPath = message->Path();
         //  It has to be exactly nodes count in path
-        if (stepPath->size() != 2)
+        if (stepPath.size() < 2) {
+            warning() << "Received message contains " << stepPath.size() << " nodes";
             continue;
-        creditorsStepFlow = mTrustLinesManager->balance((*stepPath)[1]);
+        }
+        if (stepPath.front() != mContractorsManager->ownAddresses().at(0)) {
+            warning() << "Received message was initiate by other node " << stepPath.front()->fullAddress();
+            continue;
+        }
+        auto contractorID = mContractorsManager->contractorIDByAddress(stepPath[1]);
+        if (contractorID == ContractorsManager::kNotFoundContractorID) {
+            warning() << "There is no contractor with address " << stepPath[1];
+        }
+        creditorsStepFlow = mTrustLinesManager->balance(contractorID);
         //  If it is Debtor branch - skip it
-        if (creditorsStepFlow > TrustLine::kZeroBalance())
+        if (creditorsStepFlow > TrustLine::kZeroBalance()) {
             continue;
+        }
+        if (stepPath.size() != 2) {
+            warning() << "Received message contains " << stepPath.size() << " creditor nodes";
+            continue;
+        }
         //  Check all Boundary Nodes and add it to map if all checks path
-        for (auto &NodeUUID: message->BoundaryNodes()){
+        for (const auto &nodeAddress: message->BoundaryNodes()) {
             //  Prevent loop on cycles path
-            if (NodeUUID == stepPath->front())
+            if (nodeAddress == stepPath.front()) {
                 continue;
-            //  NodeUUIDAndBalance.second - already minimum balance on creditors branch
-            //  For not tu use abc for every balance on debtors branch - just change sign of these balance
-            mCreditors.insert(make_pair(
-                NodeUUID,
-                stepPath));
+            }
+            //  For not to use abc for every balance on debtors branch - just change sign of these balance
+            creditors.insert(
+                make_pair(
+                    nodeAddress->fullAddress(),
+                    stepPath));
         }
     }
-    vector<NodeUUID> stepPathDebtors;
+
     //    Create Cycles comparing BoundaryMessages data with debtors map
-#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
-        vector<vector<NodeUUID>> ResultCycles;
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+    vector<PathNew::ConstShared> resultCycles;
 #endif
     TrustLineBalance debtorsStepFlow;
     TrustLineBalance commonStepMaxFlow;
     for(const auto &mess: mContext) {
         auto message = static_pointer_cast<CyclesFiveNodesBoundaryMessage>(mess);
-        debtorsStepFlow = mTrustLinesManager->balance(message->Path()[1]);
+        auto stepPathDebtors = message->Path();
+        if (stepPathDebtors.size() < 2) {
+            warning() << "Received message contains " << stepPathDebtors.size() << " nodes";
+            continue;
+        }
+        if (stepPathDebtors.front() != mContractorsManager->ownAddresses().at(0)) {
+            warning() << "Received message was initiate by other node " << stepPathDebtors.front()->fullAddress();
+            continue;
+        }
+        auto contractorID = mContractorsManager->contractorIDByAddress(stepPathDebtors[1]);
+        if (contractorID == ContractorsManager::kNotFoundContractorID) {
+            warning() << "There is no contractor with address " << stepPathDebtors[1];
+        }
+        debtorsStepFlow = mTrustLinesManager->balance(contractorID);
         //  If it is Creditors branch - skip it
-        if (debtorsStepFlow < TrustLine::kZeroBalance())
+        if (debtorsStepFlow < TrustLine::kZeroBalance()) {
             continue;
-        stepPathDebtors = message->Path();
-        //  It has to be exactly nodes count in path
-        if (stepPathDebtors.size() != 3)
+        }
+        if (stepPathDebtors.size() != 3) {
+            warning() << "Received message contains " << stepPathDebtors.size() << " debtor nodes";
             continue;
-        for (const auto &kNodeUUID: message->BoundaryNodes()) {
-            //  Prevent loop on cycles path
-            if (kNodeUUID == stepPathDebtors.front())
-                continue;
+        }
 
-            auto NodeUIIDAndPathRange = mCreditors.equal_range(kNodeUUID);
-            for (auto s_it = NodeUIIDAndPathRange.first; s_it != NodeUIIDAndPathRange.second; ++s_it) {
+        //  It has to be exactly nodes count in path
+        for (const auto &nodeAddress: message->BoundaryNodes()) {
+            //  Prevent loop on cycles path
+            if (nodeAddress == stepPathDebtors.front()) {
+                continue;
+            }
+
+            auto nodeAddressAndPathRange = creditors.equal_range(nodeAddress->fullAddress());
+            for (auto nodeAddressAndPathIt = nodeAddressAndPathRange.first;
+                 nodeAddressAndPathIt != nodeAddressAndPathRange.second; ++nodeAddressAndPathIt) {
                 //  Find minMax flow between 3 value. 1 in map. 1 in boundaryNodes. 1 we get from creditor first node in path
-                vector <NodeUUID> stepCyclePath = {
+                vector <BaseAddress::Shared> stepCyclePath = {
                                                    stepPathDebtors[1],
                                                    stepPathDebtors[2],
-                                                   kNodeUUID,
-                                                   s_it->second->back()};
+                                                   nodeAddress,
+                                                   nodeAddressAndPathIt->second.back()};
 
-                stringstream ss;
-                copy(stepCyclePath.begin(), stepCyclePath.end(), ostream_iterator<NodeUUID>(ss, ","));
-                debug() << "CyclesFiveNodesInitTransaction::CyclePath " << ss.str();
-                const auto cyclePath = make_shared<Path>(
-                    mNodeUUID,
-                    mNodeUUID,
+                const auto cyclePath = make_shared<PathNew>(
+                    mContractorsManager->ownAddresses().at(0),
                     stepCyclePath);
                 mCyclesManager->addCycle(
                     cyclePath);
 
-#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
-                    ResultCycles.push_back(stepCyclePath);
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+                resultCycles.push_back(cyclePath);
 #endif
             }
         }
     }
-#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
-    debug() << "CyclesSixNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size());
-    for (vector<NodeUUID> KCyclePath: ResultCycles){
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+    debug() << "ResultCyclesCount " << resultCycles.size();
+    for (auto &cyclePath: resultCycles){
         stringstream ss;
-        copy(KCyclePath.begin(), KCyclePath.end(), ostream_iterator<NodeUUID>(ss, ","));
-        debug() << "CyclesFiveNodesInitTransaction::CyclePath " << ss.str();
+        for (const auto &address : cyclePath->nodes) {
+            ss << address->fullAddress() << " ";
+        }
+        debug() << "CyclePath " << ss.str();
     }
-    debug() << "CyclesFiveNodesInitTransaction::End";
 #endif
     mCyclesManager->closeOneCycle();
     return resultDone();

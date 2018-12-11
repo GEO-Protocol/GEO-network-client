@@ -13,11 +13,10 @@ public:
     CyclesFiveNodesInitTransaction(
         const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
-        TrustLinesManager *manager,
+        ContractorsManager *contractorsManager,
+        TrustLinesManager *trustLinesManager,
         CyclesManager *cyclesManager,
         Logger &logger);
-
-    const BaseTransaction::TransactionType transactionType() const;
 
 protected:
     const string logHeader() const;
