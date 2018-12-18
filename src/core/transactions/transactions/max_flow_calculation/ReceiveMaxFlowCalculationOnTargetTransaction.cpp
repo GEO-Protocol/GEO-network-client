@@ -64,6 +64,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator()
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendResultToInitiator\t" << "send to " << mMessage->senderUUID;
     info() << "sendResultToInitiator\t" << "IncomingFlows: " << incomingFlows.size();
+    info() << "sendResultToInitiator\t" << "IncomingFlowsNew: " << incomingFlowsNew.size();
 #endif
     if (!incomingFlows.empty()) {
         sendMessage<ResultMaxFlowCalculationMessage>(

@@ -3,6 +3,7 @@
 IntermediateNodeReservationResponseMessage::IntermediateNodeReservationResponseMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const PathID& pathID,
     const ResponseMessage::OperationState state,
@@ -11,6 +12,7 @@ IntermediateNodeReservationResponseMessage::IntermediateNodeReservationResponseM
     ResponseMessage(
         equivalent,
         senderUUID,
+        senderAddresses,
         transactionUUID,
         pathID,
         state),

@@ -14,14 +14,15 @@ public:
     CoordinatorReservationRequestMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID& senderUUID,
+        vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID& transactionUUID,
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
-        const NodeUUID& nextNodeInThePath);
+        BaseAddress::Shared nextNodeInThePath);
 
     CoordinatorReservationRequestMessage(
         BytesShared buffer);
 
-    const NodeUUID& nextNodeInPath() const;
+    BaseAddress::Shared nextNodeInPath() const;
 
     const Message::MessageType typeID() const;
 
@@ -29,7 +30,7 @@ public:
         throw(bad_alloc);
 
 protected:
-     NodeUUID mNextPathNode;
+     BaseAddress::Shared mNextPathNode;
 };
 
 #endif // COORDINATORRESERVATIONREQUESTMESSAGE_H

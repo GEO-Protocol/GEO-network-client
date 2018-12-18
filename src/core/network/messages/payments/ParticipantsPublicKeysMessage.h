@@ -17,6 +17,7 @@ public:
     ParticipantsPublicKeysMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const map<PaymentNodeID, lamport::PublicKey::Shared>& publicKeys);
 

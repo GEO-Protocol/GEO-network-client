@@ -4,6 +4,7 @@
 ResponseMessage::ResponseMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const PathID &pathID,
     const OperationState state) :
@@ -11,6 +12,7 @@ ResponseMessage::ResponseMessage(
     TransactionMessage(
         equivalent,
         senderUUID,
+        senderAddresses,
         transactionUUID),
     mPathID(pathID),
     mState(state)

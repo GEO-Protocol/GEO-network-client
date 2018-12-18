@@ -3,30 +3,6 @@
 CollectTopologyTransaction::CollectTopologyTransaction(
     const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
-    const vector<NodeUUID> &contractors,
-    ContractorsManager *contractorsManager,
-    TrustLinesManager *manager,
-    TopologyTrustLinesManager *topologyTrustLineManager,
-    TopologyCacheManager *topologyCacheManager,
-    MaxFlowCacheManager *maxFlowCacheManager,
-    Logger &logger) :
-
-    BaseTransaction(
-        BaseTransaction::TransactionType::CollectTopologyTransactionType,
-        nodeUUID,
-        equivalent,
-        logger),
-    mContractors(contractors),
-    mContractorsManager(contractorsManager),
-    mTrustLinesManager(manager),
-    mTopologyTrustLineManager(topologyTrustLineManager),
-    mTopologyCacheManager(topologyCacheManager),
-    mMaxFlowCacheManager(maxFlowCacheManager)
-{}
-
-CollectTopologyTransaction::CollectTopologyTransaction(
-    const NodeUUID &nodeUUID,
-    const SerializedEquivalent equivalent,
     const vector<BaseAddress::Shared> &contractorAddresses,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,

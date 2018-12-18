@@ -29,8 +29,24 @@ CreditUsageCommand::CreditUsageCommand(
                     "Error occurred while parsing 'Contractor UUID' token.");
     }
 
-    size_t amountStartPos = NodeUUID::kHexSize+1;
+    size_t contractorAddressStartPos = NodeUUID::kHexSize + 1;
     size_t tokenSeparatorPos = commandBuffer.find(
+        kTokensSeparator,
+        contractorAddressStartPos);
+    auto contractorAddressStr = commandBuffer.substr(
+        contractorAddressStartPos,
+        tokenSeparatorPos - contractorAddressStartPos);
+    try {
+        mContractorAddress = make_shared<IPv4WithPortAddress>(
+            contractorAddressStr);
+    } catch (...) {
+        throw ValueError(
+                "CreditUsageCommand: can't parse command. "
+                    "Error occurred while parsing 'Contractor Address' token.");
+    }
+
+    size_t amountStartPos = tokenSeparatorPos + 1;
+    tokenSeparatorPos = commandBuffer.find(
         kTokensSeparator,
         amountStartPos);
     try {
@@ -72,6 +88,11 @@ const string& CreditUsageCommand::identifier()
 const NodeUUID& CreditUsageCommand::contractorUUID() const
 {
     return mContractorUUID;
+}
+
+BaseAddress::Shared CreditUsageCommand::contractorAddress() const
+{
+    return mContractorAddress;
 }
 
 const TrustLineAmount& CreditUsageCommand::amount() const

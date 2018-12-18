@@ -81,7 +81,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
     TrustLineBalance debtorsStepFlow;
     TrustLineBalance commonStepMaxFlow;
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
-    vector<PathNew::ConstShared> resultCycles;
+    vector<Path::ConstShared> resultCycles;
 #endif
     for(const auto &mess: mContext) {
         auto message = static_pointer_cast<CyclesSixNodesBoundaryMessage>(mess);
@@ -123,8 +123,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
                                                   nodeAddress,
                                                   (nodeAddressAndPathIt->second)[2],
                                                   (nodeAddressAndPathIt->second)[1]};
-                const auto cyclePath = make_shared<PathNew>(
-                    mContractorsManager->ownAddresses().at(0),
+                const auto cyclePath = make_shared<Path>(
                     stepCyclePath);
                 mCyclesManager->addCycle(
                     cyclePath);
@@ -137,11 +136,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
     debug() << "ResultCyclesCount " << resultCycles.size();
     for (auto &cyclePath: resultCycles){
-        stringstream ss;
-        for (const auto &address : cyclePath->nodes) {
-            ss << address->fullAddress() << " ";
-        }
-        debug() << "CyclePath " << ss.str();
+        debug() << "CyclePath " << cyclePath->toString();
     }
 #endif
     mContext.clear();

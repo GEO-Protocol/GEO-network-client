@@ -14,15 +14,16 @@ public:
     IntermediateNodeCycleReservationRequestMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID& senderUUID,
+        vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID& transactionUUID,
         const TrustLineAmount& amount,
-        const NodeUUID& coordinatorUUID,
-        SerializedPathLengthSize cucleLength);
+        BaseAddress::Shared coordinatorAddress,
+        SerializedPathLengthSize cycleLength);
 
     IntermediateNodeCycleReservationRequestMessage(
         BytesShared buffer);
 
-    const NodeUUID& coordinatorUUID() const;
+    BaseAddress::Shared coordinatorAddress() const;
 
     SerializedPathLengthSize cycleLength() const;
 
@@ -34,7 +35,7 @@ protected:
 
 protected:
     SerializedPathLengthSize mCycleLength;
-    NodeUUID mCoordinatorUUID;
+    BaseAddress::Shared mCoordinatorAddress;
 };
 
 

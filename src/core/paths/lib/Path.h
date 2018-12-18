@@ -1,43 +1,34 @@
-﻿#ifndef PATH_H
-#define PATH_H
+#ifndef GEO_NETWORK_CLIENT_PATH_H
+#define GEO_NETWORK_CLIENT_PATH_H
 
-#include "../../common/NodeUUID.h"
+#include "../../contractors/addresses/BaseAddress.h"
 #include "../../common/exceptions/IndexError.h"
 
 #include <vector>
 #include <sstream>
 
-
 class Path {
+
 public:
     typedef shared_ptr<Path> Shared;
     typedef shared_ptr<const Path> ConstShared;
 
 public:
     Path(
-        const NodeUUID &source,
-        const NodeUUID &destination,
-        const vector<NodeUUID> &intermediateNodes = vector<NodeUUID>());
+        vector<BaseAddress::Shared> intermediateNodes);
 
-    Path(
-        const NodeUUID &source,
-        const NodeUUID &destination,
-        const vector<NodeUUID> &&intermediateNodes);
-
-    const NodeUUID &sourceUUID() const;
-
-    const NodeUUID &destinationUUID() const;
-
-    vector<NodeUUID> intermediateUUIDs() const;
-
-    bool containsIntermediateNodes() const;
+    // todo : rename intermediate and receiver
+    vector<BaseAddress::Shared> intermediates() const;
 
     int positionOfNode(
-        const NodeUUID &nodeUUID) const;
+        BaseAddress::Shared nodeAddress) const;
+
+    void addReceiver(
+        BaseAddress::Shared receiverAddress);
 
     bool containsTrustLine(
-        const NodeUUID &source,
-        const NodeUUID &destination) const;
+        BaseAddress::Shared source,
+        BaseAddress::Shared destination) const;
 
     const size_t length() const;
 
@@ -47,8 +38,9 @@ public:
         const Path &p1,
         const Path &p2);
 
-public:
-    const vector<NodeUUID> nodes;
+private:
+    vector<BaseAddress::Shared> nodes;
 };
 
-#endif // PATH_H
+
+#endif //GEO_NETWORK_CLIENT_PATH_H

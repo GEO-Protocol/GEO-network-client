@@ -25,6 +25,8 @@ public:
     ParticipantsVotesMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        // todo : use &
+        vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
         map<PaymentNodeID, lamport::Signature::Shared> &participantsSignatures);
 

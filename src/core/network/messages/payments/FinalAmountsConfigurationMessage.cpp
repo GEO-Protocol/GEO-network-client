@@ -3,34 +3,38 @@
 FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
-    const map<NodeUUID, PaymentNodeID> &paymentNodesIds) :
+    const map<PaymentNodeID, BaseAddress::Shared> &paymentParticipants) :
 
     RequestMessageWithReservations(
         equivalent,
         senderUUID,
+        senderAddresses,
         transactionUUID,
         finalAmountsConfig),
-    mPaymentNodesIds(paymentNodesIds),
+    mPaymentParticipants(paymentParticipants),
     mIsReceiptContains(false)
 {}
 
 FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
-    const map<NodeUUID, PaymentNodeID> &paymentNodesIds,
+    const map<PaymentNodeID, BaseAddress::Shared> &paymentParticipants,
     const KeyNumber publicKeyNumber,
     const lamport::Signature::Shared signature) :
 
     RequestMessageWithReservations(
         equivalent,
         senderUUID,
+        senderAddresses,
         transactionUUID,
         finalAmountsConfig),
-    mPaymentNodesIds(paymentNodesIds),
+    mPaymentParticipants(paymentParticipants),
     mIsReceiptContains(true),
     mPublicKeyNumber(publicKeyNumber),
     mSignature(signature)
@@ -43,20 +47,20 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     auto parentMessageOffset = RequestMessageWithReservations::kOffsetToInheritedBytes();
     auto bytesBufferOffset = buffer.get() + parentMessageOffset;
     //----------------------------------------------------
-    auto *paymentNodesIdsCount = new (bytesBufferOffset) SerializedRecordsCount;
+    auto *paymentParticipantsCount = new (bytesBufferOffset) SerializedRecordsCount;
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     //-----------------------------------------------------
-    for (SerializedRecordNumber idx = 0; idx < *paymentNodesIdsCount; idx++) {
-        NodeUUID nodeUUID(bytesBufferOffset);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        //---------------------------------------------------
+    for (SerializedRecordNumber idx = 0; idx < *paymentParticipantsCount; idx++) {
         auto *paymentNodeID = new (bytesBufferOffset) PaymentNodeID;
         bytesBufferOffset += sizeof(PaymentNodeID);
         //---------------------------------------------------
-        mPaymentNodesIds.insert(
+        auto address = deserializeAddress(bytesBufferOffset);
+        bytesBufferOffset += address->serializedSize();
+        //---------------------------------------------------
+        mPaymentParticipants.insert(
             make_pair(
-                nodeUUID,
-                *paymentNodeID));
+                *paymentNodeID,
+                address));
     }
     //----------------------------------------------------
     memcpy(
@@ -83,9 +87,9 @@ const Message::MessageType FinalAmountsConfigurationMessage::typeID() const
     return Message::Payments_FinalAmountsConfiguration;
 }
 
-const map<NodeUUID, PaymentNodeID>& FinalAmountsConfigurationMessage::paymentNodesIds() const
+const map<PaymentNodeID, BaseAddress::Shared>& FinalAmountsConfigurationMessage::paymentParticipants() const
 {
-    return mPaymentNodesIds;
+    return mPaymentParticipants;
 }
 
 bool FinalAmountsConfigurationMessage::isReceiptContains() const
@@ -112,10 +116,11 @@ pair<BytesShared, size_t> FinalAmountsConfigurationMessage::serializeToBytes() c
 {
     auto parentBytesAndCount = RequestMessageWithReservations::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
-            + sizeof(SerializedRecordsCount)
-            + mPaymentNodesIds.size() *
-                (NodeUUID::kBytesSize + sizeof(PaymentNodeID))
-            + sizeof(byte);
+                        + sizeof(SerializedRecordsCount)
+                        + sizeof(byte);
+    for (const auto &participant : mPaymentParticipants) {
+        bytesCount += sizeof(PaymentNodeID) + participant.second->serializedSize();
+    }
     if (mIsReceiptContains) {
         bytesCount += sizeof(KeyNumber)
                 + lamport::Signature::signatureSize();
@@ -131,25 +136,26 @@ pair<BytesShared, size_t> FinalAmountsConfigurationMessage::serializeToBytes() c
     auto bytesBufferOffset = initialOffset + parentBytesAndCount.second;
 
     //----------------------------------------------------
-    auto paymentNodesIdsCount = (SerializedRecordsCount)mPaymentNodesIds.size();
+    auto paymentParticipantsCount = (SerializedRecordsCount)mPaymentParticipants.size();
     memcpy(
         bytesBufferOffset,
-        &paymentNodesIdsCount,
+        &paymentParticipantsCount,
         sizeof(SerializedRecordsCount));
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     //----------------------------------------------------
-    for (auto const &nodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
+    for (auto const &paymentNodeIdAndAddress : mPaymentParticipants) {
         memcpy(
             bytesBufferOffset,
-            nodeUUIDAndPaymentNodeID.first.data,
-            NodeUUID::kBytesSize);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-
-        memcpy(
-            bytesBufferOffset,
-            &nodeUUIDAndPaymentNodeID.second,
+            &paymentNodeIdAndAddress.first,
             sizeof(PaymentNodeID));
         bytesBufferOffset += sizeof(PaymentNodeID);
+
+        auto serializedAddress = paymentNodeIdAndAddress.second->serializeToBytes();
+        memcpy(
+            bytesBufferOffset,
+            serializedAddress.get(),
+            paymentNodeIdAndAddress.second->serializedSize());
+        bytesBufferOffset += paymentNodeIdAndAddress.second->serializedSize();
     }
     //----------------------------------------------------
     memcpy(

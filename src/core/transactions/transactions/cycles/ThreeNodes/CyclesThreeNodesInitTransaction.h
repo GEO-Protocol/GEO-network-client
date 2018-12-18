@@ -38,7 +38,11 @@ protected:
 
 protected:
     const string logHeader() const;
+
     vector<BaseAddress::Shared> getNeighborsWithContractor();
+
+protected:
+    static const uint16_t mkWaitingForResponseTime = 3000;
 
 protected:
     ContractorID mContractorID;

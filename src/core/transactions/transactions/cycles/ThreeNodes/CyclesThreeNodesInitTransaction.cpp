@@ -60,7 +60,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultWaitForMessageTypes(
         {Message::Cycles_ThreeNodesBalancesResponse},
-        mkStandardConnectionTimeout);
+        mkWaitingForResponseTime);
 }
 
 TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageAndCreateCyclesStage()
@@ -71,7 +71,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
         return resultDone();
     }
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
-    vector<PathNew::Shared> resultCycles;
+    vector<Path::Shared> resultCycles;
 #endif
     auto message = popNextMessage<CyclesThreeNodesBalancesResponseMessage>();
     if (message->commonNodes().empty()) {
@@ -88,8 +88,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
                 cycle.end());
         }
         // Path object is common object.
-        const auto cyclePath = make_shared<PathNew>(
-            mContractorsManager->ownAddresses().at(0),
+        const auto cyclePath = make_shared<Path>(
             cycle);
         mCyclesManager->addCycle(
             cyclePath);
@@ -101,11 +100,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
     debug() << "ResultCyclesCount " << resultCycles.size();
     for (auto &cyclePath: resultCycles){
-        stringstream ss;
-        for (const auto &address : cyclePath->nodes) {
-            ss << address->fullAddress() << " ";
-        }
-        debug() << "CyclePath " << ss.str();
+        debug() << "CyclePath " << cyclePath->toString();
     }
 #endif
     mCyclesManager->closeOneCycle();
@@ -120,7 +115,7 @@ vector<BaseAddress::Shared> CyclesThreeNodesInitTransaction::getNeighborsWithCon
         return commonNeighbors;
     }
 
-    for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLinesNew()){
+    for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLinesNew()) {
         const auto kTL = kNodeUUIDAndTrustLine.second;
         if (kTL->state() != TrustLine::Active) {
             continue;

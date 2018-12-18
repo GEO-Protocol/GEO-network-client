@@ -12,9 +12,16 @@ public:
     typedef shared_ptr<const ReceiverInitPaymentRequestMessage> ConstShared;
 
 public:
-    using RequestMessage::RequestMessage;
+    ReceiverInitPaymentRequestMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
+        const TransactionUUID &transactionUUID,
+        const TrustLineAmount &amount);
 
-private:
+    ReceiverInitPaymentRequestMessage(
+        BytesShared buffer);
+
     const MessageType typeID() const;
 };
 #endif //GEO_NETWORK_CLIENT_RECEIVERINITPAYMENTMESSAGE_H

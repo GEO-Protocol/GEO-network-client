@@ -30,7 +30,7 @@ public:
     SenderMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
-        vector<BaseAddress::Shared> senderAddresses)
+        vector<BaseAddress::Shared> &senderAddresses)
         noexcept;
 
     SenderMessage(
@@ -39,12 +39,12 @@ public:
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
+    static BaseAddress::Shared deserializeAddress(
+        byte* offset);
+
 protected:
     virtual const size_t kOffsetToInheritedBytes() const
         noexcept;
-
-    static BaseAddress::Shared deserializeAddress(
-        byte* offset);
 };
 
 #endif //GEO_NETWORK_CLIENT_SENDERMESSAGE_H

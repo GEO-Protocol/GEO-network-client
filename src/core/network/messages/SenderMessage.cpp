@@ -17,7 +17,7 @@ SenderMessage::SenderMessage(
 SenderMessage::SenderMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
-    vector<BaseAddress::Shared> senderAddresses)
+    vector<BaseAddress::Shared> &senderAddresses)
     noexcept :
     EquivalentMessage(
         equivalent),

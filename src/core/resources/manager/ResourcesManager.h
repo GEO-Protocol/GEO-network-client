@@ -3,6 +3,7 @@
 
 #include "../../common/Types.h"
 #include "../../common/NodeUUID.h"
+#include "../../contractors/addresses/BaseAddress.h"
 #include "../../transactions/transactions/base/TransactionUUID.h"
 
 #include "../resources/BaseResource.h"
@@ -19,6 +20,7 @@ public:
     typedef signals::signal<void(
                 const TransactionUUID&,
                 const NodeUUID&,
+                BaseAddress::Shared,
                 const SerializedEquivalent)>
             RequestPathsResourcesSignal;
     typedef signals::signal<void(BaseResource::Shared)> AttachResourceSignal;
@@ -29,7 +31,8 @@ public:
 
     void requestPaths(
         const TransactionUUID &transactionUUID,
-        const NodeUUID &contractorUUID,
+        const NodeUUID& contractorUUID,
+        BaseAddress::Shared contractorAddress,
         const SerializedEquivalent equivalent) const;
 
 

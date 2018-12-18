@@ -5,9 +5,9 @@
 #include "../../../base/BaseTransaction.h"
 
 #include "../../../../../common/Types.h"
-#include "../../../../../paths/lib/Path.h"
 #include "../../../../../logger/Logger.h"
 
+#include "../../../../../contractors/ContractorsManager.h"
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../io/storage/StorageHandler.h"
 #include "../../../../../topology/cashe/TopologyCacheManager.h"
@@ -38,8 +38,6 @@
 #include "../../../../../network/messages/payments/ParticipantsPublicKeysMessage.h"
 #include "../../../../../network/messages/payments/ParticipantVoteMessage.h"
 
-#include "PathStats.h"
-
 #include "../../../../../subsystems_controller/SubsystemsController.h"
 
 #include <unordered_set>
@@ -63,6 +61,7 @@ public:
         const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
         bool iAmGateway,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -77,6 +76,7 @@ public:
         const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
         bool iAmGateway,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -89,6 +89,7 @@ public:
         BytesShared buffer,
         const NodeUUID &nodeUUID,
         bool iAmGateway,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -105,7 +106,7 @@ public:
      * used in CyclesManager for resolving cycle closing conflicts
      * and in transaction scheduler
      */
-    virtual const NodeUUID& coordinatorUUID() const;
+    virtual BaseAddress::Shared coordinatorAddress() const;
 
     /**
      * @return length of cycle which is closing by current transaction
@@ -163,7 +164,7 @@ protected:
     };
 
 protected:
-    virtual TransactionResult::SharedConst runVotesCheckingStage();
+    TransactionResult::SharedConst runVotesCheckingStage();
 
     /**
      * reaction on receiving participants votes message with result of voting
@@ -192,7 +193,7 @@ protected:
      * @param contractorUUID node to which message will be sent
      */
     TransactionResult::SharedConst sendVotesRequestMessageAndWaitForResponse(
-        const NodeUUID &contractorUUID);
+        BaseAddress::Shared contractorAddress);
 
     /**
     * process next node in participants votes message during recovery stage
@@ -229,7 +230,7 @@ protected:
      * @return true if the reservation was successful, false otherwise
      */
     const bool reserveOutgoingAmount(
-        const NodeUUID &neighborNode,
+        ContractorID neighborNode,
         const TrustLineAmount& amount,
         const PathID &pathID);
 
@@ -241,7 +242,7 @@ protected:
      * @return true if the reservation was successful, false otherwise
      */
     const bool reserveIncomingAmount(
-        const NodeUUID &neighborNode,
+        ContractorID neighborNode,
         const TrustLineAmount& amount,
         const PathID &pathID);
 
@@ -254,7 +255,7 @@ protected:
      * @return true if the reservation was reduced successfully, false otherwise
      */
     const bool shortageReservation(
-        const NodeUUID kContractor,
+        ContractorID kContractor,
         const AmountReservation::ConstShared kReservation,
         const TrustLineAmount &kNewAmount,
         const PathID &pathID);
@@ -328,13 +329,13 @@ protected:
     // Returns reservation pathID, which was updated, if reservation was dropped, returns 0
     /**
      * update reservations of current node to specified node on specified path
-     * @param contractorUUID node with which reservation will be updated
+     * @param contractorID node with which reservation will be updated
      * @param pathIDAndReservation pair of path id and pointer to reservations which will be updated
      * @param finalAmounts vector of currently final amounts on all paths
      * @return path id of reservation if it was updated or 0 if reservation was dropped
      */
     PathID updateReservation(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         pair<PathID, AmountReservation::ConstShared> &pathIDAndReservation,
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts);
 
@@ -366,23 +367,24 @@ protected:
     virtual bool checkReservationsDirections() const = 0;
 
     pair<BytesShared, size_t> getSerializedReceipt(
-        const NodeUUID &source,
-        const NodeUUID &target,
-        const TrustLineAmount &amount);
+        ContractorID source,
+        ContractorID target,
+        const TrustLineAmount &amount,
+        bool isSource);
 
     bool checkAllNeighborsWithReservationsAreInFinalParticipantsList();
 
     bool checkAllPublicKeyHashesProperly();
 
     const TrustLineAmount totalReservedIncomingAmountToNode(
-        const NodeUUID &nodeUUID);
+        ContractorID contractorID);
 
     bool checkPublicKeysAppropriate();
 
     pair<BytesShared, size_t> getSerializedParticipantsVotesData(
-        const NodeUUID &nodeUUID);
+        BaseAddress::Shared participantAddress);
 
-    bool checkSignsAppropriate();
+    bool checkSignaturesAppropriate();
 
 protected:
     // Specifies how long node must wait for the response from the remote node.
@@ -400,7 +402,8 @@ protected:
 
     static const uint32_t kWaitMillisecondsToTryRecoverAgain = 30000;
 
-    static const PaymentNodeID kCoordinatorPaymentNodeID = 0;
+    // todo : make static
+    const PaymentNodeID kCoordinatorPaymentNodeID = 0;
 
 public:
     // signal for launching transaction of building cycles on three nodes
@@ -410,7 +413,8 @@ public:
     mutable BuildCycleFourNodesSignal mBuildCycleFourNodesSignal;
 
 protected:
-    TrustLinesManager *mTrustLines;
+    ContractorsManager *mContractorsManager;
+    TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
@@ -428,22 +432,23 @@ protected:
     // so the votes message must be saved for further processing.
     ParticipantsVotesMessage::Shared mParticipantsVotesMessage;
 
-    map<NodeUUID, vector<pair<PathID, AmountReservation::ConstShared>>> mReservations;
+    map<ContractorID, vector<pair<PathID, AmountReservation::ConstShared>>> mReservations;
 
     // Nodes which with current node will be trying to close cycle
     set<ContractorID> mContractorsForCycles;
     bool mIAmGateway;
 
     // Votes recovery
-    vector<NodeUUID> mNodesToCheckVotes;
-    NodeUUID mCurrentNodeToCheckVotes;
+    vector<BaseAddress::Shared> mNodesToCheckVotes;
+    BaseAddress::Shared mCurrentNodeToCheckVotes;
 
     // this amount used for saving in payment history
     TrustLineAmount mCommittedAmount;
 
     // ids of nodes inside payment transaction
-    map<NodeUUID, PaymentNodeID> mPaymentNodesIds;
-    map<NodeUUID, pair<PaymentNodeID, lamport::KeyHash::Shared>> mParticipantsPublicKeysHashes;
+    map<PaymentNodeID, BaseAddress::Shared> mPaymentParticipants;
+    map<string, PaymentNodeID> mPaymentNodesIds;
+    map<string, pair<PaymentNodeID, lamport::KeyHash::Shared>> mParticipantsPublicKeysHashes;
     map<PaymentNodeID, lamport::PublicKey::Shared> mParticipantsPublicKeys;
     map<PaymentNodeID, lamport::Signature::Shared> mParticipantsSignatures;
 

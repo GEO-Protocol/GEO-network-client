@@ -18,11 +18,11 @@ public:
 
     ContractorID getContractorID(
         IOTransaction::Shared ioTransaction,
-        const string &fullAddress,
+        BaseAddress::Shared contractorAddress,
         const NodeUUID &contractorUUID);
 
     ContractorID getContractorID(
-        IPv4WithPortAddress::Shared ipv4Address,
+        BaseAddress::Shared contractorAddress,
         const NodeUUID &contractorUUID,
         ContractorID idOnContractorSide,
         IOTransaction::Shared ioTransaction = nullptr);

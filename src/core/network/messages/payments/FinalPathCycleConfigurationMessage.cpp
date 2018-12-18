@@ -3,34 +3,38 @@
 FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount,
-    const map<NodeUUID, PaymentNodeID> &paymentNodesIds) :
+    const map<PaymentNodeID, BaseAddress::Shared> &paymentParticipants) :
 
     RequestCycleMessage(
         equivalent,
         senderUUID,
+        senderAddresses,
         transactionUUID,
         amount),
-    mPaymentNodesIds(paymentNodesIds),
+    mPaymentParticipants(paymentParticipants),
     mIsReceiptContains(false)
 {}
 
 FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount,
-    const map<NodeUUID, PaymentNodeID> &paymentNodesIds,
+    const map<PaymentNodeID, BaseAddress::Shared> &paymentParticipants,
     const KeyNumber publicKeyNumber,
     const lamport::Signature::Shared signature) :
 
     RequestCycleMessage(
         equivalent,
         senderUUID,
+        senderAddresses,
         transactionUUID,
         amount),
-    mPaymentNodesIds(paymentNodesIds),
+    mPaymentParticipants(paymentParticipants),
     mIsReceiptContains(true),
     mPublicKeyNumber(publicKeyNumber),
     mSignature(signature)
@@ -44,20 +48,20 @@ RequestCycleMessage(buffer)
     auto parentMessageOffset = RequestCycleMessage::kOffsetToInheritedBytes();
     auto bytesBufferOffset = buffer.get() + parentMessageOffset;
 
-    auto *paymentNodesIdsCount = new (bytesBufferOffset) SerializedRecordsCount;
+    auto *paymentParticipantsCount = new (bytesBufferOffset) SerializedRecordsCount;
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     //-----------------------------------------------------
-    for (SerializedRecordNumber idx = 0; idx < *paymentNodesIdsCount; idx++) {
-        NodeUUID nodeUUID(bytesBufferOffset);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        //---------------------------------------------------
+    for (SerializedRecordNumber idx = 0; idx < *paymentParticipantsCount; idx++) {
         auto *paymentNodeID = new (bytesBufferOffset) PaymentNodeID;
         bytesBufferOffset += sizeof(PaymentNodeID);
         //---------------------------------------------------
-        mPaymentNodesIds.insert(
+        auto address = deserializeAddress(bytesBufferOffset);
+        bytesBufferOffset += address->serializedSize();
+        //---------------------------------------------------
+        mPaymentParticipants.insert(
             make_pair(
-                nodeUUID,
-                *paymentNodeID));
+                *paymentNodeID,
+                address));
     }
     //----------------------------------------------------
     memcpy(
@@ -84,9 +88,9 @@ const Message::MessageType FinalPathCycleConfigurationMessage::typeID() const
     return Message::Payments_FinalPathCycleConfiguration;
 }
 
-const map<NodeUUID, PaymentNodeID>& FinalPathCycleConfigurationMessage::paymentNodesIds() const
+const map<PaymentNodeID, BaseAddress::Shared>& FinalPathCycleConfigurationMessage::paymentParticipants() const
 {
-    return mPaymentNodesIds;
+    return mPaymentParticipants;
 }
 
 bool FinalPathCycleConfigurationMessage::isReceiptContains() const
@@ -114,9 +118,10 @@ pair<BytesShared, size_t> FinalPathCycleConfigurationMessage::serializeToBytes()
     auto parentBytesAndCount = RequestCycleMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
             + sizeof(SerializedRecordsCount)
-            + mPaymentNodesIds.size() *
-              (NodeUUID::kBytesSize + sizeof(PaymentNodeID))
             + sizeof(byte);
+    for (const auto &participant : mPaymentParticipants) {
+        bytesCount += sizeof(PaymentNodeID) + participant.second->serializedSize();
+    }
     if (mIsReceiptContains) {
         bytesCount += sizeof(KeyNumber)
                 + lamport::Signature::signatureSize();
@@ -131,25 +136,26 @@ pair<BytesShared, size_t> FinalPathCycleConfigurationMessage::serializeToBytes()
     auto bytesBufferOffset = initialOffset + parentBytesAndCount.second;
 
     //----------------------------------------------------
-    auto paymentNodesIdsCount = (SerializedRecordsCount)mPaymentNodesIds.size();
+    auto paymentNodesIdsCount = (SerializedRecordsCount)mPaymentParticipants.size();
     memcpy(
         bytesBufferOffset,
         &paymentNodesIdsCount,
         sizeof(SerializedRecordsCount));
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     //----------------------------------------------------
-    for (auto const &it : mPaymentNodesIds) {
+    for (auto const &paymentNodeIdAndAddress : mPaymentParticipants) {
         memcpy(
             bytesBufferOffset,
-            it.first.data,
-            NodeUUID::kBytesSize);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-
-        memcpy(
-            bytesBufferOffset,
-            &it.second,
+            &paymentNodeIdAndAddress.first,
             sizeof(PaymentNodeID));
         bytesBufferOffset += sizeof(PaymentNodeID);
+
+        auto serializedAddress = paymentNodeIdAndAddress.second->serializeToBytes();
+        memcpy(
+            bytesBufferOffset,
+            serializedAddress.get(),
+            paymentNodeIdAndAddress.second->serializedSize());
+        bytesBufferOffset += paymentNodeIdAndAddress.second->serializedSize();
     }
     //----------------------------------------------------
     memcpy(

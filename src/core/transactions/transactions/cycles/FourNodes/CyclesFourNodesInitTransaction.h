@@ -9,7 +9,6 @@
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesNegativeBalanceRequestMessage.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesPositiveBalanceRequestMessage.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
-#include "../../../../paths/lib/Path.h"
 
 #include <set>
 
@@ -45,6 +44,9 @@ protected:
     vector<BaseAddress::Shared> getCommonNodes(
         BaseAddress::Shared creditorNeighborNode,
         vector<ContractorID> currentNodeSuitableNeighbors);
+
+protected:
+    static const uint16_t mkWaitingForResponseTime = 3000;
 
 protected:
     ContractorID mContractorID;

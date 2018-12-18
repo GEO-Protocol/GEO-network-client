@@ -4,6 +4,7 @@
 RequestMessage::RequestMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const PathID &pathID,
     const TrustLineAmount &amount) :
@@ -11,6 +12,7 @@ RequestMessage::RequestMessage(
     TransactionMessage(
         equivalent,
         senderUUID,
+        senderAddresses,
         transactionUUID),
     mPathID(pathID),
     mAmount(amount)

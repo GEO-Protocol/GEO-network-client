@@ -85,7 +85,6 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                 equivalent,
                 make_unique<PathsManager>(
                     equivalent,
-                    mNodeUUID,
                     mTrustLinesManagers[equivalent].get(),
                     mTopologyTrustLinesManagers[equivalent].get(),
                     mLogger)));
@@ -247,7 +246,6 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
              equivalent,
              make_unique<PathsManager>(
                  equivalent,
-                 mNodeUUID,
                  mTrustLinesManagers[equivalent].get(),
                  mTopologyTrustLinesManagers[equivalent].get(),
                  mLogger)));

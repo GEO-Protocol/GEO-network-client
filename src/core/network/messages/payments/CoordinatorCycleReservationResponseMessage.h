@@ -17,6 +17,7 @@ public:
     CoordinatorCycleReservationResponseMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const OperationState state,
         const TrustLineAmount &reservedAmount=0);

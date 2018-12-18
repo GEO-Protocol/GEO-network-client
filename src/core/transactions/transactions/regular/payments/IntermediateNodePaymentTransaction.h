@@ -15,6 +15,7 @@ public:
         const NodeUUID &currentNodeUUID,
         IntermediateNodeReservationRequestMessage::ConstShared message,
         bool iAmGateway,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -27,6 +28,7 @@ public:
         BytesShared buffer,
         const NodeUUID &nodeUUID,
         bool iAmGateway,
+        ContractorsManager *contractorsManager,
         TrustLinesManager* trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -39,9 +41,9 @@ public:
         noexcept;
 
     /**
-     * @return UUID of coordinator node of current transaction
+     * @return Address of coordinator node of current transaction
      */
-    const NodeUUID& coordinatorUUID() const;
+    BaseAddress::Shared coordinatorAddress() const override;
 
 protected:
     /**
@@ -114,7 +116,6 @@ protected:
     // Therefore this methods are overridden.
     TransactionResult::SharedConst approve();
 
-protected:
     /**
      * reduce amount reservations (incoming and outgoing) on specified path
      * @param pathID id of path on which amount will be reduced
@@ -138,6 +139,19 @@ protected:
      */
     bool checkReservationsDirections() const;
 
+    TransactionResult::SharedConst sendErrorMessageOnCoordinatorRequest(
+        ResponseMessage::OperationState errorState);
+
+    TransactionResult::SharedConst sendErrorMessageOnPreviousNodeRequest(
+        BaseAddress::Shared previousNode,
+        PathID pathID,
+        ResponseMessage::OperationState errorState);
+
+    TransactionResult::SharedConst sendErrorMessageOnNextNodeResponse(
+        ResponseMessage::OperationState errorState);
+
+    void sendErrorMessageOnFinalAmountsConfiguration();
+
     const string logHeader() const;
 
 protected:
@@ -145,8 +159,7 @@ protected:
     IntermediateNodeReservationRequestMessage::ConstShared mMessage;
 
     TrustLineAmount mLastReservedAmount;
-    // UUID of coordinator node
-    NodeUUID mCoordinator;
+    BaseAddress::Shared mCoordinator;
     // id of path, which was processed last
     PathID mLastProcessedPath;
 };

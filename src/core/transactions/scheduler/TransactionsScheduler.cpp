@@ -99,7 +99,7 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
                     message->typeID() == Message::Payments_FinalPathConfiguration) {
                 auto paymentTransaction = static_pointer_cast<BasePaymentTransaction>(
                     transactionAndState.first);
-                if (paymentTransaction->coordinatorUUID() != transactionMessage->senderUUID) {
+                if (paymentTransaction->coordinatorAddress() != transactionMessage->senderAddresses.at(0)) {
                     continue;
                 }
             }

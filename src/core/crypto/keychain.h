@@ -75,8 +75,7 @@ public:
 
     lamport::PublicKey::Shared generateAndSaveKeyPairForPaymentTransaction(
         IOTransaction::Shared ioTransaction,
-        const TransactionUUID &transactionUUID,
-        const NodeUUID &nodeUUID);
+        const TransactionUUID &transactionUUID);
 
     lamport::Signature::Shared signPaymentTransaction(
         IOTransaction::Shared ioTransaction,

@@ -13,19 +13,19 @@ public:
     Contractor(
         ContractorID id,
         const NodeUUID &uuid,
-        const string &ipv4);
+        BaseAddress::Shared address);
 
     Contractor(
         ContractorID id,
         ContractorID idOnContractorSide,
         const NodeUUID &uuid,
-        IPv4WithPortAddress::Shared ipv4Address);
+        BaseAddress::Shared address);
 
     Contractor(
         ContractorID id,
         ContractorID idOnContractorSide,
         const NodeUUID &uuid,
-        const string &ipv4);
+        const string &address);
 
     const ContractorID getID() const;
 
@@ -35,7 +35,7 @@ public:
 
     const NodeUUID& getUUID() const;
 
-    const IPv4WithPortAddress::Shared getIPv4() const;
+    const BaseAddress::Shared getAddress() const;
 
     vector<BaseAddress::Shared> addresses() const;
 
@@ -45,7 +45,7 @@ private:
     ContractorID mID;
     ContractorID mOwnIdOnContractorSide;
     NodeUUID mUUID;
-    IPv4WithPortAddress::Shared mIPv4;
+    BaseAddress::Shared mAddress;
 };
 
 

@@ -17,16 +17,18 @@ public:
     FinalPathCycleConfigurationMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount,
-        const map<NodeUUID, PaymentNodeID> &paymentNodesIds);
+        const map<PaymentNodeID, BaseAddress::Shared> &paymentPaticipants);
 
     FinalPathCycleConfigurationMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount,
-        const map<NodeUUID, PaymentNodeID> &paymentNodesIds,
+        const map<PaymentNodeID, BaseAddress::Shared> &paymentPaticipants,
         const KeyNumber publicKeyNumber,
         const lamport::Signature::Shared signature);
 
@@ -35,7 +37,7 @@ public:
 
     const MessageType typeID() const;
 
-    const map<NodeUUID, PaymentNodeID>& paymentNodesIds() const;
+    const map<PaymentNodeID, BaseAddress::Shared>& paymentParticipants() const;
 
     bool isReceiptContains() const;
 
@@ -48,7 +50,7 @@ protected:
     throw(bad_alloc);
 
 private:
-    map<NodeUUID, PaymentNodeID> mPaymentNodesIds;
+    map<PaymentNodeID, BaseAddress::Shared> mPaymentParticipants;
     bool mIsReceiptContains;
     KeyNumber mPublicKeyNumber;
     lamport::Signature::Shared mSignature;

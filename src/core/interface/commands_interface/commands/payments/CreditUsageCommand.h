@@ -3,6 +3,8 @@
 
 #include "../BaseUserCommand.h"
 
+#include "../../../../contractors/addresses/BaseAddress.h"
+#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
 #include "../../../../common/exceptions/ValueError.h"
@@ -26,6 +28,8 @@ public:
 
     const NodeUUID& contractorUUID() const;
 
+    BaseAddress::Shared contractorAddress() const;
+
     const SerializedEquivalent equivalent() const;
 
 public:
@@ -35,6 +39,7 @@ public:
 
 private:
     NodeUUID mContractorUUID;
+    BaseAddress::Shared mContractorAddress;
     TrustLineAmount mAmount;
     SerializedEquivalent mEquivalent;
 };

@@ -258,6 +258,15 @@ protected:
             addressee);
     }
 
+    inline void sendMessage(
+        BaseAddress::Shared addressee,
+        const Message::Shared message) const
+    {
+        outgoingMessageToAddressReadySignal(
+            message,
+            addressee);
+    }
+
     template <typename MessageType, typename... Args>
     inline void sendMessageWithTemporaryCaching(
         ContractorID addressee,
@@ -348,7 +357,6 @@ public:
 
 protected:
     static const uint16_t mkStandardConnectionTimeout = 1500; //milliseconds
-    static const uint16_t mkWaitingForResponseTime = 3000;
 
 protected:
     TransactionType mType;

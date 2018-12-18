@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_INITTRUSTLINECOMMAND_H
 
 #include "../BaseUserCommand.h"
-
+#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/exceptions/ValueError.h"
 
 class InitTrustLineCommand : public BaseUserCommand {
@@ -24,13 +24,13 @@ public:
     const SerializedEquivalent equivalent() const
     noexcept;
 
-    const string contractorAddress() const
+    BaseAddress::Shared contractorAddress() const
     noexcept;
 
 private:
     NodeUUID mContractorUUID;
     SerializedEquivalent mEquivalent;
-    string mContractorAddress;
+    BaseAddress::Shared mContractorAddress;
 };
 
 

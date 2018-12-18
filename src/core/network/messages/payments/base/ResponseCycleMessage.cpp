@@ -3,12 +3,14 @@
 ResponseCycleMessage::ResponseCycleMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const OperationState state) :
 
     TransactionMessage(
         equivalent,
         senderUUID,
+        senderAddresses,
         transactionUUID),
     mState(state)
 {}

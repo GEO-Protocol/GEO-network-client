@@ -593,6 +593,18 @@ ContractorID TopologyTrustLinesManager::getID(
     return result;
 }
 
+// todo : improve this code for preventing loop
+BaseAddress::Shared TopologyTrustLinesManager::getAddressByID(
+    ContractorID nodeID) const
+{
+    for (const auto &participant : mParticipantsAddresses) {
+        if (participant.second == nodeID) {
+            return participant.first;
+        }
+    }
+    return nullptr;
+}
+
 void TopologyTrustLinesManager::setPreventDeleting(
     bool preventDeleting)
 {

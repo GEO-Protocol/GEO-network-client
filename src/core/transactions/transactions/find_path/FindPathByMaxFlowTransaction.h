@@ -17,6 +17,7 @@ public:
     FindPathByMaxFlowTransaction(
         NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
+        BaseAddress::Shared contractorAddress,
         const TransactionUUID &requestedTransactionUUID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,
@@ -50,6 +51,8 @@ private:
 
 private:
     NodeUUID mContractorUUID;
+    ContractorID mContractorID;
+    BaseAddress::Shared mContractorAddress;
     TransactionUUID mRequestedTransactionUUID;
     PathsManager *mPathsManager;
     ResourcesManager *mResourcesManager;

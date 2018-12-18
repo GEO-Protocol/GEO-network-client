@@ -36,6 +36,9 @@ protected:
     virtual const string logHeader() const = 0;
 
 protected:
+    static const uint16_t mkWaitingForResponseTime = 5000;
+
+protected:
     ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     CyclesManager *mCyclesManager;

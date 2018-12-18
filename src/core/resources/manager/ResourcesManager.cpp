@@ -9,12 +9,14 @@ void ResourcesManager::putResource(
 
 void ResourcesManager::requestPaths(
     const TransactionUUID &transactionUUID,
-    const NodeUUID &contractorUUID,
+    const NodeUUID& contractorUUID,
+    BaseAddress::Shared contractorAddress,
     const SerializedEquivalent equivalent) const {
 
     requestPathsResourcesSignal(
         transactionUUID,
         contractorUUID,
+        contractorAddress,
         equivalent);
 
 }

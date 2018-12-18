@@ -54,14 +54,12 @@ namespace crypto {
 
     lamport::PublicKey::Shared Keystore::generateAndSaveKeyPairForPaymentTransaction(
         IOTransaction::Shared ioTransaction,
-        const TransactionUUID &transactionUUID,
-        const NodeUUID &nodeUUID)
+        const TransactionUUID &transactionUUID)
     {
         lamport::PrivateKey pKey;
         auto pubKey = pKey.derivePublicKey();
         ioTransaction->paymentKeysHandler()->saveOwnKey(
             transactionUUID,
-            nodeUUID,
             pubKey,
             &pKey);
         return pubKey;

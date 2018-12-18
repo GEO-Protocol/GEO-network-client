@@ -26,15 +26,23 @@ InitTrustLineCommand::InitTrustLineCommand(
                 "Error occurred while parsing 'Contractor UUID' token.");
     }
 
-    size_t tokenSeparatorPos = NodeUUID::kHexSize;
-    size_t nextTokenSeparatorPos = command.find(
+    size_t contractorAddressStartPos = NodeUUID::kHexSize + 1;
+    size_t tokenSeparatorPos = command.find(
         kTokensSeparator,
-        tokenSeparatorPos + 1);
-    mContractorAddress = command.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
+        contractorAddressStartPos);
+    auto contractorAddressStr = command.substr(
+        contractorAddressStartPos,
+        tokenSeparatorPos - contractorAddressStartPos);
+    try {
+        mContractorAddress = make_shared<IPv4WithPortAddress>(
+            contractorAddressStr);
+    } catch (...) {
+        throw ValueError(
+            "InitTrustLineCommand: can't parse command. "
+                "Error occurred while parsing 'Contractor Address' token.");
+    }
 
-    size_t equivalentOffset = nextTokenSeparatorPos + 1;
+    size_t equivalentOffset = tokenSeparatorPos + 1;
     string equivalentStr = command.substr(
         equivalentOffset,
         command.size() - equivalentOffset - 1);
@@ -66,7 +74,7 @@ noexcept
     return mEquivalent;
 }
 
-const string InitTrustLineCommand::contractorAddress() const
+BaseAddress::Shared InitTrustLineCommand::contractorAddress() const
 noexcept
 {
     return mContractorAddress;

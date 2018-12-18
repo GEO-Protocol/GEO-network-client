@@ -102,6 +102,9 @@ protected:
     LoggerStream warning() const
     noexcept;
 
+    LoggerStream debug() const
+    noexcept;
+
 protected:
     Logger *mLog;
 };

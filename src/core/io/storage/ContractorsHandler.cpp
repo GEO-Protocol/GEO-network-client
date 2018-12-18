@@ -68,8 +68,8 @@ void ContractorsHandler::saveContractor(
         throw IOError("ContractorsHandler::saveContractor: "
                           "Bad binding of UUID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_text(stmt, 3, contractor->getIPv4()->fullAddress().c_str(),
-                           (int)contractor->getIPv4()->fullAddress().length(), SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, 3, contractor->getAddress()->fullAddress().c_str(),
+                           (int)contractor->getAddress()->fullAddress().length(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::saveContractor: "
                           "Bad binding of IPv4; sqlite error: " + to_string(rc));
@@ -116,8 +116,8 @@ void ContractorsHandler::saveContractorFull(
         throw IOError("ContractorsHandler::saveContractorFull: "
                           "Bad binding of UUID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_text(stmt, 4, contractor->getIPv4()->fullAddress().c_str(),
-                           (int)contractor->getIPv4()->fullAddress().length(), SQLITE_STATIC);
+    rc = sqlite3_bind_text(stmt, 4, contractor->getAddress()->fullAddress().c_str(),
+                           (int)contractor->getAddress()->fullAddress().length(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::saveContractorFull: "
                           "Bad binding of IPv4; sqlite error: " + to_string(rc));

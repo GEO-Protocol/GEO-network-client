@@ -20,18 +20,18 @@ ContractorsManager::ContractorsManager(
     }
     for (const auto &contractor : mContractors) {
         info() << contractor.second->getID() << " " << contractor.second->ownIdOnContractorSide() << " "
-               << contractor.second->getUUID() << " " << contractor.second->getIPv4()->fullAddress();
+               << contractor.second->getUUID() << " " << contractor.second->getAddress()->fullAddress();
     }
     info() << "Own ip " << mOwnIPv4->fullAddress();
 }
 
 ContractorID ContractorsManager::getContractorID(
     IOTransaction::Shared ioTransaction,
-    const string &fullAddress,
+    BaseAddress::Shared contractorAddress,
     const NodeUUID &contractorUUID)
 {
     for (const auto &contractor : mContractors) {
-        if (contractor.second->getIPv4()->fullAddress() == fullAddress) {
+        if (contractor.second->getAddress() == contractorAddress) {
             return contractor.second->getID();
         }
     }
@@ -40,20 +40,20 @@ ContractorID ContractorsManager::getContractorID(
     mContractors[id] = make_shared<Contractor>(
         id,
         contractorUUID,
-        fullAddress);
+        contractorAddress);
     ioTransaction->contractorsHandler()->saveContractor(
         mContractors[id]);
     return id;
 }
 
 ContractorID ContractorsManager::getContractorID(
-    IPv4WithPortAddress::Shared ipv4Address,
+    BaseAddress::Shared contractorAddress,
     const NodeUUID &contractorUUID,
     ContractorID idOnContractorSide,
     IOTransaction::Shared ioTransaction)
 {
     for (const auto &contractor : mContractors) {
-        if (contractor.second->getIPv4()->fullAddress() == ipv4Address->fullAddress()) {
+        if (contractor.second->getAddress() == contractorAddress) {
             return contractor.second->getID();
         }
     }
@@ -65,7 +65,7 @@ ContractorID ContractorsManager::getContractorID(
             id,
             idOnContractorSide,
             contractorUUID,
-            ipv4Address);
+            contractorAddress);
         ioTransaction->contractorsHandler()->saveContractorFull(
             mContractors[id]);
         return id;

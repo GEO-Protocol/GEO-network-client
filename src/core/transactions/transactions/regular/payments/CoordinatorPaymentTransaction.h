@@ -9,18 +9,10 @@
 #include "../../../../resources/manager/ResourcesManager.h"
 #include "../../../../paths/PathsManager.h"
 #include "../../../../resources/resources/PathsResource.h"
-#include "../../../../interface/visual_interface/interface/VisualInterface.h"
-#include "../../../../interface/visual_interface/visual/VisualResult.h"
-
-#include "../../../../io/storage/record/payment/PaymentRecord.h"
 
 #include "../../../../common/exceptions/CallChainBreakException.h"
 
-#include <boost/functional/hash.hpp>
-
 #include <unordered_map>
-#include <chrono>
-#include <thread>
 
 /**
  * TODO: Implement intermediate reservations shortage for the big transactions.
@@ -36,9 +28,10 @@ public:
 
 public:
     CoordinatorPaymentTransaction(
-        const NodeUUID &kCurrentNodeUUID,
+        const NodeUUID &currentNodeUUID,
         const CreditUsageCommand::Shared kCommand,
         bool iAmGateway,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -47,17 +40,11 @@ public:
         PathsManager *pathsManager,
         Keystore *keystore,
         Logger &log,
-        SubsystemsController *subsystemsController,
-        VisualInterface *visualInterface)
+        SubsystemsController *subsystemsController)
         noexcept;
 
     TransactionResult::SharedConst run()
         noexcept;
-
-    /**
-     * @return coordinator UUID of current transaction
-     */
-    const NodeUUID& coordinatorUUID() const;
 
     const CommandUUID& commandUUID() const;
 
@@ -81,17 +68,17 @@ protected:
     /**
      * process response initialization from Receiver
      */
-    TransactionResult::SharedConst runReceiverResponseProcessingStage ();
+    TransactionResult::SharedConst runReceiverResponseProcessingStage();
 
     /**
      * process the reservation of transaction amount on built paths
      */
-    TransactionResult::SharedConst runAmountReservationStage ();
+    TransactionResult::SharedConst runAmountReservationStage();
 
     /**
      * reaction on request of reserve amount on direct way to Receiver
      */
-    TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
+    TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage();
 
     /**
      * reaction on messages with approving or not of final amounts configuration from all participants
@@ -103,7 +90,7 @@ protected:
      * on this stage node can commit transaction or reject it
      * and send result to all participants
      */
-    TransactionResult::SharedConst runVotesConsistencyCheckingStage();
+    TransactionResult::SharedConst runVotesConsistencyCheckingStage() override;
 
     /*
      * reaction on message from some node if transaction is still alive
@@ -115,6 +102,7 @@ protected:
     // Coordinator must return command result on transaction finishing.
     // Therefore this methods are overridden.
     TransactionResult::SharedConst approve();
+
     TransactionResult::SharedConst reject(
         const char *message);
 
@@ -137,7 +125,7 @@ protected:
      * @param path built path from resources which will be added to mPathsStats
      */
     void addPathForFurtherProcessing(
-        Path::ConstShared path);
+        Path::Shared path);
 
     /**
      * init field mCurrentAmountReservingPathIdentifier for starting work with mPathStats
@@ -184,7 +172,7 @@ protected:
      * @param pathStats path on which thr reservation is made
      */
     TransactionResult::SharedConst askNeighborToReserveAmount(
-        const NodeUUID &neighbor,
+        BaseAddress::Shared neighbor,
         PathStats *pathStats);
 
     /**
@@ -198,7 +186,7 @@ protected:
      * @param pathStats path on which thr reservation is made
      */
     TransactionResult::SharedConst askNeighborToApproveFurtherNodeReservation(
-        const NodeUUID &neighbor,
+        BaseAddress::Shared neighbor,
         PathStats *pathStats);
 
     /**
@@ -215,9 +203,9 @@ protected:
      */
     TransactionResult::SharedConst askRemoteNodeToApproveReservation(
         PathStats *pathStats,
-        const NodeUUID &remoteNode,
+        BaseAddress::Shared remoteNode,
         const byte remoteNodePosition,
-        const NodeUUID &nextNodeAfterRemote);
+        BaseAddress::Shared nextNodeAfterRemote);
 
     /**
      * reaction on further reservation response from remote node
@@ -230,6 +218,7 @@ protected:
     TransactionResult::SharedConst sendFinalAmountsConfigurationToAllParticipants();
 
     // add final path configuration to mNodesFinalAmountsConfiguration for all path nodes
+    // todo : refactor without pathID and pathStats, use inside mCurrentAmountReservingPathIdentifier
     void addFinalConfigurationOnPath(
         PathID pathID,
         PathStats* pathStats);
@@ -240,8 +229,9 @@ protected:
      * @param pathID id of path on which amount will be reduced
      * @param amount new amount of reservation
      */
+    // todo : refactor without neighborID and pathID, use inside mCurrentAmountReservingPathIdentifier
     void shortageReservationsOnPath(
-        const NodeUUID& neighborUUID,
+        ContractorID neighborID,
         const PathID pathID,
         const TrustLineAmount &amount);
 
@@ -252,6 +242,7 @@ protected:
      * @param pathID id of path on which reservations will be dropped
      * @param sendToLastProcessedNode indicates if last processed node will be informed
      */
+    // todo : refactor without pathStats and pathID, use inside mCurrentAmountReservingPathIdentifier
     void dropReservationsOnPath(
         PathStats *pathStats,
         PathID pathID,
@@ -264,6 +255,7 @@ protected:
     * @param pathID id of path, final amount configuration of which will be sent
     * @param finalPathAmount final amount which should be reserved on specified path
     */
+// todo : refactor without pathStats and pathID, use inside mCurrentAmountReservingPathIdentifier
     void sendFinalPathConfiguration(
         PathStats* pathStats,
         PathID pathID,
@@ -297,7 +289,7 @@ protected:
      * @return
      */
     bool isPathValid(
-        Path::Shared path) const;
+            Path::Shared path) const;
 
     /**
      * try build new paths if reserved amount on previously built paths is less then required
@@ -339,14 +331,15 @@ protected:
     bool mDirectPathIsAlreadyProcessed;
 
     // Contains all nodes final amount configuration on all transaction paths
-    map<NodeUUID, vector<pair<PathID, ConstSharedTrustLineAmount>>> mNodesFinalAmountsConfiguration;
+    map<string, vector<pair<PathID, ConstSharedTrustLineAmount>>> mNodesFinalAmountsConfiguration;
 
     ResourcesManager *mResourcesManager;
     PathsManager *mPathsManager;
-    set<NodeUUID> mInaccessibleNodes;
+    vector<BaseAddress::Shared> mInaccessibleNodes;
     size_t mPreviousInaccessibleNodesCount;
-    vector<pair<NodeUUID, NodeUUID>> mRejectedTrustLines;
+    vector<pair<BaseAddress::Shared, BaseAddress::Shared>> mRejectedTrustLines;
     size_t mPreviousRejectedTrustLinesCount;
+    PaymentNodeID mCurrentFreePaymentID;
 
     // indicates that there are TL with keys absent problem
     bool mNeighborsKeysProblem;
@@ -356,7 +349,5 @@ protected:
 
     // count failed attempts to connect with Receiver
     uint8_t mCountReceiverInaccessible;
-
-    VisualInterface *mVisualInterface;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H

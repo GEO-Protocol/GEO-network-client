@@ -90,6 +90,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         kTABuffer,
                         mNodeUUID,
                         mEquivalentsSubsystemsRouter->iAmGateway(*equivalent),
+                        mContractorsManager,
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
@@ -121,6 +122,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                         kTABuffer,
                         mNodeUUID,
                         mEquivalentsSubsystemsRouter->iAmGateway(*equivalent),
+                        mContractorsManager,
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
@@ -151,6 +153,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     auto transaction = make_shared<CycleCloserIntermediateNodeTransaction>(
                         kTABuffer,
                         mNodeUUID,
+                        mContractorsManager,
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mEquivalentsCyclesSubsystemsRouter->cyclesManager(*equivalent),
                         mStorageHandler,
@@ -1011,6 +1014,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mNodeUUID,
             command,
             mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
+            mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyCacheManager(command->equivalent()),
@@ -1019,8 +1023,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mEquivalentsSubsystemsRouter->pathsManager(command->equivalent()),
             mKeysStore,
             mLog,
-            mSubsystemsController,
-            mVisualInterface.get());
+            mSubsystemsController);
         subscribeForBuildCyclesThreeNodesTransaction(
             transaction->mBuildCycleThreeNodesSignal);
         subscribeForBuildCyclesFourNodesTransaction(
@@ -1050,14 +1053,14 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             mNodeUUID,
             message,
             mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
+            mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
             mKeysStore,
             mLog,
-            mSubsystemsController,
-            mVisualInterface.get());
+            mSubsystemsController);
         subscribeForBuildCyclesThreeNodesTransaction(
             transaction->mBuildCycleThreeNodesSignal);
         subscribeForBuildCyclesFourNodesTransaction(
@@ -1087,6 +1090,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
             mNodeUUID,
             message,
             mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
+            mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
@@ -1123,6 +1127,7 @@ void TransactionsManager::launchVotesResponsePaymentsTransaction(
             make_shared<VotesStatusResponsePaymentTransaction>(
                 mNodeUUID,
                 message,
+                mContractorsManager,
                 mStorageHandler,
                 mScheduler->isTransactionInProcess(
                     message->transactionUUID()),
@@ -1137,13 +1142,14 @@ void TransactionsManager::launchVotesResponsePaymentsTransaction(
 
 void TransactionsManager::onCloseCycleTransaction(
     const SerializedEquivalent equivalent,
-    Path::ConstShared cycle)
+    Path::Shared cycle)
 {
     try {
         auto transaction = make_shared<CycleCloserInitiatorTransaction>(
             mNodeUUID,
             cycle,
             equivalent,
+            mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
             mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
             mStorageHandler,
@@ -1174,6 +1180,7 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
         auto transaction = make_shared<CycleCloserIntermediateNodeTransaction>(
             mNodeUUID,
             message,
+            mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
             mEquivalentsCyclesSubsystemsRouter->cyclesManager(message->equivalent()),
             mStorageHandler,
@@ -1845,14 +1852,16 @@ void TransactionsManager::launchRoutingTableUpdatingTransaction(
 
 void TransactionsManager::launchFindPathByMaxFlowTransaction(
     const TransactionUUID &requestedTransactionUUID,
-    const NodeUUID &destinationNodeUUID,
+    const NodeUUID destinationUUID,
+    BaseAddress::Shared destinationNodeAddress,
     const SerializedEquivalent equivalent)
 {
     try {
         prepareAndSchedule(
             make_shared<FindPathByMaxFlowTransaction>(
                 mNodeUUID,
-                destinationNodeUUID,
+                destinationUUID,
+                destinationNodeAddress,
                 requestedTransactionUUID,
                 equivalent,
                 mContractorsManager,

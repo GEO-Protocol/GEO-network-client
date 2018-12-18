@@ -3,6 +3,7 @@
 IntermediateNodeCycleReservationResponseMessage::IntermediateNodeCycleReservationResponseMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const ResponseCycleMessage::OperationState state,
     const TrustLineAmount& reservedAmount):
@@ -10,6 +11,7 @@ IntermediateNodeCycleReservationResponseMessage::IntermediateNodeCycleReservatio
     ResponseCycleMessage(
         equivalent,
         senderUUID,
+        senderAddresses,
         transactionUUID,
         state),
     mAmountReserved(reservedAmount)

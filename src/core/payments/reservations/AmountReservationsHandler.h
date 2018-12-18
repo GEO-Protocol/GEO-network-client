@@ -20,8 +20,19 @@ public:
         const TrustLineAmount &amount,
         const AmountReservation::ReservationDirection direction);
 
+    AmountReservation::ConstShared reserveNew(
+        ContractorID trustLineContractor,
+        const TransactionUUID &transactionUUID,
+        const TrustLineAmount &amount,
+        const AmountReservation::ReservationDirection direction);
+
     AmountReservation::ConstShared updateReservation(
         const NodeUUID &trustLineContractor,
+        const AmountReservation::ConstShared reservation,
+        const TrustLineAmount &newAmount);
+
+    AmountReservation::ConstShared updateReservationNew(
+        ContractorID trustLineContractor,
         const AmountReservation::ConstShared reservation,
         const TrustLineAmount &newAmount);
 
@@ -29,8 +40,17 @@ public:
         const NodeUUID &trustLineContractor,
         const AmountReservation::ConstShared reservation);
 
+    void freeNew(
+        ContractorID trustLineContractor,
+        const AmountReservation::ConstShared reservation);
+
     ConstSharedTrustLineAmount totalReserved(
         const NodeUUID &trustLineContractor,
+        const AmountReservation::ReservationDirection direction,
+        const TransactionUUID *transactionUUID = nullptr) const;
+
+    ConstSharedTrustLineAmount totalReservedNew(
+        ContractorID trustLineContractor,
         const AmountReservation::ReservationDirection direction,
         const TransactionUUID *transactionUUID = nullptr) const;
 
@@ -40,8 +60,15 @@ public:
     bool isReservationsPresent(
         const NodeUUID &trustLineContractor) const;
 
+    bool isReservationsPresent(
+        ContractorID trustLineContractorID) const;
+
     const vector<AmountReservation::ConstShared> contractorReservations(
         const NodeUUID &contractorUUID,
+        const AmountReservation::ReservationDirection direction) const;
+
+    const vector<AmountReservation::ConstShared> contractorReservations(
+        ContractorID contractorID,
         const AmountReservation::ReservationDirection direction) const;
 
 protected:
@@ -53,9 +80,15 @@ protected:
     // so the unique_ptr<vector> is used to get the container without copying it.
     map<NodeUUID, unique_ptr<vector<AmountReservation::ConstShared>>> mReservations;
 
+    map<ContractorID, unique_ptr<vector<AmountReservation::ConstShared>>> mReservationsNew;
+
 protected:
     std::vector<AmountReservation::ConstShared> reservations(
         const NodeUUID &trustLineContractor,
+        const TransactionUUID *transactionUUID = nullptr) const;
+
+    std::vector<AmountReservation::ConstShared> reservationsNew(
+        ContractorID trustLineContractor,
         const TransactionUUID *transactionUUID = nullptr) const;
 };
 

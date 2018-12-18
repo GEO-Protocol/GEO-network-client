@@ -178,7 +178,8 @@ public:
      */
     void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
-        const NodeUUID &destinationNodeUUID,
+        const NodeUUID destinationUUID,
+        BaseAddress::Shared destinationNodeAddress,
         const SerializedEquivalent equivalent);
 
 protected:
@@ -478,7 +479,7 @@ protected:
 
     void onCloseCycleTransaction(
         const SerializedEquivalent equivalent,
-        Path::ConstShared cycle);
+        Path::Shared cycle);
 
     void onTryCloseNextCycleSlot(
         const SerializedEquivalent equivalent);

@@ -102,6 +102,9 @@ public:
     ContractorID getID(
         BaseAddress::Shared address);
 
+    BaseAddress::Shared getAddressByID(
+        ContractorID nodeID) const;
+
 private:
     static const byte kResetTrustLinesHours = 0;
     static const byte kResetTrustLinesMinutes = 12;

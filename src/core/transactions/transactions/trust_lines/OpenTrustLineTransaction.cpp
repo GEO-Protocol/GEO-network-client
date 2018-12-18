@@ -85,7 +85,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
         debug() << "It is forbidden run trust line transactions";
         return resultForbiddenRun();
     }
-    info() << "Try init TL to Contractor on address " << mCommand->contractorAddress();
+    info() << "Try init TL to Contractor on address " << mCommand->contractorAddress()->fullAddress();
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {

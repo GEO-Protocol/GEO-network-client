@@ -111,7 +111,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
     }
 
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
-    vector<PathNew::ConstShared> resultCycles;
+    vector<Path::ConstShared> resultCycles;
 #endif
     while (!mContext.empty()) {
         const auto kMessage = popNextMessage<CyclesFourNodesBalancesResponseMessage>();
@@ -133,8 +133,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
                     stepPath.end());
             }
 
-            const auto cyclePath = make_shared<PathNew>(
-                mContractorsManager->ownAddresses().at(0),
+            const auto cyclePath = make_shared<Path>(
                 stepPath);
             mCyclesManager->addCycle(
                 cyclePath);
@@ -145,12 +144,8 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
     }
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
     debug() << "ResultCyclesCount " << resultCycles.size();
-    for (auto &cyclePath: resultCycles){
-        stringstream ss;
-        for (const auto &address : cyclePath->nodes) {
-            ss << address->fullAddress() << " ";
-        }
-        debug() << "CyclePath " << ss.str();
+    for (auto &cyclePath: resultCycles) {
+        debug() << "CyclePath " << cyclePath->toString();
     }
 #endif
     mCyclesManager->closeOneCycle();

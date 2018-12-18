@@ -222,6 +222,7 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         }
 
     } catch (exception &) {
+        warning() << "processBytesSequence: Unexpected error occurred";
         return messageInvalidOrIncomplete();
     }
 }
@@ -260,4 +261,10 @@ LoggerStream MessagesParser::warning() const
     noexcept
 {
     return mLog->warning(logHeader());
+}
+
+LoggerStream MessagesParser::debug() const
+    noexcept
+{
+    return mLog->debug(logHeader());
 }

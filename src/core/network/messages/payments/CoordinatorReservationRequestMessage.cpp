@@ -4,13 +4,15 @@
 CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID& transactionUUID,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
-    const NodeUUID& nextNodeInThePath) :
+    BaseAddress::Shared nextNodeInThePath) :
 
     RequestMessageWithReservations(
         equivalent,
         senderUUID,
+        senderAddresses,
         transactionUUID,
         finalAmountsConfig),
     mNextPathNode(nextNodeInThePath)
@@ -23,14 +25,10 @@ CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
 {
     size_t parentMessageOffset = RequestMessageWithReservations::kOffsetToInheritedBytes();
 
-    memcpy(
-        mNextPathNode.data,
-        buffer.get() + parentMessageOffset,
-        NodeUUID::kBytesSize);
+    mNextPathNode = deserializeAddress(buffer.get() + parentMessageOffset);
 }
 
-
-const NodeUUID& CoordinatorReservationRequestMessage::nextNodeInPath() const
+BaseAddress::Shared CoordinatorReservationRequestMessage::nextNodeInPath() const
 {
     return mNextPathNode;
 }
@@ -49,7 +47,7 @@ pair<BytesShared, size_t> CoordinatorReservationRequestMessage::serializeToBytes
     auto parentBytesAndCount = RequestMessageWithReservations::serializeToBytes();
     size_t totalBytesCount =
         + parentBytesAndCount.second
-        + NodeUUID::kBytesSize;
+        + mNextPathNode->serializedSize();
 
     BytesShared buffer = tryMalloc(totalBytesCount);
     memcpy(
@@ -57,10 +55,11 @@ pair<BytesShared, size_t> CoordinatorReservationRequestMessage::serializeToBytes
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
 
+    auto serializedAddress = mNextPathNode->serializeToBytes();
     memcpy(
         buffer.get() + parentBytesAndCount.second,
-        mNextPathNode.data,
-        NodeUUID::kBytesSize);
+        serializedAddress.get(),
+        mNextPathNode->serializedSize());
 
     return make_pair(
         buffer,

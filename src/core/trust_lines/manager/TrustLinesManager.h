@@ -274,6 +274,11 @@ public:
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount);
 
+    AmountReservation::ConstShared reserveOutgoingAmountNew(
+        ContractorID contractor,
+        const TransactionUUID &transactionUUID,
+        const TrustLineAmount &amount);
+
     /**
      * Reserves payment amount FROM the contractor.
      *
@@ -290,6 +295,11 @@ public:
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount);
 
+    AmountReservation::ConstShared reserveIncomingAmountNew(
+        ContractorID contractor,
+        const TransactionUUID &transactionUUID,
+        const TrustLineAmount &amount);
+
     /**
      * Updates present reservation with new amount.
      *
@@ -298,6 +308,11 @@ public:
      */
     AmountReservation::ConstShared updateAmountReservation(
         const NodeUUID &contractor,
+        const AmountReservation::ConstShared reservation,
+        const TrustLineAmount &newAmount);
+
+    AmountReservation::ConstShared updateAmountReservationNew(
+        ContractorID contractor,
         const AmountReservation::ConstShared reservation,
         const TrustLineAmount &newAmount);
 
@@ -311,6 +326,10 @@ public:
         const NodeUUID &contractor,
         const AmountReservation::ConstShared reservation);
 
+    void dropAmountReservationNew(
+        ContractorID contractor,
+        const AmountReservation::ConstShared reservation);
+
     /**
      * Converts reservation on the trust line to the real used amount.
      *
@@ -319,6 +338,10 @@ public:
      */
     void useReservation(
         const NodeUUID &contractor,
+        const AmountReservation::ConstShared reservation);
+
+    void useReservationNew(
+        ContractorID contractorID,
         const AmountReservation::ConstShared reservation);
 
     /**
@@ -349,17 +372,24 @@ public:
     pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableOutgoingCycleAmounts(
         const NodeUUID &contractor) const;
 
+    pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableOutgoingCycleAmounts(
+        ContractorID contractorID) const;
+
     //ToDo: comment this method
     // available incoming amount considering reservations for cycles
     // returns 2 values: 1) amount considering reservations, 2) amount don't considering reservations
     pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableIncomingCycleAmounts(
         const NodeUUID &contractor) const;
 
+    pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableIncomingCycleAmounts(
+        ContractorID contractorID) const;
+
     /**
      * @returns total summary of all outgoing possibilities of the node.
      */
-    ConstSharedTrustLineAmount totalOutgoingAmount()
-        const;
+    ConstSharedTrustLineAmount totalOutgoingAmount() const;
+
+    ConstSharedTrustLineAmount totalOutgoingAmountNew() const;
 
     /**
      * @returns total summary of all incoming possibilities of the node.
@@ -371,9 +401,15 @@ public:
     vector<AmountReservation::ConstShared> reservationsToContractor(
         const NodeUUID &contractorUUID) const;
 
+    vector<AmountReservation::ConstShared> reservationsToContractor(
+        ContractorID contractorID) const;
+
     // get all reservations (all transactions) from requested contractor
     vector<AmountReservation::ConstShared> reservationsFromContractor(
         const NodeUUID &contractorUUID) const;
+
+    vector<AmountReservation::ConstShared> reservationsFromContractor(
+        ContractorID contractorID) const;
 
     bool isReservationsPresentOnTrustLine(
         const NodeUUID &contractorUUID) const;
@@ -469,6 +505,8 @@ public:
     vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsToGatewaysNew() const;
 
     vector<NodeUUID> gateways() const;
+
+    vector<ContractorID> gatewaysNew() const;
 
     vector<NodeUUID> firstLevelNeighbors() const;
 

@@ -3,8 +3,6 @@
 set(SOURCE_FILES
         Path.h
         Path.cpp
-        PathNew.h
-        PathNew.cpp
         PathsCollection.h
         PathsCollection.cpp)
 

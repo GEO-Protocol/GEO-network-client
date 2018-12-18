@@ -1,7 +1,6 @@
 #ifndef GEO_NETWORK_CLIENT_PATHSMANAGER_H
 #define GEO_NETWORK_CLIENT_PATHSMANAGER_H
 
-#include "lib/Path.h"
 #include "lib/PathsCollection.h"
 #include "../trust_lines/manager/TrustLinesManager.h"
 #include "../topology/manager/TopologyTrustLinesManager.h"
@@ -14,27 +13,27 @@ class PathsManager {
 public:
     PathsManager(
         const SerializedEquivalent equivalent,
-        const NodeUUID &nodeUUID,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         Logger &logger);
 
     void buildPaths(
-        const NodeUUID &contractorUUID);
+        BaseAddress::Shared contractorAddress,
+        ContractorID contractorID);
 
     void addUsedAmount(
-        const NodeUUID &sourceUUID,
-        const NodeUUID &targetUUID,
+        BaseAddress::Shared sourceAddress,
+        BaseAddress::Shared targetAddress,
         const TrustLineAmount &amount);
 
     void makeTrustLineFullyUsed(
-        const NodeUUID &sourceUUID,
-        const NodeUUID &targetUUID);
+        BaseAddress::Shared sourceAddress,
+        BaseAddress::Shared targetAddress);
 
     // this method used for rebuild paths in case of insufficient founds
     void reBuildPaths(
-        const NodeUUID &contractorUUID,
-        const set<NodeUUID> &inaccessibleNodes);
+        BaseAddress::Shared contractorAddress,
+        const vector<BaseAddress::Shared> &inaccessibleNodes);
 
     PathsCollection::Shared pathCollection() const;
 
@@ -48,16 +47,18 @@ private:
     void buildPathsOnSecondLevel();
 
     TrustLineAmount calculateOneNode(
-        const NodeUUID& nodeUUID,
-        const TrustLineAmount& currentFlow,
+        ContractorID nodeID,
+        const TrustLineAmount &currentFlow,
         byte level);
 
     TrustLineAmount reBuildPathsOnOneLevel();
 
     TrustLineAmount calculateOneNodeForRebuildingPaths(
-        const NodeUUID& nodeUUID,
+        ContractorID nodeID,
         const TrustLineAmount& currentFlow,
         byte level);
+
+    vector<BaseAddress::Shared> addressesPath();
 
     LoggerStream info() const;
 
@@ -72,12 +73,12 @@ private:
     SerializedEquivalent mEquivalent;
     Logger &mLog;
     PathsCollection::Shared mPathCollection;
-    NodeUUID mNodeUUID;
-    NodeUUID mContractorUUID;
+    BaseAddress::Shared mContractorAddress;
+    ContractorID mContractorID;
 
-    vector<NodeUUID> mPassedNodeUUIDs;
+    vector<ContractorID> mPassedNodeIDs;
     byte mCurrentPathLength;
-    set<NodeUUID> mInaccessibleNodes;
+    set<ContractorID> mInaccessibleNodes;
 };
 
 

@@ -1,63 +1,13 @@
-﻿#include "Path.h"
+#include "Path.h"
 
 Path::Path(
-    const NodeUUID& source,
-    const NodeUUID& destination,
-    const vector<NodeUUID>& intermediateNodes) :
-
-    nodes([](
-        const NodeUUID& _source,
-        const NodeUUID& _destination,
-        const vector<NodeUUID>& _intermediateNodes) -> const vector<NodeUUID>
-        {
-            vector<NodeUUID> n;
-            n.reserve(_intermediateNodes.size() + 2);
-
-            n.push_back(_source);
-            for (const auto &node : _intermediateNodes) {
-                n.push_back(node);
-            }
-            n.push_back(_destination);
-
-            return n;
-        }(source, destination, intermediateNodes))
+    vector<BaseAddress::Shared> intermediateNodes) :
+    nodes(intermediateNodes)
 {}
 
-Path::Path(
-    const NodeUUID& source,
-    const NodeUUID& destination,
-    const vector<NodeUUID>&& intermediateNodes) :
-
-    Path(source, destination, intermediateNodes)
-{}
-
-const NodeUUID& Path::sourceUUID() const
+vector<BaseAddress::Shared> Path::intermediates() const
 {
-    if (nodes.empty()) {
-        throw IndexError("Path::sourceUUID Path is empty");
-    }
-    return nodes.at(0);
-}
-
-const NodeUUID& Path::destinationUUID() const
-{
-    if (nodes.empty()) {
-        throw IndexError("Path::destinationUUID Path is empty");
-    }
-    return nodes.at(nodes.size() - 1);
-}
-
-vector<NodeUUID> Path::intermediateUUIDs() const
-{
-    if (nodes.empty()) {
-        throw IndexError("Path::intermediateUUIDs Path is empty");
-    }
-    if (nodes.size() <= 2) {
-        return {};
-    }
-    auto itFirst = nodes.begin() + 1;
-    auto itLast = nodes.begin() + (nodes.size() - 1);
-    return vector<NodeUUID>(itFirst,  itLast);
+    return nodes;
 }
 
 const size_t Path::length() const
@@ -65,25 +15,26 @@ const size_t Path::length() const
     return nodes.size();
 }
 
-bool Path::containsIntermediateNodes() const
-{
-    return nodes.size() > 2;
-}
-
 int Path::positionOfNode(
-    const NodeUUID &nodeUUID) const
+    BaseAddress::Shared nodeAddress) const
 {
     for (size_t nodeIdx = 0; nodeIdx < nodes.size(); nodeIdx++) {
-        if (nodes.at(nodeIdx) == nodeUUID) {
+        if (nodes.at(nodeIdx) == nodeAddress) {
             return (int)nodeIdx;
         }
     }
     return -1;
 }
 
+void Path::addReceiver(
+    BaseAddress::Shared receiverAddress)
+{
+    nodes.push_back(receiverAddress);
+}
+
 bool Path::containsTrustLine(
-    const NodeUUID &source,
-    const NodeUUID &destination) const
+    BaseAddress::Shared source,
+    BaseAddress::Shared destination) const
 {
     for (size_t nodeIdx = 0; nodeIdx < nodes.size() - 1; nodeIdx++) {
         if (nodes.at(nodeIdx) == source && nodes.at(nodeIdx + 1) == destination) {
@@ -95,12 +46,14 @@ bool Path::containsTrustLine(
 
 const string Path::toString() const
 {
-    stringstream s;
-    s << "(" << nodes.cbegin()->stringUUID() << ")";
-    for (auto it=(++nodes.cbegin()); it != (--nodes.cend()); ++it) {
-        s << "-(" << it->stringUUID() << ")";
+    if (nodes.empty()) {
+        return "direct path";
     }
-    s << "-(" << (--nodes.cend())->stringUUID() << ")";
+    stringstream s;
+    s << "(" << nodes.cbegin()->get()->fullAddress() << ")";
+    for (auto it=(++nodes.cbegin()); it != (nodes.cend()); ++it) {
+        s << "-(" << it->get()->fullAddress() << ")";
+    }
     return s.str();
 }
 
@@ -108,5 +61,6 @@ bool operator== (
     const Path& p1,
     const Path& p2)
 {
-    return p1.nodes == p2.nodes;
+    // todo : implement if need
+    return false;
 }

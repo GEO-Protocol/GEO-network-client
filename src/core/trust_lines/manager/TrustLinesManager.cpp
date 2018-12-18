@@ -771,6 +771,24 @@ AmountReservation::ConstShared TrustLinesManager::reserveOutgoingAmount(
             "there is no enough amount on the trust line.");
 }
 
+AmountReservation::ConstShared TrustLinesManager::reserveOutgoingAmountNew(
+    ContractorID contractor,
+    const TransactionUUID &transactionUUID,
+    const TrustLineAmount &amount)
+{
+    const auto kAvailableAmount = outgoingTrustAmountConsideringReservations(contractor);
+    if (*kAvailableAmount >= amount) {
+        return mAmountReservationsHandler->reserveNew(
+            contractor,
+            transactionUUID,
+            amount,
+            AmountReservation::Outgoing);
+    }
+    throw ValueError(
+        logHeader() + "::reserveOutgoingAmount: "
+            "there is no enough amount on the trust line.");
+}
+
 AmountReservation::ConstShared TrustLinesManager::reserveIncomingAmount(
     const NodeUUID& contractor,
     const TransactionUUID& transactionUUID,
@@ -779,6 +797,24 @@ AmountReservation::ConstShared TrustLinesManager::reserveIncomingAmount(
     const auto kAvailableAmount = incomingTrustAmountConsideringReservations(contractor);
     if (*kAvailableAmount >= amount) {
         return mAmountReservationsHandler->reserve(
+            contractor,
+            transactionUUID,
+            amount,
+            AmountReservation::Incoming);
+    }
+    throw ValueError(
+        logHeader() + "::reserveOutgoingAmount: "
+            "there is no enough amount on the trust line.");
+}
+
+AmountReservation::ConstShared TrustLinesManager::reserveIncomingAmountNew(
+    ContractorID contractor,
+    const TransactionUUID& transactionUUID,
+    const TrustLineAmount& amount)
+{
+    const auto kAvailableAmount = incomingTrustAmountConsideringReservations(contractor);
+    if (*kAvailableAmount >= amount) {
+        return mAmountReservationsHandler->reserveNew(
             contractor,
             transactionUUID,
             amount,
@@ -814,11 +850,45 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
             "Trust line has not enough free amount.");
 }
 
+AmountReservation::ConstShared TrustLinesManager::updateAmountReservationNew(
+    ContractorID contractor,
+    const AmountReservation::ConstShared reservation,
+    const TrustLineAmount &newAmount)
+{
+#ifdef INTERNAL_ARGUMENTS_VALIDATION
+    assert(newAmount > TrustLineAmount(0));
+#endif
+
+    // Note: copy of shared ptr is required
+    const auto kAvailableAmount = *(outgoingTrustAmountConsideringReservations(contractor));
+
+    // Previous reservation would be removed (updated),
+    // so it's amount must be added to the the available amount on the trust line.
+    if (kAvailableAmount + reservation->amount() >= newAmount)
+        return mAmountReservationsHandler->updateReservationNew(
+            contractor,
+            reservation,
+            newAmount);
+
+    throw ValueError(
+        logHeader() + "::reserveOutgoingAmount: "
+            "Trust line has not enough free amount.");
+}
+
 void TrustLinesManager::dropAmountReservation(
     const NodeUUID &contractor,
     const AmountReservation::ConstShared reservation)
 {
     mAmountReservationsHandler->free(
+        contractor,
+        reservation);
+}
+
+void TrustLinesManager::dropAmountReservationNew(
+    ContractorID contractor,
+    const AmountReservation::ConstShared reservation)
+{
+    mAmountReservationsHandler->freeNew(
         contractor,
         reservation);
 }
@@ -849,11 +919,8 @@ ConstSharedTrustLineAmount TrustLinesManager::outgoingTrustAmountConsideringRese
         return make_shared<const TrustLineAmount>(0);
     }
     const auto kAvailableAmount = kTL->availableOutgoingAmount();
-
-    SharedTrustLineAmount kAlreadyReservedAmount(new TrustLineAmount(0));
-    // todo : use this code when reservationsHandler be adapted on ContractorID instead of ContractorUUID
-//    const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
-//        contractor, AmountReservation::Outgoing);
+    const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReservedNew(
+        contractorID, AmountReservation::Outgoing);
 
     if (*kAlreadyReservedAmount >= *kAvailableAmount) {
         return make_shared<const TrustLineAmount>(0);
@@ -888,11 +955,8 @@ ConstSharedTrustLineAmount TrustLinesManager::incomingTrustAmountConsideringRese
         return make_shared<const TrustLineAmount>(0);
     }
     const auto kAvailableAmount = kTL->availableIncomingAmount();
-
-    SharedTrustLineAmount kAlreadyReservedAmount(new TrustLineAmount(0));
-    // todo : use this code when reservationsHandler be adapted on ContractorID instead of ContractorUUID
-//    const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
-//        contractor, AmountReservation::Incoming);
+    const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReservedNew(
+        contractorID, AmountReservation::Incoming);
 
     if (*kAlreadyReservedAmount >= *kAvailableAmount) {
         return make_shared<const TrustLineAmount>(0);
@@ -939,6 +1003,44 @@ pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::
     }
 }
 
+pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::availableOutgoingCycleAmounts(
+    ContractorID contractorID) const
+{
+    const auto kTL = trustLineReadOnly(contractorID);
+    if (kTL->state() != TrustLine::Active) {
+        return make_pair(
+            make_shared<const TrustLineAmount>(0),
+            make_shared<const TrustLineAmount>(0));
+    }
+    const auto kBalance = kTL->balance();
+    if (kBalance <= TrustLine::kZeroBalance()) {
+        return make_pair(
+            make_shared<const TrustLineAmount>(0),
+            make_shared<const TrustLineAmount>(0));
+    }
+
+    const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReservedNew(
+        contractorID, AmountReservation::Outgoing);
+
+    if (*kAlreadyReservedAmount.get() == TrustLine::kZeroAmount()) {
+        return make_pair(
+            make_shared<const TrustLineAmount>(kBalance),
+            make_shared<const TrustLineAmount>(kBalance));
+    }
+
+    auto kAbsoluteBalance = absoluteBalanceAmount(kBalance);
+    if (*kAlreadyReservedAmount.get() > kAbsoluteBalance) {
+        return make_pair(
+            make_shared<const TrustLineAmount>(0),
+            make_shared<const TrustLineAmount>(kBalance));
+    } else {
+        return make_pair(
+            make_shared<const TrustLineAmount>(
+                kAbsoluteBalance - *kAlreadyReservedAmount.get()),
+            make_shared<const TrustLineAmount>(kBalance));
+    }
+}
+
 pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::availableIncomingCycleAmounts(
     const NodeUUID &contractor) const
 {
@@ -957,6 +1059,43 @@ pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::
 
     const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
         contractor, AmountReservation::Incoming);
+
+    auto kAbsoluteBalance = absoluteBalanceAmount(kBalance);
+    if (*kAlreadyReservedAmount.get() == TrustLine::kZeroAmount()) {
+        return make_pair(
+            make_shared<const TrustLineAmount>(kAbsoluteBalance),
+            make_shared<const TrustLineAmount>(kAbsoluteBalance));
+    }
+
+    if (*kAlreadyReservedAmount.get() >= kAbsoluteBalance) {
+        return make_pair(
+            make_shared<const TrustLineAmount>(0),
+            make_shared<const TrustLineAmount>(kAbsoluteBalance));
+    }
+    return make_pair(
+        make_shared<const TrustLineAmount>(
+            kAbsoluteBalance - *kAlreadyReservedAmount.get()),
+        make_shared<const TrustLineAmount>(kAbsoluteBalance));
+}
+
+pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::availableIncomingCycleAmounts(
+    ContractorID contractorID) const
+{
+    const auto kTL = trustLineReadOnly(contractorID);
+    if (kTL->state() != TrustLine::Active) {
+        return make_pair(
+            make_shared<const TrustLineAmount>(0),
+            make_shared<const TrustLineAmount>(0));
+    }
+    const auto kBalance = kTL->balance();
+    if (kBalance >= TrustLine::kZeroBalance()) {
+        return make_pair(
+            make_shared<const TrustLineAmount>(0),
+            make_shared<const TrustLineAmount>(0));
+    }
+
+    const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReservedNew(
+        contractorID, AmountReservation::Incoming);
 
     auto kAbsoluteBalance = absoluteBalanceAmount(kBalance);
     if (*kAlreadyReservedAmount.get() == TrustLine::kZeroAmount()) {
@@ -1468,6 +1607,17 @@ vector<NodeUUID> TrustLinesManager::gateways() const
     return result;
 }
 
+vector<ContractorID> TrustLinesManager::gatewaysNew() const
+{
+    vector<ContractorID> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLinesNew) {
+        if (nodeIDAndTrustLine.second->isContractorGateway()) {
+            result.push_back(nodeIDAndTrustLine.first);
+        }
+    }
+    return result;
+}
+
 vector<NodeUUID> TrustLinesManager::firstLevelNeighbors() const
 {
     vector<NodeUUID> result;
@@ -1733,6 +1883,35 @@ void TrustLinesManager::useReservation(
     }
 }
 
+void TrustLinesManager::useReservationNew(
+    ContractorID contractorID,
+    const AmountReservation::ConstShared reservation)
+{
+    if (not trustLineIsPresent(contractorID)) {
+        throw NotFoundError(
+            logHeader() + "::useReservation: "
+                "No trust line is present with the contractor " + to_string(contractorID));
+    }
+
+    switch (reservation->direction()) {
+        case AmountReservation::Outgoing: {
+            mTrustLinesNew[contractorID]->pay(reservation->amount());
+            return;
+        }
+
+        case AmountReservation::Incoming: {
+            mTrustLinesNew[contractorID]->acceptPayment(reservation->amount());
+            return;
+        }
+
+        default: {
+            throw ValueError(
+                logHeader() + "::useReservation: "
+                    "Unexpected trust line direction occurred.");
+        }
+    }
+}
+
 ConstSharedTrustLineAmount TrustLinesManager::totalOutgoingAmount () const
 {
     auto totalAmount = make_shared<TrustLineAmount>(0);
@@ -1747,10 +1926,24 @@ ConstSharedTrustLineAmount TrustLinesManager::totalOutgoingAmount () const
     return totalAmount;
 }
 
+ConstSharedTrustLineAmount TrustLinesManager::totalOutgoingAmountNew() const
+{
+    auto totalAmount = make_shared<TrustLineAmount>(0);
+    for (const auto &kTrustLine : mTrustLinesNew) {
+        if (kTrustLine.second->state() != TrustLine::Active) {
+            continue;
+        }
+        const auto kTLAmount = outgoingTrustAmountConsideringReservations(kTrustLine.first);
+        *totalAmount += *(kTLAmount);
+    }
+
+    return totalAmount;
+}
+
 ConstSharedTrustLineAmount TrustLinesManager::totalIncomingAmount() const
 {
     auto totalAmount = make_shared<TrustLineAmount>(0);
-    for (const auto &kTrustLine : mTrustLines) {
+    for (const auto &kTrustLine : mTrustLinesNew) {
         if (kTrustLine.second->state() != TrustLine::Active) {
             continue;
         }
@@ -1769,11 +1962,27 @@ vector<AmountReservation::ConstShared> TrustLinesManager::reservationsToContract
         AmountReservation::ReservationDirection::Outgoing);
 }
 
+vector<AmountReservation::ConstShared> TrustLinesManager::reservationsToContractor(
+    ContractorID contractorID) const
+{
+    return mAmountReservationsHandler->contractorReservations(
+        contractorID,
+        AmountReservation::ReservationDirection::Outgoing);
+}
+
 vector<AmountReservation::ConstShared> TrustLinesManager::reservationsFromContractor(
     const NodeUUID &contractorUUID) const
 {
     return mAmountReservationsHandler->contractorReservations(
         contractorUUID,
+        AmountReservation::ReservationDirection::Incoming);
+}
+
+vector<AmountReservation::ConstShared> TrustLinesManager::reservationsFromContractor(
+    ContractorID contractorID) const
+{
+    return mAmountReservationsHandler->contractorReservations(
+        contractorID,
         AmountReservation::ReservationDirection::Incoming);
 }
 

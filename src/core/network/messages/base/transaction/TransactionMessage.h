@@ -24,7 +24,14 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         ContractorID idOnReceiverSide,
-        vector<BaseAddress::Shared> senderAddresses,
+        vector<BaseAddress::Shared> &senderAddresses,
+        const TransactionUUID &transactionUUID)
+        noexcept;
+
+    TransactionMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID)
         noexcept;
 

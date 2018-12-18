@@ -164,7 +164,7 @@ void EquivalentsCyclesSubsystemsRouter::onBuildCycleSixNodesSlot(
 
 void EquivalentsCyclesSubsystemsRouter::onCloseCycleSlot(
     const SerializedEquivalent equivalent,
-    Path::ConstShared cycle)
+    Path::Shared cycle)
 {
     closeCycleSignal(
         equivalent,

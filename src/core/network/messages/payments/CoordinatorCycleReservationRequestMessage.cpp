@@ -3,16 +3,18 @@
 CoordinatorCycleReservationRequestMessage::CoordinatorCycleReservationRequestMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID& transactionUUID,
     const TrustLineAmount& amount,
-    const NodeUUID& nextNodeInThePath) :
+    BaseAddress::Shared nextNodeInThePathAddress) :
 
     RequestCycleMessage(
         equivalent,
         senderUUID,
+        senderAddresses,
         transactionUUID,
         amount),
-    mNextPathNode(nextNodeInThePath)
+    mNextPathNodeAddress(nextNodeInThePathAddress)
 {}
 
 CoordinatorCycleReservationRequestMessage::CoordinatorCycleReservationRequestMessage(
@@ -20,18 +22,14 @@ CoordinatorCycleReservationRequestMessage::CoordinatorCycleReservationRequestMes
 
     RequestCycleMessage(buffer)
 {
-    auto parentMessageOffset = RequestCycleMessage::kOffsetToInheritedBytes();
-    auto nextNodeUUIDOffset = buffer.get() + parentMessageOffset;
+    auto bytesBufferOffset = buffer.get() + RequestCycleMessage::kOffsetToInheritedBytes();
 
-    memcpy(
-        mNextPathNode.data,
-        nextNodeUUIDOffset,
-        mNextPathNode.kBytesSize);
+    mNextPathNodeAddress = deserializeAddress(bytesBufferOffset);
 }
 
-const NodeUUID& CoordinatorCycleReservationRequestMessage::nextNodeInPath() const
+BaseAddress::Shared CoordinatorCycleReservationRequestMessage::nextNodeInPathAddress() const
 {
-    return mNextPathNode;
+    return mNextPathNodeAddress;
 }
 
 const Message::MessageType CoordinatorCycleReservationRequestMessage::typeID() const
@@ -48,22 +46,21 @@ pair<BytesShared, size_t> CoordinatorCycleReservationRequestMessage::serializeTo
     auto parentBytesAndCount = RequestCycleMessage::serializeToBytes();
     size_t totalBytesCount =
         + parentBytesAndCount.second
-        + mNextPathNode.kBytesSize;
+        + mNextPathNodeAddress->serializedSize();
 
     BytesShared buffer = tryMalloc(totalBytesCount);
-    auto initialOffset = buffer.get();
+    auto bytesBufferOffset = buffer.get();
     memcpy(
-        initialOffset,
+        bytesBufferOffset,
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
+    bytesBufferOffset += parentBytesAndCount.second;
 
-    auto nextPathNodeOffset =
-        initialOffset + parentBytesAndCount.second;
-
+    auto serializedAddress = mNextPathNodeAddress->serializeToBytes();
     memcpy(
-        nextPathNodeOffset,
-        mNextPathNode.data,
-        mNextPathNode.kBytesSize);
+        bytesBufferOffset,
+        serializedAddress.get(),
+        mNextPathNodeAddress->serializedSize());
 
     return make_pair(
         buffer,

@@ -6,8 +6,6 @@
 #include "../../../../../common/exceptions/ValueError.h"
 #include "../../../../../common/exceptions/NotFoundError.h"
 
-// Describes payment path, it's nodes states,
-// and max flow through it.
 class PathStats {
 
 public:
@@ -24,69 +22,70 @@ public:
 
 public:
     PathStats (
-        const Path::ConstShared path)
-    noexcept;
+        const Path::Shared path)
+        noexcept;
 
     void setNodeState (
         const SerializedPositionInPath positionInPath,
         const NodeState state)
-    throw(ValueError);
+        throw(ValueError);
 
     const TrustLineAmount &maxFlow () const
-    noexcept;
+        noexcept;
 
     void shortageMaxFlow (
         const TrustLineAmount &kAmount)
-    throw(ValueError);
+        throw(ValueError);
 
-    const Path::ConstShared path () const
-    noexcept;
+    const Path::Shared path () const
+        noexcept;
 
-    const pair<NodeUUID, SerializedPositionInPath> currentIntermediateNodeAndPos () const
-    throw (NotFoundError);
+    bool containsIntermediateNodes() const;
 
-    const pair<NodeUUID, SerializedPositionInPath> nextIntermediateNodeAndPos () const
-    throw (NotFoundError);
+    const pair<BaseAddress::Shared, SerializedPositionInPath> currentIntermediateNodeAndPos () const
+        throw (NotFoundError);
+
+    const pair<BaseAddress::Shared, SerializedPositionInPath> nextIntermediateNodeAndPos () const
+        throw (NotFoundError);
 
     const bool reservationRequestSentToAllNodes () const
-    noexcept;
+        noexcept;
 
     const bool isNeighborAmountReserved () const
-    noexcept;
+        noexcept;
 
     const bool isWaitingForNeighborReservationResponse () const
-    noexcept;
+        noexcept;
 
     const bool isWaitingForNeighborReservationPropagationResponse () const
-    noexcept;
+        noexcept;
 
     const bool isWaitingForReservationResponse () const
-    noexcept;
+        noexcept;
 
     const bool isReadyToSendNextReservationRequest () const
-    noexcept;
+        noexcept;
 
     const bool isLastIntermediateNodeProcessed () const
-    noexcept;
+        noexcept;
 
     const bool isLastIntermediateNodeApproved() const
-    noexcept;
+        noexcept;
 
     const bool isValid () const
-    noexcept;
+        noexcept;
 
     void setUnusable ()
-    noexcept;
+        noexcept;
 
 protected:
-    const Path::ConstShared mPath;
+    const Path::Shared mPath;
     TrustLineAmount mMaxPathFlow;
     bool mIsValid;
 
     // Contains states of each node in the path.
     // See reservations stage for the details.
     vector<NodeState> mIntermediateNodesStates;
-
 };
 
 

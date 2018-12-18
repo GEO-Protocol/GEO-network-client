@@ -2,16 +2,7 @@
 #define GEO_NETWORK_CLIENT_CYCLECLOSERINITIATORTRANSACTION_H
 
 #include "base/BasePaymentTransaction.h"
-#include "base/PathStats.h"
-#include "../../../../io/storage/StorageHandler.h"
 #include "../../../../cycles/CyclesManager.h"
-
-#include <boost/functional/hash.hpp>
-
-#include <unordered_map>
-#include <unordered_set>
-#include <chrono>
-#include <thread>
 
 class CycleCloserInitiatorTransaction : public BasePaymentTransaction {
 
@@ -22,8 +13,9 @@ public:
 public:
     CycleCloserInitiatorTransaction(
         const NodeUUID &kCurrentNodeUUID,
-        Path::ConstShared path,
+        const Path::Shared path,
         const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
@@ -36,11 +28,6 @@ public:
 
     TransactionResult::SharedConst run()
         noexcept;
-
-    /**
-     * @return coordinator UUID of current transaction
-     */
-    const NodeUUID& coordinatorUUID() const;
 
     /**
      * @return length of cycle which is closing by current transaction
@@ -128,9 +115,9 @@ protected:
      * @param nextNodeAfterRemote neighbor of remote node to which it should reserve available amount
      */
     TransactionResult::SharedConst askRemoteNodeToApproveReservation(
-        const NodeUUID &remoteNode,
+        BaseAddress::Shared remoteNode,
         const byte remoteNodePosition,
-        const NodeUUID &nextNodeAfterRemote);
+        BaseAddress::Shared nextNodeAfterRemote);
 
     /**
      * reaction on further reservation response from remote node
@@ -189,8 +176,10 @@ protected:
     // fields, for continue process coordinator request after releasing conflicted reservation
     // transaction on which reservation we pretend
     TransactionUUID mConflictedTransaction;
-    NodeUUID mNextNode;
-    NodeUUID mPreviousNode;
+    BaseAddress::Shared mNextNode;
+    BaseAddress::Shared mPreviousNode;
+    ContractorID mNextNodeID;
+    ContractorID mPreviousNodeID;
     TrustLineAmount mOutgoingAmount;
     TrustLineAmount mIncomingAmount;
 

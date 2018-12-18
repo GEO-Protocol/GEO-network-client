@@ -19,6 +19,7 @@ public:
     IntermediateNodeReservationResponseMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const PathID &pathID,
         const OperationState state,

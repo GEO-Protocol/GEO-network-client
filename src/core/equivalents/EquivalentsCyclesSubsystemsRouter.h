@@ -18,7 +18,7 @@ public:
     typedef signals::signal<void(const SerializedEquivalent equivalent)> BuildFiveNodesCyclesSignal;
     typedef signals::signal<void(
             const SerializedEquivalent equivalent,
-            Path::ConstShared cycle)> CloseCycleSignal;
+            Path::Shared cycle)> CloseCycleSignal;
 
 public:
     EquivalentsCyclesSubsystemsRouter(
@@ -78,7 +78,7 @@ private:
 
     void onCloseCycleSlot(
         const SerializedEquivalent equivalent,
-        Path::ConstShared cycle);
+        Path::Shared cycle);
 
 private:
     NodeUUID mNodeUUID;

@@ -35,16 +35,13 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 {
     info() << "sender incoming IP " << mSenderIncomingIP;
     for (auto &senderAddress : mContractorAddresses) {
-        auto ipv4Address = static_pointer_cast<IPv4WithPortAddress>(senderAddress);
-        info() << "contractor address " << ipv4Address->fullAddress();
+        info() << "contractor address " << senderAddress->fullAddress();
     }
 
     if (mContractorAddresses.empty()) {
         warning() << "Contractor addresses are empty";
         return resultDone();
     }
-    auto contractorIPv4Address = static_pointer_cast<IPv4WithPortAddress>(
-        mContractorAddresses.at(0));
 
     // Trust line must be created (or updated) in the internal storage.
     // Also, history record must be written about this operation.
@@ -52,7 +49,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
         mContractorID = mContractorsManager->getContractorID(
-            contractorIPv4Address,
+            mContractorAddresses.at(0),
             mContractorUUID,
             mOwnIdOnContractorSide,
             ioTransaction);

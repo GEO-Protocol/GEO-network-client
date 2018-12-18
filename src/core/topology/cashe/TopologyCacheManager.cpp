@@ -168,7 +168,7 @@ DateTime TopologyCacheManager::closestTimeEvent() const
         }
     }
 #ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "TopologyCacheManager::closestTimeEvent " << result;
+    info() << "closestTimeEvent " << result;
 #endif
     return result;
 }

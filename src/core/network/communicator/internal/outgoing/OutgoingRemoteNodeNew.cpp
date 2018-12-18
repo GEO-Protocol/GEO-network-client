@@ -201,8 +201,8 @@ void OutgoingRemoteNodeNew::beginPacketsSending()
     UDPEndpoint endpoint;
     try {
         endpoint = as::ip::udp::endpoint(
-            as::ip::address_v4::from_string(mRemoteContractor->getIPv4()->host()),
-            mRemoteContractor->getIPv4()->port());
+            as::ip::address_v4::from_string(mRemoteContractor->getAddress()->host()),
+            mRemoteContractor->getAddress()->port());
         debug() << "Endpoint address " << endpoint.address().to_string();
         debug() << "Endpoint port " << endpoint.port();
     } catch  (exception &) {

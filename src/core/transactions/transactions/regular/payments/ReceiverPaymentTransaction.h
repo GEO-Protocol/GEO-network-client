@@ -2,8 +2,6 @@
 #define GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
 
 #include "base/BasePaymentTransaction.h"
-#include "../../../../interface/visual_interface/interface/VisualInterface.h"
-#include "../../../../interface/visual_interface/visual/VisualResult.h"
 
 class ReceiverPaymentTransaction:
     public BasePaymentTransaction {
@@ -17,19 +15,20 @@ public:
         const NodeUUID &currentNodeUUID,
         ReceiverInitPaymentRequestMessage::ConstShared message,
         bool iAmGateway,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         Keystore *keystore,
         Logger &log,
-        SubsystemsController *subsystemsController,
-        VisualInterface *visualInterface);
+        SubsystemsController *subsystemsController);
 
     ReceiverPaymentTransaction(
         BytesShared buffer,
         const NodeUUID &nodeUUID,
         bool iAmGateway,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
@@ -42,9 +41,9 @@ public:
         noexcept;
 
     /**
-     * @return UUID of coordinator node of current transaction
+     * @return Address of coordinator node of current transaction
      */
-    const NodeUUID& coordinatorUUID() const;
+    BaseAddress::Shared coordinatorAddress() const override;
 
 protected:
     /**
@@ -109,16 +108,22 @@ protected:
      */
     bool checkReservationsDirections() const;
 
+    TransactionResult::SharedConst sendErrorMessageOnPreviousNodeRequest(
+        BaseAddress::Shared previousNode,
+        PathID pathID,
+        ResponseMessage::OperationState errorState);
+
+    void sendErrorMessageOnFinalAmountsConfiguration();
+
     const string logHeader() const;
 
 protected:
-    // message on which current transaction was started
-    const ReceiverInitPaymentRequestMessage::ConstShared mMessage;
+    BaseAddress::Shared mCoordinatorAddress;
+
+    TrustLineAmount mTransactionAmount;
 
     // this field indicates that transaction should be rejected on voting stage
     bool mTransactionShouldBeRejected;
-
-    VisualInterface *mVisualInterface;
 };
 
 

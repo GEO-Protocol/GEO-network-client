@@ -12,7 +12,6 @@ PaymentKeysHandler::PaymentKeysHandler(
     sqlite3_stmt *stmt;
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    " (transaction_uuid BLOB NOT NULL, "
-                   "participant_uuid BLOB NOT NULL, "
                    "public_key BLOB NOT NULL, "
                    "private_key BLOB NOT NULL);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
@@ -47,13 +46,12 @@ PaymentKeysHandler::PaymentKeysHandler(
 
 void PaymentKeysHandler::saveOwnKey(
     const TransactionUUID &transactionUUID,
-    const NodeUUID &ownNodeUUID,
     const PublicKey::Shared publicKey,
     const PrivateKey *privateKey)
 {
     string query = "INSERT INTO " + mTableName +
-                   "(transaction_uuid, participant_uuid, public_key, private_key) "
-                   "VALUES (?, ?, ?, ?);";
+                   "(transaction_uuid, public_key, private_key) "
+                   "VALUES (?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -66,13 +64,7 @@ void PaymentKeysHandler::saveOwnKey(
         throw IOError("PaymentKeysHandler::saveOwnKey: "
                           "Bad binding of Transaction UUID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 2, ownNodeUUID.data,
-                           NodeUUID::kBytesSize, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentKeysHandler::saveOwnKey: "
-                          "Bad binding of Own Node UUID; sqlite error: " + to_string(rc));
-    }
-    rc = sqlite3_bind_blob(stmt, 3, publicKey->data(),
+    rc = sqlite3_bind_blob(stmt, 2, publicKey->data(),
                            (int)publicKey->keySize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::saveOwnKey: "
@@ -89,7 +81,7 @@ void PaymentKeysHandler::saveOwnKey(
             privateKey->keySize());
     }
     auto g = privateKey->data()->unlockAndInitGuard();
-    rc = sqlite3_bind_blob(stmt, 4, buffer.get(),
+    rc = sqlite3_bind_blob(stmt, 3, buffer.get(),
                        (int) privateKey->keySize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::saveOwnKey: "

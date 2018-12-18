@@ -5,6 +5,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
     bool iAmGateway,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -19,7 +20,8 @@ BasePaymentTransaction::BasePaymentTransaction(
         equivalent,
         log),
     mIAmGateway(iAmGateway),
-    mTrustLines(trustLines),
+    mContractorsManager(contractorsManager),
+    mTrustLinesManager(trustLines),
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
@@ -35,6 +37,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
     bool iAmGateway,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -50,7 +53,8 @@ BasePaymentTransaction::BasePaymentTransaction(
         equivalent,
         log),
     mIAmGateway(iAmGateway),
-    mTrustLines(trustLines),
+    mContractorsManager(contractorsManager),
+    mTrustLinesManager(trustLines),
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
@@ -64,6 +68,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     BytesShared buffer,
     const NodeUUID &nodeUUID,
     bool iAmGateway,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
@@ -77,7 +82,8 @@ BasePaymentTransaction::BasePaymentTransaction(
         nodeUUID,
         log),
     mIAmGateway(iAmGateway),
-    mTrustLines(trustLines),
+    mContractorsManager(contractorsManager),
+    mTrustLinesManager(trustLines),
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
@@ -96,10 +102,14 @@ BasePaymentTransaction::BasePaymentTransaction(
     bytesBufferOffset += sizeof(SerializedRecordsCount);
 
     // Map values
-    for(auto i=1; i<=reservationsCount; i++){
-        // Map Key NodeUUID
-        NodeUUID stepNodeUUID(buffer.get() + bytesBufferOffset);
-        bytesBufferOffset += NodeUUID::kBytesSize;
+    for(auto idx = 0; idx < reservationsCount; idx++){
+        // Map Key ContractorID
+        ContractorID stepContractorID;
+        memcpy(
+            &stepContractorID,
+            buffer.get() + bytesBufferOffset,
+            sizeof(ContractorID));
+        bytesBufferOffset += sizeof(ContractorID);
 
         // Map values vector
         SerializedRecordsCount stepReservationVectorSize;
@@ -110,7 +120,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         bytesBufferOffset += sizeof(SerializedRecordsCount);
 
         vector<pair<PathID, AmountReservation::ConstShared>> stepVector;
-        for(auto j=1; j<=stepReservationVectorSize; j++) {
+        for(auto jdx = 0; jdx < stepReservationVectorSize; jdx++) {
 
             // PathID
             PathID stepPathID;
@@ -151,7 +161,7 @@ BasePaymentTransaction::BasePaymentTransaction(
 
             if (stepDirection == AmountReservation::ReservationDirection::Incoming) {
                 if (!reserveIncomingAmount(
-                    stepNodeUUID,
+                    stepContractorID,
                     stepAmount,
                     stepPathID)) {
                     // can't create reserve, but this reserve was serialized before node dropping
@@ -162,7 +172,7 @@ BasePaymentTransaction::BasePaymentTransaction(
 
             if (stepDirection == AmountReservation::ReservationDirection::Outgoing) {
                 if (!reserveOutgoingAmount(
-                    stepNodeUUID,
+                    stepContractorID,
                     stepAmount,
                     stepPathID)) {
                     // can't create reserve, but this reserve was serialized before node dropping
@@ -173,7 +183,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         }
         mReservations.insert(
             make_pair(
-                stepNodeUUID,
+                stepContractorID,
                 stepVector));
     }
 
@@ -186,25 +196,17 @@ BasePaymentTransaction::BasePaymentTransaction(
     bytesBufferOffset += sizeof(SerializedRecordsCount);
 
     for (SerializedRecordNumber idx = 0; idx < kTotalParticipantsCount; idx++) {
-        NodeUUID stepNodeUUID(buffer.get() + bytesBufferOffset);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        //---------------------------------------------------
         auto *paymentNodeID = new (buffer.get() + bytesBufferOffset) PaymentNodeID;
         bytesBufferOffset += sizeof(PaymentNodeID);
         //---------------------------------------------------
-        mPaymentNodesIds.insert(
-            make_pair(
-                stepNodeUUID,
-                *paymentNodeID));
-    }
+        // todo : move method deserializeAddress into MultiprecisionUtils.h
+        auto participantAddress = SenderMessage::deserializeAddress(buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += participantAddress->serializedSize();
 
-    for (SerializedRecordNumber i = 0; i < kTotalParticipantsCount; ++i) {
-        PaymentNodeID paymentNodeID;
-        memcpy(
-            &paymentNodeID,
-            buffer.get() + bytesBufferOffset,
-            sizeof(PaymentNodeID));
-        bytesBufferOffset += sizeof(PaymentNodeID);
+        mPaymentParticipants.insert(
+            make_pair(
+                *paymentNodeID,
+                participantAddress));
 
         auto publicKey = make_shared<lamport::PublicKey>(
             buffer.get() + bytesBufferOffset);
@@ -212,7 +214,7 @@ BasePaymentTransaction::BasePaymentTransaction(
 
         mParticipantsPublicKeys.insert(
             make_pair(
-                paymentNodeID,
+                *paymentNodeID,
                 publicKey));
     }
 }
@@ -221,16 +223,23 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 {
     debug() << "runVotesCheckingStage";
     // todo add new stage and remove mTransactionIsVoted
-    if (mTransactionIsVoted)
+    if (mTransactionIsVoted) {
         return runVotesConsistencyCheckingStage();
+    }
 
-    if (! contextIsValid(Message::Payments_ParticipantsPublicKeys))
+    if (! contextIsValid(Message::Payments_ParticipantsPublicKeys)) {
         return reject("No participants public keys received. Canceling.");
+    }
 
     auto participantsPublicKeyMessage = popNextMessage<ParticipantsPublicKeysMessage>();
-    mParticipantsPublicKeys = participantsPublicKeyMessage->publicKeys();
+    auto coordinatorAddress = participantsPublicKeyMessage->senderAddresses.at(0);
+    debug() << "Votes message received from " << coordinatorAddress->fullAddress();
+    if (coordinatorAddress != mPaymentParticipants[kCoordinatorPaymentNodeID]) {
+        warning() << "Wrong coordinator. Continue previous state";
+        return resultContinuePreviousState();
+    }
 
-    debug() << "Votes message received";
+    mParticipantsPublicKeys = participantsPublicKeyMessage->publicKeys();
 
     // todo : check if received own public key is the same as local
 
@@ -275,7 +284,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         debug() << "Transaction saved";
     }
 
-    auto serializedOwnVotesData = getSerializedParticipantsVotesData(mNodeUUID);
+    auto serializedOwnVotesData = getSerializedParticipantsVotesData(mContractorsManager->ownAddresses().at(0));
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto signedTransaction = mKeysStore->signPaymentTransaction(
         ioTransaction,
@@ -292,11 +301,12 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
             mPaymentNodesIds.size() + 2));
 #endif
 
-    debug() << "Signed transaction transferred to coordinator " << participantsPublicKeyMessage->senderUUID;
+    debug() << "Signed transaction transferred to coordinator";
     sendMessage<ParticipantVoteMessage>(
-        participantsPublicKeyMessage->senderUUID,
+        coordinatorAddress,
         mEquivalent,
         mNodeUUID,
+        mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
         signedTransaction);
 
@@ -328,6 +338,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
 #endif
 
     mParticipantsVotesMessage = popNextMessage<ParticipantsVotesMessage>();
+    // todo : check if message from coordinator
     debug () << "Participants votes message received.";
     mParticipantsSignatures = mParticipantsVotesMessage->participantsSignatures();
 
@@ -337,40 +348,38 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
 TransactionResult::SharedConst BasePaymentTransaction::processParticipantsVotesMessage()
 {
     debug() << "processParticipantsVotesMessage";
-    if (!checkSignsAppropriate()) {
-        return reject("Participants signs map is incorrect. Rolling back.");
+    if (!checkSignaturesAppropriate()) {
+        return reject("Participants signatures map is incorrect. Rolling back.");
     }
     info() << "All signatures are appropriate";
-
-    PaymentNodeID coordinatorID = kCoordinatorPaymentNodeID;
-    auto coordinatorSign = mParticipantsSignatures[coordinatorID];
-    auto coordinatorPublicKey = mParticipantsPublicKeys[coordinatorID];
+    auto coordinatorSignature = mParticipantsSignatures[kCoordinatorPaymentNodeID];
+    auto coordinatorPublicKey = mParticipantsPublicKeys[kCoordinatorPaymentNodeID];
     auto coordinatorSerializedVotesData = getSerializedParticipantsVotesData(
-        mParticipantsVotesMessage->senderUUID);
-    if (!coordinatorSign->check(
+        mPaymentParticipants[kCoordinatorPaymentNodeID]);
+    if (!coordinatorSignature->check(
             coordinatorSerializedVotesData.first.get(),
             coordinatorSerializedVotesData.second,
             coordinatorPublicKey)) {
         reject("Final coordinator signature is wrong");
     }
-    for (const auto &nodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
-        if (nodeUUIDAndPaymentNodeID.first == mNodeUUID) {
+    for (const auto &paymentNodeIdAndAddress : mPaymentParticipants) {
+        if (paymentNodeIdAndAddress.second == mContractorsManager->ownAddresses().at(0)) {
             // todo discuss if need check own sign
             continue;
         }
-        if (nodeUUIDAndPaymentNodeID.first == mParticipantsVotesMessage->senderUUID) {
+        if (paymentNodeIdAndAddress.first == kCoordinatorPaymentNodeID) {
             // coordinator already checked
             continue;
         }
-        auto participantPublicKey = mParticipantsPublicKeys[nodeUUIDAndPaymentNodeID.second];
-        auto participantSign = mParticipantsSignatures[nodeUUIDAndPaymentNodeID.second];
+        auto participantPublicKey = mParticipantsPublicKeys[paymentNodeIdAndAddress.first];
+        auto participantSignature = mParticipantsSignatures[paymentNodeIdAndAddress.first];
         auto participantSerializedVotesData = getSerializedParticipantsVotesData(
-                nodeUUIDAndPaymentNodeID.first);
-        if (!participantSign->check(
+            paymentNodeIdAndAddress.second);
+        if (!participantSignature->check(
                 participantSerializedVotesData.first.get(),
                 participantSerializedVotesData.second,
                 participantPublicKey)) {
-            warning() << "Final node " << nodeUUIDAndPaymentNodeID.first.stringUUID() << " sign is wrong";
+            warning() << "Node " << paymentNodeIdAndAddress.second->fullAddress() << " signature is wrong";
             return reject("Consensus not achieved.");
         }
     }
@@ -380,12 +389,12 @@ TransactionResult::SharedConst BasePaymentTransaction::processParticipantsVotesM
 }
 
 const bool BasePaymentTransaction::reserveOutgoingAmount(
-    const NodeUUID& neighborNode,
+    ContractorID neighborNode,
     const TrustLineAmount& amount,
     const PathID &pathID)
 {
     try {
-        const auto kReservation = mTrustLines->reserveOutgoingAmount(
+        const auto kReservation = mTrustLinesManager->reserveOutgoingAmountNew(
             neighborNode,
             currentTransactionUUID(),
             amount);
@@ -406,12 +415,12 @@ const bool BasePaymentTransaction::reserveOutgoingAmount(
 }
 
 const bool BasePaymentTransaction::reserveIncomingAmount(
-    const NodeUUID& neighborNode,
+    ContractorID neighborNode,
     const TrustLineAmount& amount,
     const PathID &pathID)
 {
     try {
-        const auto kReservation = mTrustLines->reserveIncomingAmount(
+        const auto kReservation = mTrustLinesManager->reserveIncomingAmountNew(
             neighborNode,
             currentTransactionUUID(),
             amount);
@@ -512,37 +521,35 @@ void BasePaymentTransaction::commit(
 {
     debug() << "Transaction committing...";
 
-    for (const auto &kNodeUUIDAndReservations : mReservations) {
+    for (const auto &kNodeIDAndReservations : mReservations) {
         AmountReservation::ReservationDirection reservationDirection;
-        for (const auto &kPathIDAndReservation : kNodeUUIDAndReservations.second) {
-            mTrustLines->useReservation(kNodeUUIDAndReservations.first, kPathIDAndReservation.second);
+        for (const auto &kPathIDAndReservation : kNodeIDAndReservations.second) {
+            mTrustLinesManager->useReservationNew(kNodeIDAndReservations.first, kPathIDAndReservation.second);
             if (kPathIDAndReservation.second->direction() == AmountReservation::Outgoing) {
                 debug() << "Committed reservation: [ => ] " << kPathIDAndReservation.second->amount()
-                        << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathIDAndReservation.first
+                        << " for (" << kNodeIDAndReservations.first << ") [" << kPathIDAndReservation.first
                         << "]";
                 mContractorsForCycles.insert(
-                    mTrustLines->contractorID(
-                        kNodeUUIDAndReservations.first));
+                    kNodeIDAndReservations.first);
             }
             else if (kPathIDAndReservation.second->direction() == AmountReservation::Incoming) {
                 debug() << "Committed reservation: [ <= ] " << kPathIDAndReservation.second->amount()
-                        << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathIDAndReservation.first
+                        << " for (" << kNodeIDAndReservations.first << ") [" << kPathIDAndReservation.first
                         << "]";
                 if (mIAmGateway) {
                     // gateway try build cycles on both directions, because it don't shared by own routing tables
                     mContractorsForCycles.insert(
-                        mTrustLines->contractorID(
-                            kNodeUUIDAndReservations.first));
+                        kNodeIDAndReservations.first);
                 }
             }
 
             reservationDirection = kPathIDAndReservation.second->direction();
-            mTrustLines->dropAmountReservation(
-                kNodeUUIDAndReservations.first,
+            mTrustLinesManager->dropAmountReservationNew(
+                kNodeIDAndReservations.first,
                 kPathIDAndReservation.second);
         }
         trustLineActionSignal(
-            mTrustLines->contractorID(kNodeUUIDAndReservations.first),
+            kNodeIDAndReservations.first,
             mEquivalent,
             reservationDirection == AmountReservation::Outgoing);
     }
@@ -567,13 +574,15 @@ void BasePaymentTransaction::saveVotes(
     IOTransaction::Shared ioTransaction)
 {
     debug() << "saveVotes";
-    for (const auto &nodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
+    for (const auto &nodeUUIDAndPaymentNodeID : mPaymentParticipants) {
         ioTransaction->paymentParticipantsVotesHandler()->saveRecord(
             mTransactionUUID,
+            // todo : save contractorAddress
+            NodeUUID::empty(),
+//            nodeUUIDAndPaymentNodeID.second,
             nodeUUIDAndPaymentNodeID.first,
-            nodeUUIDAndPaymentNodeID.second,
-            mParticipantsPublicKeys[nodeUUIDAndPaymentNodeID.second],
-            mParticipantsSignatures[nodeUUIDAndPaymentNodeID.second]);
+            mParticipantsPublicKeys[nodeUUIDAndPaymentNodeID.first],
+            mParticipantsSignatures[nodeUUIDAndPaymentNodeID.first]);
     }
 }
 
@@ -583,19 +592,19 @@ void BasePaymentTransaction::rollBack ()
     const auto ioTransaction = mStorageHandler->beginTransaction();
 
     // drop reservations in AmountReservationHandler
-    for (const auto &kNodeUUIDAndReservations : mReservations) {
-        for (const auto &kPathIDAndReservation : kNodeUUIDAndReservations.second) {
-            mTrustLines->dropAmountReservation(
-                kNodeUUIDAndReservations.first,
+    for (const auto &kNodeIDAndReservations : mReservations) {
+        for (const auto &kPathIDAndReservation : kNodeIDAndReservations.second) {
+            mTrustLinesManager->dropAmountReservationNew(
+                kNodeIDAndReservations.first,
                 kPathIDAndReservation.second);
 
             if (kPathIDAndReservation.second->direction() == AmountReservation::Outgoing)
                 debug() << "Dropping reservation: [ => ] " << kPathIDAndReservation.second->amount()
-                        << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathIDAndReservation.first << "]";
+                        << " for (" << kNodeIDAndReservations.first << ") [" << kPathIDAndReservation.first << "]";
 
             else if (kPathIDAndReservation.second->direction() == AmountReservation::Incoming)
                 debug() << "Dropping reservation: [ <= ] " << kPathIDAndReservation.second->amount()
-                        << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathIDAndReservation.first << "]";
+                        << " for (" << kNodeIDAndReservations.first << ") [" << kPathIDAndReservation.first << "]";
         }
     }
 
@@ -610,35 +619,35 @@ void BasePaymentTransaction::rollBack (
 {
     debug() << "rollback on path";
 
-    auto itNodeUUIDAndReservations = mReservations.begin();
-    while(itNodeUUIDAndReservations != mReservations.end()) {
-        auto itPathIDAndReservation = itNodeUUIDAndReservations->second.begin();
-        while (itPathIDAndReservation != itNodeUUIDAndReservations->second.end()) {
+    auto itNodeIDAndReservations = mReservations.begin();
+    while(itNodeIDAndReservations != mReservations.end()) {
+        auto itPathIDAndReservation = itNodeIDAndReservations->second.begin();
+        while (itPathIDAndReservation != itNodeIDAndReservations->second.end()) {
             if (itPathIDAndReservation->first == pathID) {
 
-                mTrustLines->dropAmountReservation(
-                    itNodeUUIDAndReservations->first,
+                mTrustLinesManager->dropAmountReservationNew(
+                    itNodeIDAndReservations->first,
                     itPathIDAndReservation->second);
 
                 if (itPathIDAndReservation->second->direction() == AmountReservation::Outgoing)
                     debug() << "Dropping reservation: [ => ] " << itPathIDAndReservation->second->amount()
-                           << " for (" << itNodeUUIDAndReservations->first << ") [" << itPathIDAndReservation->first
+                           << " for (" << itNodeIDAndReservations->first << ") [" << itPathIDAndReservation->first
                            << "]";
 
                 else if (itPathIDAndReservation->second->direction() == AmountReservation::Incoming)
                     debug() << "Dropping reservation: [ <= ] " << itPathIDAndReservation->second->amount()
-                           << " for (" << itNodeUUIDAndReservations->first << ") [" << itPathIDAndReservation->first
+                           << " for (" << itNodeIDAndReservations->first << ") [" << itPathIDAndReservation->first
                            << "]";
 
-                itPathIDAndReservation = itNodeUUIDAndReservations->second.erase(itPathIDAndReservation);
+                itPathIDAndReservation = itNodeIDAndReservations->second.erase(itPathIDAndReservation);
                 } else {
                     itPathIDAndReservation++;
                 }
             }
-        if (itNodeUUIDAndReservations->second.empty()) {
-            itNodeUUIDAndReservations = mReservations.erase(itNodeUUIDAndReservations);
+        if (itNodeIDAndReservations->second.empty()) {
+            itNodeIDAndReservations = mReservations.erase(itNodeIDAndReservations);
         } else {
-            itNodeUUIDAndReservations++;
+            itNodeIDAndReservations++;
         }
     }
 }
@@ -674,7 +683,7 @@ uint32_t BasePaymentTransaction::maxNetworkDelay (
 }
 
 const bool BasePaymentTransaction::shortageReservation (
-    const NodeUUID kContractor,
+    ContractorID neighborNode,
     const AmountReservation::ConstShared kReservation,
     const TrustLineAmount &kNewAmount,
     const PathID &pathID)
@@ -682,35 +691,35 @@ const bool BasePaymentTransaction::shortageReservation (
     debug() << "shortageReservation on path " << pathID;
     if (kNewAmount > kReservation->amount()) {
         throw ValueError(
-                "BasePaymentTransaction::shortageReservation: "
-                        "new amount can't be greater than already reserved one.");
+            "BasePaymentTransaction::shortageReservation: "
+                "new amount can't be greater than already reserved one.");
     }
 
     try {
         // this field used only for debug output
         const auto kPreviousAmount = kReservation->amount();
 
-        auto updatedReservation = mTrustLines->updateAmountReservation(
-            kContractor,
+        auto updatedReservation = mTrustLinesManager->updateAmountReservationNew(
+            neighborNode,
             kReservation,
             kNewAmount);
 
-        for (auto it = mReservations[kContractor].begin(); it != mReservations[kContractor].end(); it++){
+        for (auto it = mReservations[neighborNode].begin(); it != mReservations[neighborNode].end(); it++){
             if ((*it).second.get() == kReservation.get() && (*it).first == pathID) {
-                mReservations[kContractor].erase(it);
+                mReservations[neighborNode].erase(it);
                 break;
             }
         }
-        mReservations[kContractor].emplace_back(
+        mReservations[neighborNode].emplace_back(
             pathID,
             updatedReservation);
 
         if (kReservation->direction() == AmountReservation::Incoming)
-            debug() << "Reservation for (" << kContractor << ") [" << pathID << "] shortened "
-                   << "from " << kPreviousAmount << " to " << kNewAmount << " [<=]";
+            debug() << "Reservation for (" << neighborNode << ") [" << pathID << "] shortened "
+                    << "from " << kPreviousAmount << " to " << kNewAmount << " [<=]";
         else
-            debug() << "Reservation for (" << kContractor << ") [" << pathID << "] shortened "
-                   << "from " << kPreviousAmount << " to " << kNewAmount << " [=>]";
+            debug() << "Reservation for (" << neighborNode << ") [" << pathID << "] shortened "
+                    << "from " << kPreviousAmount << " to " << kNewAmount << " [=>]";
 
         return true;
 
@@ -730,7 +739,7 @@ void BasePaymentTransaction::dropNodeReservationsOnPath(
         while (itPathIDAndReservation != itNodeReservations->second.end()) {
             if (itPathIDAndReservation->first == pathID) {
 
-                mTrustLines->dropAmountReservation(
+                mTrustLinesManager->dropAmountReservationNew(
                         itNodeReservations->first,
                     itPathIDAndReservation->second);
 
@@ -777,7 +786,7 @@ bool BasePaymentTransaction::updateReservations(
 }
 
 PathID BasePaymentTransaction::updateReservation(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     pair<PathID, AmountReservation::ConstShared> &pathIDAndReservation,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts)
 {
@@ -785,7 +794,7 @@ PathID BasePaymentTransaction::updateReservation(
         if (pathIDAndAmount.first == pathIDAndReservation.first) {
             if (*pathIDAndAmount.second.get() != pathIDAndReservation.second->amount()) {
                 shortageReservation(
-                    contractorUUID,
+                    contractorID,
                     pathIDAndReservation.second,
                     *pathIDAndAmount.second.get(),
                     pathIDAndAmount.first);
@@ -817,19 +826,17 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesRecoveryParentSta
 }
 
 TransactionResult::SharedConst BasePaymentTransaction::sendVotesRequestMessageAndWaitForResponse(
-    const NodeUUID &contractorUUID)
+    BaseAddress::Shared contractorAddress)
 {
     debug() << "sendVotesRequestMessageAndWaitForResponse";
-    auto requestMessage = make_shared<VotesStatusRequestMessage>(
+    sendMessage<VotesStatusRequestMessage>(
+        contractorAddress,
         mEquivalent,
         mNodeUUID,
+        mContractorsManager->ownAddresses(),
         currentTransactionUUID());
 
-    sendMessage(
-        contractorUUID,
-        requestMessage);
-
-    debug() << "Send VotesStatusRequestMessage to " << contractorUUID;
+    debug() << "Send VotesStatusRequestMessage to " << contractorAddress->fullAddress();
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},
         maxNetworkDelay(2));
@@ -840,20 +847,24 @@ TransactionResult::SharedConst BasePaymentTransaction::runPrepareListNodesToChec
     debug() << "runPrepareListNodesToCheckNodes";
     // Add all nodes that could be asked for Votes Status.
     // Ignore self and Coordinator Node. Coordinator will be asked first
-    auto kCoordinatorUUID = NodeUUID::empty();
-    for(const auto &kNodeUUIDAndPaymentNodeID: mPaymentNodesIds) {
-        if (kNodeUUIDAndPaymentNodeID.first == mNodeUUID) {
+    BaseAddress::Shared coordinatorAddress = nullptr;
+    for(const auto &kNodeUUIDAndPaymentNodeID: mPaymentParticipants) {
+        if (kNodeUUIDAndPaymentNodeID.second == mContractorsManager->ownAddresses().at(0)) {
             continue;
         }
-        if (kNodeUUIDAndPaymentNodeID.second == kCoordinatorPaymentNodeID) {
-            kCoordinatorUUID = kNodeUUIDAndPaymentNodeID.first;
+        if (kNodeUUIDAndPaymentNodeID.first == kCoordinatorPaymentNodeID) {
+            coordinatorAddress = kNodeUUIDAndPaymentNodeID.second;
             continue;
         }
         mNodesToCheckVotes.push_back(
-            kNodeUUIDAndPaymentNodeID.first);
+            kNodeUUIDAndPaymentNodeID.second);
     }
     mVotesRecoveryStep = VotesRecoveryStages::Common_CheckCoordinatorVotesStage;
-    return sendVotesRequestMessageAndWaitForResponse(kCoordinatorUUID);
+    if (coordinatorAddress == nullptr) {
+        warning() << "Participants list does not contain coordinator";
+        return processNextNodeToCheckVotes();
+    }
+    return sendVotesRequestMessageAndWaitForResponse(coordinatorAddress);
 }
 
 TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesStage()
@@ -861,7 +872,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
     debug() << "runCheckCoordinatorVotesStage";
     if (!contextIsValid(Message::Payments_ParticipantsVotes, false)) {
         if (mContext.empty()) {
-            debug() << "Coordinator didn't sent response";
+            debug() << "Coordinator didn't send response";
             return processNextNodeToCheckVotes();
         }
         warning() << "receive message with invalid type, ignore it";
@@ -870,6 +881,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
     }
 
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
+    if (kMessage->senderAddresses.at(0) != mPaymentParticipants[kCoordinatorPaymentNodeID]) {
+        warning() << "Sender " << kMessage->senderAddresses.at(0)->fullAddress()
+                  << " is not coordinator. Ignore this message";
+        return resultContinuePreviousState();
+    }
     if (kMessage->participantsSignatures().empty()) {
         debug() << "Coordinator don't know result of this transaction yet. Sleep.";
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
@@ -897,16 +913,17 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
     }
 
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
-    const auto kSenderUUID = kMessage->senderUUID;
+    auto senderAddress = kMessage->senderAddresses.at(0);
+    info() << "Node " << senderAddress->fullAddress() << " sent response";
+
+    if (senderAddress != mCurrentNodeToCheckVotes){
+        warning() << "Sender is not current checking node";
+        return resultContinuePreviousState();
+    }
 
     if (kMessage->participantsSignatures().empty()) {
         debug() << "Intermediate node didn't know about this transaction";
         return processNextNodeToCheckVotes();
-    }
-
-    if (kSenderUUID != mCurrentNodeToCheckVotes){
-        warning() << "Sender is not current checking node";
-        return resultContinuePreviousState();
     }
 
     mParticipantsVotesMessage = kMessage;
@@ -940,11 +957,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runRollbackByOtherTransac
 }
 
 const TrustLineAmount BasePaymentTransaction::totalReservedAmount(
-    AmountReservation::ReservationDirection reservationDirection) const
+        AmountReservation::ReservationDirection reservationDirection) const
 {
     TrustLineAmount totalAmount = 0;
-    for (const auto &nodeUUIDAndReservations : mReservations) {
-        for (const auto &pathIDAndReservation : nodeUUIDAndReservations.second) {
+    for (const auto &nodeIDAndReservations : mReservations) {
+        for (const auto &pathIDAndReservation : nodeIDAndReservations.second) {
             if (pathIDAndReservation.second->direction() == reservationDirection) {
                 totalAmount += pathIDAndReservation.second->amount();
             }
@@ -954,12 +971,13 @@ const TrustLineAmount BasePaymentTransaction::totalReservedAmount(
 }
 
 pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
-    const NodeUUID &source,
-    const NodeUUID &target,
-    const TrustLineAmount &amount)
+    ContractorID source,
+    ContractorID target,
+    const TrustLineAmount &amount,
+    bool isSource)
 {
-    size_t serializedDataSize = NodeUUID::kBytesSize
-                                + NodeUUID::kBytesSize
+    size_t serializedDataSize = sizeof(ContractorID)
+                                + sizeof(ContractorID)
                                 + TransactionUUID::kBytesSize
                                 + kTrustLineAmountBytesCount
                                 + sizeof(AuditNumber);
@@ -968,15 +986,15 @@ pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
     size_t bytesBufferOffset = 0;
     memcpy(
         serializedData.get() + bytesBufferOffset,
-        source.data,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
+        &source,
+        sizeof(ContractorID));
+    bytesBufferOffset += sizeof(ContractorID);
 
     memcpy(
         serializedData.get() + bytesBufferOffset,
-        target.data,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
+        &target,
+        sizeof(ContractorID));
+    bytesBufferOffset += sizeof(ContractorID);
 
     memcpy(
         serializedData.get() + bytesBufferOffset,
@@ -992,10 +1010,10 @@ pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
     bytesBufferOffset += kTrustLineAmountBytesCount;
 
     AuditNumber currentAuditNumber;
-    if (source == mNodeUUID) {
-        currentAuditNumber = mTrustLines->auditNumber(target);
+    if (isSource) {
+        currentAuditNumber = mTrustLinesManager->auditNumber(target);
     } else {
-        currentAuditNumber = mTrustLines->auditNumber(source);
+        currentAuditNumber = mTrustLinesManager->auditNumber(source);
     }
     memcpy(
         serializedData.get() + bytesBufferOffset,
@@ -1010,7 +1028,8 @@ pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
 bool BasePaymentTransaction::checkAllNeighborsWithReservationsAreInFinalParticipantsList()
 {
     for (const auto &nodeAndReservations : mReservations) {
-        if (mPaymentNodesIds.find(nodeAndReservations.first) == mPaymentNodesIds.end()) {
+        auto contractorAddress = mContractorsManager->contractorMainAddress(nodeAndReservations.first);
+        if (mPaymentNodesIds.find(contractorAddress->fullAddress()) == mPaymentNodesIds.end()) {
             return false;
         }
     }
@@ -1019,31 +1038,31 @@ bool BasePaymentTransaction::checkAllNeighborsWithReservationsAreInFinalParticip
 
 bool BasePaymentTransaction::checkAllPublicKeyHashesProperly()
 {
-    for (const auto &nodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
-        if (nodeUUIDAndPaymentNodeID.first == coordinatorUUID()) {
+    for (const auto &paymentNodeIdAndAddress : mPaymentParticipants) {
+        if (paymentNodeIdAndAddress.first == kCoordinatorPaymentNodeID) {
             continue;
         }
-        if (mParticipantsPublicKeysHashes.find(nodeUUIDAndPaymentNodeID.first) ==
+        if (mParticipantsPublicKeysHashes.find(paymentNodeIdAndAddress.second->fullAddress()) ==
                 mParticipantsPublicKeysHashes.end()) {
-            warning() << "Public key hash of " << nodeUUIDAndPaymentNodeID.first << " is absent";
+            warning() << "Public key hash of " << paymentNodeIdAndAddress.second->fullAddress() << " is absent";
             return false;
         }
-        if (mParticipantsPublicKeysHashes[nodeUUIDAndPaymentNodeID.first].first !=
-                nodeUUIDAndPaymentNodeID.second) {
-            warning() << "Invalid Payment node ID of " << nodeUUIDAndPaymentNodeID.first;
+        if (mParticipantsPublicKeysHashes[paymentNodeIdAndAddress.second->fullAddress()].first !=
+                paymentNodeIdAndAddress.first) {
+            warning() << "Invalid Payment node ID of " << paymentNodeIdAndAddress.second->fullAddress();
             return false;
         }
     }
 }
 
 const TrustLineAmount BasePaymentTransaction::totalReservedIncomingAmountToNode(
-    const NodeUUID &nodeUUID)
+    ContractorID contractorID)
 {
     auto result = TrustLine::kZeroAmount();
-    if (mReservations.find(nodeUUID) == mReservations.end()) {
+    if (mReservations.find(contractorID) == mReservations.end()) {
         return result;
     }
-    for (const auto &pathIDAndReservation : mReservations[nodeUUID]) {
+    for (const auto &pathIDAndReservation : mReservations[contractorID]) {
         if (pathIDAndReservation.second->direction() == AmountReservation::Incoming) {
             result += pathIDAndReservation.second->amount();
         }
@@ -1075,13 +1094,14 @@ bool BasePaymentTransaction::checkPublicKeysAppropriate()
 }
 
 pair<BytesShared, size_t> BasePaymentTransaction::getSerializedParticipantsVotesData(
-    const NodeUUID &nodeUUID)
+    BaseAddress::Shared participantAddress)
 {
     size_t serializedDataSize = TransactionUUID::kBytesSize
-                                + NodeUUID::kBytesSize
-                                + sizeof(SerializedRecordsCount)
-                                + mPaymentNodesIds.size() *
-                                    (NodeUUID::kBytesSize + sizeof(PaymentNodeID));
+                                + participantAddress->serializedSize()
+                                + sizeof(SerializedRecordsCount);
+    for (const auto &participant : mPaymentParticipants) {
+        serializedDataSize += sizeof(PaymentNodeID) + participant.second->serializedSize();
+    }
     BytesShared serializedData = tryMalloc(serializedDataSize);
 
     size_t bytesBufferOffset = 0;
@@ -1091,31 +1111,33 @@ pair<BytesShared, size_t> BasePaymentTransaction::getSerializedParticipantsVotes
         TransactionUUID::kBytesSize);
     bytesBufferOffset += TransactionUUID::kBytesSize;
 
+    auto serializedParticipantAddress = participantAddress->serializeToBytes();
     memcpy(
         serializedData.get() + bytesBufferOffset,
-        nodeUUID.data,
+        serializedParticipantAddress.get(),
         NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
+    bytesBufferOffset += participantAddress->serializedSize();
 
-    auto participantsCount = mPaymentNodesIds.size();
+    auto participantsCount = mPaymentParticipants.size();
     memcpy(
         serializedData.get() + bytesBufferOffset,
         &participantsCount,
         sizeof(SerializedRecordsCount));
     bytesBufferOffset += sizeof(SerializedRecordsCount);
 
-    for (const auto &nodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
+    for (const auto &paymentNodeIdAndAddress : mPaymentParticipants) {
         memcpy(
             serializedData.get() + bytesBufferOffset,
-            nodeUUIDAndPaymentNodeID.first.data,
-            NodeUUID::kBytesSize);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-
-        memcpy(
-            serializedData.get() + bytesBufferOffset,
-            &nodeUUIDAndPaymentNodeID.second,
+            &paymentNodeIdAndAddress.first,
             sizeof(PaymentNodeID));
         bytesBufferOffset += sizeof(PaymentNodeID);
+
+        auto serializedAddress = paymentNodeIdAndAddress.second->serializeToBytes();
+        memcpy(
+            serializedData.get() + bytesBufferOffset,
+            serializedAddress.get(),
+            paymentNodeIdAndAddress.second->serializedSize());
+        bytesBufferOffset += paymentNodeIdAndAddress.second->serializedSize();
     }
 
     return make_pair(
@@ -1123,16 +1145,15 @@ pair<BytesShared, size_t> BasePaymentTransaction::getSerializedParticipantsVotes
         serializedDataSize);
 }
 
-bool BasePaymentTransaction::checkSignsAppropriate()
+bool BasePaymentTransaction::checkSignaturesAppropriate()
 {
     if (mParticipantsSignatures.size() != mParticipantsPublicKeys.size()) {
         warning() << "different numbers of signatures and participants";
         return false;
     }
-    for (const auto &nodeUUIDAndPaymentNodeID : mParticipantsPublicKeys) {
-        if (mParticipantsSignatures.find(nodeUUIDAndPaymentNodeID.first) == mParticipantsSignatures.end()) {
-            warning() << "there are no signature from node " << nodeUUIDAndPaymentNodeID.first
-                      << " [" << nodeUUIDAndPaymentNodeID.first << "]";
+    for (const auto &paymentNodeIdAndPubKey : mParticipantsPublicKeys) {
+        if (mParticipantsSignatures.find(paymentNodeIdAndPubKey.first) == mParticipantsSignatures.end()) {
+            warning() << "there are no signature from participant " << paymentNodeIdAndPubKey.first;
         }
     }
     return true;
@@ -1144,11 +1165,10 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(SerializedRecordsCount)
                         + reservationsSizeInBytes()
-                        + sizeof(SerializedRecordsCount)
-                        + mPaymentNodesIds.size()
-                          * (NodeUUID::kBytesSize + sizeof(PaymentNodeID))
-                        + mParticipantsPublicKeys.size()
-                          * (sizeof(PaymentNodeID) + lamport::PublicKey::keySize());
+                        + sizeof(SerializedRecordsCount);
+    for (const auto &participant : mPaymentParticipants) {
+        bytesCount += sizeof(PaymentNodeID) + participant.second->serializedSize() + lamport::PublicKey::keySize();
+    }
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -1169,12 +1189,12 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
     dataBytesOffset += sizeof(SerializedRecordsCount);
 
     for(const auto &nodeAndReservations : mReservations){
-        // Map key (NodeUUID)
+        // Map key (ContractorID)
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            nodeAndReservations.first.data,
-            NodeUUID::kBytesSize);
-        dataBytesOffset += NodeUUID::kBytesSize;
+            &nodeAndReservations.first,
+            sizeof(ContractorID));
+        dataBytesOffset += sizeof(ContractorID);
 
         // Size of map value vector
         auto kReservationsValueSize = (SerializedRecordsCount)nodeAndReservations.second.size();
@@ -1219,39 +1239,32 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
     }
 
     // Participants paymentIDs and public keys Part
-    auto kTotalParticipantsCount = mPaymentNodesIds.size();
+    auto kTotalParticipantsCount = mPaymentParticipants.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &kTotalParticipantsCount,
         sizeof(SerializedRecordsCount));
     dataBytesOffset += sizeof(SerializedRecordsCount);
 
-    // NodeUUIDs and payment IDs
-    for (auto const &nodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
+    // NodePaymentIDs and payment addresses
+    for (auto const &paymentNodeIdAndAddress : mPaymentParticipants) {
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            nodeUUIDAndPaymentNodeID.first.data,
-            NodeUUID::kBytesSize);
-        dataBytesOffset += NodeUUID::kBytesSize;
-
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &nodeUUIDAndPaymentNodeID.second,
-            sizeof(PaymentNodeID));
-        dataBytesOffset += sizeof(PaymentNodeID);
-    }
-
-    // Payment IDs and publicKeys
-    for (const auto &nodeIDAndPublicKey : mParticipantsPublicKeys) {
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &nodeIDAndPublicKey.first,
+            &paymentNodeIdAndAddress.first,
             sizeof(PaymentNodeID));
         dataBytesOffset += sizeof(PaymentNodeID);
 
+        auto serializedAddress = paymentNodeIdAndAddress.second->serializeToBytes();
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            nodeIDAndPublicKey.second->data(),
+            serializedAddress.get(),
+            paymentNodeIdAndAddress.second->serializedSize());
+        dataBytesOffset += paymentNodeIdAndAddress.second->serializedSize();
+
+        auto participantPublicKey = mParticipantsPublicKeys.at(paymentNodeIdAndAddress.first);
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            participantPublicKey->data(),
             lamport::PublicKey::keySize());
         dataBytesOffset += lamport::PublicKey::keySize();
     }
@@ -1264,7 +1277,7 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
 size_t BasePaymentTransaction::reservationsSizeInBytes() const {
     size_t reservationSizeInBytes = 0;
     for (const auto &nodeAndReservations : mReservations){
-        reservationSizeInBytes += NodeUUID::kBytesSize
+        reservationSizeInBytes += sizeof(ContractorID)
                                   + nodeAndReservations.second.size() * (
                                     sizeof(PathID) + // PathID
                                     kTrustLineAmountBytesCount +  // Reservation Amount
@@ -1278,9 +1291,9 @@ size_t BasePaymentTransaction::reservationsSizeInBytes() const {
     return reservationSizeInBytes;
 }
 
-const NodeUUID& BasePaymentTransaction::coordinatorUUID() const
+BaseAddress::Shared BasePaymentTransaction::coordinatorAddress() const
 {
-    return currentNodeUUID();
+    return mContractorsManager->ownAddresses().at(0);
 }
 
 const SerializedPathLengthSize BasePaymentTransaction::cycleLength() const

@@ -92,7 +92,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
 
     //    Create Cycles comparing BoundaryMessages data with debtors map
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
-    vector<PathNew::ConstShared> resultCycles;
+    vector<Path::ConstShared> resultCycles;
 #endif
     TrustLineBalance debtorsStepFlow;
     TrustLineBalance commonStepMaxFlow;
@@ -138,8 +138,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
                                                    nodeAddress,
                                                    nodeAddressAndPathIt->second.back()};
 
-                const auto cyclePath = make_shared<PathNew>(
-                    mContractorsManager->ownAddresses().at(0),
+                const auto cyclePath = make_shared<Path>(
                     stepCyclePath);
                 mCyclesManager->addCycle(
                     cyclePath);
@@ -153,11 +152,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
     debug() << "ResultCyclesCount " << resultCycles.size();
     for (auto &cyclePath: resultCycles){
-        stringstream ss;
-        for (const auto &address : cyclePath->nodes) {
-            ss << address->fullAddress() << " ";
-        }
-        debug() << "CyclePath " << ss.str();
+        debug() << "CyclePath " << cyclePath->toString();
     }
 #endif
     mCyclesManager->closeOneCycle();
