@@ -22,6 +22,7 @@ public:
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        bool iAmGateway,
         Logger &logger);
 
 protected:
@@ -82,6 +83,7 @@ private:
     vector<pair<ContractorID, BaseAddress::Shared>> mContractorIDs;
     vector<pair<ContractorID, TrustLineAmount>> mMaxFlowsNew;
     size_t mCurrentGlobalContractorIdx;
+    bool mIamGateway;
 };
 
 

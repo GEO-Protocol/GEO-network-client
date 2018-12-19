@@ -9,9 +9,26 @@ public:
     typedef shared_ptr<MaxFlowCalculationTargetSndLevelMessage> Shared;
 
 public:
-    using MaxFlowCalculationMessage::MaxFlowCalculationMessage;
+    MaxFlowCalculationTargetSndLevelMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        const NodeUUID &targetUUID,
+        bool isTargetGateway)
+        noexcept;
+
+    MaxFlowCalculationTargetSndLevelMessage(
+        BytesShared buffer)
+        noexcept;
+
+    bool isTargetGateway() const;
 
     const MessageType typeID() const;
+
+    pair<BytesShared, size_t> serializeToBytes() const
+        throw(bad_alloc);
+
+private:
+    bool mIsTargetGateway;
 };
 
 

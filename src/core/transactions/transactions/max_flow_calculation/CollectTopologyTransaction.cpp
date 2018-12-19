@@ -9,6 +9,7 @@ CollectTopologyTransaction::CollectTopologyTransaction(
     TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    bool iAmGateway,
     Logger &logger) :
 
     BaseTransaction(
@@ -21,7 +22,8 @@ CollectTopologyTransaction::CollectTopologyTransaction(
     mTrustLinesManager(manager),
     mTopologyTrustLineManager(topologyTrustLineManager),
     mTopologyCacheManager(topologyCacheManager),
-    mMaxFlowCacheManager(maxFlowCacheManager)
+    mMaxFlowCacheManager(maxFlowCacheManager),
+    mIamGateway(iAmGateway)
 {}
 
 TransactionResult::SharedConst CollectTopologyTransaction::run()
@@ -32,22 +34,35 @@ TransactionResult::SharedConst CollectTopologyTransaction::run()
         return resultDone();
     }
     sendMessagesToContractors();
-    for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
-        auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
-        mTopologyTrustLineManager->addTrustLine(
-            make_shared<TopologyTrustLine>(
-                mNodeUUID,
-                nodeUUIDAndOutgoingFlow.first,
-                trustLineAmountShared));
-    }
-    for (auto const &nodeAddressAndOutgoingFlow : mTrustLinesManager->outgoingFlowsNew()) {
-        auto targetID = mTopologyTrustLineManager->getID(nodeAddressAndOutgoingFlow.first);
-        auto trustLineAmountShared = nodeAddressAndOutgoingFlow.second;
-        mTopologyTrustLineManager->addTrustLineNew(
-            make_shared<TopologyTrustLineNew>(
-                0,
-                targetID,
-                trustLineAmountShared));
+    if (mIamGateway) {
+        for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
+            if (mTrustLinesManager->isContractorGateway(nodeUUIDAndOutgoingFlow.first)) {
+                auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
+                mTopologyTrustLineManager->addTrustLine(
+                    make_shared<TopologyTrustLine>(
+                        mNodeUUID,
+                        nodeUUIDAndOutgoingFlow.first,
+                        trustLineAmountShared));
+                continue;
+            }
+            if (find(mContractors.begin(), mContractors.end(), nodeUUIDAndOutgoingFlow.first) != mContractors.end()) {
+                auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
+                mTopologyTrustLineManager->addTrustLine(
+                    make_shared<TopologyTrustLine>(
+                        mNodeUUID,
+                        nodeUUIDAndOutgoingFlow.first,
+                        trustLineAmountShared));
+            }
+        }
+    } else {
+        for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
+            auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
+            mTopologyTrustLineManager->addTrustLine(
+                make_shared<TopologyTrustLine>(
+                    mNodeUUID,
+                    nodeUUIDAndOutgoingFlow.first,
+                    trustLineAmountShared));
+        }
     }
     if (!mTopologyCacheManager->isInitiatorCached()) {
         sendMessagesOnFirstLevel();
@@ -63,32 +78,47 @@ void CollectTopologyTransaction::sendMessagesToContractors()
             contractorAddress,
             mEquivalent,
             currentNodeUUID(),
-            mContractorsManager->ownAddresses());
+            mIamGateway);
 }
 
 void CollectTopologyTransaction::sendMessagesOnFirstLevel()
 {
-    auto outgoingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
-    auto outgoingFlowIDIt = outgoingFlowIDs.begin();
-    while (outgoingFlowIDIt != outgoingFlowIDs.end()) {
-        // firstly send message to gateways
-        if (mTrustLinesManager->isContractorGateway(*outgoingFlowIDIt)) {
+    if (mIamGateway) {
+        vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow();
+        for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
+            if (find(mContractors.begin(), mContractors.end(), nodeUUIDOutgoingFlow) != mContractors.end()) {
+                continue;
+            }
             sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
-                *outgoingFlowIDIt,
+                nodeUUIDOutgoingFlow,
                 mEquivalent,
-                mNodeUUID,
-                mContractorsManager->idOnContractorSide(*outgoingFlowIDIt));
-            outgoingFlowIDs.erase(outgoingFlowIDIt);
-        } else {
-            outgoingFlowIDIt++;
+                mNodeUUID);
         }
-    }
-    for (auto const &nodeIDWithOutgoingFlow : outgoingFlowIDs) {
-        sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
-            nodeIDWithOutgoingFlow,
-            mEquivalent,
-            mNodeUUID,
-            mContractorsManager->idOnContractorSide(nodeIDWithOutgoingFlow));
+    } else {
+        vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
+        auto outgoingFlowUuidIt = outgoingFlowUuids.begin();
+        while (outgoingFlowUuidIt != outgoingFlowUuids.end()) {
+            if (find(mContractors.begin(), mContractors.end(), *outgoingFlowUuidIt) != mContractors.end()) {
+                outgoingFlowUuids.erase(outgoingFlowUuidIt);
+                continue;
+            }
+            // firstly send message to gateways
+            if (mTrustLinesManager->isContractorGateway(*outgoingFlowUuidIt)) {
+                sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
+                    *outgoingFlowUuidIt,
+                    mEquivalent,
+                    mNodeUUID);
+                outgoingFlowUuids.erase(outgoingFlowUuidIt);
+            } else {
+                outgoingFlowUuidIt++;
+            }
+        }
+        for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
+            sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
+                nodeUUIDOutgoingFlow,
+                mEquivalent,
+                mNodeUUID);
+        }
     }
 }
 

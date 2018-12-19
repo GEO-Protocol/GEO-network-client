@@ -13,6 +13,7 @@ FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
     TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    bool iAmGateway,
     Logger &logger) :
 
     BaseCollectTopologyTransaction(
@@ -30,7 +31,8 @@ FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
     mContractorAddress(contractorAddress),
     mRequestedTransactionUUID(requestedTransactionUUID),
     mPathsManager(pathsManager),
-    mResourcesManager(resourcesManager)
+    mResourcesManager(resourcesManager),
+    mIamGateway(iAmGateway)
 {}
 
 TransactionResult::SharedConst FindPathByMaxFlowTransaction::sendRequestForCollectingTopology()
@@ -51,6 +53,7 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::sendRequestForColle
             mTopologyTrustLineManager,
             mTopologyCacheManager,
             mMaxFlowCacheManager,
+            mIamGateway,
             mLog);
 
         mTopologyTrustLineManager->setPreventDeleting(true);

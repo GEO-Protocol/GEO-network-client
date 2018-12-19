@@ -26,6 +26,7 @@ public:
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        bool iAmGateway,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -44,6 +45,7 @@ private:
     TopologyTrustLinesManager *mTopologyTrustLineManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
+    bool mIamGateway;
 
     vector<NodeUUID> mContractors;
     vector<BaseAddress::Shared> mContractorAddresses;

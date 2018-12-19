@@ -8,6 +8,7 @@ MaxFlowCalculationFullyTransaction::MaxFlowCalculationFullyTransaction(
     TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    bool iAmGateway,
     Logger &logger) :
 
     BaseCollectTopologyTransaction(
@@ -20,7 +21,8 @@ MaxFlowCalculationFullyTransaction::MaxFlowCalculationFullyTransaction(
         topologyCacheManager,
         maxFlowCacheManager,
         logger),
-    mCommand(command)
+    mCommand(command),
+    mIamGateway(iAmGateway)
 {}
 
 TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::sendRequestForCollectingTopology()
@@ -79,6 +81,7 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::sendRequestFo
         mTopologyTrustLineManager,
         mTopologyCacheManager,
         mMaxFlowCacheManager,
+        mIamGateway,
         mLog);
     mTopologyTrustLineManager->setPreventDeleting(true);
     launchSubsidiaryTransaction(kTransaction);

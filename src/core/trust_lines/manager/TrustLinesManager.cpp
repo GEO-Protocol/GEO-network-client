@@ -1399,7 +1399,25 @@ vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() co
     return result;
 }
 
-vector<ContractorID> TrustLinesManager::firstLevelNonGatewayNeighborsWithIncomingFlow() const
+vector<NodeUUID> TrustLinesManager::firstLevelGatewayNeighborsWithIncomingFlow() const
+{
+    vector<NodeUUID> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+        if (!nodeUUIDAndTrustLine.second->isContractorGateway()) {
+            continue;
+        }
+        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
+                nodeUUIDAndTrustLine.first);
+        auto trustLineAmountPtr = trustLineAmountShared.get();
+
+        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
+            result.push_back(nodeUUIDAndTrustLine.first);
+        }
+    }
+    return result;
+}
+
+vector<NodeUUID> TrustLinesManager::firstLevelNonGatewayNeighborsWithIncomingFlow() const
 {
     vector<ContractorID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLinesNew) {
@@ -1554,6 +1572,23 @@ vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> TrustLinesManager:
         result.emplace_back(
             mContractorsManager->contractorAddresses(nodeIDAndTrustLine.first).at(0),
             trustLineAmountShared);
+    }
+    return result;
+}
+
+vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlowsFromGateways() const
+{
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+        if (!nodeUUIDAndTrustLine.second->isContractorGateway()) {
+            continue;
+        }
+        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
+            nodeUUIDAndTrustLine.first);
+        result.push_back(
+            make_pair(
+                nodeUUIDAndTrustLine.first,
+                trustLineAmountShared));
     }
     return result;
 }

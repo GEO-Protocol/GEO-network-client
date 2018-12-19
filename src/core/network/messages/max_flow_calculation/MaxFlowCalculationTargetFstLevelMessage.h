@@ -10,9 +10,26 @@ public:
     typedef shared_ptr<MaxFlowCalculationTargetFstLevelMessage> Shared;
 
 public:
-    using MaxFlowCalculationMessage::MaxFlowCalculationMessage;
+    MaxFlowCalculationTargetFstLevelMessage(
+        const SerializedEquivalent equivalent,
+        const NodeUUID &senderUUID,
+        const NodeUUID &targetUUID,
+        bool isTargetGateway)
+        noexcept;
+
+    MaxFlowCalculationTargetFstLevelMessage(
+        BytesShared buffer)
+        noexcept;
+
+    bool isTargetGateway() const;
 
     const MessageType typeID() const;
+
+    pair<BytesShared, size_t> serializeToBytes() const
+    throw(bad_alloc);
+
+private:
+    bool mIsTargetGateway;
 };
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTARGETFSTLEVELMESSAGE_H

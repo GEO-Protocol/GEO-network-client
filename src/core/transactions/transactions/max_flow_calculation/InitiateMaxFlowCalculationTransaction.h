@@ -26,6 +26,7 @@ public:
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        bool iAmGateway,
         Logger &logger);
 
 protected:
@@ -94,6 +95,7 @@ private:
     size_t mCurrentGlobalContractorIdx;
     bool mFinalTopologyCollected;
     byte mMaxPathLength;
+    bool mIamGateway;
 };
 
 
