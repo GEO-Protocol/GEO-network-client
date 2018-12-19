@@ -25,6 +25,7 @@ public:
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        bool iAmGateway,
         Logger &logger);
 
 protected:
@@ -53,6 +54,7 @@ private:
     PathsManager *mPathsManager;
     ResourcesManager *mResourcesManager;
     size_t mCountProcessCollectingTopologyRun;
+    bool mIamGateway;
 };
 
 

@@ -283,6 +283,8 @@ public:
 
     vector<NodeUUID> firstLevelNeighborsWithIncomingFlow() const;
 
+    vector<NodeUUID> firstLevelGatewayNeighborsWithIncomingFlow() const;
+
     vector<NodeUUID> firstLevelNonGatewayNeighborsWithIncomingFlow() const;
 
     vector<NodeUUID> firstLevelNeighborsWithPositiveBalance() const;
@@ -302,6 +304,8 @@ public:
         const NodeUUID &contractorUUID) const;
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlowsFromNonGateways() const;
+
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlowsFromGateways() const;
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlowsToGateways() const;
 

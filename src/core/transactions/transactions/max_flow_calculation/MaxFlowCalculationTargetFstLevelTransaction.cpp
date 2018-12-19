@@ -38,7 +38,11 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
             mNodeUUID,
             outgoingFlows,
             incomingFlows);
-        incomingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
+        if (mMessage->isTargetGateway()) {
+            incomingFlowUuids = mTrustLinesManager->firstLevelGatewayNeighborsWithIncomingFlow();
+        } else {
+            incomingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
+        }
     } else {
         incomingFlowUuids = mTrustLinesManager->firstLevelNonGatewayNeighborsWithIncomingFlow();
     }
@@ -53,7 +57,8 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
             nodeUUIDIncomingFlow,
             mEquivalent,
             mNodeUUID,
-            mMessage->targetUUID());
+            mMessage->targetUUID(),
+            mMessage->isTargetGateway());
     }
     return resultDone();
 }

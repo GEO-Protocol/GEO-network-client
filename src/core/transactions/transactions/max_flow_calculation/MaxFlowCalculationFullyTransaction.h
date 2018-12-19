@@ -21,6 +21,7 @@ public:
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        bool iAmGateway,
         Logger &logger);
 
 protected:
@@ -67,6 +68,7 @@ private:
     TopologyTrustLinesManager::TrustLineWithPtrHashSet mFirstLevelTopology;
     vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
     size_t mCurrentGlobalContractorIdx;
+    bool mIamGateway;
 };
 
 

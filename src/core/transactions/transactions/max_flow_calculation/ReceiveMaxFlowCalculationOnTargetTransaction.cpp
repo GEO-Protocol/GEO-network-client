@@ -40,10 +40,21 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator()
     }
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows;
-    for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
-        if (*incomingFlow.second.get() > TrustLine::kZeroAmount() && incomingFlow.first != mMessage->senderUUID) {
-            incomingFlows.push_back(
-                incomingFlow);
+    if (mMessage->isSenderGateway()) {
+        for (auto const &incomingFlow : mTrustLinesManager->incomingFlowsFromGateways()) {
+            if (*incomingFlow.second.get() > TrustLine::kZeroAmount() &&
+                    incomingFlow.first != mMessage->senderUUID) {
+                incomingFlows.push_back(
+                    incomingFlow);
+            }
+        }
+    } else {
+        for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
+            if (*incomingFlow.second.get() > TrustLine::kZeroAmount() &&
+                    incomingFlow.first != mMessage->senderUUID) {
+                incomingFlows.push_back(
+                    incomingFlow);
+            }
         }
     }
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
@@ -73,11 +84,23 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
 #endif
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlowsForSending;
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlowsForSending;
-    for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
-        if (incomingFlow.first != mMessage->senderUUID
-            && !maxFlowCalculationCachePtr->containsIncomingFlow(incomingFlow.first, incomingFlow.second)) {
-            incomingFlowsForSending.push_back(
-                incomingFlow);
+    if (mMessage->isSenderGateway()) {
+        for (auto const &incomingFlow : mTrustLinesManager->incomingFlowsFromGateways()) {
+            if (*incomingFlow.second.get() > TrustLine::kZeroAmount() &&
+                    incomingFlow.first != mMessage->senderUUID &&
+                    !maxFlowCalculationCachePtr->containsIncomingFlow(incomingFlow.first, incomingFlow.second)) {
+                incomingFlowsForSending.push_back(
+                    incomingFlow);
+            }
+        }
+    } else {
+        for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
+            if (*incomingFlow.second.get() > TrustLine::kZeroAmount() &&
+                    incomingFlow.first != mMessage->senderUUID &&
+                    !maxFlowCalculationCachePtr->containsIncomingFlow(incomingFlow.first, incomingFlow.second)) {
+                incomingFlowsForSending.push_back(
+                    incomingFlow);
+            }
         }
     }
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
@@ -95,7 +118,13 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
 
 void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel()
 {
-    vector<NodeUUID> incomingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
+    vector<NodeUUID> incomingFlowUuids;
+    if (mMessage->isSenderGateway()) {
+        incomingFlowUuids = mTrustLinesManager->firstLevelGatewayNeighborsWithIncomingFlow();
+    } else {
+        incomingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
+    }
+
     for (auto const &nodeUUIDIncomingFlow : incomingFlowUuids) {
         if (nodeUUIDIncomingFlow == mMessage->senderUUID) {
             continue;
@@ -107,7 +136,8 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel()
             nodeUUIDIncomingFlow,
             mEquivalent,
             mNodeUUID,
-            mMessage->senderUUID);
+            mMessage->senderUUID,
+            mMessage->isSenderGateway());
     }
 }
 
