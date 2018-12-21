@@ -3,6 +3,7 @@
 ConflictResolverMessage::ConflictResolverMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
+    ContractorID idOnReceiverSide,
     const TransactionUUID &transactionUUID,
     AuditRecord::Shared auditRecord,
     vector<ReceiptRecord::Shared> &incomingReceipts,
@@ -11,6 +12,7 @@ ConflictResolverMessage::ConflictResolverMessage(
     TransactionMessage(
         equivalent,
         senderUUID,
+        idOnReceiverSide,
         transactionUUID),
     mAuditRecord(auditRecord),
     mIncomingReceipts(incomingReceipts),

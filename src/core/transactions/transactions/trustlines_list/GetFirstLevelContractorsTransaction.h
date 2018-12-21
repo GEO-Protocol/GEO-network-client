@@ -20,8 +20,6 @@ public:
         Logger &logger)
     noexcept;
 
-    GetFirstLevelContractorsCommand::Shared command() const;
-
     TransactionResult::SharedConst run();
 
 protected:

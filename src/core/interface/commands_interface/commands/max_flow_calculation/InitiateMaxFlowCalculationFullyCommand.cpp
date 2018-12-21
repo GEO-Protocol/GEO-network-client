@@ -26,27 +26,9 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
                 "InitiateMaxFlowCalculationFullyCommand: can't parse command. "
                     "Error occurred while parsing  'count contractors' token.");
     }
-    mContractors.reserve(mContractorsCount);
-    size_t contractorStartPoint = tokenSeparatorPos + 1;
-
-    for (size_t idx = 0; idx < mContractorsCount; idx++) {
-        try {
-            string hexUUID = command.substr(
-                contractorStartPoint,
-                NodeUUID::kHexSize);
-            mContractors.push_back(
-                boost::lexical_cast<uuids::uuid>(
-                    hexUUID));
-            contractorStartPoint += NodeUUID::kHexSize + 1;
-        } catch (...) {
-            throw ValueError(
-                    "InitiateMaxFlowCalculationFullyCommand: can't parse command. "
-                        "Error occurred while parsing 'Contractor UUID' token.");
-        }
-    }
 
     mContractorAddresses.reserve(mContractorsCount);
-    size_t contractorAddressStartPoint = contractorStartPoint;
+    size_t contractorAddressStartPoint = tokenSeparatorPos + 1;
     for (size_t idx = 0; idx < mContractorsCount; idx++) {
         try {
             tokenSeparatorPos = command.find(
@@ -83,11 +65,6 @@ const string &InitiateMaxFlowCalculationFullyCommand::identifier()
 {
     static const string identifier = "GET:contractors/transactions/max/fully";
     return identifier;
-}
-
-const vector<NodeUUID>& InitiateMaxFlowCalculationFullyCommand::contractors() const
-{
-    return mContractors;
 }
 
 const vector<BaseAddress::Shared>& InitiateMaxFlowCalculationFullyCommand::contractorAddresses() const

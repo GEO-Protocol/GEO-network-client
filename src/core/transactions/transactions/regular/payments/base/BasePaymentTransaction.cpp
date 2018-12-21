@@ -394,10 +394,10 @@ const bool BasePaymentTransaction::reserveOutgoingAmount(
     const PathID &pathID)
 {
     try {
-        const auto kReservation = mTrustLinesManager->reserveOutgoingAmountNew(
-            neighborNode,
-            currentTransactionUUID(),
-            amount);
+        const auto kReservation = mTrustLinesManager->reserveOutgoingAmount(
+                neighborNode,
+                currentTransactionUUID(),
+                amount);
 
 #ifdef DEBUG
         // todo: uncomment me, when problem with recoverin transaction and reservation after restarting node will be fixed
@@ -420,10 +420,10 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
     const PathID &pathID)
 {
     try {
-        const auto kReservation = mTrustLinesManager->reserveIncomingAmountNew(
-            neighborNode,
-            currentTransactionUUID(),
-            amount);
+        const auto kReservation = mTrustLinesManager->reserveIncomingAmount(
+                neighborNode,
+                currentTransactionUUID(),
+                amount);
 
 #ifdef DEBUG
         // todo: uncomment me, when problem with recoverin transaction and reservation after restarting node will be fixed
@@ -524,7 +524,7 @@ void BasePaymentTransaction::commit(
     for (const auto &kNodeIDAndReservations : mReservations) {
         AmountReservation::ReservationDirection reservationDirection;
         for (const auto &kPathIDAndReservation : kNodeIDAndReservations.second) {
-            mTrustLinesManager->useReservationNew(kNodeIDAndReservations.first, kPathIDAndReservation.second);
+            mTrustLinesManager->useReservation(kNodeIDAndReservations.first, kPathIDAndReservation.second);
             if (kPathIDAndReservation.second->direction() == AmountReservation::Outgoing) {
                 debug() << "Committed reservation: [ => ] " << kPathIDAndReservation.second->amount()
                         << " for (" << kNodeIDAndReservations.first << ") [" << kPathIDAndReservation.first
@@ -544,9 +544,9 @@ void BasePaymentTransaction::commit(
             }
 
             reservationDirection = kPathIDAndReservation.second->direction();
-            mTrustLinesManager->dropAmountReservationNew(
-                kNodeIDAndReservations.first,
-                kPathIDAndReservation.second);
+            mTrustLinesManager->dropAmountReservation(
+                    kNodeIDAndReservations.first,
+                    kPathIDAndReservation.second);
         }
         trustLineActionSignal(
             kNodeIDAndReservations.first,
@@ -594,9 +594,9 @@ void BasePaymentTransaction::rollBack ()
     // drop reservations in AmountReservationHandler
     for (const auto &kNodeIDAndReservations : mReservations) {
         for (const auto &kPathIDAndReservation : kNodeIDAndReservations.second) {
-            mTrustLinesManager->dropAmountReservationNew(
-                kNodeIDAndReservations.first,
-                kPathIDAndReservation.second);
+            mTrustLinesManager->dropAmountReservation(
+                    kNodeIDAndReservations.first,
+                    kPathIDAndReservation.second);
 
             if (kPathIDAndReservation.second->direction() == AmountReservation::Outgoing)
                 debug() << "Dropping reservation: [ => ] " << kPathIDAndReservation.second->amount()
@@ -625,9 +625,9 @@ void BasePaymentTransaction::rollBack (
         while (itPathIDAndReservation != itNodeIDAndReservations->second.end()) {
             if (itPathIDAndReservation->first == pathID) {
 
-                mTrustLinesManager->dropAmountReservationNew(
-                    itNodeIDAndReservations->first,
-                    itPathIDAndReservation->second);
+                mTrustLinesManager->dropAmountReservation(
+                        itNodeIDAndReservations->first,
+                        itPathIDAndReservation->second);
 
                 if (itPathIDAndReservation->second->direction() == AmountReservation::Outgoing)
                     debug() << "Dropping reservation: [ => ] " << itPathIDAndReservation->second->amount()
@@ -699,10 +699,10 @@ const bool BasePaymentTransaction::shortageReservation (
         // this field used only for debug output
         const auto kPreviousAmount = kReservation->amount();
 
-        auto updatedReservation = mTrustLinesManager->updateAmountReservationNew(
-            neighborNode,
-            kReservation,
-            kNewAmount);
+        auto updatedReservation = mTrustLinesManager->updateAmountReservation(
+                neighborNode,
+                kReservation,
+                kNewAmount);
 
         for (auto it = mReservations[neighborNode].begin(); it != mReservations[neighborNode].end(); it++){
             if ((*it).second.get() == kReservation.get() && (*it).first == pathID) {
@@ -739,9 +739,9 @@ void BasePaymentTransaction::dropNodeReservationsOnPath(
         while (itPathIDAndReservation != itNodeReservations->second.end()) {
             if (itPathIDAndReservation->first == pathID) {
 
-                mTrustLinesManager->dropAmountReservationNew(
+                mTrustLinesManager->dropAmountReservation(
                         itNodeReservations->first,
-                    itPathIDAndReservation->second);
+                        itPathIDAndReservation->second);
 
                 if (itPathIDAndReservation->second->direction() == AmountReservation::Outgoing)
                     debug() << "Dropping reservation: [ => ] " << itPathIDAndReservation->second->amount()

@@ -84,8 +84,7 @@ DateTime TopologyCacheUpdateDelayedTask::updateCache()
         closestTrustLineManagerTimeEvent = utc_now() + kProlongationTrustLineUpdatingDuration();
     } else {
         // if at least one trustline was deleted
-        mTopologyTrustLineManager->deleteLegacyTrustLines();
-        if (mTopologyTrustLineManager->deleteLegacyTrustLinesNew()) {
+        if (mTopologyTrustLineManager->deleteLegacyTrustLines()) {
             mTopologyCacheManager->resetInitiatorCache();
         }
         closestTrustLineManagerTimeEvent = mTopologyTrustLineManager->closestTimeEvent();

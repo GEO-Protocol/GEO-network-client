@@ -15,7 +15,6 @@ public:
 
 public:
     typedef signals::signal<void(
-            const NodeUUID&,
             ContractorID,
             const SerializedEquivalent,
             const TransactionType)> ResumeTransactionSignal;
@@ -37,7 +36,6 @@ public:
     mutable ResumeTransactionSignal mResumeTransactionSignal;
 
 private:
-    NodeUUID mContractorUUID;
     ContractorID mContractorID;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     StorageHandler *mStorageHandler;

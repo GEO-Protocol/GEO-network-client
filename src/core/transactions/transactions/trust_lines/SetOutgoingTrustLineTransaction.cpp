@@ -19,7 +19,6 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
         BaseTransaction::SetOutgoingTrustLineTransaction,
         nodeUUID,
         command->equivalent(),
-        NodeUUID::empty(),
         command->contractorID(),
         contractorsManager,
         manager,
@@ -434,7 +433,7 @@ void SetOutgoingTrustLineTransaction::populateHistory(
     auto record = make_shared<TrustLineRecord>(
         mTransactionUUID,
         operationType,
-        mContractorUUID,
+        NodeUUID::empty(),
         mCommand->amount());
 
     ioTransaction->historyStorage()->saveTrustLineRecord(

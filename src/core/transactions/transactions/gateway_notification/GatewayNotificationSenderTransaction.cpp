@@ -43,7 +43,7 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::sendGateway
             mGatewaysEquivalents.push_back(
                 equivalent);
         }
-        for (const auto &neighbor : mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->firstLevelNeighborsNew()) {
+        for (const auto &neighbor : mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->firstLevelNeighbors()) {
             allNeighborsRequestShouldBeSend.insert(
                 neighbor);
         }

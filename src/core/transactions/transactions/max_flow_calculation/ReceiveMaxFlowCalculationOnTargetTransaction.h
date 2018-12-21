@@ -34,8 +34,7 @@ private:
     void sendResultToInitiator();
 
     void sendCachedResultToInitiator(
-        TopologyCache::Shared maxFlowCalculationCachePtr,
-        TopologyCacheNew::Shared maxFlowCalculationCachePtrNew);
+        TopologyCache::Shared maxFlowCalculationCachePtr);
 
 private:
     InitiateMaxFlowCalculationMessage::Shared mMessage;

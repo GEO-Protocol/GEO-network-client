@@ -3,11 +3,13 @@
 InitiateMaxFlowCalculationMessage::InitiateMaxFlowCalculationMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     bool isSenderGateway)
     noexcept:
     SenderMessage(
         equivalent,
-        senderUUID),
+        senderUUID,
+        senderAddresses),
     mIsSenderGateway(isSenderGateway)
 {}
 

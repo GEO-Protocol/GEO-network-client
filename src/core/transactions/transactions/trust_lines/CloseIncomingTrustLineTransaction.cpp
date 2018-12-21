@@ -19,7 +19,6 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
         BaseTransaction::CloseIncomingTrustLineTransactionType,
         nodeUUID,
         command->equivalent(),
-        NodeUUID::empty(),
         command->contractorID(),
         contractorsManager,
         manager,
@@ -54,7 +53,6 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
         BaseTransaction::CloseIncomingTrustLineTransactionType,
         nodeUUID,
         equivalent,
-        NodeUUID::empty(),
         contractorID,
         contractorsManager,
         manager,
@@ -140,10 +138,10 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializat
 
     // remove this TL from Topology TrustLines Manager
     mTopologyTrustLinesManager->addTrustLine(
-        make_shared<TopologyTrustLine>(
-            mNodeUUID,
-            mContractorUUID,
-            make_shared<const TrustLineAmount>(0)));
+            make_shared<TopologyTrustLine>(
+                    0,
+                    mContractorID,
+                    make_shared<const TrustLineAmount>(0)));
     mTopologyCacheManager->resetInitiatorCache();
     mMaxFlowCacheManager->clearCashes();
     info() << "Incoming trust line from the node " << mContractorID
@@ -413,10 +411,10 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runAddToBlackL
 
     // remove this TL from Topology TrustLines Manager
     mTopologyTrustLinesManager->addTrustLine(
-        make_shared<TopologyTrustLine>(
-            mNodeUUID,
-            mContractorUUID,
-            make_shared<const TrustLineAmount>(0)));
+            make_shared<TopologyTrustLine>(
+                    0,
+                    mContractorID,
+                    make_shared<const TrustLineAmount>(0)));
     mTopologyCacheManager->resetInitiatorCache();
     mMaxFlowCacheManager->clearCashes();
     info() << "Incoming trust line from the node " << mContractorID
@@ -548,7 +546,7 @@ void CloseIncomingTrustLineTransaction::populateHistory(
     auto record = make_shared<TrustLineRecord>(
         mTransactionUUID,
         operationType,
-        mContractorUUID);
+        NodeUUID::empty());
 
     ioTransaction->historyStorage()->saveTrustLineRecord(
         record,

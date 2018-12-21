@@ -2,13 +2,11 @@
 #define GEO_NETWORK_CLIENT_TOPOLOGYCACHE_H
 
 #include "../../common/Types.h"
-#include "../../common/NodeUUID.h"
+#include "../../contractors/addresses/BaseAddress.h"
 #include "../../trust_lines/TrustLine.h"
 #include "../../common/time/TimeUtils.h"
 
-#include <unordered_map>
 #include <vector>
-#include <boost/functional/hash.hpp>
 
 class TopologyCache {
 
@@ -16,20 +14,20 @@ public:
     typedef shared_ptr<TopologyCache> Shared;
 
     TopologyCache(
-        const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
-        const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows);
+        const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &outgoingFlows,
+        const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &incomingFlows);
 
     bool containsIncomingFlow(
-        const NodeUUID &nodeUUID,
+        BaseAddress::Shared nodeAddress,
         ConstSharedTrustLineAmount flow);
 
     bool containsOutgoingFlow(
-        const NodeUUID &nodeUUID,
+        BaseAddress::Shared nodeAddress,
         ConstSharedTrustLineAmount flow);
 
 private:
-    unordered_map<NodeUUID, ConstSharedTrustLineAmount, boost::hash<boost::uuids::uuid>> mIncomingFlows;
-    unordered_map<NodeUUID, ConstSharedTrustLineAmount, boost::hash<boost::uuids::uuid>> mOutgoingFlows;
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> mIncomingFlows;
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> mOutgoingFlows;
 };
 
 

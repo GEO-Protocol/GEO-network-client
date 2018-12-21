@@ -48,7 +48,6 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                 make_unique<TopologyTrustLinesManager>(
                     equivalent,
                     mIAmGateways[equivalent],
-                    mNodeUUID,
                     mLogger)));
         info() << "Topology Trust Lines Manager is successfully initialized";
 
@@ -209,7 +208,6 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
             make_unique<TopologyTrustLinesManager>(
                 equivalent,
                 false,
-                mNodeUUID,
                 mLogger)));
     info() << "Topology Trust Lines Manager is successfully initialized";
 

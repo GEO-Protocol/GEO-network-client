@@ -18,7 +18,8 @@ public:
 
     static const string &identifier();
 
-    CommandResult::SharedConst resultOk(string &bannedUsers) const;
+    CommandResult::SharedConst resultOk(
+        string &bannedUsers) const;
 };
 
 #endif //GEO_NETWORK_CLIENT_GETBLACKLISTCOMMAND_H

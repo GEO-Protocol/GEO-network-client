@@ -24,13 +24,10 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
         ContractorID idOnReceiverSide,
-        const NodeUUID &targetUUID,
         vector<BaseAddress::Shared> targetAddresses);
 
     MaxFlowCalculationMessage(
         BytesShared buffer);
-
-    const NodeUUID &targetUUID() const;
 
     vector<BaseAddress::Shared> targetAddresses() const;
 
@@ -41,7 +38,6 @@ public:
         noexcept;
 
 protected:
-    NodeUUID mTargetUUID;
     vector<BaseAddress::Shared> mTargetAddresses;
 };
 

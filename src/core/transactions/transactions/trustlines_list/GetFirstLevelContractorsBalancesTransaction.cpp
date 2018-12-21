@@ -15,11 +15,6 @@ GetFirstLevelContractorsBalancesTransaction::GetFirstLevelContractorsBalancesTra
     mTrustLinesManager(manager)
 {}
 
-GetTrustLinesCommand::Shared GetFirstLevelContractorsBalancesTransaction::command() const
-{
-    return mCommand;
-}
-
 TransactionResult::SharedConst GetFirstLevelContractorsBalancesTransaction::run()
 {
     const auto kNeighborsCount = mTrustLinesManager->trustLines().size();
@@ -32,20 +27,20 @@ TransactionResult::SharedConst GetFirstLevelContractorsBalancesTransaction::run(
         ss << to_string(resultRecordsCount);
         size_t recordIdx = 0;
         size_t currentRecordsCount = 0;
-        for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()) {
+        for (const auto &kNodeIDAndTrustLine: mTrustLinesManager->trustLines()) {
             if (recordIdx < mCommand->from()) {
                 recordIdx++;
                 continue;
             }
             recordIdx++;
             ss << kTokensSeparator;
-            ss << kNodeUUIDAndTrustLine.first;
+            ss << kNodeIDAndTrustLine.first;
             ss << kTokensSeparator;
-            ss << kNodeUUIDAndTrustLine.second->incomingTrustAmount();
+            ss << kNodeIDAndTrustLine.second->incomingTrustAmount();
             ss << kTokensSeparator;
-            ss << kNodeUUIDAndTrustLine.second->outgoingTrustAmount();
+            ss << kNodeIDAndTrustLine.second->outgoingTrustAmount();
             ss << kTokensSeparator;
-            ss << kNodeUUIDAndTrustLine.second->balance();
+            ss << kNodeIDAndTrustLine.second->balance();
             currentRecordsCount++;
             if (currentRecordsCount == mCommand->count()) {
                 break;

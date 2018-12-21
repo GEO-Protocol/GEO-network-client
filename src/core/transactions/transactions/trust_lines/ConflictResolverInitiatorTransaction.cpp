@@ -3,8 +3,9 @@
 ConflictResolverInitiatorTransaction::ConflictResolverInitiatorTransaction(
     const NodeUUID &nodeUUID,
     SerializedEquivalent equivalent,
-    const NodeUUID &contractorUUID,
-    TrustLinesManager *manager,
+    ContractorID contractorID,
+    ContractorsManager *contractorsManager,
+    TrustLinesManager *trustLinesManager,
     StorageHandler *storageHandler,
     Keystore *keystore,
     TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -15,8 +16,9 @@ ConflictResolverInitiatorTransaction::ConflictResolverInitiatorTransaction(
         nodeUUID,
         equivalent,
         logger),
-    mContractorUUID(contractorUUID),
-    mTrustLines(manager),
+    mContractorID(contractorID),
+    mContractorsManager(contractorsManager),
+    mTrustLinesManager(trustLinesManager),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
     mTrustLinesInfluenceController(trustLinesInfluenceController)
@@ -25,7 +27,8 @@ ConflictResolverInitiatorTransaction::ConflictResolverInitiatorTransaction(
 ConflictResolverInitiatorTransaction::ConflictResolverInitiatorTransaction(
     BytesShared buffer,
     const NodeUUID &nodeUUID,
-    TrustLinesManager *manager,
+    ContractorsManager *contractorsManager,
+    TrustLinesManager *trustLinesManager,
     StorageHandler *storageHandler,
     Keystore *keystore,
     TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -35,7 +38,8 @@ ConflictResolverInitiatorTransaction::ConflictResolverInitiatorTransaction(
         buffer,
         nodeUUID,
         logger),
-    mTrustLines(manager),
+    mContractorsManager(contractorsManager),
+    mTrustLinesManager(trustLinesManager),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
     mTrustLinesInfluenceController(trustLinesInfluenceController)
@@ -44,9 +48,9 @@ ConflictResolverInitiatorTransaction::ConflictResolverInitiatorTransaction(
     mStep = Stages::Recovery;
 
     memcpy(
-        mContractorUUID.data,
+        &mContractorID,
         buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
+        sizeof(ContractorID));
 }
 
 TransactionResult::SharedConst ConflictResolverInitiatorTransaction::run()
@@ -69,47 +73,48 @@ TransactionResult::SharedConst ConflictResolverInitiatorTransaction::run()
 
 TransactionResult::SharedConst ConflictResolverInitiatorTransaction::runInitializationStage()
 {
-    info() << "runInitializationStage. Contractor " << mContractorUUID;
+    info() << "runInitializationStage. Contractor " << mContractorID;
 
-    if (mContractorUUID == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
         return resultDone();
     }
 
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+    if (!mTrustLinesManager->trustLineIsPresent(mContractorID)) {
         warning() << "Attempt to process not existing TL";
         return resultDone();
     }
 
-    if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::ConflictResolving) {
-        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
+    if (mTrustLinesManager->trustLineState(mContractorID) != TrustLine::ConflictResolving) {
+        warning() << "Invalid TL state " << mTrustLinesManager->trustLineState(mContractorID);
         // todo need correct reaction
         return resultDone();
     }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
-    mTrustLines->updateTrustLineFromStorage(
-        mContractorUUID,
+    mTrustLinesManager->updateTrustLineFromStorage(
+        mContractorID,
         ioTransaction);
 
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineID(
-            mContractorUUID));
+        mTrustLinesManager->trustLineID(
+            mContractorID));
 
     auto auditRecord = keyChain.actualFullAudit(
         ioTransaction);
 
     auto incomingReceipts = keyChain.incomingReceipts(
         ioTransaction,
-        mTrustLines->auditNumber(mContractorUUID));
+        mTrustLinesManager->auditNumber(mContractorID));
     auto outgoingReceipts = keyChain.outgoingReceipts(
         ioTransaction,
-        mTrustLines->auditNumber(mContractorUUID));
+        mTrustLinesManager->auditNumber(mContractorID));
 
     sendMessage<ConflictResolverMessage>(
-        mContractorUUID,
+        mContractorID,
         mEquivalent,
         mNodeUUID,
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         auditRecord,
         incomingReceipts,
@@ -131,8 +136,8 @@ TransactionResult::SharedConst ConflictResolverInitiatorTransaction::runResponse
         return resultDone();
     }
     auto response = popNextMessage<ConflictResolverResponseMessage>();
-    if (response->senderUUID != mContractorUUID) {
-        warning() << "Sender " << response->senderUUID << " is not contractor of this TA";
+    if (response->idOnReceiverSide != mContractorID) {
+        warning() << "Sender " << response->idOnReceiverSide << " is not contractor of this TA";
         return resultContinuePreviousState();
     }
     processConfirmationMessage(response);
@@ -155,8 +160,8 @@ TransactionResult::SharedConst ConflictResolverInitiatorTransaction::runResponse
         case ConfirmationMessage::OK: {
             info() << "Contractor accept audit";
             auto ioTransaction = mStorageHandler->beginTransaction();
-            mTrustLines->setTrustLineState(
-                mContractorUUID,
+            mTrustLinesManager->setTrustLineState(
+                mContractorID,
                 TrustLine::Active,
                 ioTransaction);
             return resultDone();
@@ -170,16 +175,16 @@ TransactionResult::SharedConst ConflictResolverInitiatorTransaction::runResponse
 TransactionResult::SharedConst ConflictResolverInitiatorTransaction::runRecoveryStage()
 {
     info() << "Recovery";
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+    if (!mTrustLinesManager->trustLineIsPresent(mContractorID)) {
         warning() << "Trust line is absent";
         return resultDone();
     }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::ConflictResolving) {
+    if (mTrustLinesManager->trustLineState(mContractorID) == TrustLine::ConflictResolving) {
         info() << "Conflict resolving state";
         mStep = ResponseProcessing;
         return runResponseProcessingStage();
     }
-    warning() << "Invalid TL state: " << mTrustLines->trustLineState(mContractorUUID);
+    warning() << "Invalid TL state: " << mTrustLinesManager->trustLineState(mContractorID);
     return resultDone();
 }
 
@@ -187,7 +192,7 @@ pair<BytesShared, size_t> ConflictResolverInitiatorTransaction::serializeToBytes
 {
     const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize;
+                        + sizeof(ContractorID);
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -200,8 +205,8 @@ pair<BytesShared, size_t> ConflictResolverInitiatorTransaction::serializeToBytes
 
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize);
+        &mContractorID,
+        sizeof(ContractorID));
 
     return make_pair(
         dataBytesShared,

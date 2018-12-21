@@ -32,7 +32,6 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
 OpenTrustLineTransaction::OpenTrustLineTransaction(
     const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
-    const NodeUUID &contractorUUID,
     ContractorID contractorID,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
@@ -47,7 +46,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
         nodeUUID,
         equivalent,
         logger),
-    mContractorUUID(contractorUUID),
+    mContractorUUID(NodeUUID::empty()),
     mContractorID(contractorID),
     mCountSendingAttempts(0),
     mContractorsManager(contractorsManager),

@@ -17,10 +17,8 @@ public:
         const SerializedEquivalent equivalent,
         const NodeUUID& senderUUID,
         vector<BaseAddress::Shared> senderAddresses,
-        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
-        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows,
-        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &outgoingFlowsNew,
-        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &incomingFlowsNew);
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &outgoingFlows,
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &incomingFlows);
 
     ResultMaxFlowCalculationMessage(
         BytesShared buffer);
@@ -32,19 +30,13 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
-    const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
+    const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlows() const;
 
-    const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
-
-    const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsNew() const;
-
-    const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsNew() const;
+    const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlows() const;
 
 private:
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> mOutgoingFlows;
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> mIncomingFlows;
-    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> mOutgoingFlowsNew;
-    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> mIncomingFlowsNew;
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> mOutgoingFlows;
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> mIncomingFlows;
 };
 
 

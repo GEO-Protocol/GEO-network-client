@@ -14,6 +14,7 @@ public:
     ConflictResolverMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
+        ContractorID idOnReceiverSide,
         const TransactionUUID &transactionUUID,
         AuditRecord::Shared auditRecord,
         vector<ReceiptRecord::Shared> &incomingReceipts,

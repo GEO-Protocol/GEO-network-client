@@ -2,7 +2,7 @@
 
 PathsCollection::PathsCollection(
     BaseAddress::Shared destinationAddress) :
-    mDestinationNodeNew(destinationAddress),
+    mDestinationNode(destinationAddress),
     mCurrentPath(0)
 {}
 
@@ -21,15 +21,15 @@ void PathsCollection::resetCurrentPath()
     mCurrentPath = 0;
 }
 
-bool PathsCollection::hasNextPathNew()
+bool PathsCollection::hasNextPath()
 {
     return (mCurrentPath < mPaths.size());
 }
 
-Path::Shared PathsCollection::nextPathNew()
+Path::Shared PathsCollection::nextPath()
 {
     if (mCurrentPath > mPaths.size()) {
-        throw IndexError("PathsCollection::nextPathNew "
+        throw IndexError("PathsCollection::nextPath "
                                  "no paths are available");
     }
     mCurrentPath++;

@@ -6,8 +6,6 @@
 
 #include "CollectTopologyTransaction.h"
 
-#include <set>
-
 class MaxFlowCalculationFullyTransaction : public BaseCollectTopologyTransaction {
 
 public:
@@ -36,23 +34,13 @@ private:
     TransactionResult::SharedConst applyCustomLogic();
 
     TrustLineAmount calculateMaxFlow(
-        const NodeUUID &contractorUUID);
-
-    TrustLineAmount calculateMaxFlowNew(
         ContractorID contractorID);
 
     void calculateMaxFlowOnOneLevel();
 
-    void calculateMaxFlowOnOneLevelNew();
-
     TrustLineAmount calculateOneNode(
-        const NodeUUID& nodeUUID,
-        const TrustLineAmount& currentFlow,
-        byte level);
-
-    TrustLineAmount calculateOneNodeNew(
         ContractorID nodeUUID,
-        const TrustLineAmount& currentFlow,
+        const TrustLineAmount &currentFlow,
         byte level);
 
     TransactionResult::SharedConst resultOk();
@@ -70,18 +58,14 @@ private:
 
 private:
     InitiateMaxFlowCalculationFullyCommand::Shared mCommand;
-    vector<NodeUUID> mForbiddenNodeUUIDs;
     vector<ContractorID> mForbiddenNodeIDs;
     byte mCurrentPathLength;
     TrustLineAmount mCurrentMaxFlow;
-    NodeUUID mCurrentContractor;
-    ContractorID mCurrentContractorNew;
+    ContractorID mCurrentContractor;
     size_t mCountProcessCollectingTopologyRun;
     TopologyTrustLinesManager::TrustLineWithPtrHashSet mFirstLevelTopology;
-    TopologyTrustLinesManager::TrustLineWithPtrHashSetNew mFirstLevelTopologyNew;
-    vector<pair<NodeUUID, TrustLineAmount>> mMaxFlows;
     vector<pair<ContractorID, BaseAddress::Shared>> mContractorIDs;
-    vector<pair<ContractorID, TrustLineAmount>> mMaxFlowsNew;
+    vector<pair<ContractorID, TrustLineAmount>> mMaxFlows;
     size_t mCurrentGlobalContractorIdx;
     bool mIamGateway;
 };

@@ -1,85 +1,93 @@
 #include "TopologyCache.h"
 
 TopologyCache::TopologyCache(
-    const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
-    const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows)
+    const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &outgoingFlows,
+    const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &incomingFlows)
 {
     for (auto &nodeUUIDAndFlow : outgoingFlows) {
-        mOutgoingFlows.insert(nodeUUIDAndFlow);
+        mOutgoingFlows.push_back(nodeUUIDAndFlow);
     }
     for (auto &nodeUUIDAndFlow : incomingFlows) {
-        mIncomingFlows.insert(nodeUUIDAndFlow);
+        mIncomingFlows.push_back(nodeUUIDAndFlow);
     }
 }
 
 // check if incoming flow already cached
 bool TopologyCache::containsIncomingFlow(
-    const NodeUUID &nodeUUID,
+    BaseAddress::Shared nodeAddress,
     ConstSharedTrustLineAmount flow)
 {
-    auto nodeUUIDAndFlow = mIncomingFlows.find(nodeUUID);
+    auto nodeAddressAndIncomingFlowIt = mIncomingFlows.begin();
+    while (nodeAddressAndIncomingFlowIt != mIncomingFlows.end()) {
+        if (nodeAddressAndIncomingFlowIt->first == nodeAddress) {
+            break;
+        }
+        nodeAddressAndIncomingFlowIt++;
+    }
     // if not present then insert
-    if (nodeUUIDAndFlow == mIncomingFlows.end()) {
+    if (nodeAddressAndIncomingFlowIt == mIncomingFlows.end()) {
         if (*flow == TrustLine::kZeroAmount()) {
             return true;
         } else {
-            mIncomingFlows.insert(
-                make_pair(
-                    nodeUUID,
-                    flow));
+            mIncomingFlows.emplace_back(
+                nodeAddress,
+                flow);
             return false;
         }
     } else {
-        auto sharedFlow = (*nodeUUIDAndFlow).second;
+        auto sharedFlow = (*nodeAddressAndIncomingFlowIt).second;
         // if flow present but now it is zero, then delete
         if (*flow.get() == TrustLine::kZeroAmount()) {
-            mIncomingFlows.erase(nodeUUIDAndFlow);
+            mIncomingFlows.erase(nodeAddressAndIncomingFlowIt);
             return false;
         }
         // if flow differs then update
         if (*sharedFlow.get() != *flow.get()) {
-            mIncomingFlows.erase(nodeUUIDAndFlow);
-            mIncomingFlows.insert(
-                make_pair(
-                    nodeUUID,
-                    flow));
+            mIncomingFlows.erase(nodeAddressAndIncomingFlowIt);
+            mIncomingFlows.emplace_back(
+                nodeAddress,
+                flow);
             return false;
         }
     }
     return true;
 }
 
-// check if inoutgoing flow already cached
+// check if outgoing flow already cached
 bool TopologyCache::containsOutgoingFlow(
-    const NodeUUID &nodeUUID,
+    BaseAddress::Shared nodeAddress,
     const ConstSharedTrustLineAmount flow)
 {
-    auto nodeUUIDAndFlow = mOutgoingFlows.find(nodeUUID);
+    auto nodeAddressAndOutgoingFlowIt = mOutgoingFlows.begin();
+    while (nodeAddressAndOutgoingFlowIt != mOutgoingFlows.end()) {
+        if (nodeAddressAndOutgoingFlowIt->first == nodeAddress) {
+            break;
+        }
+        nodeAddressAndOutgoingFlowIt++;
+    }
     // if not present then insert
-    if (nodeUUIDAndFlow == mOutgoingFlows.end()) {
+    if (nodeAddressAndOutgoingFlowIt == mOutgoingFlows.end()) {
         if (*flow == TrustLine::kZeroAmount()) {
             return true;
         } else {
-            mOutgoingFlows.insert(
-                make_pair(
-                    nodeUUID,
-                    flow));
+            mOutgoingFlows.emplace_back(
+                nodeAddress,
+                flow);
             return false;
         }
     } else {
-        auto sharedFlow = (*nodeUUIDAndFlow).second;
+        auto sharedFlow = (*nodeAddressAndOutgoingFlowIt).second;
         // if flow present but now it is zero, then delete
         if (*flow.get() == TrustLine::kZeroAmount()) {
-            mOutgoingFlows.erase(nodeUUIDAndFlow);
+            mOutgoingFlows.erase(nodeAddressAndOutgoingFlowIt);
             return false;
         }
         // if flow differs then update
         if (*sharedFlow.get() != *flow.get()) {
-            mOutgoingFlows.erase(nodeUUIDAndFlow);
-            mOutgoingFlows.insert(
-                make_pair(
-                    nodeUUID,
-                    flow));
+            mOutgoingFlows.erase(nodeAddressAndOutgoingFlowIt);
+            mOutgoingFlows.emplace_back(
+               nodeAddress,
+               flow);
             return false;
         }
     }

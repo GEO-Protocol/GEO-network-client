@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_CONFLICTRESOLVERCONTRACTORTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
+#include "../../../contractors/ContractorsManager.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../crypto/keychain.h"
 #include "../../../crypto/lamportkeys.h"
@@ -21,7 +22,8 @@ public:
     ConflictResolverContractorTransaction(
         const NodeUUID &nodeUUID,
         ConflictResolverMessage::Shared message,
-        TrustLinesManager *manager,
+        ContractorsManager *contractorsManager,
+        TrustLinesManager *trustLinesManager,
         StorageHandler *storageHandler,
         Keystore *keystore,
         TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -35,8 +37,8 @@ protected: // log
 
 private:
     pair<BytesShared, size_t> getSerializedReceipt(
-        const NodeUUID &source,
-        const NodeUUID &target,
+        ContractorID source,
+        ContractorID target,
         const ReceiptRecord::Shared receiptRecord);
 
     void acceptContractorAuditData(
@@ -45,11 +47,12 @@ private:
 
 private:
     ConflictResolverMessage::Shared mMessage;
-    TrustLinesManager *mTrustLines;
+    ContractorsManager *mContractorsManager;
+    TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
 
-    NodeUUID mContractorUUID;
+    ContractorID mContractorID;
 
     TrustLinesInfluenceController *mTrustLinesInfluenceController;
 };

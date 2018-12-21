@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_GETTRUSTLINECOMMAND_H
 
 #include "../BaseUserCommand.h"
+#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/exceptions/ValueError.h"
 
 
@@ -19,7 +20,7 @@ public:
 
     static const string &identifier();
 
-    NodeUUID contractorUUID();
+    BaseAddress::Shared contractorAddress() const;
 
     const SerializedEquivalent equivalent() const;
 
@@ -27,7 +28,7 @@ public:
         string &neighbor) const;
 
 protected:
-    NodeUUID mContractorUUID;
+    BaseAddress::Shared mContractorAddress;
     SerializedEquivalent mEquivalent;
 };
 

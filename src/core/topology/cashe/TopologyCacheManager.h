@@ -1,9 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_TOPOLOGYCACHEMANAGER_H
 #define GEO_NETWORK_CLIENT_TOPOLOGYCACHEMANAGER_H
 
-#include "../../common/NodeUUID.h"
 #include "TopologyCache.h"
-#include "TopologyCacheNew.h"
 #include "../../contractors/addresses/BaseAddress.h"
 #include "../../common/time/TimeUtils.h"
 #include "../../logger/Logger.h"
@@ -22,14 +20,7 @@ public:
         BaseAddress::Shared keyAddress,
         TopologyCache::Shared cache);
 
-    void addCacheNew(
-        BaseAddress::Shared keyAddress,
-        TopologyCacheNew::Shared cache);
-
     TopologyCache::Shared cacheByAddress(
-        BaseAddress::Shared nodeAddress) const;
-
-    TopologyCacheNew::Shared cacheByAddressNew(
         BaseAddress::Shared nodeAddress) const;
 
     void updateCaches();
@@ -80,9 +71,6 @@ private:
 private:
     unordered_map<string, TopologyCache::Shared> mCaches;
     map<DateTime, BaseAddress::Shared> msCache;
-
-    unordered_map<string, TopologyCacheNew::Shared> mCachesNew;
-    map<DateTime, BaseAddress::Shared> msCacheNew;
 
     pair<bool, DateTime> mInitiatorCache;
     SerializedEquivalent mEquivalent;

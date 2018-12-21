@@ -13,7 +13,8 @@ public:
     MaxFlowCalculationTargetFstLevelMessage(
         const SerializedEquivalent equivalent,
         const NodeUUID &senderUUID,
-        const NodeUUID &targetUUID,
+        ContractorID idOnReceiverSide,
+        vector<BaseAddress::Shared> targetAddresses,
         bool isTargetGateway)
         noexcept;
 

@@ -434,8 +434,7 @@ void Core::connectResourcesManagerSignals()
             this,
             _1,
             _2,
-            _3,
-            _4));
+            _3));
 
     mResourcesManager->attachResourceSignal.connect(
         boost::bind(
@@ -461,11 +460,6 @@ void Core::onCommandReceivedSlot (
         auto subsystemsInfluenceCommand = static_pointer_cast<SubsystemsInfluenceCommand>(command);
         mSubsystemsController->setFlags(
             subsystemsInfluenceCommand->flags());
-        if (mSubsystemsController->isWriteVisualResults()) {
-            mTransactionsManager->activateVisualInterface();
-        } else {
-            mTransactionsManager->deactivateVisualInterface();
-        }
 #ifdef TESTS
         mSubsystemsController->setForbiddenNodeUUID(
             subsystemsInfluenceCommand->forbiddenNodeUUID());
@@ -636,14 +630,12 @@ void Core::onMessageSendWithCachingSlot(
 
 void Core::onPathsResourceRequestedSlot(
     const TransactionUUID &transactionUUID,
-    const NodeUUID destinationUUID,
     BaseAddress::Shared destinationNodeAddress,
     const SerializedEquivalent equivalent)
 {
     try {
         mTransactionsManager->launchFindPathByMaxFlowTransaction(
             transactionUUID,
-            destinationUUID,
             destinationNodeAddress,
             equivalent);
 

@@ -94,7 +94,7 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
 vector<BaseAddress::Shared> GatewayNotificationReceiverTransaction::getNeighborsForEquivalent(
     const SerializedEquivalent equivalent) const
 {
-    auto neighbors = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->firstLevelNeighborsNew();
+    auto neighbors = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent)->firstLevelNeighbors();
     vector<BaseAddress::Shared> result;
     for(auto &node:neighbors){
         if(node == mMessage->idOnReceiverSide)

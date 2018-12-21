@@ -19,7 +19,6 @@ class ResourcesManager {
 public:
     typedef signals::signal<void(
                 const TransactionUUID&,
-                const NodeUUID&,
                 BaseAddress::Shared,
                 const SerializedEquivalent)>
             RequestPathsResourcesSignal;
@@ -31,7 +30,6 @@ public:
 
     void requestPaths(
         const TransactionUUID &transactionUUID,
-        const NodeUUID& contractorUUID,
         BaseAddress::Shared contractorAddress,
         const SerializedEquivalent equivalent) const;
 

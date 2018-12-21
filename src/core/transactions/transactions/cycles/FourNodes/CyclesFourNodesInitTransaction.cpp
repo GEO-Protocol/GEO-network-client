@@ -52,10 +52,10 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
 
     vector<ContractorID> suitableNeighbors;
     if (kBalanceToContractor < TrustLine::kZeroBalance()) {
-        suitableNeighbors = mTrustLinesManager->firstLevelNeighborsWithPositiveBalanceNew();
+        suitableNeighbors = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
         mNegativeContractorBalance = true;
     } else {
-        suitableNeighbors = mTrustLinesManager->firstLevelNeighborsWithNegativeBalanceNew();
+        suitableNeighbors = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
         mNegativeContractorBalance = false;
     }
 

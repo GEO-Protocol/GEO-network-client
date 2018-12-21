@@ -2,7 +2,6 @@
 
 FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
     NodeUUID &nodeUUID,
-    const NodeUUID &contractorUUID,
     BaseAddress::Shared contractorAddress,
     const TransactionUUID &requestedTransactionUUID,
     const SerializedEquivalent equivalent,
@@ -27,7 +26,6 @@ FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
         maxFlowCacheManager,
         logger),
 
-    mContractorUUID(contractorUUID),
     mContractorAddress(contractorAddress),
     mRequestedTransactionUUID(requestedTransactionUUID),
     mPathsManager(pathsManager),
@@ -59,7 +57,7 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::sendRequestForColle
         mTopologyTrustLineManager->setPreventDeleting(true);
         launchSubsidiaryTransaction(kTransaction);
     } catch (...) {
-        warning() << "Can not launch Collecting Topology transaction for " << mContractorUUID << ".";
+        warning() << "Can not launch Collecting Topology transaction";
     }
 
     mCountProcessCollectingTopologyRun = 0;

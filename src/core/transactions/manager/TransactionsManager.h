@@ -12,8 +12,6 @@
 #include "../../logger/Logger.h"
 #include "../../subsystems_controller/SubsystemsController.h"
 #include "../../subsystems_controller/TrustLinesInfluenceController.h"
-#include "../../interface/visual_interface/interface/VisualInterface.h"
-#include "../../interface/visual_interface/visual/VisualResult.h"
 #include "../../crypto/keychain.h"
 
 /*
@@ -169,16 +167,11 @@ public:
     void attachResourceToTransaction(
         BaseResource::Shared resource);
 
-    void activateVisualInterface();
-
-    void deactivateVisualInterface();
-
     /*
      * Find paths transactions
      */
     void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
-        const NodeUUID destinationUUID,
         BaseAddress::Shared destinationNodeAddress,
         const SerializedEquivalent equivalent);
 
@@ -506,7 +499,6 @@ protected:
         const SerializedEquivalent equivalent);
 
     void onResumeTransactionSlot(
-        const NodeUUID& contractorUUID,
         ContractorID contractorID,
         const SerializedEquivalent equivalent,
         const BaseTransaction::TransactionType transactionType);
@@ -551,7 +543,6 @@ private:
 
     SubsystemsController *mSubsystemsController;
     TrustLinesInfluenceController *mTrustLinesInfluenceController;
-    unique_ptr<VisualInterface> mVisualInterface;
 
     unique_ptr<TransactionsScheduler> mScheduler;
     unique_ptr<EquivalentsCyclesSubsystemsRouter> mEquivalentsCyclesSubsystemsRouter;

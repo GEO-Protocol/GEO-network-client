@@ -115,7 +115,7 @@ vector<BaseAddress::Shared> CyclesThreeNodesInitTransaction::getNeighborsWithCon
         return commonNeighbors;
     }
 
-    for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLinesNew()) {
+    for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()) {
         const auto kTL = kNodeUUIDAndTrustLine.second;
         if (kTL->state() != TrustLine::Active) {
             continue;

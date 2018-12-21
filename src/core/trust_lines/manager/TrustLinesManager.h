@@ -19,9 +19,6 @@
 #include "../../crypto/keychain.h"
 #include "../../contractors/ContractorsManager.h"
 
-#include <boost/crc.hpp>
-#include <boost/functional/hash.hpp>
-
 #include <unordered_map>
 #include <vector>
 #include <set>
@@ -83,10 +80,6 @@ public:
      * @throws might throw exceptions of the closeOutgoing() method.
      */
     TrustLineOperationResult setOutgoing(
-        const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount);
-
-    TrustLineOperationResult setOutgoing(
         ContractorID contractorID,
         const TrustLineAmount &amount);
 
@@ -104,36 +97,24 @@ public:
      * @throws might throw exceptions of the closeIncoming() method.
      */
     TrustLineOperationResult setIncoming(
-        const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount);
-
-    TrustLineOperationResult setIncoming(
         ContractorID contractorID,
         const TrustLineAmount &amount);
 
     /**
      * Closes outgoing trust line TO the contractor.
-     *
      * @throws NotFoundError in case if no trust line to this contractor is present.
      * @throws ConflictError in case if there are some reservations on the trust line,
      *         and it can't be removed at this moment.
      */
-    void closeOutgoing(
-        const NodeUUID &contractorUUID);
-
     void closeOutgoing(
         ContractorID contractorID);
 
     /**
      * Closes incoming trust line FROM the contractor.
-     *
      * @throws NotFoundError in case if no trust line to this contractor is present.
      * @throws ConflictError in case if there are some reservations on the trust line,
      *         and it can't be removed at this moment.
      */
-    void closeIncoming(
-        const NodeUUID &contractorUUID);
-
     void closeIncoming(
         ContractorID contractorID);
 
@@ -144,49 +125,24 @@ public:
      */
     void setContractorAsGateway(
         IOTransaction::Shared ioTransaction,
-        const NodeUUID &contractorUUID,
-        bool contractorIsGateway);
-
-    void setContractorAsGateway(
-        IOTransaction::Shared ioTransaction,
         ContractorID contractorID,
         bool contractorIsGateway);
-
-    const bool isContractorGateway(
-        const NodeUUID &contractor) const;
 
     const bool isContractorGateway(
         ContractorID contractorID) const;
 
     void setIsOwnKeysPresent(
-        const NodeUUID &contractorUUID,
-        bool isOwnKeysPresent);
-
-    void setIsOwnKeysPresent(
         ContractorID contractorID,
         bool isOwnKeysPresent);
-
-    void setIsContractorKeysPresent(
-        const NodeUUID &contractorUUID,
-        bool isContractorKeysPresent);
 
     void setIsContractorKeysPresent(
         ContractorID contractorID,
         bool isContractorKeysPresent);
 
     void setTrustLineState(
-        const NodeUUID &contractorUUID,
-        TrustLine::TrustLineState state,
-        IOTransaction::Shared ioTransaction = nullptr);
-
-    void setTrustLineState(
         ContractorID contractorID,
         TrustLine::TrustLineState state,
         IOTransaction::Shared ioTransaction = nullptr);
-
-    void setTrustLineAuditNumber(
-        const NodeUUID &contractorUUID,
-        AuditNumber newAuditNumber);
 
     void setTrustLineAuditNumber(
         ContractorID contractorID,
@@ -194,74 +150,44 @@ public:
 
     /**
      * @returns outgoing trust amount without considering present reservations.
-     *
      * @throws NotFoundError in case if no trust line from this contractor is present.
      */
-    const TrustLineAmount &outgoingTrustAmount(
-        const NodeUUID &contractorUUID) const;
-
     const TrustLineAmount &outgoingTrustAmount(
         ContractorID contractorID) const;
 
     /**
      * @returns incoming trust amount without considering present reservations.
-     *
      * @throws NotFoundError in case if no trust line from this contractor is present.
      */
-    const TrustLineAmount &incomingTrustAmount(
-        const NodeUUID &contractorUUID) const;
-
     const TrustLineAmount &incomingTrustAmount(
         ContractorID contractorID) const;
 
     /**
      * @returns current balance on the trust line.
-     *
      * @throws NotFoundError in case if no trust line from this contractor is present.
      */
     const TrustLineBalance &balance(
-        const NodeUUID &contractorUUID) const;
-
-    const TrustLineBalance &balance(
         ContractorID contractorID) const;
-
-    const TrustLineID trustLineID(
-        const NodeUUID &contractorUUID) const;
 
     const TrustLineID trustLineID(
         ContractorID contractorID) const;
 
     const AuditNumber auditNumber(
-        const NodeUUID &contractorUUID) const;
-
-    const AuditNumber auditNumber(
         ContractorID contractorID) const;
-
-    const TrustLine::TrustLineState trustLineState(
-        const NodeUUID &contractorUUID) const;
 
     const TrustLine::TrustLineState trustLineState(
         ContractorID contractorID) const;
 
     bool trustLineOwnKeysPresent(
-        const NodeUUID &contractorUUID) const;
-
-    bool trustLineOwnKeysPresent(
         ContractorID contractorID) const;
 
     bool trustLineContractorKeysPresent(
-        const NodeUUID &contractorUUID) const;
-
-    bool trustLineContractorKeysPresent(
         ContractorID contractorID) const;
-
-    ContractorID contractorID(
-        const NodeUUID &contractorUUID) const;
 
     /**
      * Reserves payment amount TO the contractor.
      *
-     * @param contractor - uuid of the contractor, trust amount to which should be reserved.
+     * @param contractor - id of the contractor, trust amount to which should be reserved.
      * @param transactionUUID - uuid of the transaction, which reserves the amount.
      * @param amount
      *
@@ -270,11 +196,6 @@ public:
      * @throws ValueError in case, if outgoing trust amount == 0;
      */
     AmountReservation::ConstShared reserveOutgoingAmount(
-        const NodeUUID &contractor,
-        const TransactionUUID &transactionUUID,
-        const TrustLineAmount &amount);
-
-    AmountReservation::ConstShared reserveOutgoingAmountNew(
         ContractorID contractor,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount);
@@ -282,7 +203,7 @@ public:
     /**
      * Reserves payment amount FROM the contractor.
      *
-     * @param contractor - uuid of the contractor, trust amount from which should be reserved.
+     * @param contractor - id of the contractor, trust amount from which should be reserved.
      * @param transactionUUID - uuid of the transaction, which reserves the amount.
      * @param amount
      *
@@ -291,78 +212,49 @@ public:
      * @throws ValueError in case, if incoming trust amount == 0;
      */
     AmountReservation::ConstShared reserveIncomingAmount(
-        const NodeUUID &contractor,
-        const TransactionUUID &transactionUUID,
-        const TrustLineAmount &amount);
-
-    AmountReservation::ConstShared reserveIncomingAmountNew(
         ContractorID contractor,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount);
 
     /**
      * Updates present reservation with new amount.
-     *
      * @throws ValueError in case if trust line has not enough free amount.
      * @throws NotFoundError in case if previous reservations was not found.
      */
     AmountReservation::ConstShared updateAmountReservation(
-        const NodeUUID &contractor,
-        const AmountReservation::ConstShared reservation,
-        const TrustLineAmount &newAmount);
-
-    AmountReservation::ConstShared updateAmountReservationNew(
         ContractorID contractor,
         const AmountReservation::ConstShared reservation,
         const TrustLineAmount &newAmount);
 
     /**
      * Removes present reservation.
-     *
      * @throws NotFoundError in case if previous reservations was not found.
      * @throws IOError in case if attempt to remove trust line (if needed) wasn't successful.
      */
     void dropAmountReservation(
-        const NodeUUID &contractor,
-        const AmountReservation::ConstShared reservation);
-
-    void dropAmountReservationNew(
         ContractorID contractor,
         const AmountReservation::ConstShared reservation);
 
     /**
      * Converts reservation on the trust line to the real used amount.
-     *
      * @throws OverflowError in case of attempt to use more, than available amount on the trust line.
      * @throws NotFoundError in case if no trust line with contractor is present.
      */
     void useReservation(
-        const NodeUUID &contractor,
-        const AmountReservation::ConstShared reservation);
-
-    void useReservationNew(
         ContractorID contractorID,
         const AmountReservation::ConstShared reservation);
 
     /**
      * @returns outgoing trust amount with total reserved amount EXCLUDED.
-     *
      * @throws NotFoundError in case if no trust line to this contractor is present.
      */
-    ConstSharedTrustLineAmount outgoingTrustAmountConsideringReservations(
-        const NodeUUID &contractor) const;
-
     ConstSharedTrustLineAmount outgoingTrustAmountConsideringReservations(
         ContractorID contractorID) const;
 
     /**
      * @returns incoming trust amount with total reserved amount EXCLUDED.
-     *
      * @throws NotFoundError in case if no trust line from this contractor is present.
      */
-    ConstSharedTrustLineAmount incomingTrustAmountConsideringReservations(
-        const NodeUUID &contractor) const;
-
     ConstSharedTrustLineAmount incomingTrustAmountConsideringReservations(
         ContractorID contractorID) const;
 
@@ -370,17 +262,11 @@ public:
     // available outgoing amount considering reservations for cycles
     // returns 2 values: 1) amount considering reservations, 2) amount don't considering reservations
     pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableOutgoingCycleAmounts(
-        const NodeUUID &contractor) const;
-
-    pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableOutgoingCycleAmounts(
         ContractorID contractorID) const;
 
     //ToDo: comment this method
     // available incoming amount considering reservations for cycles
     // returns 2 values: 1) amount considering reservations, 2) amount don't considering reservations
-    pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableIncomingCycleAmounts(
-        const NodeUUID &contractor) const;
-
     pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableIncomingCycleAmounts(
         ContractorID contractorID) const;
 
@@ -388,8 +274,6 @@ public:
      * @returns total summary of all outgoing possibilities of the node.
      */
     ConstSharedTrustLineAmount totalOutgoingAmount() const;
-
-    ConstSharedTrustLineAmount totalOutgoingAmountNew() const;
 
     /**
      * @returns total summary of all incoming possibilities of the node.
@@ -399,59 +283,34 @@ public:
 
     // get all reservations (all transactions) to requested contractor
     vector<AmountReservation::ConstShared> reservationsToContractor(
-        const NodeUUID &contractorUUID) const;
-
-    vector<AmountReservation::ConstShared> reservationsToContractor(
         ContractorID contractorID) const;
 
     // get all reservations (all transactions) from requested contractor
     vector<AmountReservation::ConstShared> reservationsFromContractor(
-        const NodeUUID &contractorUUID) const;
-
-    vector<AmountReservation::ConstShared> reservationsFromContractor(
         ContractorID contractorID) const;
 
     bool isReservationsPresentOnTrustLine(
-        const NodeUUID &contractorUUID) const;
-
-    const bool trustLineIsPresent (
-        const NodeUUID &contractorUUID) const;
+        ContractorID contractorID) const;
 
     const bool trustLineIsPresent (
         ContractorID contractorID) const;
-
-    const bool trustLineIsActive(
-        const NodeUUID &contractorUUID) const;
 
     const bool trustLineIsActive(
         ContractorID contractorID) const;
 
     void updateTrustLineFromStorage(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         IOTransaction::Shared ioTransaction);
-
-    void removeTrustLine(
-        const NodeUUID &contractorUUID,
-        IOTransaction::Shared ioTransaction = nullptr);
 
     void removeTrustLine(
         ContractorID contractorID,
         IOTransaction::Shared ioTransaction = nullptr);
 
     bool isTrustLineEmpty(
-        const NodeUUID &contractorUUID);
-
-    bool isTrustLineEmpty(
         ContractorID contractorID);
 
     bool isTrustLineOverflowed(
-        const NodeUUID &contractorUUID);
-
-    bool isTrustLineOverflowed(
         ContractorID contractorID);
-
-    void resetTrustLineTotalReceiptsAmounts(
-        const NodeUUID &contractorUUID);
 
     void resetTrustLineTotalReceiptsAmounts(
         ContractorID contractorID);
@@ -464,80 +323,44 @@ public:
 
     vector<ContractorID> firstLevelNonGatewayNeighborsWithIncomingFlow() const;
 
-    vector<NodeUUID> firstLevelGatewayNeighborsWithIncomingFlow() const;
+    vector<ContractorID> firstLevelGatewayNeighborsWithIncomingFlow() const;
 
-    vector<NodeUUID> firstLevelNeighborsWithPositiveBalance() const;
+    vector<ContractorID> firstLevelNeighborsWithPositiveBalance() const;
 
-    vector<ContractorID> firstLevelNeighborsWithPositiveBalanceNew() const;
+    vector<ContractorID> firstLevelNeighborsWithNegativeBalance() const;
 
-    vector<NodeUUID> firstLevelNeighborsWithNegativeBalance() const;
+    vector<ContractorID> firstLevelNeighborsWithNoneZeroBalance() const;
 
-    vector<ContractorID> firstLevelNeighborsWithNegativeBalanceNew() const;
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlows() const;
 
-    vector<NodeUUID> firstLevelNeighborsWithNoneZeroBalance() const;
-
-    vector<ContractorID> firstLevelNeighborsWithNoneZeroBalanceNew() const;
-
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
-
-    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsNew() const;
-
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
-
-    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsNew() const;
-
-    pair<NodeUUID, ConstSharedTrustLineAmount> incomingFlow(
-        const NodeUUID &contractorUUID) const;
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlows() const;
 
     pair<BaseAddress::Shared, ConstSharedTrustLineAmount> incomingFlow(
         ContractorID contractorID) const;
 
-    pair<NodeUUID, ConstSharedTrustLineAmount> outgoingFlow(
-        const NodeUUID &contractorUUID) const;
-
     pair<BaseAddress::Shared, ConstSharedTrustLineAmount> outgoingFlow(
         ContractorID contractorID) const;
 
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlowsFromNonGateways() const;
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsFromNonGateways() const;
 
-    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsFromNonGatewaysNew() const;
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsFromGateways() const;
 
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlowsFromGateways() const;
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsToGateways() const;
 
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlowsToGateways() const;
+    vector<ContractorID> gateways() const;
 
-    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsToGatewaysNew() const;
-
-    vector<NodeUUID> gateways() const;
-
-    vector<ContractorID> gatewaysNew() const;
-
-    vector<NodeUUID> firstLevelNeighbors() const;
-
-    vector<ContractorID> firstLevelNeighborsNew() const;
+    vector<ContractorID> firstLevelNeighbors() const;
 
     // total balance to all 1st level neighbors
     ConstSharedTrustLineBalance totalBalance() const;
 
     const TrustLine::ConstShared trustLineReadOnly(
-        const NodeUUID &contractorUUID) const;
-
-    const TrustLine::ConstShared trustLineReadOnly(
         ContractorID contractorID) const;
 
-    unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>>& trustLines();
+    unordered_map<ContractorID, TrustLine::Shared>& trustLines();
 
-    unordered_map<ContractorID, TrustLine::Shared>& trustLinesNew();
-
-    vector<NodeUUID> getFirstLevelNodesForCycles(
-        TrustLineBalance maxFlow);
-
-    vector<ContractorID> getFirstLevelNodesForCyclesNew(
+    vector<ContractorID> getFirstLevelNodesForCycles(
         bool isCreditorBranch);
-
-    TrustLineActionType checkTrustLineAfterTransaction(
-        const NodeUUID &contractorUUID,
-        bool isActionInitiator);
 
     TrustLineActionType checkTrustLineAfterTransaction(
         ContractorID contractorID,
@@ -573,11 +396,10 @@ protected: // log shortcuts
         noexcept;
 
 private:
-    unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>> mTrustLines;
-    unordered_map<ContractorID, TrustLine::Shared> mTrustLinesNew;
+    unordered_map<ContractorID, TrustLine::Shared> mTrustLines;
     SerializedEquivalent mEquivalent;
 
-    unordered_map<NodeUUID, BaseAuditRule::Shared, boost::hash<boost::uuids::uuid>> mAuditRules;
+    unordered_map<ContractorID, BaseAuditRule::Shared> mAuditRules;
     vector<ContractorID> mContractorsShouldBePinged;
 
     unique_ptr<AmountReservationsHandler> mAmountReservationsHandler;

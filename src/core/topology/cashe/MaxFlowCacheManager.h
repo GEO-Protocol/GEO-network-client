@@ -2,12 +2,10 @@
 #define GEO_NETWORK_CLIENT_MAXFLOWCACHEMANAGER_H
 
 #include "../../contractors/addresses/BaseAddress.h"
-#include "../../common/NodeUUID.h"
 #include "MaxFlowCache.h"
 #include "../../logger/Logger.h"
 
 #include <unordered_map>
-#include <boost/functional/hash.hpp>
 #include <map>
 
 class MaxFlowCacheManager {
@@ -17,27 +15,15 @@ public:
         Logger &logger);
 
     void addCache(
-        const NodeUUID &keyUUID,
-        MaxFlowCache::Shared cache);
-
-    void addCacheNew(
         BaseAddress::Shared keyAddress,
         MaxFlowCache::Shared cache);
 
     void updateCaches();
 
-    MaxFlowCache::Shared cacheByNode(
-        const NodeUUID &nodeUUID) const;
-
     MaxFlowCache::Shared cacheByAddress(
        BaseAddress::Shared nodeAddress) const;
 
     void updateCache(
-        const NodeUUID &keyUUID,
-        const TrustLineAmount &amount,
-        bool isFinal);
-
-    void updateCacheNew(
         BaseAddress::Shared keyAddress,
         const TrustLineAmount &amount,
         bool isFinal);
@@ -70,10 +56,8 @@ private:
     }
 
 private:
-    unordered_map<NodeUUID, MaxFlowCache::Shared, boost::hash<boost::uuids::uuid>> mCaches;
-    map<DateTime, NodeUUID*> mTimeCaches;
-    unordered_map<string, MaxFlowCache::Shared> mCachesNew;
-    map<DateTime, BaseAddress::Shared> mTimeCachesNew;
+    unordered_map<string, MaxFlowCache::Shared> mCaches;
+    map<DateTime, BaseAddress::Shared> mTimeCaches;
     SerializedEquivalent mEquivalent;
     Logger &mLog;
 };

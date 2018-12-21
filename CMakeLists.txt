@@ -89,11 +89,11 @@ IF (${BUILD_CONFIGURATION} MATCHES "TESTS")
         # Transactions
         -DDEBUG_LOG_TRUST_LINES_PROCESSING
         -DDEBUG_LOG_ROUTING_TABLES_PROCESSING
-        #-DDEBUG_LOG_MAX_FLOW_CALCULATION
+        -DDEBUG_LOG_MAX_FLOW_CALCULATION
         -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
-        #-DDEBUG_LOG_CYCLES_BUILDING_POCESSING
+        -DEBUG_LOG_CYCLES_BUILDING_POCESSING
     )
 
     set(CMAKE_BUILD_TYPE "Release")
@@ -186,7 +186,6 @@ target_link_libraries(geo_network_client
 
         interface__commands
         interface__results
-        interface__visual
 
         paths
         trust_lines

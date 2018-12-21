@@ -11,7 +11,6 @@ PongReactionTransaction::PongReactionTransaction(
         nodeUUID,
         0,
         logger),
-    mContractorUUID(message->senderUUID),
     mContractorID(message->idOnReceiverSide),
     mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
     mStorageHandler(storageHandler)
@@ -30,14 +29,12 @@ TransactionResult::SharedConst PongReactionTransaction::run()
 
         if (trustLineManager->trustLineState(mContractorID) == TrustLine::Init) {
             mResumeTransactionSignal(
-                mContractorUUID,
                 mContractorID,
                 equivalent,
                 BaseTransaction::OpenTrustLineTransaction);
             isSignalSend = true;
         } else if (trustLineManager->trustLineState(mContractorID) == TrustLine::AuditPending) {
             mResumeTransactionSignal(
-                mContractorUUID,
                 mContractorID,
                 equivalent,
                 BaseTransaction::AuditSourceTransactionType);

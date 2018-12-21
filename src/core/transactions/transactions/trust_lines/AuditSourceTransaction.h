@@ -23,9 +23,8 @@ public:
     AuditSourceTransaction(
         const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
-        const NodeUUID &contractorUUID,
-        ContractorID contractorID,
         ContractorsManager *contractorsManager,
+        ContractorID contractorID,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,

@@ -122,7 +122,6 @@ private:
 
     void onPathsResourceRequestedSlot(
         const TransactionUUID &transactionUUID,
-        const NodeUUID destinationUUID,
         BaseAddress::Shared destinationNodeAddress,
         const SerializedEquivalent equivalent);
 

@@ -39,6 +39,9 @@ private:
 
     void sendMessagesOnFirstLevel();
 
+    bool isNodeListedInTransactionContractors(
+        BaseAddress::Shared nodeAddress) const;
+
 private:
     ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;

@@ -34,36 +34,39 @@ TransactionResult::SharedConst CollectTopologyTransaction::run()
         return resultDone();
     }
     sendMessagesToContractors();
+
     if (mIamGateway) {
-        for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
-            if (mTrustLinesManager->isContractorGateway(nodeUUIDAndOutgoingFlow.first)) {
-                auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
+        for (auto const &nodeAddressAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
+            auto targetID = mTopologyTrustLineManager->getID(nodeAddressAndOutgoingFlow.first);
+            auto trustLineAmountShared = nodeAddressAndOutgoingFlow.second;
+            if (mTrustLinesManager->isContractorGateway(targetID)) {
                 mTopologyTrustLineManager->addTrustLine(
                     make_shared<TopologyTrustLine>(
-                        mNodeUUID,
-                        nodeUUIDAndOutgoingFlow.first,
+                        TopologyTrustLinesManager::kCurrentNodeID,
+                        targetID,
                         trustLineAmountShared));
                 continue;
             }
-            if (find(mContractors.begin(), mContractors.end(), nodeUUIDAndOutgoingFlow.first) != mContractors.end()) {
-                auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
+            if (isNodeListedInTransactionContractors(nodeAddressAndOutgoingFlow.first)) {
                 mTopologyTrustLineManager->addTrustLine(
                     make_shared<TopologyTrustLine>(
-                        mNodeUUID,
-                        nodeUUIDAndOutgoingFlow.first,
+                        TopologyTrustLinesManager::kCurrentNodeID,
+                        targetID,
                         trustLineAmountShared));
             }
         }
     } else {
-        for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
-            auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
+        for (auto const &nodeAddressAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
+            auto targetID = mTopologyTrustLineManager->getID(nodeAddressAndOutgoingFlow.first);
+            auto trustLineAmountShared = nodeAddressAndOutgoingFlow.second;
             mTopologyTrustLineManager->addTrustLine(
                 make_shared<TopologyTrustLine>(
-                    mNodeUUID,
-                    nodeUUIDAndOutgoingFlow.first,
+                    TopologyTrustLinesManager::kCurrentNodeID,
+                    targetID,
                     trustLineAmountShared));
         }
     }
+
     if (!mTopologyCacheManager->isInitiatorCached()) {
         sendMessagesOnFirstLevel();
         mTopologyCacheManager->setInitiatorCache();
@@ -78,48 +81,64 @@ void CollectTopologyTransaction::sendMessagesToContractors()
             contractorAddress,
             mEquivalent,
             currentNodeUUID(),
+            mContractorsManager->ownAddresses(),
             mIamGateway);
 }
 
 void CollectTopologyTransaction::sendMessagesOnFirstLevel()
 {
     if (mIamGateway) {
-        vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow();
-        for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
-            if (find(mContractors.begin(), mContractors.end(), nodeUUIDOutgoingFlow) != mContractors.end()) {
+        auto outgoingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow();
+        for (auto const &nodeIDOutgoingFlow : outgoingFlowIDs) {
+            auto contractorAddress = mContractorsManager->contractorMainAddress(nodeIDOutgoingFlow);
+            if (isNodeListedInTransactionContractors(contractorAddress)) {
                 continue;
             }
             sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
-                nodeUUIDOutgoingFlow,
+                nodeIDOutgoingFlow,
                 mEquivalent,
-                mNodeUUID);
+                mNodeUUID,
+                mContractorsManager->idOnContractorSide(nodeIDOutgoingFlow));
         }
     } else {
-        vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
-        auto outgoingFlowUuidIt = outgoingFlowUuids.begin();
-        while (outgoingFlowUuidIt != outgoingFlowUuids.end()) {
-            if (find(mContractors.begin(), mContractors.end(), *outgoingFlowUuidIt) != mContractors.end()) {
-                outgoingFlowUuids.erase(outgoingFlowUuidIt);
+        auto outgoingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
+        auto outgoingFlowIDIt = outgoingFlowIDs.begin();
+        while (outgoingFlowIDIt != outgoingFlowIDs.end()) {
+            auto contractorAddress = mContractorsManager->contractorMainAddress(*outgoingFlowIDIt);
+            if (isNodeListedInTransactionContractors(contractorAddress)) {
                 continue;
             }
             // firstly send message to gateways
-            if (mTrustLinesManager->isContractorGateway(*outgoingFlowUuidIt)) {
+            if (mTrustLinesManager->isContractorGateway(*outgoingFlowIDIt)) {
                 sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
-                    *outgoingFlowUuidIt,
+                    *outgoingFlowIDIt,
                     mEquivalent,
-                    mNodeUUID);
-                outgoingFlowUuids.erase(outgoingFlowUuidIt);
+                    mNodeUUID,
+                    mContractorsManager->idOnContractorSide(*outgoingFlowIDIt));
+                outgoingFlowIDs.erase(outgoingFlowIDIt);
             } else {
-                outgoingFlowUuidIt++;
+                outgoingFlowIDIt++;
             }
         }
-        for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
+        for (auto const &nodeIDWithOutgoingFlow : outgoingFlowIDs) {
             sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
-                nodeUUIDOutgoingFlow,
+                nodeIDWithOutgoingFlow,
                 mEquivalent,
-                mNodeUUID);
+                mNodeUUID,
+                mContractorsManager->idOnContractorSide(nodeIDWithOutgoingFlow));
         }
     }
+}
+
+bool CollectTopologyTransaction::isNodeListedInTransactionContractors(
+    BaseAddress::Shared nodeAddress) const
+{
+    for (const auto &contractor : mContractorAddresses) {
+        if (nodeAddress == contractor) {
+            return true;
+        }
+    }
+    return false;
 }
 
 const string CollectTopologyTransaction::logHeader() const

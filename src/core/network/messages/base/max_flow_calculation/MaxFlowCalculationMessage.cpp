@@ -5,7 +5,6 @@ MaxFlowCalculationMessage::MaxFlowCalculationMessage(
     const SerializedEquivalent equivalent,
     const NodeUUID& senderUUID,
     ContractorID idOnReceiverSide,
-    const NodeUUID& targetUUID,
     vector<BaseAddress::Shared> targetAddresses) :
 
     SenderMessage(
@@ -13,7 +12,6 @@ MaxFlowCalculationMessage::MaxFlowCalculationMessage(
         senderUUID,
         idOnReceiverSide),
 
-    mTargetUUID(targetUUID),
     mTargetAddresses(targetAddresses)
 {}
 
@@ -22,12 +20,6 @@ MaxFlowCalculationMessage::MaxFlowCalculationMessage (
     SenderMessage(buffer)
 {
     auto bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
-
-    memcpy(
-        mTargetUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
 
     uint16_t senderAddressesCnt;
     memcpy(
@@ -44,11 +36,6 @@ MaxFlowCalculationMessage::MaxFlowCalculationMessage (
     }
 }
 
-const NodeUUID &MaxFlowCalculationMessage::targetUUID() const
-{
-    return mTargetUUID;
-}
-
 vector<BaseAddress::Shared> MaxFlowCalculationMessage::targetAddresses() const
 {
     return mTargetAddresses;
@@ -59,7 +46,6 @@ pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() const
 {
     auto parentBytesAndCount = SenderMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize
                         + sizeof(byte);
     for (const auto &address : mTargetAddresses) {
         bytesCount += address->serializedSize();
@@ -73,12 +59,6 @@ pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() const
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
-    //----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mTargetUUID.data,
-        NodeUUID::kBytesSize);
-    dataBytesOffset += NodeUUID::kBytesSize;
     //----------------------------------------------------
     auto targetAddressesCnt = (byte)mTargetAddresses.size();
     memcpy(
@@ -105,7 +85,6 @@ const size_t MaxFlowCalculationMessage::kOffsetToInheritedBytes() const
     noexcept
 {
     auto kOffset = SenderMessage::kOffsetToInheritedBytes()
-           + NodeUUID::kBytesSize
            + sizeof(byte);
     for (const auto &address : mTargetAddresses) {
         kOffset += address->serializedSize();

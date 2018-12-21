@@ -23,7 +23,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndS
     vector<BaseAddress::Shared> path;
     path.push_back(
         mContractorsManager->ownAddresses().at(0));
-    for(const auto &neighborID: mTrustLinesManager->firstLevelNeighborsWithNoneZeroBalanceNew()){
+    for(const auto &neighborID: mTrustLinesManager->firstLevelNeighborsWithNoneZeroBalance()){
         sendMessage<CyclesSixNodesInBetweenMessage>(
             neighborID,
             mEquivalent,

@@ -101,13 +101,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
         debug() << "It is forbidden run payment transactions";
         return resultForbiddenRun();
     }
-    debug() << "Operation initialised to the node (" << mCommand->contractorUUID() << ") "
-            << mCommand->contractorAddress()->fullAddress();
+    debug() << "Operation initialised to the node " << mCommand->contractorAddress()->fullAddress();
     debug() << "Command UUID: " << mCommand->UUID();
     debug() << "Operation amount: " << mCommand->amount();
 
-    // todo : check if contractor is different from current node
-    if (mCommand->contractorUUID() == currentNodeUUID()) {
+    if (mCommand->contractorAddress() == mContractorsManager->ownAddresses().at(0)) {
         warning() << "Attempt to initialise operation against itself was prevented. Canceled.";
         return resultProtocolError();
     }
@@ -115,7 +113,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     // Check if total outgoing possibilities of this node are not smaller,
     // than total operation amount. In case if so - there is no reason to begin the operation:
     // current node would not be able to pay such an amount.
-    const auto kTotalOutgoingPossibilities = *(mTrustLinesManager->totalOutgoingAmountNew());
+    const auto kTotalOutgoingPossibilities = *(mTrustLinesManager->totalOutgoingAmount());
     if (kTotalOutgoingPossibilities < mCommand->amount()) {
         warning() << "Total outgoing possibilities (" << kTotalOutgoingPossibilities << ") less then operation amount";
         return resultInsufficientFundsError();
@@ -123,7 +121,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
 
     mResourcesManager->requestPaths(
         currentTransactionUUID(),
-        mCommand->contractorUUID(),
         mCommand->contractorAddress(),
         mEquivalent);
 
@@ -146,8 +143,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
                 responseResource);
 
             response->pathCollection()->resetCurrentPath();
-            while (response->pathCollection()->hasNextPathNew()) {
-                auto path = response->pathCollection()->nextPathNew();
+            while (response->pathCollection()->hasNextPath()) {
+                auto path = response->pathCollection()->nextPath();
                 info() << "New path " << path->toString();
                 // todo : correct method isPathValid
                 if (isPathValid(path)) {
@@ -1871,9 +1868,9 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
         if (itPathIDAndReservation->first == pathID) {
             debug() << "Dropping reservation: [ => ] " << itPathIDAndReservation->second->amount()
                     << " for (" << firstIntermediateNode->fullAddress() << ") [" << pathID << "]";
-            mTrustLinesManager->dropAmountReservationNew(
-                firstIntermediateNodeID,
-                itPathIDAndReservation->second);
+            mTrustLinesManager->dropAmountReservation(
+                    firstIntermediateNodeID,
+                    itPathIDAndReservation->second);
 
             itPathIDAndReservation = nodeReservations->second.erase(itPathIDAndReservation);
             // coordinator has only one reservation on each path
@@ -1975,8 +1972,8 @@ void CoordinatorPaymentTransaction::buildPathsAgain()
         mCommand->contractorAddress(),
         mInaccessibleNodes);
     mPathsManager->pathCollection()->resetCurrentPath();
-    while (mPathsManager->pathCollection()->hasNextPathNew()) {
-        auto path = mPathsManager->pathCollection()->nextPathNew();
+    while (mPathsManager->pathCollection()->hasNextPath()) {
+        auto path = mPathsManager->pathCollection()->nextPath();
         if (isPathValid(path)) {
             addPathForFurtherProcessing(path);
         }
@@ -1993,7 +1990,7 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::OutgoingPaymentType,
-            mCommand->contractorUUID(),
+            NodeUUID::empty(),
             mCommittedAmount,
             *mTrustLinesManager->totalBalance().get(),
             mCommand->UUID()),

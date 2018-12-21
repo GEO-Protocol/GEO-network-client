@@ -20,8 +20,6 @@ public:
         Logger &logger)
     noexcept;
 
-    GetTrustLinesCommand::Shared command() const;
-
     TransactionResult::SharedConst run();
 
 protected:

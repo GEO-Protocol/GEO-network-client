@@ -4,32 +4,6 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     const TransactionType type,
     const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
-    const NodeUUID &contractorUUID,
-    ContractorsManager *contractorsManager,
-    TrustLinesManager *trustLines,
-    StorageHandler *storageHandler,
-    Keystore *keystore,
-    TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &log) :
-
-    BaseTransaction(
-        type,
-        currentNodeUUID,
-        equivalent,
-        log),
-    mContractorUUID(contractorUUID),
-    mContractorsManager(contractorsManager),
-    mTrustLines(trustLines),
-    mStorageHandler(storageHandler),
-    mKeysStore(keystore),
-    mTrustLinesInfluenceController(trustLinesInfluenceController)
-{}
-
-BaseTrustLineTransaction::BaseTrustLineTransaction(
-    const TransactionType type,
-    const NodeUUID &currentNodeUUID,
-    const SerializedEquivalent equivalent,
-    const NodeUUID &contractorUUID,
     ContractorID contractorID,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLines,
@@ -43,7 +17,6 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
         currentNodeUUID,
         equivalent,
         log),
-    mContractorUUID(contractorUUID),
     mContractorID(contractorID),
     mContractorsManager(contractorsManager),
     mTrustLines(trustLines),
@@ -57,34 +30,6 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     const TransactionUUID &transactionUUID,
     const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
-    const NodeUUID &contractorUUID,
-    ContractorsManager *contractorsManager,
-    TrustLinesManager *trustLines,
-    StorageHandler *storageHandler,
-    Keystore *keystore,
-    TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &log) :
-
-    BaseTransaction(
-        type,
-        transactionUUID,
-        currentNodeUUID,
-        equivalent,
-        log),
-    mContractorUUID(contractorUUID),
-    mContractorsManager(contractorsManager),
-    mTrustLines(trustLines),
-    mStorageHandler(storageHandler),
-    mKeysStore(keystore),
-    mTrustLinesInfluenceController(trustLinesInfluenceController)
-{}
-
-BaseTrustLineTransaction::BaseTrustLineTransaction(
-    const TransactionType type,
-    const TransactionUUID &transactionUUID,
-    const NodeUUID &currentNodeUUID,
-    const SerializedEquivalent equivalent,
-    const NodeUUID &contractorUUID,
     ContractorID contractorID,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLines,
@@ -99,7 +44,6 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
         currentNodeUUID,
         equivalent,
         log),
-    mContractorUUID(contractorUUID),
     mContractorID(contractorID),
     mContractorsManager(contractorsManager),
     mTrustLines(trustLines),

@@ -16,8 +16,6 @@ public:
 
     static const string &identifier();
 
-    const vector<NodeUUID> &contractors() const;
-
     const vector<BaseAddress::Shared> &contractorAddresses() const;
 
     const SerializedEquivalent equivalent() const;
@@ -27,7 +25,6 @@ public:
 
 private:
     size_t mContractorsCount;
-    vector<NodeUUID> mContractors;
     vector<BaseAddress::Shared> mContractorAddresses;
     SerializedEquivalent mEquivalent;
 };

@@ -24,14 +24,14 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAnd
     path.push_back(
         mContractorsManager->ownAddresses().at(0));
     TrustLineBalance zeroBalance = 0;
-    for(const auto &neighborID: mTrustLinesManager->firstLevelNeighborsWithNegativeBalanceNew()) {
+    for(const auto &neighborID: mTrustLinesManager->firstLevelNeighborsWithNegativeBalance()) {
         sendMessage<CyclesFiveNodesInBetweenMessage>(
             neighborID,
             mEquivalent,
             mContractorsManager->idOnContractorSide(neighborID),
             path);
     }
-    for(const auto &neighborID: mTrustLinesManager->firstLevelNeighborsWithPositiveBalanceNew()) {
+    for(const auto &neighborID: mTrustLinesManager->firstLevelNeighborsWithPositiveBalance()) {
         sendMessage<CyclesFiveNodesInBetweenMessage>(
             neighborID,
             mEquivalent,

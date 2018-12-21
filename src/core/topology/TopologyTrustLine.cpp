@@ -1,14 +1,15 @@
 #include "TopologyTrustLine.h"
 
 TopologyTrustLine::TopologyTrustLine(
-    const NodeUUID &sourceUUID,
-    const NodeUUID &targetUUID,
+    ContractorID sourceID,
+    ContractorID targetID,
     ConstSharedTrustLineAmount amount):
 
-    mSourceUUID(sourceUUID),
-    mTargetUUID(targetUUID),
+    mSourceID(sourceID),
+    mTargetID(targetID),
     mAmount(amount),
-    mUsedAmount(make_shared<TrustLineAmount>(0))
+    mUsedAmount(
+        make_shared<TrustLineAmount>(0))
 {
     if (*amount.get() < TrustLine::kZeroAmount()) {
         throw ValueError("TopologyTrustLine::TopologyTrustLine: "
@@ -16,14 +17,14 @@ TopologyTrustLine::TopologyTrustLine(
     }
 }
 
-const NodeUUID& TopologyTrustLine::sourceUUID() const
+const ContractorID TopologyTrustLine::sourceID() const
 {
-    return mSourceUUID;
+    return mSourceID;
 }
 
-const NodeUUID& TopologyTrustLine::targetUUID() const
+const ContractorID TopologyTrustLine::targetID() const
 {
-    return mTargetUUID;
+    return mTargetID;
 }
 
 ConstSharedTrustLineAmount TopologyTrustLine::amount() const
@@ -38,17 +39,20 @@ ConstSharedTrustLineAmount TopologyTrustLine::freeAmount()
             *mAmount.get() - *mUsedAmount.get()));
 }
 
-void TopologyTrustLine::addUsedAmount(const TrustLineAmount &amount)
+void TopologyTrustLine::addUsedAmount(
+    const TrustLineAmount &amount)
 {
     *mUsedAmount.get() = *mUsedAmount.get() + amount;
 }
 
-void TopologyTrustLine::setUsedAmount(const TrustLineAmount &amount)
+void TopologyTrustLine::setUsedAmount(
+    const TrustLineAmount &amount)
 {
     *mUsedAmount.get() = amount;
 }
 
-void TopologyTrustLine::setAmount(ConstSharedTrustLineAmount amount)
+void TopologyTrustLine::setAmount(
+    ConstSharedTrustLineAmount amount)
 {
     mAmount = amount;
 }

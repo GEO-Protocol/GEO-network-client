@@ -38,7 +38,7 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run()
     if (contractorBalance > TrustLine::kZeroBalance()) {
         creditorsBranch = false;
     }
-    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCyclesNew(creditorsBranch);
+    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(creditorsBranch);
     if (firstLevelNodes.empty()){
         info() << "CyclesFiveNodesReceiverTransaction: No suitable firstLevelNodes " << endl;
         return resultDone();

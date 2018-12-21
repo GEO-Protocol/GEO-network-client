@@ -9,7 +9,7 @@ CreditUsageCommand::CreditUsageCommand(
         uuid,
         identifier())
 {
-    static const auto minCommandLength = CommandUUID::kHexSize + 2;
+    static const auto minCommandLength = 7;
     if (commandBuffer.size() < minCommandLength) {
         throw ValueError(
                 "CreditUsageCommand::parse: "
@@ -17,19 +17,7 @@ CreditUsageCommand::CreditUsageCommand(
                     "Received command is too short.");
     }
 
-    try {
-        string hexUUID = commandBuffer.substr(
-            0,
-            CommandUUID::kHexSize);
-        mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
-
-    } catch (...) {
-        throw ValueError(
-                "CreditUsageCommand: can't parse command. "
-                    "Error occurred while parsing 'Contractor UUID' token.");
-    }
-
-    size_t contractorAddressStartPos = NodeUUID::kHexSize + 1;
+    size_t contractorAddressStartPos = 0;
     size_t tokenSeparatorPos = commandBuffer.find(
         kTokensSeparator,
         contractorAddressStartPos);
@@ -83,11 +71,6 @@ const string& CreditUsageCommand::identifier()
 {
     static const string identifier = "CREATE:contractors/transactions";
     return identifier;
-}
-
-const NodeUUID& CreditUsageCommand::contractorUUID() const
-{
-    return mContractorUUID;
 }
 
 BaseAddress::Shared CreditUsageCommand::contractorAddress() const

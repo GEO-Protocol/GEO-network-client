@@ -69,7 +69,7 @@ private:
 
 private:
     TrustLinesManager *mTrustLinesManager;
-    TopologyTrustLinesManager *mTopologyTrustLineManager;
+    TopologyTrustLinesManager *mTopologyTrustLinesManager;
     SerializedEquivalent mEquivalent;
     Logger &mLog;
     PathsCollection::Shared mPathCollection;

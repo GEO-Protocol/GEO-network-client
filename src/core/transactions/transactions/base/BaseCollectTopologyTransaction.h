@@ -67,8 +67,7 @@ protected:
     TopologyTrustLinesManager *mTopologyTrustLineManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
-    set<NodeUUID> mGateways;
-    set<ContractorID> mGatewaysNew;
+    set<ContractorID> mGateways;
 };
 
 

@@ -17,7 +17,6 @@ AuditTargetTransaction::AuditTargetTransaction(
         message->transactionUUID(),
         nodeUUID,
         message->equivalent(),
-        message->senderUUID,
         message->idOnReceiverSide,
         contractorsManager,
         manager,
@@ -263,10 +262,10 @@ void AuditTargetTransaction::setIncomingTrustLineAmount(
             populateHistory(ioTransaction, TrustLineRecord::Rejecting);
             // remove this TL from Topology TrustLines Manager
             mTopologyTrustLinesManager->addTrustLine(
-                make_shared<TopologyTrustLine>(
-                    mNodeUUID,
-                    mContractorUUID,
-                    make_shared<const TrustLineAmount>(0)));
+                    make_shared<TopologyTrustLine>(
+                            0,
+                            mContractorID,
+                            make_shared<const TrustLineAmount>(0)));
             mTopologyCacheManager->resetInitiatorCache();
             mMaxFlowCacheManager->clearCashes();
             info() << "Incoming trust line from the node " << mContractorID
@@ -306,13 +305,13 @@ void AuditTargetTransaction::populateHistory(
         record = make_shared<TrustLineRecord>(
             mTransactionUUID,
             operationType,
-            mContractorUUID,
+            NodeUUID::empty(),
             mMessage->outgoingAmount());
     } else {
         record = make_shared<TrustLineRecord>(
             mTransactionUUID,
             operationType,
-            mContractorUUID);
+            NodeUUID::empty());
     }
 
     ioTransaction->historyStorage()->saveTrustLineRecord(

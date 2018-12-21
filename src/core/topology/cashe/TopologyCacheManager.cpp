@@ -24,35 +24,11 @@ void TopologyCacheManager::addCache(
             keyAddress));
 }
 
-void TopologyCacheManager::addCacheNew(
-    BaseAddress::Shared keyAddress,
-    TopologyCacheNew::Shared cache)
-{
-    mCachesNew.insert(
-        make_pair(
-            keyAddress->fullAddress(),
-            cache));
-    msCacheNew.insert(
-        make_pair(
-            utc_now(),
-            keyAddress));
-}
-
 TopologyCache::Shared TopologyCacheManager::cacheByAddress(
     BaseAddress::Shared nodeAddress) const
 {
     auto nodeAddressAndCache = mCaches.find(nodeAddress->fullAddress());
     if (nodeAddressAndCache == mCaches.end()) {
-        return nullptr;
-    }
-    return nodeAddressAndCache->second;
-}
-
-TopologyCacheNew::Shared TopologyCacheManager::cacheByAddressNew(
-    BaseAddress::Shared nodeAddress) const
-{
-    auto nodeAddressAndCache = mCachesNew.find(nodeAddress->fullAddress());
-    if (nodeAddressAndCache == mCachesNew.end()) {
         return nullptr;
     }
     return nodeAddressAndCache->second;
@@ -72,23 +48,6 @@ void TopologyCacheManager::updateCaches()
 #endif
             mCaches.erase(keyAddress->fullAddress());
             msCache.erase(timeAndNodeAddress.first);
-        } else {
-            break;
-        }
-    }
-    ///////////////////////////////////////////////////////////////////////////////////////////
-#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "updateCaches\t" << "mCachesNew size: " << mCachesNew.size();
-    info() << "updateCaches\t" << "msCachesNew size: " << msCacheNew.size();
-#endif
-    for (auto &timeAndNodeAddress : msCacheNew) {
-        if (utc_now() - timeAndNodeAddress.first > kResetSenderCacheDuration()) {
-            auto keyAddress = timeAndNodeAddress.second;
-#ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
-            info() << "updateCachesNew delete cache\t" << keyAddress->fullAddress();
-#endif
-            mCachesNew.erase(keyAddress->fullAddress());
-            msCacheNew.erase(timeAndNodeAddress.first);
         } else {
             break;
         }
@@ -131,18 +90,6 @@ void TopologyCacheManager::removeCache(
             return;
         }
     }
-    warning() << "no cache found for key " << nodeAddress->fullAddress();
-    //////////////////////////////////////////////////////////////////////////
-    for (auto &timeAndNodeAddress : msCacheNew) {
-        if (timeAndNodeAddress.second == nodeAddress) {
-#ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
-            info() << "removeCacheNew delete cache\t" << timeAndNodeAddress.second->fullAddress();
-#endif
-            mCachesNew.erase(timeAndNodeAddress.second->fullAddress());
-            msCacheNew.erase(timeAndNodeAddress.first);
-            return;
-        }
-    }
     warning() << "no cacheNew found for key " << nodeAddress->fullAddress();
 }
 
@@ -157,8 +104,8 @@ DateTime TopologyCacheManager::closestTimeEvent() const
     // if there are sender caches then take sender cache removing closest time as result closest time event
     // else take life time of sender cache + now as result closest time event
     // take as result minimal from initiator cache and sender cache closest time
-    if (!msCacheNew.empty()) {
-        auto timeAndNodeAddress = msCacheNew.cbegin();
+    if (!msCache.empty()) {
+        auto timeAndNodeAddress = msCache.cbegin();
         if (timeAndNodeAddress->first + kResetSenderCacheDuration() < result) {
             result = timeAndNodeAddress->first + kResetSenderCacheDuration();
         }

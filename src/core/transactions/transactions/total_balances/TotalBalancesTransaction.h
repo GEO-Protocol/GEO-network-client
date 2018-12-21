@@ -17,8 +17,6 @@ public:
         TrustLinesManager *manager,
         Logger &logger);
 
-    TotalBalancesCommand::Shared command() const;
-
     TransactionResult::SharedConst run();
 
 protected:

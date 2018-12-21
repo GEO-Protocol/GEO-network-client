@@ -19,24 +19,10 @@ class BaseTrustLineTransaction : public BaseTransaction {
 
 public:
     typedef shared_ptr<BaseTrustLineTransaction> Shared;
-
     BaseTrustLineTransaction(
         const TransactionType type,
         const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
-        const NodeUUID &contractorUUID,
-        ContractorsManager *contractorsManager,
-        TrustLinesManager *trustLines,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &log);
-
-    BaseTrustLineTransaction(
-        const TransactionType type,
-        const NodeUUID &currentNodeUUID,
-        const SerializedEquivalent equivalent,
-        const NodeUUID &contractorUUID,
         ContractorID contractorID,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
@@ -50,20 +36,6 @@ public:
         const TransactionUUID &transactionUUID,
         const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
-        const NodeUUID &contractorUUID,
-        ContractorsManager *contractorsManager,
-        TrustLinesManager *trustLines,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &log);
-
-    BaseTrustLineTransaction(
-        const TransactionType type,
-        const TransactionUUID &transactionUUID,
-        const NodeUUID &currentNodeUUID,
-        const SerializedEquivalent equivalent,
-        const NodeUUID &contractorUUID,
         ContractorID contractorID,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
@@ -98,7 +70,6 @@ protected:
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
 
-    NodeUUID mContractorUUID;
     ContractorID mContractorID;
     AuditNumber mAuditNumber;
     pair<lamport::Signature::Shared, KeyNumber> mOwnSignatureAndKeyNumber;

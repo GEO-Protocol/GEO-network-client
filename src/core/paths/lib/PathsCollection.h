@@ -21,14 +21,14 @@ public:
 
     void resetCurrentPath();
 
-    Path::Shared nextPathNew();
+    Path::Shared nextPath();
 
-    bool hasNextPathNew();
+    bool hasNextPath();
 
     size_t count() const;
 
 private:
-    BaseAddress::Shared mDestinationNodeNew;
+    BaseAddress::Shared mDestinationNode;
     vector<Path::Shared> mPaths;
     size_t mCurrentPath;
 };

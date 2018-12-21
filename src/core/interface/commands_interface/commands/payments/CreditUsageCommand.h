@@ -26,8 +26,6 @@ public:
 
     const TrustLineAmount& amount() const;
 
-    const NodeUUID& contractorUUID() const;
-
     BaseAddress::Shared contractorAddress() const;
 
     const SerializedEquivalent equivalent() const;
@@ -38,7 +36,6 @@ public:
         string &transactionUUID) const;
 
 private:
-    NodeUUID mContractorUUID;
     BaseAddress::Shared mContractorAddress;
     TrustLineAmount mAmount;
     SerializedEquivalent mEquivalent;

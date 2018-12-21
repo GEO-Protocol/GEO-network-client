@@ -3,7 +3,8 @@
 GetFirstLevelContractorBalanceTransaction::GetFirstLevelContractorBalanceTransaction(
     NodeUUID &nodeUUID,
     GetTrustLineCommand::Shared command,
-    TrustLinesManager *manager,
+    ContractorsManager *contractorsManager,
+    TrustLinesManager *trustLinesManager,
     Logger &logger)
 noexcept:
     BaseTransaction(
@@ -12,23 +13,23 @@ noexcept:
         command->equivalent(),
         logger),
     mCommand(command),
-    mTrustLinesManager(manager)
+    mContractorsManager(contractorsManager),
+    mTrustLinesManager(trustLinesManager)
 {}
-
-GetTrustLineCommand::Shared GetFirstLevelContractorBalanceTransaction::command() const
-{
-    return mCommand;
-}
 
 TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::run()
 {
-    stringstream ss;
-    auto contractorUUID = mCommand->contractorUUID();
-    if (!mTrustLinesManager->trustLineIsPresent(contractorUUID)) {
+    auto contractorID = mContractorsManager->contractorIDByAddress(
+        mCommand->contractorAddress());
+    if (contractorID == ContractorsManager::kNotFoundContractorID) {
         return resultTrustLineIsAbsent();
     }
-    auto kContractorTrustLine = mTrustLinesManager->trustLineReadOnly(contractorUUID);
-    ss << contractorUUID << kTokensSeparator;
+    if (!mTrustLinesManager->trustLineIsPresent(contractorID)) {
+        return resultTrustLineIsAbsent();
+    }
+    stringstream ss;
+    auto kContractorTrustLine = mTrustLinesManager->trustLineReadOnly(contractorID);
+    ss << contractorID << kTokensSeparator;
     ss << kContractorTrustLine->incomingTrustAmount() << kTokensSeparator;
     ss << kContractorTrustLine->outgoingTrustAmount() << kTokensSeparator;
     ss << kContractorTrustLine->balance();

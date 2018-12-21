@@ -3,7 +3,8 @@
 ConflictResolverContractorTransaction::ConflictResolverContractorTransaction(
     const NodeUUID &nodeUUID,
     ConflictResolverMessage::Shared message,
-    TrustLinesManager *manager,
+    ContractorsManager *contractorsManager,
+    TrustLinesManager *trustLinesManager,
     StorageHandler *storageHandler,
     Keystore *keystore,
     TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -15,8 +16,9 @@ ConflictResolverContractorTransaction::ConflictResolverContractorTransaction(
         message->equivalent(),
         logger),
     mMessage(message),
-    mContractorUUID(message->senderUUID),
-    mTrustLines(manager),
+    mContractorID(message->idOnReceiverSide),
+    mContractorsManager(contractorsManager),
+    mTrustLinesManager(trustLinesManager),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
     mTrustLinesInfluenceController(trustLinesInfluenceController)
@@ -24,18 +26,19 @@ ConflictResolverContractorTransaction::ConflictResolverContractorTransaction(
 
 TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
 {
-    info() << "initialized by " << mContractorUUID;
-    if (mContractorUUID == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
+    info() << "initialized by " << mContractorID;
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
         return resultDone();
     }
 
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+    if (!mTrustLinesManager->trustLineIsPresent(mContractorID)) {
         warning() << "Trust line is absent.";
         sendMessage<ConflictResolverResponseMessage>(
-            mContractorUUID,
+            mContractorID,
             mEquivalent,
             mNodeUUID,
+            mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         return resultDone();
@@ -44,31 +47,32 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
     auto ioTransaction = mStorageHandler->beginTransaction();
 
     bool isConflictResolvingSecondTime;
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::ConflictResolving) {
+    if (mTrustLinesManager->trustLineState(mContractorID) == TrustLine::ConflictResolving) {
         info() << "TL on ConflictResolving state";
         isConflictResolvingSecondTime = true;
     } else {
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
+        mTrustLinesManager->setTrustLineState(
+            mContractorID,
             TrustLine::ConflictResolving,
             ioTransaction);
         isConflictResolvingSecondTime = false;
     }
-    mTrustLines->updateTrustLineFromStorage(
-        mContractorUUID,
+    mTrustLinesManager->updateTrustLineFromStorage(
+        mContractorID,
         ioTransaction);
 
     auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineID(
-            mContractorUUID));
+        mTrustLinesManager->trustLineID(
+            mContractorID));
 
-    if (mTrustLines->auditNumber(mContractorUUID) > mMessage->auditRecord()->auditNumber()) {
+    if (mTrustLinesManager->auditNumber(mContractorID) > mMessage->auditRecord()->auditNumber()) {
         info() << "Our audit number is greater than contractor's";
 
         sendMessage<ConflictResolverResponseMessage>(
-            mContractorUUID,
+            mContractorID,
             mEquivalent,
             mNodeUUID,
+            mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             ConfirmationMessage::Audit_Reject);
 
@@ -77,8 +81,9 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
             auto conflictResolverInitiatorTransaction = make_shared<ConflictResolverInitiatorTransaction>(
                 mNodeUUID,
                 mEquivalent,
-                mContractorUUID,
-                mTrustLines,
+                mContractorID,
+                mContractorsManager,
+                mTrustLinesManager,
                 mStorageHandler,
                 mKeysStore,
                 mTrustLinesInfluenceController,
@@ -88,8 +93,8 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                 conflictResolverInitiatorTransaction);
         } else {
             warning() << "Conflict wasn't resolve";
-            mTrustLines->setTrustLineState(
-                mContractorUUID,
+            mTrustLinesManager->setTrustLineState(
+                mContractorID,
                 TrustLine::Conflict,
                 ioTransaction);
         }
@@ -97,7 +102,7 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
         return resultDone();
     }
 
-    if (mTrustLines->auditNumber(mContractorUUID) < mMessage->auditRecord()->auditNumber()) {
+    if (mTrustLinesManager->auditNumber(mContractorID) < mMessage->auditRecord()->auditNumber()) {
         info() << "Contractor's audit number is greater than ours";
         // check own signature
         try {
@@ -109,9 +114,10 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                     mMessage->auditRecord()->contractorKeyHash())) {
                 warning() << "Own audit data sent by contractor is incorrect";
                 sendMessage<ConflictResolverResponseMessage>(
-                    mContractorUUID,
+                    mContractorID,
                     mEquivalent,
                     mNodeUUID,
+                    mContractorsManager->idOnContractorSide(mContractorID),
                     mTransactionUUID,
                     ConfirmationMessage::Audit_Invalid);
                 return resultDone();
@@ -119,9 +125,10 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
         } catch (NotFoundError &e) {
             // todo need correct reaction, node can lost or remove own keys
             sendMessage<ConflictResolverResponseMessage>(
-                mContractorUUID,
+                mContractorID,
                 mEquivalent,
                 mNodeUUID,
+                mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
                 ConfirmationMessage::Audit_KeyNotFound);
             return resultDone();
@@ -139,9 +146,10 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                     mMessage->auditRecord()->ownKeyHash())) {
                 warning() << "Own audit data sent by contractor is incorrect";
                 sendMessage<ConflictResolverResponseMessage>(
-                    mContractorUUID,
+                    mContractorID,
                     mEquivalent,
                     mNodeUUID,
+                    mContractorsManager->idOnContractorSide(mContractorID),
                     mTransactionUUID,
                     ConfirmationMessage::Audit_Invalid);
                 return resultDone();
@@ -149,9 +157,10 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
         } catch (NotFoundError &e) {
             // todo need correct reaction, node can lost or remove contractor keys
             sendMessage<ConflictResolverResponseMessage>(
-                mContractorUUID,
+                mContractorID,
                 mEquivalent,
                 mNodeUUID,
+                mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
                 ConfirmationMessage::Audit_KeyNotFound);
             return resultDone();
@@ -167,8 +176,8 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                               << " sent by contractor has invalid audit number " << incomingReceipt->auditNumber();
                 }
                 auto serializedIncomingReceiptAndSize = getSerializedReceipt(
-                    mNodeUUID,
-                    mContractorUUID,
+                    mContractorsManager->idOnContractorSide(mContractorID),
+                    mContractorID,
                     incomingReceipt);
                 if (!keyChain.checkConflictedIncomingReceipt(
                         ioTransaction,
@@ -179,9 +188,10 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                     warning() << "Incoming receipt on TA " << incomingReceipt->transactionUUID()
                               << " sent by contractor is incorrect";
                     sendMessage<ConflictResolverResponseMessage>(
-                        mContractorUUID,
+                        mContractorID,
                         mEquivalent,
                         mNodeUUID,
+                        mContractorsManager->idOnContractorSide(mContractorID),
                         mTransactionUUID,
                         ConfirmationMessage::Audit_Invalid);
                     return resultDone();
@@ -189,9 +199,10 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
             } catch (NotFoundError &e) {
                 // todo need correct reaction, node can lost or remove contractor keys
                 sendMessage<ConflictResolverResponseMessage>(
-                    mContractorUUID,
+                    mContractorID,
                     mEquivalent,
                     mNodeUUID,
+                    mContractorsManager->idOnContractorSide(mContractorID),
                     mTransactionUUID,
                     ConfirmationMessage::Audit_KeyNotFound);
                 return resultDone();
@@ -208,8 +219,8 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                               << " sent by contractor has invalid audit number " << outgoingReceipt->auditNumber();
                 }
                 auto serializedIncomingReceiptAndSize = getSerializedReceipt(
-                    mContractorUUID,
-                    mNodeUUID,
+                    mContractorID,
+                    mContractorsManager->idOnContractorSide(mContractorID),
                     outgoingReceipt);
                 if (!keyChain.checkConflictedOutgoingReceipt(
                         ioTransaction,
@@ -220,9 +231,10 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                     warning() << "Outgoing receipt on TA " << outgoingReceipt->transactionUUID()
                               << " sent by contractor is incorrect";
                     sendMessage<ConflictResolverResponseMessage>(
-                        mContractorUUID,
+                        mContractorID,
                         mEquivalent,
                         mNodeUUID,
+                        mContractorsManager->idOnContractorSide(mContractorID),
                         mTransactionUUID,
                         ConfirmationMessage::Audit_Invalid);
                     return resultDone();
@@ -230,9 +242,10 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
             } catch (NotFoundError &e) {
                 // todo need correct reaction, node can lost or remove contractor keys
                 sendMessage<ConflictResolverResponseMessage>(
-                    mContractorUUID,
+                    mContractorID,
                     mEquivalent,
                     mNodeUUID,
+                    mContractorsManager->idOnContractorSide(mContractorID),
                     mTransactionUUID,
                     ConfirmationMessage::Audit_KeyNotFound);
                 return resultDone();
@@ -245,15 +258,16 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
             ioTransaction,
             &keyChain);
 
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
+        mTrustLinesManager->setTrustLineState(
+            mContractorID,
             TrustLine::Active,
             ioTransaction);
 
         sendMessage<ConflictResolverResponseMessage>(
-            mContractorUUID,
+            mContractorID,
             mEquivalent,
             mNodeUUID,
+            mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             ConfirmationMessage::OK);
     }
@@ -274,11 +288,11 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
 
     auto incomingReceipts = keyChain.incomingReceipts(
         ioTransaction,
-        mTrustLines->auditNumber(mContractorUUID));
+        mTrustLinesManager->auditNumber(mContractorID));
 
     auto outgoingReceipts = keyChain.outgoingReceipts(
         ioTransaction,
-        mTrustLines->auditNumber(mContractorUUID));
+        mTrustLinesManager->auditNumber(mContractorID));
 
     // check incoming receipts
     auto cntCommonReceipts = 0;
@@ -341,9 +355,10 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
     if (isRunConflictResolverInitiatorTransaction) {
         info() << "Send Reject";
         sendMessage<ConflictResolverResponseMessage>(
-           mContractorUUID,
+           mContractorID,
             mEquivalent,
             mNodeUUID,
+            mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             ConfirmationMessage::Audit_Reject);
 
@@ -352,8 +367,9 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
             auto conflictResolverInitiatorTransaction = make_shared<ConflictResolverInitiatorTransaction>(
                 mNodeUUID,
                 mEquivalent,
-                mContractorUUID,
-                mTrustLines,
+                mContractorID,
+                mContractorsManager,
+                mTrustLinesManager,
                 mStorageHandler,
                 mKeysStore,
                 mTrustLinesInfluenceController,
@@ -362,23 +378,24 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                 conflictResolverInitiatorTransaction);
         } else {
             warning() << "Conflict wasn't resolve";
-            mTrustLines->setTrustLineState(
-                mContractorUUID,
+            mTrustLinesManager->setTrustLineState(
+                mContractorID,
                 TrustLine::Conflict,
                 ioTransaction);
         }
     } else {
         info() << "Send Ok";
 
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
+        mTrustLinesManager->setTrustLineState(
+            mContractorID,
             TrustLine::Active,
             ioTransaction);
 
         sendMessage<ConflictResolverResponseMessage>(
-            mContractorUUID,
+            mContractorID,
             mEquivalent,
             mNodeUUID,
+            mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             ConfirmationMessage::OK);
     }
@@ -387,12 +404,12 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
 }
 
 pair<BytesShared, size_t> ConflictResolverContractorTransaction::getSerializedReceipt(
-    const NodeUUID &source,
-    const NodeUUID &target,
+    ContractorID source,
+    ContractorID target,
     const ReceiptRecord::Shared receiptRecord)
 {
-    size_t serializedDataSize = NodeUUID::kBytesSize
-                                + NodeUUID::kBytesSize
+    size_t serializedDataSize = sizeof(ContractorID)
+                                + sizeof(ContractorID)
                                 + TransactionUUID::kBytesSize
                                 + kTrustLineAmountBytesCount
                                 + sizeof(AuditNumber);
@@ -401,15 +418,15 @@ pair<BytesShared, size_t> ConflictResolverContractorTransaction::getSerializedRe
     size_t bytesBufferOffset = 0;
     memcpy(
         serializedData.get() + bytesBufferOffset,
-        source.data,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
+        &source,
+        sizeof(ContractorID));
+    bytesBufferOffset += sizeof(ContractorID);
 
     memcpy(
         serializedData.get() + bytesBufferOffset,
-        target.data,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
+        &target,
+        sizeof(ContractorID));
+    bytesBufferOffset += sizeof(ContractorID);
 
     memcpy(
         serializedData.get() + bytesBufferOffset,
@@ -448,8 +465,8 @@ void ConflictResolverContractorTransaction::acceptContractorAuditData(
         mMessage->incomingReceipts(),
         mMessage->outgoingReceipts());
 
-    mTrustLines->updateTrustLineFromStorage(
-        mContractorUUID,
+    mTrustLinesManager->updateTrustLineFromStorage(
+        mContractorID,
         ioTransaction);
 }
 

@@ -60,7 +60,7 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run()
 
     if (!mSuitableNodes.empty()) {
         sendMessage<CyclesFourNodesBalancesResponseMessage>(
-            mRequestMessage->senderUUID,
+            mRequestMessage->senderAddresses.at(0),
             mEquivalent,
             mNodeUUID,
             mContractorsManager->ownAddresses(),

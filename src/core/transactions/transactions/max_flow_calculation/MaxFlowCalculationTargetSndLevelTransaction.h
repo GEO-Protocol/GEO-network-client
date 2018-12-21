@@ -33,14 +33,12 @@ private:
     void sendResultToInitiator();
 
     void sendCachedResultToInitiator(
-        TopologyCache::Shared maxFlowCalculationCachePtr,
-        TopologyCacheNew::Shared maxFlowCalculationCachePtrNew);
+        TopologyCache::Shared maxFlowCalculationCachePtr);
 
     void sendGatewayResultToInitiator();
 
     void sendCachedGatewayResultToInitiator(
-        TopologyCache::Shared maxFlowCalculationCachePtr,
-        TopologyCacheNew::Shared maxFlowCalculationCachePtrNew);
+        TopologyCache::Shared maxFlowCalculationCachePtr);
 
 private:
     MaxFlowCalculationTargetSndLevelMessage::Shared mMessage;

@@ -22,19 +22,16 @@ MaxFlowCalculationTargetFstLevelTransaction::MaxFlowCalculationTargetFstLevelTra
 TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "run\t" << "Iam: " << mNodeUUID;
-    info() << "run\t" << "sender: " << mMessage->senderUUID;
-    info() << "run\t" << "target: " << mMessage->targetUUID();
+    info() << "run\t" << "sender: " << mMessage->idOnReceiverSide;
+    info() << "run\t" << "target: " << mMessage->targetAddresses().at(0)->fullAddress();
     info() << "run\t" << "i am is gateway: " << mIAmGateway;
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
     info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 #endif
     vector<ContractorID> incomingFlowIDs;
     if (mIAmGateway) {
-        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
-        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows;
-        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsNew;
-        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsNew;
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlows;
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlows;
         // inform that I am is gateway
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
             mMessage->targetAddresses().at(0),
@@ -44,16 +41,16 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
             outgoingFlows,
             incomingFlows);
         if (mMessage->isTargetGateway()) {
-            incomingFlowUuids = mTrustLinesManager->firstLevelGatewayNeighborsWithIncomingFlow();
+            incomingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithIncomingFlow();
         } else {
-            incomingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
+            incomingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
         }
     } else {
         incomingFlowIDs = mTrustLinesManager->firstLevelNonGatewayNeighborsWithIncomingFlow();
     }
     auto targetContractorID = mContractorsManager->contractorIDByAddress(mMessage->targetAddresses().at(0));
     for (auto const &nodeIDWithIncomingFlow : incomingFlowIDs) {
-        if (nodeIDWithIncomingFlow == mMessage->idOnReceiverSide ||
+        if (nodeIDWithIncomingFlow == mMessage->idOnReceiverSide or
                 nodeIDWithIncomingFlow == targetContractorID) {
             continue;
         }
@@ -65,9 +62,7 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
             mEquivalent,
             mNodeUUID,
             mContractorsManager->idOnContractorSide(nodeIDWithIncomingFlow),
-            mMessage->targetUUID(),
-            mMessage->targetAddresses());
-            mMessage->targetUUID(),
+            mMessage->targetAddresses(),
             mMessage->isTargetGateway());
     }
     return resultDone();

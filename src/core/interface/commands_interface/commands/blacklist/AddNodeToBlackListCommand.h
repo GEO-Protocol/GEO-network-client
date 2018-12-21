@@ -3,6 +3,7 @@
 
 
 #include "../BaseUserCommand.h"
+#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/exceptions/ValueError.h"
 
 
@@ -23,8 +24,12 @@ public:
     const NodeUUID& contractorUUID()
         noexcept;
 
+    BaseAddress::Shared contractorAddress()
+        noexcept;
+
 protected:
     NodeUUID mContractorUUID;
+    BaseAddress::Shared mContractorAddress;
 };
 
 #endif //GEO_NETWORK_CLIENT_ADDNODETOBLACKLISTCOMMAND_H

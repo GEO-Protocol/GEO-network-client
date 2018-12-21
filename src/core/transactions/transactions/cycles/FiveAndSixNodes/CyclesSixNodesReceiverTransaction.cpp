@@ -35,8 +35,8 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
     if (contractorBalance == TrustLine::kZeroBalance()) {
         return resultDone();
     }
-    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCyclesNew(
-        contractorBalance < TrustLine::kZeroBalance());
+    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(
+            contractorBalance < TrustLine::kZeroBalance());
     //  Update message path and send to next level nodes
     const auto kCurrentDepth = (SerializedPathLengthSize)path.size();
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING

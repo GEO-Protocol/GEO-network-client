@@ -66,8 +66,6 @@ TransactionsManager::TransactionsManager(
         error() << "loadTransactionsFromStorage. Details: " << e.what();
         throw RuntimeError(e.what());
     }
-
-    mVisualInterface = nullptr;
 }
 
 void TransactionsManager::loadTransactionsFromStorage()
@@ -181,6 +179,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     auto transaction = make_shared<ConflictResolverInitiatorTransaction>(
                         kTABuffer,
                         mNodeUUID,
+                        mContractorsManager,
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
                         mKeysStore,
@@ -725,6 +724,7 @@ void TransactionsManager::launchConflictResolveContractorTransaction(
         auto transaction = make_shared<ConflictResolverContractorTransaction>(
             mNodeUUID,
             message,
+            mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
             mStorageHandler,
             mKeysStore,
@@ -1666,6 +1666,7 @@ void TransactionsManager::launchGetTrustLineTransaction(
             make_shared<GetFirstLevelContractorBalanceTransaction>(
                 mNodeUUID,
                 command,
+                mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
                 mLog),
             true,
@@ -1854,7 +1855,6 @@ void TransactionsManager::launchRoutingTableUpdatingTransaction(
 
 void TransactionsManager::launchFindPathByMaxFlowTransaction(
     const TransactionUUID &requestedTransactionUUID,
-    const NodeUUID destinationUUID,
     BaseAddress::Shared destinationNodeAddress,
     const SerializedEquivalent equivalent)
 {
@@ -1862,7 +1862,6 @@ void TransactionsManager::launchFindPathByMaxFlowTransaction(
         prepareAndSchedule(
             make_shared<FindPathByMaxFlowTransaction>(
                 mNodeUUID,
-                destinationUUID,
                 destinationNodeAddress,
                 requestedTransactionUUID,
                 equivalent,
@@ -1903,8 +1902,7 @@ void TransactionsManager::launchPongReactionTransaction(
             this,
             _1,
             _2,
-            _3,
-            _4));
+            _3));
     prepareAndSchedule(
         transaction,
         true,
@@ -2393,7 +2391,6 @@ void TransactionsManager::onAuditSlot(
 }
 
 void TransactionsManager::onResumeTransactionSlot(
-    const NodeUUID &contractorUUID,
     ContractorID contractorID,
     const SerializedEquivalent equivalent,
     const BaseTransaction::TransactionType transactionType)
@@ -2403,7 +2400,6 @@ void TransactionsManager::onResumeTransactionSlot(
             auto transaction = make_shared<OpenTrustLineTransaction>(
                 mNodeUUID,
                 equivalent,
-                contractorUUID,
                 contractorID,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
@@ -2427,9 +2423,8 @@ void TransactionsManager::onResumeTransactionSlot(
             auto transaction = make_shared<AuditSourceTransaction>(
                 mNodeUUID,
                 equivalent,
-                contractorUUID,
-                contractorID,
                 mContractorsManager,
+                contractorID,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mStorageHandler,
                 mKeysStore,
@@ -2633,24 +2628,4 @@ LoggerStream TransactionsManager::info() const
     noexcept
 {
     return mLog.info(logHeader());
-}
-
-void TransactionsManager::activateVisualInterface()
-{
-    if (mVisualInterface == nullptr) {
-        mVisualInterface = make_unique<VisualInterface>(mLog);
-        info() << "Visual interface activated";
-    } else {
-        warning() << "Visual interface already activated";
-    }
-}
-
-void TransactionsManager::deactivateVisualInterface()
-{
-    if (mVisualInterface != nullptr) {
-        mVisualInterface = nullptr;
-        info() << "Visual interface deactivated";
-    } else {
-        warning() << "Visual interface already deactivated";
-    }
 }

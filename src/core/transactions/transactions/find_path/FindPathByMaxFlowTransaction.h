@@ -16,7 +16,6 @@ public:
 public:
     FindPathByMaxFlowTransaction(
         NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
         BaseAddress::Shared contractorAddress,
         const TransactionUUID &requestedTransactionUUID,
         const SerializedEquivalent equivalent,
@@ -51,7 +50,6 @@ private:
             kTopologyCollectingAgainMillisecondsTimeout;
 
 private:
-    NodeUUID mContractorUUID;
     ContractorID mContractorID;
     BaseAddress::Shared mContractorAddress;
     TransactionUUID mRequestedTransactionUUID;

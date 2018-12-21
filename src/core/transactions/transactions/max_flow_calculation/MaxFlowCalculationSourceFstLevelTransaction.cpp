@@ -22,18 +22,15 @@ MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTra
 TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "run\t" << "Iam: " << mNodeUUID;
-    info() << "run\t" << "sender: " << mMessage->senderUUID;
+    info() << "run\t" << "sender: " << mMessage->idOnReceiverSide;
     info() << "run\t" << "i am is gateway: " << mIAmGateway;
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
     info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 #endif
     vector<ContractorID> outgoingFlowIDs;
     if (mIAmGateway) {
-        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
-        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows;
-        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsNew;
-        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsNew;
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlows;
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlows;
         // inform that I am is gateway
         // todo : it is not required inform about gateway, because this info initiator can obtain on it side
         auto contractorsAddresses = mContractorsManager->contractorAddresses(mMessage->idOnReceiverSide);
@@ -43,9 +40,7 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
             mNodeUUID,
             mContractorsManager->ownAddresses(),
             outgoingFlows,
-            incomingFlows,
-            outgoingFlowsNew,
-            incomingFlowsNew);
+            incomingFlows);
         outgoingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow();
     } else {
         outgoingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
@@ -61,9 +56,10 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
             nodeIDWithOutgoingFlow,
             mEquivalent,
             mNodeUUID,
-            mContractorsManager->idOnContractorSide(nodeIDWithOutgoingFlow),
-            mMessage->senderUUID,
-            mContractorsManager->contractorAddresses(mMessage->idOnReceiverSide));
+            mContractorsManager->idOnContractorSide(
+                nodeIDWithOutgoingFlow),
+            mContractorsManager->contractorAddresses(
+                mMessage->idOnReceiverSide));
     }
     return resultDone();
 }

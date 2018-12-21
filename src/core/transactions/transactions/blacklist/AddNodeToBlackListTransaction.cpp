@@ -30,28 +30,25 @@ TransactionResult::SharedConst AddNodeToBlackListTransaction::run()
         debug() << "It is forbidden run trust line transactions";
         return resultForbiddenRun();
     }
-    const auto kContractor = mCommand->contractorUUID();
-
-    if (kContractor == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
-        return resultProtocolError();
-    }
+    const auto kContractor = mCommand->contractorAddress()->fullAddress();
+    auto contractorID = mContractorsManager->contractorIDByAddress(
+        mCommand->contractorAddress());
 
     for (const auto equivalent : mEquivalentsSubsystemsRouter->equivalents()) {
         auto trustLineManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
 
-        if (!trustLineManager->trustLineIsPresent(kContractor)) {
+        if (!trustLineManager->trustLineIsPresent(contractorID)) {
             continue;
         }
 
-        if (trustLineManager->incomingTrustAmount(kContractor) == TrustLine::kZeroAmount()) {
+        if (trustLineManager->incomingTrustAmount(contractorID) == TrustLine::kZeroAmount()) {
             continue;
         }
 
         const auto kTransaction = make_shared<CloseIncomingTrustLineTransaction>(
             mNodeUUID,
             equivalent,
-            trustLineManager->contractorID(kContractor),
+            contractorID,
             mContractorsManager,
             trustLineManager,
             mStorageHandler,
@@ -62,7 +59,7 @@ TransactionResult::SharedConst AddNodeToBlackListTransaction::run()
             mTrustLinesInfluenceController,
             mLog);
         launchSubsidiaryTransaction(kTransaction);
-        info() << "CloseIncomingTrustLineTransaction with " << kContractor
+        info() << "CloseIncomingTrustLineTransaction with " << contractorID
                << " on equivalent " << equivalent << " successfully launched.";
     }
 
@@ -79,7 +76,7 @@ TransactionResult::SharedConst AddNodeToBlackListTransaction::run()
         // because the TA can't finish properly and no result may be returned.
         throw e;
     }
-    info() << "Node " << kContractor << " successfully added to black list";
+    info() << "Node " << contractorID << " successfully added to black list";
     return resultOK();
 }
 
