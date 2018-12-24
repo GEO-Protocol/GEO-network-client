@@ -2,7 +2,6 @@
 
 CoordinatorCycleReservationRequestMessage::CoordinatorCycleReservationRequestMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID& transactionUUID,
     const TrustLineAmount& amount,
@@ -10,7 +9,6 @@ CoordinatorCycleReservationRequestMessage::CoordinatorCycleReservationRequestMes
 
     RequestCycleMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID,
         amount),

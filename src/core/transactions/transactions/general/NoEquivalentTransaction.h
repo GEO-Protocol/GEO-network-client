@@ -12,12 +12,10 @@ public:
 
 public:
     NoEquivalentTransaction(
-        const NodeUUID &nodeUUID,
         BaseUserCommand::Shared command,
         Logger &logger);
 
     NoEquivalentTransaction(
-        const NodeUUID &nodeUUID,
         TransactionMessage::Shared message,
         Logger &logger);
 

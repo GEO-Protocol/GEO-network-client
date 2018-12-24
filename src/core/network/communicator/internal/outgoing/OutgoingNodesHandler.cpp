@@ -4,14 +4,12 @@
 OutgoingNodesHandler::OutgoingNodesHandler(
     IOService &ioService,
     UDPSocket &socket,
-    UUID2Address &UUID2AddressService,
     ContractorsManager *contractorsManager,
     Logger &logger)
     noexcept:
 
     mIOService(ioService),
     mSocket(socket),
-    mUUID2AddressService(UUID2AddressService),
     mContractorsManager(contractorsManager),
     mCleaningTimer(ioService),
     mLog(logger)
@@ -20,37 +18,20 @@ OutgoingNodesHandler::OutgoingNodesHandler(
 }
 
 OutgoingRemoteNode *OutgoingNodesHandler::handler(
-    const NodeUUID &remoteNodeUUID)
-    noexcept
-{
-    if (0 == mNodes.count(remoteNodeUUID)) {
-        mNodes[remoteNodeUUID] = make_unique<OutgoingRemoteNode>(
-            remoteNodeUUID,
-            mUUID2AddressService,
-            mSocket,
-            mIOService,
-            mLog);
-    }
-
-    mLastAccessDateTimes[remoteNodeUUID] = utc_now();
-    return mNodes[remoteNodeUUID].get();
-}
-
-OutgoingRemoteNodeNew *OutgoingNodesHandler::handler(
     const ContractorID contractorID)
     noexcept
 {
     auto contractor = mContractorsManager->contractor(contractorID);
-    if (0 == mNodesNew.count(contractorID)) {
-        mNodesNew[contractorID] = make_unique<OutgoingRemoteNodeNew>(
+    if (0 == mNodes.count(contractorID)) {
+        mNodes[contractorID] = make_unique<OutgoingRemoteNode>(
             contractor,
             mSocket,
             mIOService,
             mLog);
     }
 
-    mLastAccessDateTimesNew[contractorID] = utc_now();
-    return mNodesNew[contractorID].get();
+    mLastAccessDateTimes[contractorID] = utc_now();
+    return mNodes[contractorID].get();
 }
 
 OutgoingRemoteAddressNode *OutgoingNodesHandler::handler(
@@ -89,7 +70,6 @@ void OutgoingNodesHandler::rescheduleCleaning()
     mCleaningTimer.expires_from_now(kHandlersTTL());
     mCleaningTimer.async_wait([this] (const boost::system::error_code&) {
         this->removeOutdatedHandlers();
-        this->removeOutdatedHandlersNew();
         this->removeOutdatedAddressHandlers();
         this->rescheduleCleaning();
     });
@@ -124,37 +104,37 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
     // It is recommended to set this parameter to 1-2 minutes.
     const auto kMaxIdleTimeout = boost::posix_time::seconds(kHandlersTTL().count());
 
-    forward_list<NodeUUID> outdatedHandlersUUIDs;
-    size_t totalOutdateElements = 0;
+    forward_list<ContractorID> outdatedHandlersIDs;
+    size_t totalOutdatedElements = 0;
 
-    for (const auto &nodeUUIDAndLastAccess : mLastAccessDateTimes) {
-        if (kNow - nodeUUIDAndLastAccess.second < kMaxIdleTimeout) {
+    for (const auto &nodeIDAndLastAccess : mLastAccessDateTimes) {
+        if (kNow - nodeIDAndLastAccess.second < kMaxIdleTimeout) {
             continue;
         }
 
         // Handler that doesn't sent all it's data must not be removed,
         // even if it is obsolete by the access time.
-        if (mNodes[nodeUUIDAndLastAccess.first]->containsPacketsInQueue()) {
+        if (mNodes[nodeIDAndLastAccess.first]->containsPacketsInQueue()) {
             continue;
         }
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
-        debug() << "Remote node handler for the (" << nodeUUIDAndLastAccess.first << ") is outdated. Dropped.";
+        debug() << "Remote node handler for the (" << nodeIDAndLastAccess.first << ") is outdated. Dropped.";
 #endif
 
-        outdatedHandlersUUIDs.push_front(nodeUUIDAndLastAccess.first);
-        ++totalOutdateElements;
+        outdatedHandlersIDs.push_front(nodeIDAndLastAccess.first);
+        ++totalOutdatedElements;
     }
 
 
-    if (totalOutdateElements == mNodes.size()) {
+    if (totalOutdatedElements == mNodes.size()) {
         mNodes.clear();
         mLastAccessDateTimes.clear();
 
     } else {
-        for (const auto &outdatedHandlerUUID : outdatedHandlersUUIDs) {
-            mLastAccessDateTimes.erase(outdatedHandlerUUID);
-            mNodes.erase(outdatedHandlerUUID);
+        for (const auto &outdatedHandlerID : outdatedHandlersIDs) {
+            mLastAccessDateTimes.erase(outdatedHandlerID);
+            mNodes.erase(outdatedHandlerID);
         }
     }
 
@@ -162,78 +142,6 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
     if (!mNodes.empty()) {
         debug() << mNodes.size() << " nodes handler(s) are (is) alive";
-    }
-    debug() << "Outdated nodes handlers removing finished";
-#endif
-}
-
-void OutgoingNodesHandler::removeOutdatedHandlersNew()
-    noexcept
-{
-    if (mNodesNew.empty()) {
-        return;
-    }
-
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
-    debug() << "Outdated nodes handlers removing started";
-#endif
-
-
-    const auto kNow = utc_now();
-
-    // It is important for this parameter to be relatively big (minutes).
-    // Remote node handler contains counter of outgoing channels,
-    // that increments of every new outgoing message.
-    // This prevents sending of several messages into the same channel
-    // (and further collision)
-    //
-    // Channels counter is initialised by 0 every time handler is created.
-    // In case if handler for the outgoing node would be created and removed too quickly -
-    // this counter would be very often reinitialised to 0,
-    // and messages would be sent into the channels, that was already used recently.
-    //
-    // Depending on the network bandwidth, it may, or may not brings messages collisions.
-    // It is recommended to set this parameter to 1-2 minutes.
-    const auto kMaxIdleTimeout = boost::posix_time::seconds(kHandlersTTL().count());
-
-    forward_list<ContractorID> outdatedHandlersIDs;
-    size_t totalOutdatedElements = 0;
-
-    for (const auto &nodeUUIDAndLastAccess : mLastAccessDateTimesNew) {
-        if (kNow - nodeUUIDAndLastAccess.second < kMaxIdleTimeout) {
-            continue;
-        }
-
-        // Handler that doesn't sent all it's data must not be removed,
-        // even if it is obsolete by the access time.
-        if (mNodesNew[nodeUUIDAndLastAccess.first]->containsPacketsInQueue()) {
-            continue;
-        }
-
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
-        debug() << "Remote node handler for the (" << nodeUUIDAndLastAccess.first << ") is outdated. Dropped.";
-#endif
-
-        outdatedHandlersIDs.push_front(nodeUUIDAndLastAccess.first);
-        ++totalOutdatedElements;
-    }
-
-
-    if (totalOutdatedElements == mNodesNew.size()) {
-        mNodesNew.clear();
-        mLastAccessDateTimesNew.clear();
-
-    } else {
-        for (const auto &outdatedHandlerID : outdatedHandlersIDs) {
-            mLastAccessDateTimesNew.erase(outdatedHandlerID);
-            mNodesNew.erase(outdatedHandlerID);
-        }
-    }
-
-
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
-    if (!mNodesNew.empty()) {
-        debug() << mNodesNew.size() << " nodes handler(s) are (is) alive";
     }
     debug() << "Outdated nodes handlers removing finished";
 #endif

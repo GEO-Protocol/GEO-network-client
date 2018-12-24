@@ -15,7 +15,6 @@ public:
 
 public:
     FindPathByMaxFlowTransaction(
-        NodeUUID &nodeUUID,
         BaseAddress::Shared contractorAddress,
         const TransactionUUID &requestedTransactionUUID,
         const SerializedEquivalent equivalent,

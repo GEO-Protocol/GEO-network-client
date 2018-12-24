@@ -2,7 +2,6 @@
 
 FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount,
@@ -10,7 +9,6 @@ FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
 
     RequestCycleMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID,
         amount),
@@ -20,7 +18,6 @@ FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
 
 FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount,
@@ -30,7 +27,6 @@ FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
 
     RequestCycleMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID,
         amount),

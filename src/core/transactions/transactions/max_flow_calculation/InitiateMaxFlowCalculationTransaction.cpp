@@ -1,7 +1,6 @@
 #include "InitiateMaxFlowCalculationTransaction.h"
 
 InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
-    NodeUUID &nodeUUID,
     InitiateMaxFlowCalculationCommand::Shared command,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
@@ -13,7 +12,6 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
 
     BaseCollectTopologyTransaction(
         BaseTransaction::InitiateMaxFlowCalculationTransactionType,
-        nodeUUID,
         command->equivalent(),
         contractorsManager,
         trustLinesManager,
@@ -89,7 +87,6 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
     }
 
     const auto kTransaction = make_shared<CollectTopologyTransaction>(
-        mNodeUUID,
         mEquivalent,
         nonCachedContractors,
         mContractorsManager,

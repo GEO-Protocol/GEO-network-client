@@ -1,7 +1,6 @@
 #include "VotesStatusResponsePaymentTransaction.h"
 
 VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
-    const NodeUUID &nodeUUID,
     VotesStatusRequestMessage::Shared message,
     ContractorsManager *contractorsManager,
     StorageHandler *storageHandler,
@@ -9,7 +8,6 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
     Logger &logger):
     BaseTransaction(
         BaseTransaction::TransactionType::VoutesStatusResponsePaymentTransaction,
-        nodeUUID,
         message->equivalent(),
         logger),
     mContractorsManager(contractorsManager),
@@ -27,12 +25,10 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
         // if requested transaction didn't finish yet,
         // we send empty message, which means that requester should wait and ask again
         info() << "Requested TA currently is in processing. "
-                "Send response with empty ParticipantsVotesMessage to "
-                << mRequest->senderUUID;
+                "Send response with empty ParticipantsVotesMessage";
         sendMessage<ParticipantsVotesMessage>(
             senderAddress,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             mRequest->transactionUUID(),
             emptySignatureMap);
@@ -48,7 +44,6 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
         sendMessage<ParticipantsVotesMessage>(
             senderAddress,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             mRequest->transactionUUID(),
             participantsSignatures);
@@ -58,7 +53,6 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
         sendMessage<ParticipantsVotesMessage>(
             senderAddress,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             mRequest->transactionUUID(),
             emptySignatureMap);

@@ -2,7 +2,6 @@
 
 
 SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
-    const NodeUUID &nodeUUID,
     SetOutgoingTrustLineCommand::Shared command,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
@@ -17,7 +16,6 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
 
     BaseTrustLineTransaction(
         BaseTransaction::SetOutgoingTrustLineTransaction,
-        nodeUUID,
         command->equivalent(),
         command->contractorID(),
         contractorsManager,
@@ -197,7 +195,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
     sendMessage<AuditMessage>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mContractorID,
@@ -222,7 +219,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
             sendMessage<AuditMessage>(
                 mContractorID,
                 mEquivalent,
-                mNodeUUID,
                 mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
                 mContractorID,
@@ -241,7 +237,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
         sendMessage<PingMessage>(
             mContractorID,
             0,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(
                 mContractorID));
         return resultDone();

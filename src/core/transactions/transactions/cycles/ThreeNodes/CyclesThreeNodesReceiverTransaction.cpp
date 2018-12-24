@@ -1,7 +1,6 @@
 #include "CyclesThreeNodesReceiverTransaction.h"
 
 CyclesThreeNodesReceiverTransaction::CyclesThreeNodesReceiverTransaction(
-    const NodeUUID &nodeUUID,
     CyclesThreeNodesBalancesRequestMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
@@ -10,7 +9,6 @@ CyclesThreeNodesReceiverTransaction::CyclesThreeNodesReceiverTransaction(
     BaseTransaction(
         BaseTransaction::Cycles_ThreeNodesReceiverTransaction,
         message->transactionUUID(),
-        nodeUUID,
         message->equivalent(),
         logger),
     mContractorsManager(contractorsManager),
@@ -59,7 +57,6 @@ TransactionResult::SharedConst CyclesThreeNodesReceiverTransaction::run()
         sendMessage<CyclesThreeNodesBalancesResponseMessage>(
             mRequestMessage->idOnReceiverSide,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(
                 mRequestMessage->idOnReceiverSide),
             currentTransactionUUID(),

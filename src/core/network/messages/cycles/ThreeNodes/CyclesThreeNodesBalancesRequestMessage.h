@@ -14,7 +14,6 @@ public:
 public:
     CyclesThreeNodesBalancesRequestMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnReceiverSide,
         const TransactionUUID &transactionUUID,
         vector<BaseAddress::Shared> &neighbors);

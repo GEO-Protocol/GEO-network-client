@@ -25,10 +25,8 @@ BaseTransaction::BaseTransaction(
 
 BaseTransaction::BaseTransaction(
     BytesShared buffer,
-    const NodeUUID &nodeUUID,
     Logger &log) :
-    mLog(log),
-    mNodeUUID(nodeUUID)
+    mLog(log)
 {
     size_t bytesBufferOffset = 0;
 
@@ -54,13 +52,11 @@ BaseTransaction::BaseTransaction(
 
 BaseTransaction::BaseTransaction(
     const TransactionType type,
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     Logger &log) :
 
     mType(type),
     mLog(log),
-    mNodeUUID(nodeUUID),
     mEquivalent(equivalent)
 {
     mStep = 1;
@@ -69,14 +65,12 @@ BaseTransaction::BaseTransaction(
 BaseTransaction::BaseTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID,
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     Logger &log) :
 
     mType(type),
     mLog(log),
     mTransactionUUID(transactionUUID),
-    mNodeUUID(nodeUUID),
     mEquivalent(equivalent)
 {
     mStep = 1;
@@ -189,11 +183,6 @@ const BaseTransaction::TransactionType BaseTransaction::transactionType() const
 const TransactionUUID &BaseTransaction::currentTransactionUUID () const
 {
     return mTransactionUUID;
-}
-
-const NodeUUID &BaseTransaction::currentNodeUUID () const
-{
-    return mNodeUUID;
 }
 
 const SerializedEquivalent BaseTransaction::equivalent() const

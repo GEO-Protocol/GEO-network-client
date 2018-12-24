@@ -28,13 +28,11 @@ public:
 public:
     ConfirmationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const OperationState state = OK);
 
     ConfirmationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnReceiverSide,
         const TransactionUUID &transactionUUID,
         const OperationState state = OK);

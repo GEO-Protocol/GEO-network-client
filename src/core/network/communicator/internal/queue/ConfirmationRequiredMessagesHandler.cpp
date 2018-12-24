@@ -101,7 +101,7 @@ void ConfirmationRequiredMessagesHandler::tryProcessConfirmation(
         }
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        debug() << "Confirmation for message with transaction UUID " << confirmationMessage->transactionUUID() << " received. "
+        debug() << "Confirmation for message with transaction NodeUUID " << confirmationMessage->transactionUUID() << " received. "
                 << "Relevant message successfully confirmed.";
 #endif
 

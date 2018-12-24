@@ -21,7 +21,6 @@ public:
     typedef shared_ptr<BaseTrustLineTransaction> Shared;
     BaseTrustLineTransaction(
         const TransactionType type,
-        const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
         ContractorID contractorID,
         ContractorsManager *contractorsManager,
@@ -34,7 +33,6 @@ public:
     BaseTrustLineTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID,
-        const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
         ContractorID contractorID,
         ContractorsManager *contractorsManager,
@@ -49,7 +47,6 @@ protected:
         Initialization = 1,
         NextAttempt = 2,
         ResponseProcessing = 3,
-        AddToBlackList = 11,
     };
 
 protected:

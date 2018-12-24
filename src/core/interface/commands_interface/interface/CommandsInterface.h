@@ -23,10 +23,6 @@
 #include "../commands/trust_lines_list/EquivalentListCommand.h"
 #include "../commands/subsystems_controller/SubsystemsInfluenceCommand.h"
 #include "../commands/subsystems_controller/TrustLinesInfluenceCommand.h"
-#include "../commands/blacklist/AddNodeToBlackListCommand.h"
-#include "../commands/blacklist/CheckIfNodeInBlackListCommand.h"
-#include "../commands/blacklist/RemoveNodeFromBlackListCommand.h"
-#include "../commands/blacklist/GetBlackListCommand.h"
 #include "../commands/transactions/PaymentTransactionByCommandUUIDCommand.h"
 
 #include "../../../common/exceptions/IOError.h"

@@ -16,7 +16,6 @@ public:
 
 public:
     MaxFlowCalculationSourceSndLevelTransaction(
-        const NodeUUID &nodeUUID,
         MaxFlowCalculationSourceSndLevelMessage::Shared message,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,

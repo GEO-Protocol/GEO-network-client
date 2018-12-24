@@ -20,7 +20,6 @@ public:
 
 public:
     PublicKeysSharingSourceTransaction(
-        const NodeUUID &nodeUUID,
         ContractorID contractorID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,
@@ -31,7 +30,6 @@ public:
         Logger &logger);
 
     PublicKeysSharingSourceTransaction(
-        const NodeUUID &nodeUUID,
         ShareKeysCommand::Shared command,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,

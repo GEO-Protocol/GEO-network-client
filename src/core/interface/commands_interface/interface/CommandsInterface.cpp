@@ -227,27 +227,6 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
-            // Black list command
-        } else if (identifier == AddNodeToBlackListCommand::identifier()) {
-            return newCommand<AddNodeToBlackListCommand>(
-                uuid,
-                buffer);
-
-        } else if (identifier == RemoveNodeFromBlackListCommand::identifier()) {
-            return newCommand<RemoveNodeFromBlackListCommand>(
-                uuid,
-                buffer);
-
-        } else if (identifier == CheckIfNodeInBlackListCommand::identifier()) {
-            return newCommand<CheckIfNodeInBlackListCommand>(
-                uuid,
-                buffer);
-
-        } else if (identifier == GetBlackListCommand::identifier()) {
-            return newCommand<GetBlackListCommand>(
-                uuid,
-                buffer);
-
         } else if (identifier == PaymentTransactionByCommandUUIDCommand::identifier()) {
             return newCommand<PaymentTransactionByCommandUUIDCommand>(
                 uuid,

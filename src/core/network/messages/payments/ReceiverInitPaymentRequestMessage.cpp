@@ -2,13 +2,11 @@
 
 ReceiverInitPaymentRequestMessage::ReceiverInitPaymentRequestMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount) :
     RequestMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID,
         0,

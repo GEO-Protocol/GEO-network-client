@@ -10,7 +10,6 @@
 class CyclesFiveNodesReceiverTransaction : public BaseTransaction {
 public:
     CyclesFiveNodesReceiverTransaction(
-        const NodeUUID &nodeUUID,
         CyclesFiveNodesInBetweenMessage::Shared message,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,

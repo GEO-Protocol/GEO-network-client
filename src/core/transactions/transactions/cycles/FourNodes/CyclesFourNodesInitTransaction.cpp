@@ -1,7 +1,6 @@
 #include "CyclesFourNodesInitTransaction.h"
 
 CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
-    const NodeUUID &nodeUUID,
     ContractorID contractorID,
     const SerializedEquivalent equivalent,
     ContractorsManager *contractorsManager,
@@ -12,7 +11,6 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
 
     BaseTransaction(
         BaseTransaction::Cycles_FourNodesInitTransaction,
-        nodeUUID,
         equivalent,
         logger),
     mContractorsManager(contractorsManager),
@@ -72,7 +70,6 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
                 sendMessage<CyclesFourNodesNegativeBalanceRequestMessage>(
                     creditorNodeNeighbor,
                     mEquivalent,
-                    mNodeUUID,
                     mContractorsManager->ownAddresses(),
                     currentTransactionUUID(),
                     mContractorsManager->contractorMainAddress(mContractorID),
@@ -81,7 +78,6 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
                 sendMessage<CyclesFourNodesPositiveBalanceRequestMessage>(
                     creditorNodeNeighbor,
                     mEquivalent,
-                    mNodeUUID,
                     mContractorsManager->ownAddresses(),
                     currentTransactionUUID(),
                     mContractorsManager->contractorMainAddress(mContractorID),

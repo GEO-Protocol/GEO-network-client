@@ -1,7 +1,6 @@
 #include "AuditTargetTransaction.h"
 
 AuditTargetTransaction::AuditTargetTransaction(
-    const NodeUUID &nodeUUID,
     AuditMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
@@ -15,7 +14,6 @@ AuditTargetTransaction::AuditTargetTransaction(
     BaseTrustLineTransaction(
         BaseTransaction::AuditTargetTransactionType,
         message->transactionUUID(),
-        nodeUUID,
         message->equivalent(),
         message->idOnReceiverSide,
         contractorsManager,
@@ -97,7 +95,6 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             Message::TrustLines_Audit,
             kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(mContractorID),
             currentTransactionUUID(),
             mOwnSignatureAndKeyNumber.second,
@@ -218,7 +215,6 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
         Message::TrustLines_Audit,
         kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         currentTransactionUUID(),
         mOwnSignatureAndKeyNumber.second,
@@ -262,10 +258,10 @@ void AuditTargetTransaction::setIncomingTrustLineAmount(
             populateHistory(ioTransaction, TrustLineRecord::Rejecting);
             // remove this TL from Topology TrustLines Manager
             mTopologyTrustLinesManager->addTrustLine(
-                    make_shared<TopologyTrustLine>(
-                            0,
-                            mContractorID,
-                            make_shared<const TrustLineAmount>(0)));
+                make_shared<TopologyTrustLine>(
+                    0,
+                    mContractorID,
+                    make_shared<const TrustLineAmount>(0)));
             mTopologyCacheManager->resetInitiatorCache();
             mMaxFlowCacheManager->clearCashes();
             info() << "Incoming trust line from the node " << mContractorID

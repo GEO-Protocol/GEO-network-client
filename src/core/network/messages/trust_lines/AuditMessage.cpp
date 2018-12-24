@@ -2,7 +2,6 @@
 
 AuditMessage::AuditMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     ContractorID idOnSenderSide,
     const TransactionUUID &transactionUUID,
     ContractorID destinationID,
@@ -13,7 +12,6 @@ AuditMessage::AuditMessage(
     const lamport::Signature::Shared signature):
     DestinationMessage(
         equivalent,
-        senderUUID,
         idOnSenderSide,
         transactionUUID,
         destinationID),

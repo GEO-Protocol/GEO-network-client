@@ -15,7 +15,6 @@ class CyclesThreeNodesReceiverTransaction :
 
 public:
     CyclesThreeNodesReceiverTransaction(
-        const NodeUUID &nodeUUID,
         CyclesThreeNodesBalancesRequestMessage::Shared message,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,

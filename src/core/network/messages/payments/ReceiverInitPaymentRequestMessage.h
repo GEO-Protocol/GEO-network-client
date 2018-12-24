@@ -14,7 +14,6 @@ public:
 public:
     ReceiverInitPaymentRequestMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount);

@@ -58,7 +58,6 @@ public:
 public:
     BasePaymentTransaction(
         const TransactionType type,
-        const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
         bool iAmGateway,
         ContractorsManager *contractorsManager,
@@ -73,7 +72,6 @@ public:
     BasePaymentTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID,
-        const NodeUUID &currentNodeUUID,
         const SerializedEquivalent equivalent,
         bool iAmGateway,
         ContractorsManager *contractorsManager,
@@ -87,7 +85,6 @@ public:
 
     BasePaymentTransaction(
         BytesShared buffer,
-        const NodeUUID &nodeUUID,
         bool iAmGateway,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,

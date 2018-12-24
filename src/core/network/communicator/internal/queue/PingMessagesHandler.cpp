@@ -1,13 +1,11 @@
 #include "PingMessagesHandler.h"
 
 PingMessagesHandler::PingMessagesHandler(
-    const NodeUUID &nodeUUID,
     ContractorsManager *contractorsManager,
     IOService &ioService,
     Logger &logger) :
 
     LoggerMixin(logger),
-    mNodeUUID(nodeUUID),
     mContractorsManager(contractorsManager),
     mIOService(ioService),
     mResendingTimer(ioService)
@@ -125,7 +123,6 @@ void PingMessagesHandler::sendPingMessages() const
                 contractorID,
                 make_shared<PingMessage>(
                     0,
-                    mNodeUUID,
                     mContractorsManager->idOnContractorSide(
                         contractorID))));
     }

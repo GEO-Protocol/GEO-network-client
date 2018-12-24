@@ -2,14 +2,12 @@
 
 ParticipantsVotesMessage::ParticipantsVotesMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID& transactionUUID,
     map<PaymentNodeID, lamport::Signature::Shared> &participantsSignatures) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID),
     mParticipantsSignatures(participantsSignatures)
@@ -53,18 +51,17 @@ const Message::MessageType ParticipantsVotesMessage::typeID() const
  *
  * Message format:
  *  16B - Transaction UUID,
- *  16B - Coordinator UUID,
  *  4B  - Total participants count,
  *
  *  { Participant record
- *      4B - Participant 1 PaymentID,
+ *      2B - Participant 1 PaymentID,
  *      16KB  - Participant 1 signature,
  *  }
  *
  *  ...
  *
  *  { Participant record
- *      4B - Participant N UUID
+ *      2B - Participant N payment ID
  *      16KB  - Participant N signature
  *  }
  *

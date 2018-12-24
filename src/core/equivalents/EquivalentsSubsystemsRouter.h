@@ -21,7 +21,6 @@ public:
 
 public:
     EquivalentsSubsystemsRouter(
-        NodeUUID &nodeUUID,
         StorageHandler *storageHandler,
         Keystore *keystore,
         ContractorsManager *contractorsManager,
@@ -81,7 +80,6 @@ private:
     void onGatewayNotificationSlot();
 
 private:
-    NodeUUID mNodeUUID;
     map<SerializedEquivalent, bool> mIAmGateways;
     as::io_service &mIOService;
     StorageHandler *mStorageHandler;

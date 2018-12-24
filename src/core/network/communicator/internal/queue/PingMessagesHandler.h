@@ -28,7 +28,6 @@ public:
 
 public:
     PingMessagesHandler(
-        const NodeUUID &nodeUUID,
         ContractorsManager *contractorsManager,
         IOService &ioService,
         Logger &logger);
@@ -70,7 +69,6 @@ protected:
     static const uint16_t kPingMessagesSecondsTimeOut = 60;
 
 private:
-    NodeUUID mNodeUUID;
     ContractorsManager *mContractorsManager;
     vector<ContractorID> mContractors;
 

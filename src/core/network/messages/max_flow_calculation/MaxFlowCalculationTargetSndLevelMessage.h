@@ -11,7 +11,6 @@ public:
 public:
     MaxFlowCalculationTargetSndLevelMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnReceiverSide,
         vector<BaseAddress::Shared> targetAddresses,
         bool isTargetGateway)

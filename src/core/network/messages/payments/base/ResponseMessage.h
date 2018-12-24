@@ -20,7 +20,6 @@ public:
 public:
     ResponseMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const PathID &pathID,

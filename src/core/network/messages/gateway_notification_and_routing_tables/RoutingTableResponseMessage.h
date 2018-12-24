@@ -12,7 +12,6 @@ public:
 
 public:
     RoutingTableResponseMessage(
-        const NodeUUID &sender,
         ContractorID idOnReceiverSide,
         const TransactionUUID &transactionUUID,
         vector<pair<SerializedEquivalent, vector<BaseAddress::Shared>>> neighbors);

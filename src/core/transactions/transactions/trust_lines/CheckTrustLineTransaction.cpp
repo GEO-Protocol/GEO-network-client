@@ -1,7 +1,6 @@
 #include "CheckTrustLineTransaction.h"
 
 CheckTrustLineTransaction::CheckTrustLineTransaction(
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     ContractorID contractorID,
     bool isActionInitiator,
@@ -9,7 +8,6 @@ CheckTrustLineTransaction::CheckTrustLineTransaction(
     Logger &logger) :
     BaseTransaction(
         BaseTransaction::CheckTrustLineAfterPaymentTransactionType,
-        nodeUUID,
         equivalent,
         logger),
     mContractorID(contractorID),

@@ -17,7 +17,6 @@ public:
 
 public:
     GatewayNotificationSenderTransaction(
-        const NodeUUID &nodeUUID,
         ContractorsManager *contractorsManager,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         EquivalentsCyclesSubsystemsRouter *equivalentsCyclesSubsystemsRouter,

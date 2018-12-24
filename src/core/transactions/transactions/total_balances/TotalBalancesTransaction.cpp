@@ -1,14 +1,12 @@
 #include "TotalBalancesTransaction.h"
 
 TotalBalancesTransaction::TotalBalancesTransaction(
-    NodeUUID &nodeUUID,
     TotalBalancesCommand::Shared command,
     TrustLinesManager *manager,
     Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::TotalBalancesTransactionType,
-        nodeUUID,
         command->equivalent(),
         logger),
     mCommand(command),
@@ -62,6 +60,6 @@ TransactionResult::SharedConst TotalBalancesTransaction::resultOk(
 const string TotalBalancesTransaction::logHeader() const
 {
     stringstream s;
-    s << "[TotalBalancesTA: " << currentNodeUUID() << " " << mEquivalent << "]";
+    s << "[TotalBalancesTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

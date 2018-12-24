@@ -5,7 +5,6 @@
  * Throws RuntimeError in case if some internal components can't be initialised.
  */
 TransactionsManager::TransactionsManager(
-    NodeUUID &nodeUUID,
     as::io_service &IOService,
     ContractorsManager *contractorsManager,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
@@ -17,7 +16,6 @@ TransactionsManager::TransactionsManager(
     SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController) :
 
-    mNodeUUID(nodeUUID),
     mIOService(IOService),
     mContractorsManager(contractorsManager),
     mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
@@ -37,7 +35,6 @@ TransactionsManager::TransactionsManager(
 
     mEquivalentsCyclesSubsystemsRouter(
         new EquivalentsCyclesSubsystemsRouter(
-            mNodeUUID,
             mScheduler.get(),
             mSubsystemsController,
             mIOService,
@@ -86,7 +83,6 @@ void TransactionsManager::loadTransactionsFromStorage()
                 try {
                     auto transaction = make_shared<IntermediateNodePaymentTransaction>(
                         kTABuffer,
-                        mNodeUUID,
                         mEquivalentsSubsystemsRouter->iAmGateway(*equivalent),
                         mContractorsManager,
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
@@ -118,7 +114,6 @@ void TransactionsManager::loadTransactionsFromStorage()
                 try {
                     auto transaction = make_shared<ReceiverPaymentTransaction>(
                         kTABuffer,
-                        mNodeUUID,
                         mEquivalentsSubsystemsRouter->iAmGateway(*equivalent),
                         mContractorsManager,
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
@@ -150,7 +145,6 @@ void TransactionsManager::loadTransactionsFromStorage()
                 try {
                     auto transaction = make_shared<CycleCloserIntermediateNodeTransaction>(
                         kTABuffer,
-                        mNodeUUID,
                         mContractorsManager,
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mEquivalentsCyclesSubsystemsRouter->cyclesManager(*equivalent),
@@ -178,7 +172,6 @@ void TransactionsManager::loadTransactionsFromStorage()
                 try {
                     auto transaction = make_shared<ConflictResolverInitiatorTransaction>(
                         kTABuffer,
-                        mNodeUUID,
                         mContractorsManager,
                         mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
                         mStorageHandler,
@@ -293,28 +286,6 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == EquivalentListCommand::identifier()){
         launchGetEquivalentListTransaction(
             static_pointer_cast<EquivalentListCommand>(
-                command));
-
-    // BlackList Commands
-    } else if (command->identifier() == AddNodeToBlackListCommand::identifier()){
-
-        launchAddNodeToBlackListTransaction(
-            static_pointer_cast<AddNodeToBlackListCommand>(
-                command));
-
-    } else if (command->identifier() == CheckIfNodeInBlackListCommand::identifier()){
-        launchCheckIfNodeInBlackListTransaction(
-            static_pointer_cast<CheckIfNodeInBlackListCommand>(
-                command));
-
-    } else if (command->identifier() == RemoveNodeFromBlackListCommand::identifier()){
-        launchRemoveNodeFromBlackListTransaction(
-            static_pointer_cast<RemoveNodeFromBlackListCommand>(
-                command));
-
-    } else if (command->identifier() == GetBlackListCommand::identifier()){
-        launchGetBlackListTransaction(
-            static_pointer_cast<GetBlackListCommand>(
                 command));
 
     } else if (command->identifier() == PaymentTransactionByCommandUUIDCommand::identifier()){
@@ -499,7 +470,6 @@ void TransactionsManager::launchInitTrustLineTransaction(
     }
 
     auto transaction = make_shared<OpenTrustLineTransaction>(
-        mNodeUUID,
         command,
         mContractorsManager,
         mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
@@ -523,7 +493,6 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
     try {
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
         auto transaction = make_shared<SetOutgoingTrustLineTransaction>(
-            mNodeUUID,
             command,
             mContractorsManager,
             trustLinesManager,
@@ -546,7 +515,6 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -560,7 +528,6 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
 {
     try {
         auto transaction = make_shared<CloseIncomingTrustLineTransaction>(
-            mNodeUUID,
             command,
             mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
@@ -584,7 +551,6 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -598,7 +564,6 @@ void TransactionsManager::launchPublicKeysSharingSourceTransaction(
 {
     try {
         auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
-            mNodeUUID,
             command,
             mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
@@ -618,7 +583,6 @@ void TransactionsManager::launchPublicKeysSharingSourceTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -641,7 +605,6 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
 
     try {
         auto transaction = make_shared<AcceptTrustLineTransaction>(
-            mNodeUUID,
             message,
             mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -667,7 +630,6 @@ void TransactionsManager::launchPublicKeysSharingTargetTransaction(
     try {
 
         auto transaction = make_shared<PublicKeysSharingTargetTransaction>(
-            mNodeUUID,
             message,
             mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -693,7 +655,6 @@ void TransactionsManager::launchAuditTargetTransaction(
 {
     try {
         auto transaction = make_shared<AuditTargetTransaction>(
-            mNodeUUID,
             message,
             mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -722,7 +683,6 @@ void TransactionsManager::launchConflictResolveContractorTransaction(
 {
     try {
         auto transaction = make_shared<ConflictResolverContractorTransaction>(
-            mNodeUUID,
             message,
             mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -753,7 +713,6 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
     try {
         prepareAndSchedule(
             make_shared<InitiateMaxFlowCalculationTransaction>(
-                mNodeUUID,
                 command,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
@@ -772,7 +731,6 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -791,7 +749,6 @@ void TransactionsManager::launchMaxFlowCalculationFullyTransaction(
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationFullyTransaction>(
-                mNodeUUID,
                 command,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
@@ -810,7 +767,6 @@ void TransactionsManager::launchMaxFlowCalculationFullyTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -829,7 +785,6 @@ void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
     try {
         prepareAndSchedule(
             make_shared<ReceiveMaxFlowCalculationOnTargetTransaction>(
-                mNodeUUID,
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -856,7 +811,6 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
     try {
         prepareAndSchedule(
             make_shared<ReceiveResultMaxFlowCalculationTransaction>(
-                mNodeUUID,
                 message,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
@@ -882,7 +836,6 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransactionFromGa
     try {
         prepareAndSchedule(
             make_shared<ReceiveResultMaxFlowCalculationTransaction>(
-                mNodeUUID,
                 message,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
                 mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
@@ -908,7 +861,6 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationSourceFstLevelTransaction>(
-                mNodeUUID,
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -935,7 +887,6 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationTargetFstLevelTransaction>(
-                mNodeUUID,
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -962,7 +913,6 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationSourceSndLevelTransaction>(
-                mNodeUUID,
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -990,7 +940,6 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationTargetSndLevelTransaction>(
-                mNodeUUID,
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -1013,7 +962,6 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
 {
     try {
         auto transaction = make_shared<CoordinatorPaymentTransaction>(
-            mNodeUUID,
             command,
             mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
             mContractorsManager,
@@ -1038,7 +986,6 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -1052,7 +999,6 @@ void TransactionsManager::launchReceiverPaymentTransaction(
 {
     try {
         auto transaction = make_shared<ReceiverPaymentTransaction>(
-            mNodeUUID,
             message,
             mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
             mContractorsManager,
@@ -1075,7 +1021,6 @@ void TransactionsManager::launchReceiverPaymentTransaction(
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 message,
                 mLog),
             false,
@@ -1089,7 +1034,6 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
 {
     try {
         auto transaction = make_shared<IntermediateNodePaymentTransaction>(
-            mNodeUUID,
             message,
             mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent()),
             mContractorsManager,
@@ -1112,7 +1056,6 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 message,
                 mLog),
             false,
@@ -1127,7 +1070,6 @@ void TransactionsManager::launchVotesResponsePaymentsTransaction(
     try {
         prepareAndSchedule(
             make_shared<VotesStatusResponsePaymentTransaction>(
-                mNodeUUID,
                 message,
                 mContractorsManager,
                 mStorageHandler,
@@ -1148,7 +1090,6 @@ void TransactionsManager::onCloseCycleTransaction(
 {
     try {
         auto transaction = make_shared<CycleCloserInitiatorTransaction>(
-            mNodeUUID,
             cycle,
             equivalent,
             mContractorsManager,
@@ -1180,7 +1121,6 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
 {
     try{
         auto transaction = make_shared<CycleCloserIntermediateNodeTransaction>(
-            mNodeUUID,
             message,
             mContractorsManager,
             mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -1205,7 +1145,6 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 message,
                 mLog),
             false,
@@ -1221,7 +1160,6 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(
     try {
         prepareAndSchedulePostponed(
             make_shared<CyclesThreeNodesInitTransaction>(
-                mNodeUUID,
                 contractorID,
                 equivalent,
                 mContractorsManager,
@@ -1247,7 +1185,6 @@ void TransactionsManager::launchThreeNodesCyclesResponseTransaction(
     try {
         prepareAndSchedule(
             make_shared<CyclesThreeNodesReceiverTransaction>(
-                mNodeUUID,
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -1269,7 +1206,6 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction(
     try {
         prepareAndSchedule(
             make_shared<CyclesSixNodesInitTransaction>(
-                mNodeUUID,
                 equivalent,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
@@ -1292,7 +1228,6 @@ void TransactionsManager::launchSixNodesCyclesResponseTransaction(
     try {
         prepareAndSchedule(
             make_shared<CyclesSixNodesReceiverTransaction>(
-                mNodeUUID,
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -1314,7 +1249,6 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction(
     try {
         prepareAndSchedule(
             make_shared<CyclesFiveNodesInitTransaction>(
-                mNodeUUID,
                 equivalent,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
@@ -1337,7 +1271,6 @@ void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
     try {
         prepareAndSchedule(
             make_shared<CyclesFiveNodesReceiverTransaction>(
-                mNodeUUID,
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -1360,7 +1293,6 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(
     try {
         prepareAndSchedulePostponed(
             make_shared<CyclesFourNodesInitTransaction>(
-                mNodeUUID,
                 creditorID,
                 equivalent,
                 mContractorsManager,
@@ -1386,7 +1318,6 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(
     try {
         prepareAndSchedule(
             make_shared<CyclesFourNodesReceiverTransaction>(
-                mNodeUUID,
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -1408,7 +1339,6 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(
     try {
         prepareAndSchedule(
             make_shared<CyclesFourNodesReceiverTransaction>(
-                mNodeUUID,
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
@@ -1434,7 +1364,6 @@ void TransactionsManager::launchTotalBalancesTransaction(
     try {
         prepareAndSchedule(
             make_shared<TotalBalancesTransaction>(
-                mNodeUUID,
                 command,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
                 mLog),
@@ -1448,7 +1377,6 @@ void TransactionsManager::launchTotalBalancesTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -1471,7 +1399,6 @@ void TransactionsManager::launchHistoryPaymentsTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -1482,7 +1409,6 @@ void TransactionsManager::launchHistoryPaymentsTransaction(
     try {
         prepareAndSchedule(
             make_shared<HistoryPaymentsTransaction>(
-                mNodeUUID,
                 command,
                 mStorageHandler,
                 mLog),
@@ -1504,7 +1430,6 @@ void TransactionsManager::launchAdditionalHistoryPaymentsTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -1515,7 +1440,6 @@ void TransactionsManager::launchAdditionalHistoryPaymentsTransaction(
     try {
         prepareAndSchedule(
             make_shared<HistoryAdditionalPaymentsTransaction>(
-                mNodeUUID,
                 command,
                 mStorageHandler,
                 mLog),
@@ -1542,7 +1466,6 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -1553,7 +1476,6 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(
     try {
         prepareAndSchedule(
             make_shared<HistoryTrustLinesTransaction>(
-                mNodeUUID,
                 command,
                 mStorageHandler,
                 mLog),
@@ -1579,7 +1501,6 @@ void TransactionsManager::launchHistoryWithContractorTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -1590,7 +1511,6 @@ void TransactionsManager::launchHistoryWithContractorTransaction(
     try {
         prepareAndSchedule(
             make_shared<HistoryWithContractorTransaction>(
-                mNodeUUID,
                 command,
                 mStorageHandler,
                 mLog),
@@ -1608,7 +1528,6 @@ void TransactionsManager::launchGetFirstLevelContractorsTransaction(
     try {
         prepareAndSchedule(
             make_shared<GetFirstLevelContractorsTransaction>(
-                mNodeUUID,
                 command,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
                 mLog),
@@ -1620,7 +1539,6 @@ void TransactionsManager::launchGetFirstLevelContractorsTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -1636,7 +1554,6 @@ void TransactionsManager::launchGetTrustLinesTransaction(
     try {
         prepareAndSchedule(
             make_shared<GetFirstLevelContractorsBalancesTransaction>(
-                mNodeUUID,
                 command,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
                 mLog),
@@ -1648,7 +1565,6 @@ void TransactionsManager::launchGetTrustLinesTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -1664,7 +1580,6 @@ void TransactionsManager::launchGetTrustLineTransaction(
     try {
         prepareAndSchedule(
             make_shared<GetFirstLevelContractorBalanceTransaction>(
-                mNodeUUID,
                 command,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
@@ -1677,7 +1592,6 @@ void TransactionsManager::launchGetTrustLineTransaction(
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
-                mNodeUUID,
                 command,
                 mLog),
             false,
@@ -1691,7 +1605,6 @@ void TransactionsManager::launchGetEquivalentListTransaction(
 {
     prepareAndSchedule(
         make_shared<GetEquivalentListTransaction>(
-            mNodeUUID,
             command,
             mEquivalentsSubsystemsRouter,
             mLog),
@@ -1700,90 +1613,12 @@ void TransactionsManager::launchGetEquivalentListTransaction(
         false);
 }
 
-void TransactionsManager::launchAddNodeToBlackListTransaction(
-    AddNodeToBlackListCommand::Shared command)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<AddNodeToBlackListTransaction>(
-                mNodeUUID,
-                command,
-                mContractorsManager,
-                mStorageHandler,
-                mEquivalentsSubsystemsRouter,
-                mSubsystemsController,
-                mTrustLinesInfluenceController,
-                mKeysStore,
-                mLog),
-            true,
-            true,
-            false);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchCheckIfNodeInBlackListTransaction(
-    CheckIfNodeInBlackListCommand::Shared command)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<CheckIfNodeInBlackListTransaction>(
-                mNodeUUID,
-                command,
-                mStorageHandler,
-                mLog),
-            true,
-            false,
-            false);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchRemoveNodeFromBlackListTransaction(
-    RemoveNodeFromBlackListCommand::Shared command)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<RemoveNodeFromBlackListTransaction>(
-                mNodeUUID,
-                command,
-                mStorageHandler,
-                mLog),
-            true,
-            false,
-            false);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchGetBlackListTransaction(
-    GetBlackListCommand::Shared command)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<GetBlackListTransaction>(
-                mNodeUUID,
-                command,
-                mStorageHandler,
-                mLog),
-            true,
-            false,
-            false);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
 void TransactionsManager::launchPaymentTransactionByCommandUUIDTransaction(
     PaymentTransactionByCommandUUIDCommand::Shared command)
 {
     try {
         prepareAndSchedule(
             make_shared<PaymentTransactionByCommandUUIDTransaction>(
-                mNodeUUID,
                 command,
                 mScheduler->paymentTransactionByCommandUUID(
                     command->paymentTransactionCommandUUID()),
@@ -1801,7 +1636,6 @@ void TransactionsManager::launchGatewayNotificationSenderTransaction()
     try {
         prepareAndSchedule(
             make_shared<GatewayNotificationSenderTransaction>(
-                mNodeUUID,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter,
                 mEquivalentsCyclesSubsystemsRouter.get(),
@@ -1820,7 +1654,6 @@ void TransactionsManager::launchGatewayNotificationReceiverTransaction(
     try {
         prepareAndSchedule(
             make_shared<GatewayNotificationReceiverTransaction>(
-                mNodeUUID,
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter,
@@ -1840,7 +1673,6 @@ void TransactionsManager::launchRoutingTableUpdatingTransaction(
     try {
         prepareAndSchedule(
             make_shared<RoutingTableUpdatingTransaction>(
-                mNodeUUID,
                 message,
                 mEquivalentsSubsystemsRouter,
                 mEquivalentsCyclesSubsystemsRouter.get(),
@@ -1861,7 +1693,6 @@ void TransactionsManager::launchFindPathByMaxFlowTransaction(
     try {
         prepareAndSchedule(
             make_shared<FindPathByMaxFlowTransaction>(
-                mNodeUUID,
                 destinationNodeAddress,
                 requestedTransactionUUID,
                 equivalent,
@@ -1889,7 +1720,6 @@ void TransactionsManager::launchPongReactionTransaction(
     PongMessage::Shared message)
 {
     auto transaction = make_shared<PongReactionTransaction>(
-        mNodeUUID,
         message,
         mEquivalentsSubsystemsRouter,
         mStorageHandler,
@@ -1935,19 +1765,6 @@ void TransactionsManager::subscribeForOutgoingMessages(
     signal.connect(
         boost::bind(
             &TransactionsManager::onTransactionOutgoingMessageReady,
-            this,
-            _1,
-            _2));
-}
-
-void TransactionsManager::subscribeForOutgoingNewMessages(
-    BaseTransaction::SendMessageNewSignal &signal)
-{
-    // ToDo: connect signals of transaction and core directly (signal -> signal)
-    // Boost allows this type of connectivity.
-    signal.connect(
-        boost::bind(
-            &TransactionsManager::onTransactionOutgoingNewMessageReady,
             this,
             _1,
             _2));
@@ -2125,18 +1942,9 @@ void TransactionsManager::subscribeForAuditSignal(
 
 void TransactionsManager::onTransactionOutgoingMessageReady(
     Message::Shared message,
-    const NodeUUID &contractorUUID)
-{
-    transactionOutgoingMessageReadySignal(
-        message,
-        contractorUUID);
-}
-
-void TransactionsManager::onTransactionOutgoingNewMessageReady(
-    Message::Shared message,
     const ContractorID contractorID)
 {
-    transactionOutgoingMessageReadyNewSignal(
+    transactionOutgoingMessageReadySignal(
         message,
         contractorID);
 }
@@ -2206,8 +2014,6 @@ void TransactionsManager::onSubsidiaryTransactionReady(
 
     subscribeForOutgoingMessages(
         transaction->outgoingMessageIsReadySignal);
-    subscribeForOutgoingNewMessages(
-        transaction->outgoingMessageIsReadyNewSignal);
     subscribeForOutgoingMessagesToAddress(
         transaction->outgoingMessageToAddressReadySignal);
     subscribeForOutgoingMessagesWithCaching(
@@ -2298,7 +2104,6 @@ void TransactionsManager::onTrustLineActionSlot(
     try {
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
         auto transaction = make_shared<CheckTrustLineTransaction>(
-            mNodeUUID,
             equivalent,
             contractorID,
             isActionInitiator,
@@ -2328,7 +2133,6 @@ void TransactionsManager::onPublicKeysSharingSlot(
     try {
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
         auto transaction = make_shared<PublicKeysSharingSourceTransaction>(
-            mNodeUUID,
             contractorID,
             equivalent,
             mContractorsManager,
@@ -2340,8 +2144,6 @@ void TransactionsManager::onPublicKeysSharingSlot(
 
         subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
-        subscribeForOutgoingNewMessages(
-            transaction->outgoingMessageIsReadyNewSignal);
         subscribeForOutgoingMessagesWithCaching(
             transaction->sendMessageWithCachingSignal);
 
@@ -2364,7 +2166,6 @@ void TransactionsManager::onAuditSlot(
     try {
         auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
         auto transaction = make_shared<AuditSourceTransaction>(
-            mNodeUUID,
             contractorID,
             equivalent,
             mContractorsManager,
@@ -2398,7 +2199,6 @@ void TransactionsManager::onResumeTransactionSlot(
     switch (transactionType) {
         case BaseTransaction::OpenTrustLineTransaction: {
             auto transaction = make_shared<OpenTrustLineTransaction>(
-                mNodeUUID,
                 equivalent,
                 contractorID,
                 mContractorsManager,
@@ -2421,7 +2221,6 @@ void TransactionsManager::onResumeTransactionSlot(
         }
         case BaseTransaction::AuditSourceTransactionType: {
             auto transaction = make_shared<AuditSourceTransaction>(
-                mNodeUUID,
                 equivalent,
                 mContractorsManager,
                 contractorID,
@@ -2460,8 +2259,6 @@ void TransactionsManager::prepareAndSchedule(
     if (outgoingMessagesSubscribe) {
         subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
-        subscribeForOutgoingNewMessages(
-            transaction->outgoingMessageIsReadyNewSignal);
         subscribeForOutgoingMessagesToAddress(
             transaction->outgoingMessageToAddressReadySignal);
         subscribeForOutgoingMessagesWithCaching(
@@ -2508,8 +2305,6 @@ void TransactionsManager::prepareAndSchedulePostponed(
     if (outgoingMessagesSubscribe) {
         subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
-        subscribeForOutgoingNewMessages(
-            transaction->outgoingMessageIsReadyNewSignal);
         subscribeForOutgoingMessagesToAddress(
             transaction->outgoingMessageToAddressReadySignal);
         subscribeForOutgoingMessagesWithCaching(

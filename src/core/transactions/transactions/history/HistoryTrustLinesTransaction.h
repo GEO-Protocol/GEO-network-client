@@ -15,12 +15,9 @@ public:
 
 public:
     HistoryTrustLinesTransaction(
-        NodeUUID &nodeUUID,
         HistoryTrustLinesCommand::Shared command,
         StorageHandler *storageHandler,
         Logger &logger);
-
-    HistoryTrustLinesCommand::Shared command() const;
 
     TransactionResult::SharedConst run();
 

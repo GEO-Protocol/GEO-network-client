@@ -5,17 +5,13 @@ Communicator::Communicator(
     IOService &IOService,
     const Host &interface,
     const Port port,
-    const Host &UUID2AddressHost,
-    const Port UUID2AddressPort,
     ContractorsManager *contractorsManager,
-    const NodeUUID &nodeUUID,
     Logger &logger):
 
     mInterface(interface),
     mPort(port),
     mIOService(IOService),
     mContractorsManager(contractorsManager),
-    mNodeUUID(nodeUUID),
     mLog(logger),
     mSocket(
         make_unique<UDPSocket>(
@@ -23,12 +19,6 @@ Communicator::Communicator(
             udp::endpoint(
                 udp::v4(),
                 port))),
-
-    mUUID2AddressService(
-        make_unique<UUID2Address>(
-            IOService,
-            UUID2AddressHost,
-            UUID2AddressPort)),
 
     mIncomingMessagesHandler(
         make_unique<IncomingMessagesHandler>(
@@ -40,7 +30,6 @@ Communicator::Communicator(
         make_unique<OutgoingMessagesHandler>(
             IOService,
             *mSocket,
-            *mUUID2AddressService,
             mContractorsManager,
             logger)),
 
@@ -69,7 +58,6 @@ Communicator::Communicator(
 
     mPingMessagesHandler(
         make_unique<PingMessagesHandler>(
-            mNodeUUID,
             mContractorsManager,
             IOService,
             logger))
@@ -108,32 +96,6 @@ Communicator::Communicator(
             _1));
 }
 
-/**
- * Registers current node into the UUID2Address service.
- *
- * @returns "true" in case of success, otherwise - returns "false".
- */
-bool Communicator::joinUUID2Address(
-    const NodeUUID &nodeUUID)
-    noexcept
-{
-    try {
-        mUUID2AddressService->registerInGlobalCache(
-            nodeUUID,
-            mInterface,
-            mPort);
-
-        return true;
-
-    } catch (std::exception &e) {
-        error() << "joinUUID2Address: "
-            << "Can't register in global nodes addresses space. "
-            << "Internal error details: " << e.what();
-    }
-
-    return false;
-}
-
 void Communicator::beginAcceptMessages()
     noexcept
 {
@@ -150,18 +112,8 @@ void Communicator::beginAcceptMessages()
  *
  *
  * @param message - message that must be sent to the remote node.
- * @param contractorUUID - uuid of the remote node which should receive the message.
+ * @param contractorID - id of the remote node which should receive the message.
  */
-void Communicator::sendMessage (
-    const Message::Shared message,
-    const NodeUUID &contractorUUID)
-    noexcept
-{
-    mOutgoingMessagesHandler->sendMessage(
-        message,
-        contractorUUID);
-}
-
 void Communicator::sendMessage (
     const Message::Shared message,
     const ContractorID contractorID)
@@ -250,7 +202,6 @@ void Communicator::onMessageReceived(
         sendMessage(
             make_shared<MaxFlowCalculationConfirmationMessage>(
                 kResultMaxFlowCalculationMessage->equivalent(),
-                mNodeUUID,
                 mContractorsManager->ownAddresses(),
                 kResultMaxFlowCalculationMessage->confirmationID()),
             kResultMaxFlowCalculationMessage->senderAddresses.at(0));
@@ -290,12 +241,11 @@ void Communicator::onMessageReceived(
         sendMessage(
             make_shared<PongMessage>(
                 0,
-                mNodeUUID,
                 // PingMessage contains our id on contractor side instead of his id on our side
                 // and we should include it to PongMessage
                 // todo : separate logic into InitTLMessage and others and check if contractor exists
                 pingMessage->idOnReceiverSide),
-            pingMessage->senderUUID);
+            pingMessage->idOnReceiverSide);
         return;
     }
 
@@ -305,7 +255,7 @@ void Communicator::onMessageReceived(
         if (cachedResponse != nullptr) {
             sendMessage(
                 cachedResponse,
-                incomingTransactionMessage->senderUUID);
+                incomingTransactionMessage->idOnReceiverSide);
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
             debug() << "send cached response";
 #endif

@@ -58,12 +58,10 @@ public:
 
     void open(
         ContractorID contractorID,
-        const NodeUUID &contractorUUID,
         IOTransaction::Shared ioTransaction = nullptr);
 
     void accept(
         ContractorID contractorID,
-        const NodeUUID &contractorUUID,
         IOTransaction::Shared ioTransaction = nullptr);
 
     /**

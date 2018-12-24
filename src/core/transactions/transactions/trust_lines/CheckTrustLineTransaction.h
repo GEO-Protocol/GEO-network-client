@@ -11,7 +11,6 @@ public:
 
 public:
     CheckTrustLineTransaction(
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         ContractorID contractorID,
         bool isActionInitiator,

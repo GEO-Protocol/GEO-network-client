@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_MULTIPRECISIONUTILS_H
 
 #include "../Types.h"
+#include "../../contractors/addresses/IPv4WithPortAddress.h"
 
 #include <boost/endian/arithmetic.hpp>
 #include <vector>
@@ -132,6 +133,24 @@ inline TrustLineBalance bytesToTrustLineBalance(
     }
 
     return balance;
+}
+
+inline BaseAddress::Shared deserializeAddress(
+    byte* offset)
+{
+    const uint16_t kAddressType =
+            *(reinterpret_cast<BaseAddress::SerializedType *>(offset));
+
+    switch (kAddressType) {
+        case BaseAddress::IPv4_IncludingPort: {
+            return make_shared<IPv4WithPortAddress>(
+                offset);
+        }
+        default: {
+            // todo : need correct reaction
+            return nullptr;
+        }
+    }
 }
 
 

@@ -16,7 +16,6 @@ public:
 
 public:
     ReceiveMaxFlowCalculationOnTargetTransaction(
-        const NodeUUID &nodeUUID,
         InitiateMaxFlowCalculationMessage::Shared message,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,

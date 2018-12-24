@@ -2,7 +2,6 @@
 
 CyclesFourNodesNegativeBalanceRequestMessage::CyclesFourNodesNegativeBalanceRequestMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
     BaseAddress::Shared contractorAddress,
@@ -10,7 +9,6 @@ CyclesFourNodesNegativeBalanceRequestMessage::CyclesFourNodesNegativeBalanceRequ
 
     TransactionMessage(
         equivalent,
-        senderUUID,
         0,
         senderAddresses,
         transactionUUID),

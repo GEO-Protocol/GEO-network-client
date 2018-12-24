@@ -20,7 +20,6 @@ public:
 
 public:
     ConflictResolverContractorTransaction(
-        const NodeUUID &nodeUUID,
         ConflictResolverMessage::Shared message,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,

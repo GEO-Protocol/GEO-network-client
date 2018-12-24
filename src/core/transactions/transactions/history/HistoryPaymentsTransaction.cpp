@@ -1,24 +1,17 @@
 #include "HistoryPaymentsTransaction.h"
 
 HistoryPaymentsTransaction::HistoryPaymentsTransaction(
-    NodeUUID &nodeUUID,
     HistoryPaymentsCommand::Shared command,
     StorageHandler *storageHandler,
     Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::HistoryPaymentsTransactionType,
-        nodeUUID,
         command->equivalent(),
         logger),
     mCommand(command),
     mStorageHandler(storageHandler)
 {}
-
-HistoryPaymentsCommand::Shared HistoryPaymentsTransaction::command() const
-{
-    return mCommand;
-}
 
 TransactionResult::SharedConst HistoryPaymentsTransaction::run()
 {

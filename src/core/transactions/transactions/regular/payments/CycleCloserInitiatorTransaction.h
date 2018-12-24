@@ -12,7 +12,6 @@ public:
 
 public:
     CycleCloserInitiatorTransaction(
-        const NodeUUID &kCurrentNodeUUID,
         const Path::Shared path,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,

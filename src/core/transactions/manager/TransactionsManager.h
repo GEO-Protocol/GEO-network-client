@@ -33,10 +33,6 @@
 #include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLineCommand.h"
-#include "../../interface/commands_interface/commands/blacklist/AddNodeToBlackListCommand.h"
-#include "../../interface/commands_interface/commands/blacklist/CheckIfNodeInBlackListCommand.h"
-#include "../../interface/commands_interface/commands/blacklist/RemoveNodeFromBlackListCommand.h"
-#include "../../interface/commands_interface/commands/blacklist/GetBlackListCommand.h"
 #include "../../interface/commands_interface/commands/transactions/PaymentTransactionByCommandUUIDCommand.h"
 
 /*
@@ -104,12 +100,6 @@
 #include "../transactions/trustlines_list/GetFirstLevelContractorBalanceTransaction.h"
 #include "../transactions/trustlines_list/GetEquivalentListTransaction.h"
 
-#include "../transactions/blacklist/AddNodeToBlackListTransaction.h"
-#include "../transactions/blacklist/CheckIfNodeInBlackListTransaction.h"
-#include "../transactions/blacklist/RemoveNodeFromBlackListTransaction.h"
-#include "../transactions/blacklist/GetBlackListTransaction.h"
-
-
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
 
 #include "../transactions/transaction/PaymentTransactionByCommandUUIDTransaction.h"
@@ -132,8 +122,7 @@ namespace signals = boost::signals2;
 
 class TransactionsManager {
 public:
-    signals::signal<void(Message::Shared, const NodeUUID&)> transactionOutgoingMessageReadySignal;
-    signals::signal<void(Message::Shared, const ContractorID)> transactionOutgoingMessageReadyNewSignal;
+    signals::signal<void(Message::Shared, const ContractorID)> transactionOutgoingMessageReadySignal;
     signals::signal<void(Message::Shared, BaseAddress::Shared)> transactionOutgoingMessageToAddressReadySignal;
     signals::signal<void(
             TransactionMessage::Shared,
@@ -145,7 +134,6 @@ public:
 
 public:
     TransactionsManager(
-        NodeUUID &nodeUUID,
         as::io_service &IOService,
         ContractorsManager *contractorsManager,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
@@ -332,21 +320,6 @@ protected: // Transactions
         EquivalentListCommand::Shared command);
 
     /*
-     * BlackList
-     */
-    void launchAddNodeToBlackListTransaction(
-        AddNodeToBlackListCommand::Shared command);
-
-    void launchCheckIfNodeInBlackListTransaction(
-        CheckIfNodeInBlackListCommand::Shared command);
-
-    void launchRemoveNodeFromBlackListTransaction(
-        RemoveNodeFromBlackListCommand::Shared command);
-
-    void launchGetBlackListTransaction(
-        GetBlackListCommand::Shared command);
-
-    /*
      * Transaction
      */
     void launchPaymentTransactionByCommandUUIDTransaction(
@@ -376,9 +349,6 @@ protected:
 
     void subscribeForOutgoingMessages(
         BaseTransaction::SendMessageSignal &signal);
-
-    void subscribeForOutgoingNewMessages(
-        BaseTransaction::SendMessageNewSignal &signal);
 
     void subscribeForOutgoingMessagesToAddress(
         BaseTransaction::SendMessageToAddressSignal &signal);
@@ -433,10 +403,6 @@ protected:
         BaseTransaction::Shared transaction);
 
     void onTransactionOutgoingMessageReady(
-        Message::Shared message,
-        const NodeUUID &contractorUUID);
-
-    void onTransactionOutgoingNewMessageReady(
         Message::Shared message,
         const ContractorID contractorID);
 
@@ -531,7 +497,6 @@ protected:
     noexcept;
 
 private:
-    NodeUUID &mNodeUUID;
     as::io_service &mIOService;
     ContractorsManager *mContractorsManager;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;

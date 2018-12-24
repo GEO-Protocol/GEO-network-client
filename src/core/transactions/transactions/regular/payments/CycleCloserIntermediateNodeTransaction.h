@@ -12,7 +12,6 @@ public:
 
 public:
     CycleCloserIntermediateNodeTransaction(
-        const NodeUUID &currentNodeUUID,
         IntermediateNodeCycleReservationRequestMessage::ConstShared message,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
@@ -26,7 +25,6 @@ public:
 
     CycleCloserIntermediateNodeTransaction(
         BytesShared buffer,
-        const NodeUUID &nodeUUID,
         ContractorsManager *contractorsManager,
         TrustLinesManager* trustLines,
         CyclesManager *cyclesManager,
@@ -41,7 +39,7 @@ public:
     noexcept;
 
     /**
-     * @return coordinator UUID of current transaction
+     * @return coordinator address of current transaction
      */
     BaseAddress::Shared coordinatorAddress() const override;
 

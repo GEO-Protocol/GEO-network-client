@@ -2,14 +2,12 @@
 
 MaxFlowCalculationTargetFstLevelMessage::MaxFlowCalculationTargetFstLevelMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     ContractorID idOnReceiverSide,
     vector<BaseAddress::Shared> targetAddresses,
     bool isTargetGateway)
     noexcept:
     MaxFlowCalculationMessage(
         equivalent,
-        senderUUID,
         idOnReceiverSide,
         targetAddresses),
     mIsTargetGateway(isTargetGateway)

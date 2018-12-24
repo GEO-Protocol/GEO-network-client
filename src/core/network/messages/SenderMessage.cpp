@@ -3,25 +3,21 @@
 
 SenderMessage::SenderMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     ContractorID idOnReceiverSide,
     vector<BaseAddress::Shared> senderAddresses)
     noexcept :
     EquivalentMessage(
         equivalent),
-    senderUUID(senderUUID),
     idOnReceiverSide(idOnReceiverSide),
     senderAddresses(senderAddresses)
 {}
 
 SenderMessage::SenderMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     vector<BaseAddress::Shared> &senderAddresses)
     noexcept :
     EquivalentMessage(
         equivalent),
-    senderUUID(senderUUID),
     senderAddresses(senderAddresses)
 {}
 
@@ -31,11 +27,6 @@ SenderMessage::SenderMessage(
     EquivalentMessage(buffer)
 {
     auto bytesBufferOffset = EquivalentMessage::kOffsetToInheritedBytes();
-    memcpy(
-        const_cast<NodeUUID*>(&senderUUID),
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
 
     memcpy(
         &idOnReceiverSide,
@@ -67,7 +58,6 @@ pair<BytesShared, size_t> SenderMessage::serializeToBytes() const
     BytesSerializer serializer;
 
     serializer.enqueue(EquivalentMessage::serializeToBytes());
-    serializer.enqueue(senderUUID);
     serializer.copy(idOnReceiverSide);
     serializer.copy((byte)senderAddresses.size());
     for (const auto &address : senderAddresses) {
@@ -83,7 +73,6 @@ const size_t SenderMessage::kOffsetToInheritedBytes() const
 {
     auto kOffset =
         EquivalentMessage::kOffsetToInheritedBytes()
-        + NodeUUID::kBytesSize
         + sizeof(ContractorID)
         + sizeof(byte);
     for (const auto &address : senderAddresses) {
@@ -92,20 +81,20 @@ const size_t SenderMessage::kOffsetToInheritedBytes() const
     return kOffset;
 }
 
-BaseAddress::Shared SenderMessage::deserializeAddress(
-    byte *offset)
-{
-    const uint16_t kAddressType =
-            *(reinterpret_cast<BaseAddress::SerializedType *>(offset));
-
-    switch (kAddressType) {
-        case BaseAddress::IPv4_IncludingPort: {
-            return make_shared<IPv4WithPortAddress>(
-                offset);
-        }
-        default: {
-            // todo : need correct reaction
-            return nullptr;
-        }
-    }
-}
+//BaseAddress::Shared SenderMessage::deserializeAddress(
+//    byte *offset)
+//{
+//    const uint16_t kAddressType =
+//            *(reinterpret_cast<BaseAddress::SerializedType *>(offset));
+//
+//    switch (kAddressType) {
+//        case BaseAddress::IPv4_IncludingPort: {
+//            return make_shared<IPv4WithPortAddress>(
+//                offset);
+//        }
+//        default: {
+//            // todo : need correct reaction
+//            return nullptr;
+//        }
+//    }
+//}

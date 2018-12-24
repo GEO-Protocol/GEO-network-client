@@ -15,7 +15,6 @@ public:
 public:
     AuditMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         ContractorID destinationID,

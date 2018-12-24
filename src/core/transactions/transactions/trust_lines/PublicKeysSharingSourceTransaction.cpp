@@ -1,7 +1,6 @@
 #include "PublicKeysSharingSourceTransaction.h"
 
 PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
-    const NodeUUID &nodeUUID,
     ContractorID contractorID,
     const SerializedEquivalent equivalent,
     ContractorsManager *contractorsManager,
@@ -12,7 +11,6 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     Logger &logger) :
     BaseTransaction(
         BaseTransaction::PublicKeysSharingSourceTransactionType,
-        nodeUUID,
         equivalent,
         logger),
     mContractorID(contractorID),
@@ -30,7 +28,6 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
 
 
 PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
-    const NodeUUID &nodeUUID,
     ShareKeysCommand::Shared command,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
@@ -40,7 +37,6 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     Logger &logger) :
     BaseTransaction(
         BaseTransaction::PublicKeysSharingSourceTransactionType,
-        nodeUUID,
         mCommand->equivalent(),
         logger),
     mCommand(command),
@@ -123,7 +119,6 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
     sendMessage<PublicKeysSharingInitMessage>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mKeysCount,
@@ -186,7 +181,6 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runCommandPub
     sendMessage<PublicKeysSharingInitMessage>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mKeysCount,
@@ -209,7 +203,6 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
                 sendMessage<PublicKeysSharingInitMessage>(
                     mContractorID,
                     mEquivalent,
-                    mNodeUUID,
                     mContractorsManager->idOnContractorSide(mContractorID),
                     mTransactionUUID,
                     mKeysCount,
@@ -219,7 +212,6 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
                 sendMessage<PublicKeyMessage>(
                     mContractorID,
                     mEquivalent,
-                    mNodeUUID,
                     mContractorsManager->idOnContractorSide(mContractorID),
                     mTransactionUUID,
                     mCurrentKeyNumber,
@@ -324,7 +316,6 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
     sendMessage<PublicKeyMessage>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mCurrentKeyNumber,

@@ -11,7 +11,6 @@ public:
 public:
     PublicKeysSharingInitMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const KeysCount keysCount,
         const KeyNumber number,
@@ -19,7 +18,6 @@ public:
 
     PublicKeysSharingInitMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         const KeysCount keysCount,

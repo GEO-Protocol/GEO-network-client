@@ -2,7 +2,6 @@
 
 FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
@@ -10,7 +9,6 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
 
     RequestMessageWithReservations(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID,
         finalAmountsConfig),
@@ -20,7 +18,6 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
 
 FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
@@ -30,7 +27,6 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
 
     RequestMessageWithReservations(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID,
         finalAmountsConfig),

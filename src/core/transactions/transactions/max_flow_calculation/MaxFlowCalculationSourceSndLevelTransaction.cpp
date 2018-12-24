@@ -1,7 +1,6 @@
 #include "MaxFlowCalculationSourceSndLevelTransaction.h"
 
 MaxFlowCalculationSourceSndLevelTransaction::MaxFlowCalculationSourceSndLevelTransaction(
-    const NodeUUID &nodeUUID,
     MaxFlowCalculationSourceSndLevelMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
@@ -11,7 +10,6 @@ MaxFlowCalculationSourceSndLevelTransaction::MaxFlowCalculationSourceSndLevelTra
 
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationSourceSndLevelTransactionType,
-        nodeUUID,
         message->equivalent(),
         logger),
     mMessage(message),
@@ -82,7 +80,6 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator()
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->targetAddresses().at(0),
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             outgoingFlows,
             incomingFlows);
@@ -134,7 +131,6 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->targetAddresses().at(0),
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             outgoingFlowsForSending,
             incomingFlowsForSending);
@@ -185,7 +181,6 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendGatewayResultToInitiator()
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
             mMessage->targetAddresses().at(0),
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             outgoingFlows,
             incomingFlows);
@@ -237,7 +232,6 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedGatewayResultToIniti
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
             mMessage->targetAddresses().at(0),
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             outgoingFlowsForSending,
             incomingFlowsForSending);

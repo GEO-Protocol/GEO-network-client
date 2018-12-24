@@ -16,7 +16,6 @@ public:
 
 public:
     CloseIncomingTrustLineTransaction(
-        const NodeUUID &nodeUUID,
         CloseIncomingTrustLineCommand::Shared command,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
@@ -29,20 +28,6 @@ public:
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger)
     noexcept;
-
-    CloseIncomingTrustLineTransaction(
-        const NodeUUID &nodeUUID,
-        SerializedEquivalent equivalent,
-        ContractorID contractorID,
-        ContractorsManager *contractorsManager,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        TopologyTrustLinesManager *topologyTrustLinesManager,
-        TopologyCacheManager *topologyCacheManager,
-        MaxFlowCacheManager *maxFlowCacheManager,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger);
 
     TransactionResult::SharedConst run();
 
@@ -70,8 +55,6 @@ private:
     TransactionResult::SharedConst runInitializationStage();
 
     TransactionResult::SharedConst runResponseProcessingStage();
-
-    TransactionResult::SharedConst runAddToBlackListStage();
 
 private:
     CloseIncomingTrustLineCommand::Shared mCommand;

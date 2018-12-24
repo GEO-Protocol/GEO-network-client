@@ -2,7 +2,6 @@
 
 BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
-    const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
     bool iAmGateway,
     ContractorsManager *contractorsManager,
@@ -16,7 +15,6 @@ BasePaymentTransaction::BasePaymentTransaction(
 
     BaseTransaction(
         type,
-        currentNodeUUID,
         equivalent,
         log),
     mIAmGateway(iAmGateway),
@@ -34,7 +32,6 @@ BasePaymentTransaction::BasePaymentTransaction(
 BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID,
-    const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
     bool iAmGateway,
     ContractorsManager *contractorsManager,
@@ -49,7 +46,6 @@ BasePaymentTransaction::BasePaymentTransaction(
     BaseTransaction(
         type,
         transactionUUID,
-        currentNodeUUID,
         equivalent,
         log),
     mIAmGateway(iAmGateway),
@@ -66,7 +62,6 @@ BasePaymentTransaction::BasePaymentTransaction(
 
 BasePaymentTransaction::BasePaymentTransaction(
     BytesShared buffer,
-    const NodeUUID &nodeUUID,
     bool iAmGateway,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLines,
@@ -79,7 +74,6 @@ BasePaymentTransaction::BasePaymentTransaction(
 
     BaseTransaction(
         buffer,
-        nodeUUID,
         log),
     mIAmGateway(iAmGateway),
     mContractorsManager(contractorsManager),
@@ -138,7 +132,7 @@ BasePaymentTransaction::BasePaymentTransaction(
             stepAmount = bytesToTrustLineAmount(amountBytes);
             bytesBufferOffset += kTrustLineAmountBytesCount;
 
-            // Transaction UUID
+            // Transaction NodeUUID
             TransactionUUID stepTransactionUUID(buffer.get() + bytesBufferOffset);
             bytesBufferOffset += TransactionUUID::kBytesSize;
 
@@ -199,8 +193,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         auto *paymentNodeID = new (buffer.get() + bytesBufferOffset) PaymentNodeID;
         bytesBufferOffset += sizeof(PaymentNodeID);
         //---------------------------------------------------
-        // todo : move method deserializeAddress into MultiprecisionUtils.h
-        auto participantAddress = SenderMessage::deserializeAddress(buffer.get() + bytesBufferOffset);
+        auto participantAddress = deserializeAddress(buffer.get() + bytesBufferOffset);
         bytesBufferOffset += participantAddress->serializedSize();
 
         mPaymentParticipants.insert(
@@ -256,7 +249,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         // todo appropriate reaction
         // It seems that current node wasn't listed in the votes list.
         // This is possible only in case, when one node takes part in 2 parallel transactions,
-        // that have common UUID (transactions UUIDs collision).
+        // that have common NodeUUID (transactions UUIDs collision).
         // The probability of this is very small, but is present.
         //
         // In this case - the message must be simply ignored.
@@ -305,7 +298,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     sendMessage<ParticipantVoteMessage>(
         coordinatorAddress,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
         signedTransaction);
@@ -832,7 +824,6 @@ TransactionResult::SharedConst BasePaymentTransaction::sendVotesRequestMessageAn
     sendMessage<VotesStatusRequestMessage>(
         contractorAddress,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID());
 
@@ -1281,7 +1272,7 @@ size_t BasePaymentTransaction::reservationsSizeInBytes() const {
                                   + nodeAndReservations.second.size() * (
                                     sizeof(PathID) + // PathID
                                     kTrustLineAmountBytesCount +  // Reservation Amount
-                                    TransactionUUID::kBytesSize + // Reservation Transaction UUID
+                                    TransactionUUID::kBytesSize + // Reservation Transaction NodeUUID
                                                                   // Reservation Direction
                                     sizeof(AmountReservation::SerializedReservationDirectionSize))
                                   + sizeof(SerializedRecordsCount); // Vector Size

@@ -82,8 +82,8 @@ protected: // messages handlers
         TransactionMessage::Shared message);
 
 protected:
-    // Stores messages queue by the transaction UUID.
-    // Transaction UUID is used as key to be able to remove messages from the queue,
+    // Stores messages queue by the transaction NodeUUID.
+    // Transaction NodeUUID is used as key to be able to remove messages from the queue,
     // when appropriate confirmation would be received.
     //
     // Map is used because current GCC realisation of map is faster than unordered_map,

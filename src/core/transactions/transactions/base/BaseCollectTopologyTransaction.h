@@ -19,7 +19,6 @@ public:
 public:
     BaseCollectTopologyTransaction(
         const TransactionType type,
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
@@ -31,7 +30,6 @@ public:
     BaseCollectTopologyTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID,
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,

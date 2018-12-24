@@ -13,7 +13,6 @@ ContractorsHandler::ContractorsHandler(
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    "(id INTEGER PRIMARY KEY, "
                    "id_on_contractor_side INTEGER, "
-                   "uuid BLOB NOT NULL, "
                    "ip_v4 TEXT NOT NULL);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -49,8 +48,8 @@ void ContractorsHandler::saveContractor(
     Contractor::Shared contractor)
 {
     string query = "INSERT INTO " + mTableName +
-                   "(id, uuid, ip_v4) "
-                   "VALUES (?, ?, ?);";
+                   "(id, ip_v4) "
+                   "VALUES (?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -63,12 +62,7 @@ void ContractorsHandler::saveContractor(
         throw IOError("ContractorsHandler::saveContractor: "
                           "Bad binding of ID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 2, contractor->getUUID().data, NodeUUID::kBytesSize, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("ContractorsHandler::saveContractor: "
-                          "Bad binding of UUID; sqlite error: " + to_string(rc));
-    }
-    rc = sqlite3_bind_text(stmt, 3, contractor->getAddress()->fullAddress().c_str(),
+    rc = sqlite3_bind_text(stmt, 2, contractor->getAddress()->fullAddress().c_str(),
                            (int)contractor->getAddress()->fullAddress().length(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::saveContractor: "
@@ -92,8 +86,8 @@ void ContractorsHandler::saveContractorFull(
     Contractor::Shared contractor)
 {
     string query = "INSERT INTO " + mTableName +
-                   "(id, id_on_contractor_side, uuid, ip_v4) "
-                   "VALUES (?, ?, ?, ?);";
+                   "(id, id_on_contractor_side, ip_v4) "
+                   "VALUES (?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -111,12 +105,7 @@ void ContractorsHandler::saveContractorFull(
         throw IOError("ContractorsHandler::saveContractorFull: "
                           "Bad binding of ID on contractor side; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 3, contractor->getUUID().data, NodeUUID::kBytesSize, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("ContractorsHandler::saveContractorFull: "
-                          "Bad binding of UUID; sqlite error: " + to_string(rc));
-    }
-    rc = sqlite3_bind_text(stmt, 4, contractor->getAddress()->fullAddress().c_str(),
+    rc = sqlite3_bind_text(stmt, 3, contractor->getAddress()->fullAddress().c_str(),
                            (int)contractor->getAddress()->fullAddress().length(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::saveContractorFull: "
@@ -192,7 +181,7 @@ vector<Contractor::Shared> ContractorsHandler::allContractors()
     vector<Contractor::Shared> result;
     result.reserve(rowCount);
 
-    string query = "SELECT id, id_on_contractor_side, uuid, ip_v4 FROM " + mTableName;
+    string query = "SELECT id, id_on_contractor_side, ip_v4 FROM " + mTableName;
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::allContractors: "
@@ -201,14 +190,12 @@ vector<Contractor::Shared> ContractorsHandler::allContractors()
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         auto id = (ContractorID)sqlite3_column_int(stmt, 0);
         auto idOnContractorSide = (ContractorID)sqlite3_column_int(stmt, 1);
-        NodeUUID uuid((uint8_t*)sqlite3_column_blob(stmt, 2));
-        string ipv4((char*)sqlite3_column_text(stmt, 3));
+        string ipv4((char*)sqlite3_column_text(stmt, 2));
         try {
             result.push_back(
                 make_shared<Contractor>(
                     id,
                     idOnContractorSide,
-                    uuid,
                     ipv4));
         } catch (...) {
             throw Exception("ContractorsHandler::allContractors. "

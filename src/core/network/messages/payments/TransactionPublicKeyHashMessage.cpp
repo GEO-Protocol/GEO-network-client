@@ -2,7 +2,6 @@
 
 TransactionPublicKeyHashMessage::TransactionPublicKeyHashMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const PaymentNodeID paymentNodeID,
@@ -10,7 +9,6 @@ TransactionPublicKeyHashMessage::TransactionPublicKeyHashMessage(
 
     TransactionMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID),
     mPaymentNodeID(paymentNodeID),
@@ -20,7 +18,6 @@ TransactionPublicKeyHashMessage::TransactionPublicKeyHashMessage(
 
 TransactionPublicKeyHashMessage::TransactionPublicKeyHashMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const PaymentNodeID paymentNodeID,
@@ -30,7 +27,6 @@ TransactionPublicKeyHashMessage::TransactionPublicKeyHashMessage(
 
     TransactionMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID),
     mPaymentNodeID(paymentNodeID),

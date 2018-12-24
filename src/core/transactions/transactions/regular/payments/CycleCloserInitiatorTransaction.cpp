@@ -1,7 +1,6 @@
 #include "CycleCloserInitiatorTransaction.h"
 
 CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
-    const NodeUUID &kCurrentNodeUUID,
     const Path::Shared path,
     const SerializedEquivalent equivalent,
     ContractorsManager *contractorsManager,
@@ -17,7 +16,6 @@ noexcept :
 
     BasePaymentTransaction(
         BaseTransaction::Payments_CycleCloserInitiatorTransaction,
-        kCurrentNodeUUID,
         equivalent,
         false,
         contractorsManager,
@@ -109,8 +107,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitializatio
             warning() << "Can't close cycle, because coordinator outgoing amount equal zero, "
                 "and can't use reservations from other transactions";
             mCyclesManager->addClosedTrustLine(
-                    mContractorsManager->ownAddresses().at(0),
-                    mNextNode);
+                mContractorsManager->ownAddresses().at(0),
+                mNextNode);
             return resultDone();
         } else {
             mOutgoingAmount = TrustLineAmount(0);
@@ -142,8 +140,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitializatio
     if (mIncomingAmount == TrustLine::kZeroAmount()) {
         warning() << "Can't close cycle, because coordinator incoming amount equal zero";
         mCyclesManager->addClosedTrustLine(
-                mPreviousNode,
-                mContractorsManager->ownAddresses().at(0));
+            mPreviousNode,
+            mContractorsManager->ownAddresses().at(0));
         return resultDone();
     }
     debug() << "Incoming Possibilities: " << mIncomingAmount;
@@ -207,7 +205,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
         sendMessage<ParticipantsPublicKeysMessage>(
             paymentIdAndAddress.second,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             mParticipantsPublicKeys);
@@ -233,10 +230,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::tryReserveNextIn
         const auto remoteNodePositionInPath = remoteAddressAndPos.second;
 
         if (remoteNodePositionInPath == 0) {
-            if (mPathStats->isNeighborAmountReserved())
+            if (mPathStats->isNeighborAmountReserved()) {
                 return askNeighborToApproveFurtherNodeReservation();
-
-            else
+            } else
                 return askNeighborToReserveAmount();
 
         } else {
@@ -264,8 +260,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
     if (!mTrustLinesManager->trustLineOwnKeysPresent(mNextNodeID)) {
         warning() << "There are no own keys on TL with contractor " << mNextNode->fullAddress();
         mCyclesManager->addClosedTrustLine(
-                mContractorsManager->ownAddresses().at(0),
-                mNextNode);
+            mContractorsManager->ownAddresses().at(0),
+            mNextNode);
         return resultDone();
     }
 
@@ -296,8 +292,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
 
     if (!reserveOutgoingAmount(mNextNodeID, mOutgoingAmount, 0)) {
         mCyclesManager->addClosedTrustLine(
-                mContractorsManager->ownAddresses().at(0),
-                mNextNode);
+            mContractorsManager->ownAddresses().at(0),
+            mNextNode);
         return resultDone();
     }
 
@@ -312,7 +308,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
         mNextNode,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         mPathStats->maxFlow(),
@@ -351,7 +346,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
         mNextNode,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         mPathStats->maxFlow(),
@@ -393,8 +387,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborA
         rollBack();
         if (message->state() == IntermediateNodeCycleReservationResponseMessage::Rejected) {
             mCyclesManager->addClosedTrustLine(
-                    mContractorsManager->ownAddresses().at(0),
-                    mNextNode);
+                mContractorsManager->ownAddresses().at(0),
+                mNextNode);
         }
         return resultDone();
     }
@@ -403,8 +397,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborA
         warning() << "Neighbor node doesn't approved reservation request due to contractor keys absence";
         rollBack();
         mCyclesManager->addClosedTrustLine(
-                mContractorsManager->ownAddresses().at(0),
-                mNextNode);
+            mContractorsManager->ownAddresses().at(0),
+            mNextNode);
         // todo maybe set mOwnKeysPresent into false and initiate KeysSharing TA
         return resultDone();
     }
@@ -441,7 +435,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
     sendMessage<CoordinatorCycleReservationRequestMessage>(
         mNextNode,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         mPathStats->maxFlow(),
@@ -468,7 +461,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
         rollBack();
         informIntermediateNodesAboutTransactionFinish(1);
         mCyclesManager->addOfflineNode(
-                mNextNode);
+            mNextNode);
         return resultDone();
     }
 
@@ -483,7 +476,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
         warning() << "Next node after neighbor is inaccessible.";
         rollBack();
         mCyclesManager->addOfflineNode(
-                kNextAfterNeighborNode);
+            kNextAfterNeighborNode);
         return resultDone();
     }
 
@@ -495,8 +488,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
         rollBack();
         if (message->state() == CoordinatorCycleReservationResponseMessage::Rejected) {
             mCyclesManager->addClosedTrustLine(
-                    mNextNode,
-                    kNextAfterNeighborNode);
+                mNextNode,
+                kNextAfterNeighborNode);
         }
         return resultDone();
     }
@@ -550,7 +543,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
     sendMessage<CoordinatorCycleReservationRequestMessage>(
         remoteNode,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         mPathStats->maxFlow(),
@@ -589,7 +581,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
         informIntermediateNodesAboutTransactionFinish(
             mPathStats->currentIntermediateNodeAndPos().second);
         mCyclesManager->addOfflineNode(
-                mPathStats->currentIntermediateNodeAndPos().first);
+            mPathStats->currentIntermediateNodeAndPos().first);
         return resultDone();
     }
 
@@ -609,8 +601,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
         if (mPathStats->path()->intermediates().at(remoteNodePathPosition + 1) !=
                 mContractorsManager->ownAddresses().at(0)) {
             mCyclesManager->addOfflineNode(
-                    mPathStats->path()->intermediates().at(
-                            remoteNodePathPosition + 1));
+                mPathStats->path()->intermediates().at(
+                    remoteNodePathPosition + 1));
         }
         return resultDone();
     }
@@ -625,8 +617,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
             remoteNodePathPosition - 1);
         if (message->state() == CoordinatorCycleReservationResponseMessage::Rejected) {
             mCyclesManager->addClosedTrustLine(
-                    mPathStats->path()->intermediates().at(remoteNodePathPosition),
-                    mPathStats->path()->intermediates().at(remoteNodePathPosition + 1));
+                mPathStats->path()->intermediates().at(remoteNodePathPosition),
+                mPathStats->path()->intermediates().at(remoteNodePathPosition + 1));
         }
         return resultDone();
     }
@@ -777,7 +769,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
         mEquivalent,
-        currentNodeUUID(),
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
         ResponseCycleMessage::Accepted,
@@ -822,7 +813,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
         mEquivalent,
-        currentNodeUUID(),
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
         ResponseCycleMessage::Accepted,
@@ -1011,7 +1001,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
         debug() << "Voted +";
         mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             mTransactionUUID,
             mParticipantsSignatures);
@@ -1055,7 +1044,6 @@ void CycleCloserInitiatorTransaction::informIntermediateNodesAboutTransactionFin
         sendMessage<TTLProlongationResponseMessage>(
             mPathStats->path()->intermediates().at(nodePosition),
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Finish);
@@ -1126,7 +1114,6 @@ bool CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
             sendMessage<FinalPathCycleConfigurationMessage>(
                 mNextNode,
                 mEquivalent,
-                currentNodeUUID(),
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 finalPathAmount,
@@ -1138,7 +1125,6 @@ bool CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
             sendMessage<FinalPathCycleConfigurationMessage>(
                 paymentNodeIdAndAddress.second,
                 mEquivalent,
-                currentNodeUUID(),
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 finalPathAmount,

@@ -22,7 +22,6 @@ public:
 
 public:
     EquivalentsCyclesSubsystemsRouter(
-        NodeUUID &nodeUUID,
         TransactionsScheduler *transactionScheduler,
         SubsystemsController *subsystemsController,
         as::io_service &ioService,
@@ -81,7 +80,6 @@ private:
         Path::Shared cycle);
 
 private:
-    NodeUUID mNodeUUID;
     as::io_service &mIOService;
     TransactionsScheduler *mTransactionScheduler;
     SubsystemsController *mSubsystemsController;

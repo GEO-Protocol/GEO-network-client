@@ -19,7 +19,6 @@ public:
 
 public:
     AcceptTrustLineTransaction(
-        const NodeUUID &nodeUUID,
         TrustLineInitialMessage::Shared message,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
@@ -50,7 +49,6 @@ protected:
     static const uint16_t kMaxCountSendingAttempts = 3;
 
 protected:
-    NodeUUID mContractorUUID;
     ContractorID mContractorID;
     ContractorID mOwnIdOnContractorSide;
     string mSenderIncomingIP;

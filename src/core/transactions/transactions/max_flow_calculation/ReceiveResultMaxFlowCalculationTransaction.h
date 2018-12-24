@@ -14,14 +14,12 @@ public:
 
 public:
     ReceiveResultMaxFlowCalculationTransaction(
-        NodeUUID &nodeUUID,
         ResultMaxFlowCalculationMessage::Shared message,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         Logger &logger);
 
     ReceiveResultMaxFlowCalculationTransaction(
-        NodeUUID &nodeUUID,
         ResultMaxFlowCalculationGatewayMessage::Shared message,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,

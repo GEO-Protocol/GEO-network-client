@@ -1,13 +1,11 @@
 #include "RoutingTableResponseMessage.h"
 
 RoutingTableResponseMessage::RoutingTableResponseMessage(
-    const NodeUUID &sender,
     ContractorID idOnReceiverSide,
     const TransactionUUID &transactionUUID,
     vector<pair<SerializedEquivalent, vector<BaseAddress::Shared>>> neighbors):
     ConfirmationMessage(
         0,
-        sender,
         idOnReceiverSide,
         transactionUUID),
     mNeighbors(neighbors)

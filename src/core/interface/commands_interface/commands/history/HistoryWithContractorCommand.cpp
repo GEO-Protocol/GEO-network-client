@@ -50,7 +50,7 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
     } catch (...) {
         throw ValueError(
                 "HistoryWithContractorCommand: can't parse command. "
-                    "Error occurred while parsing 'Contractor UUID' token.");
+                    "Error occurred while parsing 'Contractor NodeUUID' token.");
     }
 
     tokenSeparatorPos = tokenSeparatorPos + NodeUUID::kHexSize;

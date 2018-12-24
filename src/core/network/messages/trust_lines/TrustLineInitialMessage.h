@@ -11,7 +11,6 @@ public:
 public:
     TrustLineInitialMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &sender,
         ContractorID idOnSenderSide,
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,

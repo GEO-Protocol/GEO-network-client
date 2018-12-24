@@ -2,7 +2,6 @@
 
 TrustLineInitialMessage::TrustLineInitialMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &sender,
     ContractorID idOnSenderSide,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
@@ -12,7 +11,6 @@ TrustLineInitialMessage::TrustLineInitialMessage(
 
     TransactionMessage(
         equivalent,
-        sender,
         idOnSenderSide,
         senderAddresses,
         transactionUUID),
@@ -25,7 +23,7 @@ TrustLineInitialMessage::TrustLineInitialMessage(
     noexcept :
     TransactionMessage(buffer)
 {
-    // todo: use desrializer
+    // todo: use deserializer
 
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------

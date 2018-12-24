@@ -16,13 +16,11 @@ public:
 public:
     TransactionMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID)
         noexcept;
 
     TransactionMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnReceiverSide,
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID)
@@ -30,14 +28,12 @@ public:
 
     TransactionMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID)
         noexcept;
 
     TransactionMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnReceiverSide,
         const TransactionUUID &transactionUUID)
         noexcept;

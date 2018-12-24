@@ -1,7 +1,6 @@
 #include "GatewayNotificationReceiverTransaction.h"
 
 GatewayNotificationReceiverTransaction::GatewayNotificationReceiverTransaction(
-    const NodeUUID &nodeUUID,
     GatewayNotificationMessage::Shared message,
     ContractorsManager *contractorsManager,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
@@ -11,7 +10,6 @@ GatewayNotificationReceiverTransaction::GatewayNotificationReceiverTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::GatewayNotificationReceiverType,
         message->transactionUUID(),
-        nodeUUID,
         message->equivalent(),
         logger),
     mMessage(message),
@@ -48,7 +46,6 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
             sendMessage<ConfirmationMessage>(
                 mMessage->idOnReceiverSide,
                 mEquivalent,
-                mNodeUUID,
                 mContractorsManager->idOnContractorSide(mMessage->idOnReceiverSide),
                 mMessage->transactionUUID(),
                 ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
@@ -61,7 +58,6 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
         sendMessage<ConfirmationMessage>(
             mMessage->idOnReceiverSide,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(mMessage->idOnReceiverSide),
             mMessage->transactionUUID(),
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
@@ -84,7 +80,6 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
     debug() << "Send routing tables to node " << mMessage->idOnReceiverSide;
     sendMessage<RoutingTableResponseMessage>(
         mMessage->idOnReceiverSide,
-        mNodeUUID,
         mContractorsManager->idOnContractorSide(mMessage->idOnReceiverSide),
         mTransactionUUID,
         neighborsAddressesByEquivalents);

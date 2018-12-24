@@ -12,7 +12,6 @@
 #include "internal/queue/PingMessagesHandler.h"
 #include "../../io/storage/StorageHandler.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
-#include "internal/uuid2address/UUID2Address.h"
 #include <boost/asio/steady_timer.hpp>
 
 #include "../../io/storage/CommunicatorStorageHandler.h"
@@ -33,23 +32,11 @@ public:
         IOService &ioService,
         const Host &interface,
         const Port port,
-        const Host &uuid2AddressHost,
-        const Port uuid2AddressPort,
         ContractorsManager *contractorsManager,
-        const NodeUUID &nodeUUID,
         Logger &logger)
         noexcept(false);
 
-    bool joinUUID2Address(
-        const NodeUUID &nodeUUID)
-        noexcept;
-
     void beginAcceptMessages()
-        noexcept;
-
-    void sendMessage (
-        const Message::Shared kMessage,
-        const NodeUUID &contractorUUID)
         noexcept;
 
     void sendMessage (
@@ -120,11 +107,9 @@ protected:
     const Port mPort;
     IOService &mIOService;
     unique_ptr<CommunicatorStorageHandler> mCommunicatorStorageHandler;
-    NodeUUID mNodeUUID;
     Logger &mLog;
 
     unique_ptr<UDPSocket> mSocket;
-    unique_ptr<UUID2Address> mUUID2AddressService;
     ContractorsManager *mContractorsManager;
     unique_ptr<IncomingMessagesHandler> mIncomingMessagesHandler;
     unique_ptr<OutgoingMessagesHandler> mOutgoingMessagesHandler;

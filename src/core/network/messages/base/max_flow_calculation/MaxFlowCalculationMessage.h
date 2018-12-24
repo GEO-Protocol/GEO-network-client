@@ -22,7 +22,6 @@ public:
 public:
     MaxFlowCalculationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnReceiverSide,
         vector<BaseAddress::Shared> targetAddresses);
 

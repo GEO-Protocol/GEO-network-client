@@ -2,7 +2,6 @@
 
 BaseTrustLineTransaction::BaseTrustLineTransaction(
     const TransactionType type,
-    const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
     ContractorID contractorID,
     ContractorsManager *contractorsManager,
@@ -14,7 +13,6 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
 
     BaseTransaction(
         type,
-        currentNodeUUID,
         equivalent,
         log),
     mContractorID(contractorID),
@@ -28,7 +26,6 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
 BaseTrustLineTransaction::BaseTrustLineTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID,
-    const NodeUUID &currentNodeUUID,
     const SerializedEquivalent equivalent,
     ContractorID contractorID,
     ContractorsManager *contractorsManager,
@@ -41,7 +38,6 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     BaseTransaction(
         type,
         transactionUUID,
-        currentNodeUUID,
         equivalent,
         log),
     mContractorID(contractorID),
@@ -58,7 +54,6 @@ TransactionResult::SharedConst BaseTrustLineTransaction::sendAuditErrorConfirmat
     sendMessage<AuditResponseMessage>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         currentTransactionUUID(),
         errorState);

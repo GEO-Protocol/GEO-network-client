@@ -16,7 +16,6 @@ public:
 public:
     CyclesBaseFiveSixNodesInitTransaction(
         const TransactionType type,
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,

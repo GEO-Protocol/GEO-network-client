@@ -35,16 +35,8 @@ set(SOURCE_FILES
         internal/outgoing/OutgoingRemoteNode.h
         internal/outgoing/OutgoingRemoteNode.cpp
 
-        internal/outgoing/OutgoingRemoteNodeNew.h
-        internal/outgoing/OutgoingRemoteNodeNew.cpp
-
         internal/outgoing/OutgoingRemoteAddressNode.h
         internal/outgoing/OutgoingRemoteAddressNode.cpp
-
-        # uuid2address
-        internal/uuid2address/UUID2Address.h
-        internal/uuid2address/UUID2Address.cpp
-
 
         # Confirmation required messages queue
         internal/queue/ConfirmationRequiredMessagesQueue.h

@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_TRUSTLINE_H
 
 #include "../common/Types.h"
-#include "../common/NodeUUID.h"
 #include "../common/memory/MemoryUtils.h"
 #include "../common/multiprecision/MultiprecisionUtils.h"
 
@@ -42,12 +41,8 @@ public:
         TrustLineState state);
 
     TrustLine(
-        const NodeUUID &nodeUUID,
         const ContractorID contractorID,
         const TrustLineID trustLineID);
-
-    void setContractorUUID(
-        const NodeUUID& contractorUUID);
 
     void setIncomingTrustAmount(
         const TrustLineAmount &amount);
@@ -65,8 +60,6 @@ public:
         const TrustLineAmount &amount);
 
     const ContractorID contractorID() const;
-
-    const NodeUUID& contractorNodeUUID() const;
 
     const TrustLineAmount& incomingTrustAmount() const;
 
@@ -135,7 +128,6 @@ public:
     static const AuditNumber kInitialAuditNumber = 0;
 
 private:
-    NodeUUID mContractorNodeUUID;
     ContractorID mContractorID;
     TrustLineID mID;
     TrustLineAmount mIncomingTrustAmount;

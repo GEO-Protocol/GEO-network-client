@@ -2,13 +2,11 @@
 
 PublicKeyMessage::PublicKeyMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const KeyNumber number,
     const lamport::PublicKey::Shared publicKey):
     TransactionMessage(
         equivalent,
-        senderUUID,
         transactionUUID),
     mNumber(number),
     mPublicKey(publicKey)
@@ -16,14 +14,12 @@ PublicKeyMessage::PublicKeyMessage(
 
 PublicKeyMessage::PublicKeyMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     ContractorID idOnSenderSide,
     const TransactionUUID &transactionUUID,
     const KeyNumber number,
     const lamport::PublicKey::Shared publicKey):
     TransactionMessage(
         equivalent,
-        senderUUID,
         idOnSenderSide,
         transactionUUID),
     mNumber(number),

@@ -53,15 +53,6 @@ set(SOURCE_FILES
         commands/subsystems_controller/TrustLinesInfluenceCommand.h
         commands/subsystems_controller/TrustLinesInfluenceCommand.cpp
 
-        commands/blacklist/AddNodeToBlackListCommand.h
-        commands/blacklist/AddNodeToBlackListCommand.cpp
-        commands/blacklist/RemoveNodeFromBlackListCommand.h
-        commands/blacklist/RemoveNodeFromBlackListCommand.cpp
-        commands/blacklist/GetBlackListCommand.h
-        commands/blacklist/GetBlackListCommand.cpp
-        commands/blacklist/CheckIfNodeInBlackListCommand.h
-        commands/blacklist/CheckIfNodeInBlackListCommand.cpp
-
         commands/transactions/PaymentTransactionByCommandUUIDCommand.h
         commands/transactions/PaymentTransactionByCommandUUIDCommand.cpp)
 

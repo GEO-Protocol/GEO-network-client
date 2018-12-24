@@ -1,12 +1,10 @@
 #include "NoEquivalentTransaction.h"
 
 NoEquivalentTransaction::NoEquivalentTransaction(
-    const NodeUUID &nodeUUID,
     BaseUserCommand::Shared command,
     Logger &logger):
     BaseTransaction(
         BaseTransaction::TransactionType::NoEquivalentType,
-        nodeUUID,
         0,
         logger),
     mCommand(command),
@@ -14,12 +12,10 @@ NoEquivalentTransaction::NoEquivalentTransaction(
 {}
 
 NoEquivalentTransaction::NoEquivalentTransaction(
-    const NodeUUID &nodeUUID,
     TransactionMessage::Shared message,
     Logger &logger):
     BaseTransaction(
         BaseTransaction::TransactionType::NoEquivalentType,
-        nodeUUID,
         0,
         logger),
     mCommand(nullptr),
@@ -36,7 +32,6 @@ TransactionResult::SharedConst NoEquivalentTransaction::run()
         sendMessage<NoEquivalentMessage>(
             mMessage->senderAddresses.at(0),
             mMessage->equivalent(),
-            mNodeUUID,
             mMessage->transactionUUID());
     } else {
         error() << "Command and Message are empty";

@@ -1,24 +1,17 @@
 #include "HistoryTrustLinesTransaction.h"
 
 HistoryTrustLinesTransaction::HistoryTrustLinesTransaction(
-    NodeUUID &nodeUUID,
     HistoryTrustLinesCommand::Shared command,
     StorageHandler *storageHandler,
     Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::HistoryTrustLinesTransactionType,
-        nodeUUID,
         command->equivalent(),
         logger),
     mCommand(command),
     mStorageHandler(storageHandler)
 {}
-
-HistoryTrustLinesCommand::Shared HistoryTrustLinesTransaction::command() const
-{
-    return mCommand;
-}
 
 TransactionResult::SharedConst HistoryTrustLinesTransaction::run()
 {

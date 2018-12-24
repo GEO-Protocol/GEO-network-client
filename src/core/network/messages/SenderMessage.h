@@ -3,33 +3,29 @@
 
 #include "EquivalentMessage.h"
 
-#include "../../common/NodeUUID.h"
-#include "../../contractors/addresses/IPv4WithPortAddress.h"
+#include "../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../common/serialization/BytesDeserializer.h"
 #include "../../common/serialization/BytesSerializer.h"
 
 /*
- * Abstract base class for messages that must contain sender node UUID.
+ * Abstract base class for messages that must contain sender node address.
  */
 class SenderMessage:
     public EquivalentMessage {
 
 public:
-    const NodeUUID senderUUID;
     ContractorID idOnReceiverSide;
     vector<BaseAddress::Shared> senderAddresses;
 
 public:
     SenderMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnReceiverSide,
         vector<BaseAddress::Shared> senderAddresses = {})
         noexcept;
 
     SenderMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> &senderAddresses)
         noexcept;
 
@@ -39,8 +35,8 @@ public:
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
-    static BaseAddress::Shared deserializeAddress(
-        byte* offset);
+//    static BaseAddress::Shared deserializeAddress(
+//        byte* offset);
 
 protected:
     virtual const size_t kOffsetToInheritedBytes() const

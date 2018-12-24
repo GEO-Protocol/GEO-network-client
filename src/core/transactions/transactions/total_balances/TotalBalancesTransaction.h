@@ -12,7 +12,6 @@ public:
 
 public:
     TotalBalancesTransaction(
-        NodeUUID &nodeUUID,
         TotalBalancesCommand::Shared command,
         TrustLinesManager *manager,
         Logger &logger);

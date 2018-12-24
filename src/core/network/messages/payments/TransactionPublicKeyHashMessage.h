@@ -14,7 +14,6 @@ public:
 public:
     TransactionPublicKeyHashMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const PaymentNodeID paymentNodeID,
@@ -22,7 +21,6 @@ public:
 
     TransactionPublicKeyHashMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const PaymentNodeID paymentNodeID,

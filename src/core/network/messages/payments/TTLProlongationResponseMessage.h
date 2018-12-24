@@ -18,7 +18,6 @@ public:
 public:
     TTLProlongationResponseMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const OperationState state);

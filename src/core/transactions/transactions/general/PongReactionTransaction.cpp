@@ -1,14 +1,12 @@
 #include "PongReactionTransaction.h"
 
 PongReactionTransaction::PongReactionTransaction(
-    const NodeUUID &nodeUUID,
     PongMessage::Shared message,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     StorageHandler *storageHandler,
     Logger &logger):
     BaseTransaction(
         BaseTransaction::PongReactionType,
-        nodeUUID,
         0,
         logger),
     mContractorID(message->idOnReceiverSide),

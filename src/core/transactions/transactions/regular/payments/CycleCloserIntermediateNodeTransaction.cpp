@@ -1,7 +1,6 @@
 #include "CycleCloserIntermediateNodeTransaction.h"
 
 CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
-    const NodeUUID& currentNodeUUID,
     IntermediateNodeCycleReservationRequestMessage::ConstShared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager* trustLines,
@@ -16,7 +15,6 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     BasePaymentTransaction(
         BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction,
         message->transactionUUID(),
-        currentNodeUUID,
         message->equivalent(),
         false,
         contractorsManager,
@@ -35,7 +33,6 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
 
 CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     BytesShared buffer,
-    const NodeUUID &nodeUUID,
     ContractorsManager *contractorsManager,
     TrustLinesManager* trustLines,
     CyclesManager *cyclesManager,
@@ -48,7 +45,6 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
 
     BasePaymentTransaction(
         buffer,
-        nodeUUID,
         false,
         contractorsManager,
         trustLines,
@@ -194,7 +190,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         ResponseCycleMessage::Accepted,
@@ -238,7 +233,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         ResponseCycleMessage::Accepted,
@@ -366,7 +360,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
         mNextNode,
         mEquivalent,
-        currentNodeUUID(),
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
         mReservationAmount,
@@ -409,7 +402,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
         mNextNode,
         mEquivalent,
-        currentNodeUUID(),
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
         mReservationAmount,
@@ -499,7 +491,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
     sendMessage<CoordinatorCycleReservationResponseMessage>(
         mCoordinator,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         ResponseCycleMessage::Accepted,
@@ -665,7 +656,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
             sendMessage<TransactionPublicKeyHashMessage>(
                 paymentNodeIdAndAddress.second,
                 mEquivalent,
-                currentNodeUUID(),
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 ownPaymentID,
@@ -700,7 +690,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
             sendMessage<TransactionPublicKeyHashMessage>(
                 paymentNodeIdAndAddress.second,
                 mEquivalent,
-                currentNodeUUID(),
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 ownPaymentID,
@@ -714,7 +703,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
             sendMessage<TransactionPublicKeyHashMessage>(
                 paymentNodeIdAndAddress.second,
                 mEquivalent,
-                currentNodeUUID(),
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 ownPaymentID,
@@ -733,7 +721,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         sendMessage<FinalAmountsConfigurationResponseMessage>(
             mCoordinator,
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             FinalAmountsConfigurationResponseMessage::Accepted,
@@ -838,7 +825,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
         sendMessage<FinalAmountsConfigurationResponseMessage>(
             mCoordinator,
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             FinalAmountsConfigurationResponseMessage::Accepted,
@@ -952,7 +938,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::sendError
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         errorState);
@@ -965,7 +950,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::sendError
     sendMessage<CoordinatorCycleReservationResponseMessage>(
         mCoordinator,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         errorState);
@@ -979,7 +963,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::sendError
     sendMessage<CoordinatorCycleReservationResponseMessage>(
         mCoordinator,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         errorState);
@@ -992,7 +975,6 @@ void CycleCloserIntermediateNodeTransaction::sendErrorMessageOnFinalAmountsConfi
     sendMessage<FinalAmountsConfigurationResponseMessage>(
         mCoordinator,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         FinalAmountsConfigurationResponseMessage::Rejected);

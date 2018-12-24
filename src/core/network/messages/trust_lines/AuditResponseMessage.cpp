@@ -2,14 +2,12 @@
 
 AuditResponseMessage::AuditResponseMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     ContractorID idOnSenderSide,
     const TransactionUUID &transactionUUID,
     const KeyNumber keyNumber,
     const lamport::Signature::Shared signature):
     ConfirmationMessage(
         equivalent,
-        senderUUID,
         idOnSenderSide,
         transactionUUID),
     mSignature(signature),
@@ -18,13 +16,11 @@ AuditResponseMessage::AuditResponseMessage(
 
 AuditResponseMessage::AuditResponseMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     ContractorID idOnSenderSide,
     const TransactionUUID &transactionUUID,
     OperationState state) :
     ConfirmationMessage(
         equivalent,
-        senderUUID,
         idOnSenderSide,
         transactionUUID,
         state),

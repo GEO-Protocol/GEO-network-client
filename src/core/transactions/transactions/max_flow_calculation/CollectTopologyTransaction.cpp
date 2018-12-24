@@ -1,7 +1,6 @@
 #include "CollectTopologyTransaction.h"
 
 CollectTopologyTransaction::CollectTopologyTransaction(
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     const vector<BaseAddress::Shared> &contractorAddresses,
     ContractorsManager *contractorsManager,
@@ -14,7 +13,6 @@ CollectTopologyTransaction::CollectTopologyTransaction(
 
     BaseTransaction(
         BaseTransaction::TransactionType::CollectTopologyTransactionType,
-        nodeUUID,
         equivalent,
         logger),
     mContractorAddresses(contractorAddresses),
@@ -80,7 +78,6 @@ void CollectTopologyTransaction::sendMessagesToContractors()
         sendMessage<InitiateMaxFlowCalculationMessage>(
             contractorAddress,
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             mIamGateway);
 }
@@ -97,7 +94,6 @@ void CollectTopologyTransaction::sendMessagesOnFirstLevel()
             sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
                 nodeIDOutgoingFlow,
                 mEquivalent,
-                mNodeUUID,
                 mContractorsManager->idOnContractorSide(nodeIDOutgoingFlow));
         }
     } else {
@@ -106,6 +102,7 @@ void CollectTopologyTransaction::sendMessagesOnFirstLevel()
         while (outgoingFlowIDIt != outgoingFlowIDs.end()) {
             auto contractorAddress = mContractorsManager->contractorMainAddress(*outgoingFlowIDIt);
             if (isNodeListedInTransactionContractors(contractorAddress)) {
+                outgoingFlowIDIt++;
                 continue;
             }
             // firstly send message to gateways
@@ -113,7 +110,6 @@ void CollectTopologyTransaction::sendMessagesOnFirstLevel()
                 sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
                     *outgoingFlowIDIt,
                     mEquivalent,
-                    mNodeUUID,
                     mContractorsManager->idOnContractorSide(*outgoingFlowIDIt));
                 outgoingFlowIDs.erase(outgoingFlowIDIt);
             } else {
@@ -124,7 +120,6 @@ void CollectTopologyTransaction::sendMessagesOnFirstLevel()
             sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
                 nodeIDWithOutgoingFlow,
                 mEquivalent,
-                mNodeUUID,
                 mContractorsManager->idOnContractorSide(nodeIDWithOutgoingFlow));
         }
     }

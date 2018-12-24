@@ -16,12 +16,9 @@ public:
 
 public:
     HistoryWithContractorTransaction(
-        NodeUUID &nodeUUID,
         HistoryWithContractorCommand::Shared command,
         StorageHandler *storageHandler,
         Logger &logger);
-
-    HistoryWithContractorCommand::Shared command() const;
 
     TransactionResult::SharedConst run();
 

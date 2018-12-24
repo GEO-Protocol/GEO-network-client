@@ -2,14 +2,12 @@
 
 CyclesManager::CyclesManager(
     const SerializedEquivalent equivalent,
-    const NodeUUID &nodeUUID,
     TransactionsScheduler *transactionsScheduler,
     as::io_service &ioService,
     Logger &logger,
     SubsystemsController *subsystemsController) :
 
     mEquivalent(equivalent),
-    mNodeUUID(nodeUUID),
     mTransactionScheduler(transactionsScheduler),
     mIOService(ioService),
     mLog(logger),
@@ -414,10 +412,11 @@ void CyclesManager::updateOfflineNodesAndClosedTLLists(
 
 uint32_t CyclesManager::randomInitializer() const
 {
+    NodeUUID randomInitializator;
     uint32_t result = 0;
     for (int i=0; i < NodeUUID::kBytesSize; i++) {
         result = result << 2;
-        byte tmp = (byte)(mNodeUUID.data[i] * mEquivalent);
+        byte tmp = (byte)(randomInitializator.data[i] * mEquivalent);
         result |= (tmp & 0x3);
 
     }

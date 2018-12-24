@@ -10,7 +10,6 @@ public:
 
 public:
     GatewayNotificationMessage(
-        const NodeUUID &senderUUID,
         ContractorID idOnReceiverSide,
         const TransactionUUID &transactionUUID,
         const vector<SerializedEquivalent> gatewayEquivalents);

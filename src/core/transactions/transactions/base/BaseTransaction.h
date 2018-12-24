@@ -4,14 +4,10 @@
 #include "TransactionUUID.h"
 
 #include "../../../common/Types.h"
-#include "../../../common/NodeUUID.h"
 #include "../../../common/memory/MemoryUtils.h"
 
-#include "../../../network/messages/Message.hpp"
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
 #include "../result/TransactionResult.h"
-#include "../result/state/TransactionState.h"
-#include "../../../interface/results_interface/result/CommandResult.h"
 #include "../../../resources/resources/BaseResource.h"
 
 #include "../../../common/exceptions/RuntimeError.h"
@@ -35,8 +31,7 @@ public:
     typedef uint16_t SerializedTransactionType;
     typedef uint16_t SerializedStep;
 
-    typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
-    typedef signals::signal<void(Message::Shared, const ContractorID)> SendMessageNewSignal;
+    typedef signals::signal<void(Message::Shared, const ContractorID)> SendMessageSignal;
     typedef signals::signal<void(Message::Shared, BaseAddress::Shared)> SendMessageToAddressSignal;
     typedef signals::signal<void(
             TransactionMessage::Shared,
@@ -139,8 +134,6 @@ public:
 
     const TransactionUUID &currentTransactionUUID () const;
 
-    const NodeUUID &currentNodeUUID () const;
-
     const SerializedEquivalent equivalent() const;
 
     const int currentStep() const;
@@ -173,20 +166,17 @@ protected:
 
     BaseTransaction(
         const TransactionType type,
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         Logger &log);
 
     BaseTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID,
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         Logger &log);
 
     BaseTransaction(
         BytesShared buffer,
-        const NodeUUID &nodeUUID,
         Logger &log);
 
     // TODO: convert to hpp?
@@ -209,22 +199,11 @@ protected:
     // TODO: convert to hpp?
     template <typename MessageType, typename... Args>
     inline void sendMessage(
-        const NodeUUID &addressee,
-        Args&&... args) const
-    {
-        const auto message = make_shared<MessageType>(args...);
-        outgoingMessageIsReadySignal(
-            message,
-            addressee);
-    }
-
-    template <typename MessageType, typename... Args>
-    inline void sendMessage(
         const ContractorID addressee,
         Args&&... args) const
     {
         const auto message = make_shared<MessageType>(args...);
-        outgoingMessageIsReadyNewSignal(
+        outgoingMessageIsReadySignal(
             message,
             addressee);
     }
@@ -241,19 +220,10 @@ protected:
     }
 
     inline void sendMessage(
-        const NodeUUID &addressee,
-        const Message::Shared message) const
-    {
-        outgoingMessageIsReadySignal(
-            message,
-            addressee);
-    }
-
-    inline void sendMessage(
         const ContractorID addressee,
         const Message::Shared message) const
     {
-        outgoingMessageIsReadyNewSignal(
+        outgoingMessageIsReadySignal(
             message,
             addressee);
     }
@@ -297,7 +267,7 @@ protected:
     }
 
     void launchSubsidiaryTransaction(
-      BaseTransaction::Shared transaction);
+        BaseTransaction::Shared transaction);
 
     void clearContext();
 
@@ -345,7 +315,6 @@ protected:
 
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
-    mutable SendMessageNewSignal outgoingMessageIsReadyNewSignal;
     mutable SendMessageToAddressSignal outgoingMessageToAddressReadySignal;
     mutable SendMessageWithCachingSignal sendMessageWithCachingSignal;
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
@@ -356,12 +325,8 @@ public:
     mutable AuditSignal auditSignal;
 
 protected:
-    static const uint16_t mkStandardConnectionTimeout = 1500; //milliseconds
-
-protected:
     TransactionType mType;
     TransactionUUID mTransactionUUID;
-    NodeUUID mNodeUUID;
     SerializedEquivalent mEquivalent;
     deque<Message::Shared> mContext;
     deque<BaseResource::Shared> mResources;

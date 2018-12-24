@@ -1,7 +1,6 @@
 #include "PublicKeysSharingTargetTransaction.h"
 
 PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
-    const NodeUUID &nodeUUID,
     PublicKeysSharingInitMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
@@ -12,7 +11,6 @@ PublicKeysSharingTargetTransaction::PublicKeysSharingTargetTransaction(
     BaseTransaction(
         BaseTransaction::PublicKeysSharingTargetTransactionType,
         message->transactionUUID(),
-        nodeUUID,
         message->equivalent(),
         logger),
     mContractorID(message->idOnReceiverSide),
@@ -163,7 +161,6 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             Message::TrustLines_PublicKeysSharingInit,
             kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             mCurrentKeyNumber,
@@ -174,7 +171,6 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             Message::TrustLines_PublicKey,
             kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             mCurrentKeyNumber,
@@ -218,7 +214,6 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::sendKeyErrorC
     sendMessage<PublicKeyHashConfirmation>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         errorState);

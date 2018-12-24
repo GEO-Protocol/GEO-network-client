@@ -14,7 +14,6 @@ public:
 public:
     CyclesFourNodesBalancesResponseMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
         vector<BaseAddress::Shared> &suitableNodes);

@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_CONTRACTOR_H
 
 #include "../common/Types.h"
-#include "../common/NodeUUID.h"
 #include "addresses/IPv4WithPortAddress.h"
 
 class Contractor {
@@ -12,19 +11,16 @@ public:
 public:
     Contractor(
         ContractorID id,
-        const NodeUUID &uuid,
         BaseAddress::Shared address);
 
     Contractor(
         ContractorID id,
         ContractorID idOnContractorSide,
-        const NodeUUID &uuid,
         BaseAddress::Shared address);
 
     Contractor(
         ContractorID id,
         ContractorID idOnContractorSide,
-        const NodeUUID &uuid,
         const string &address);
 
     const ContractorID getID() const;
@@ -32,8 +28,6 @@ public:
     const ContractorID ownIdOnContractorSide() const;
 
     void setOwnIdOnContractorSide(ContractorID id);
-
-    const NodeUUID& getUUID() const;
 
     const BaseAddress::Shared getAddress() const;
 
@@ -44,7 +38,6 @@ public:
 private:
     ContractorID mID;
     ContractorID mOwnIdOnContractorSide;
-    NodeUUID mUUID;
     BaseAddress::Shared mAddress;
 };
 

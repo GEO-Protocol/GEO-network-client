@@ -15,7 +15,6 @@ class CyclesThreeNodesInitTransaction :
 
 public:
     CyclesThreeNodesInitTransaction(
-        const NodeUUID &nodeUUID,
         ContractorID contractorID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,

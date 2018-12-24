@@ -34,10 +34,6 @@ public:
         const SerializedEquivalent equivalent);
 
     void deleteTrustLine(
-        const NodeUUID &contractorUUID,
-        const SerializedEquivalent equivalent);
-
-    void deleteTrustLine(
         ContractorID contractorID,
         const SerializedEquivalent equivalent);
 

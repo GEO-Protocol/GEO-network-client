@@ -1,11 +1,9 @@
 #include "GatewayNotificationAndRoutingTablesDelayedTask.h"
 
 GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationAndRoutingTablesDelayedTask(
-    const NodeUUID &nodeUUID,
     as::io_service &ioService,
     Logger &logger):
 
-    mNodeUUID(nodeUUID),
     mIOService(ioService),
     mLog(logger)
 {
@@ -54,10 +52,11 @@ void GatewayNotificationAndRoutingTablesDelayedTask::runSignalNotify(
 
 uint32_t GatewayNotificationAndRoutingTablesDelayedTask::randomInitializer() const
 {
+    NodeUUID randomInitializator;
     uint32_t result = 0;
     for (int i=0; i < NodeUUID::kBytesSize; i++) {
         result = result << 2;
-        result |= (mNodeUUID.data[i] & 0x3);
+        result |= (randomInitializator.data[i] & 0x3);
     }
     return result;
 }

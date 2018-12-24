@@ -20,7 +20,6 @@ public:
 
 public:
     PublicKeysSharingTargetTransaction(
-        const NodeUUID &nodeUUID,
         PublicKeysSharingInitMessage::Shared message,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,

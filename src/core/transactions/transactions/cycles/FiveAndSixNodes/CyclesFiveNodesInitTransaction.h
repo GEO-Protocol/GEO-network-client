@@ -10,7 +10,6 @@ class CyclesFiveNodesInitTransaction :
 
 public:
     CyclesFiveNodesInitTransaction(
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,

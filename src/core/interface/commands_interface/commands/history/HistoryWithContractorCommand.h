@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_HISTORYWITHCONTRACTORCOMMAND_H
 
 #include "../BaseUserCommand.h"
+#include "../../../../common/NodeUUID.h"
 #include "../../../../common/exceptions/ValueError.h"
 
 class HistoryWithContractorCommand : public BaseUserCommand {

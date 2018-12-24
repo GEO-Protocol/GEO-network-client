@@ -16,7 +16,6 @@ public:
 public:
     CyclesFourNodesNegativeBalanceRequestMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
         BaseAddress::Shared contractorAddress,

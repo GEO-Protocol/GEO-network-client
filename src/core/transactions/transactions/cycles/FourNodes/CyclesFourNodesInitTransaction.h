@@ -17,7 +17,6 @@ class CyclesFourNodesInitTransaction :
 
 public:
     CyclesFourNodesInitTransaction(
-        const NodeUUID &nodeUUID,
         ContractorID contractorID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,

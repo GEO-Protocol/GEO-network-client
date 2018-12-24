@@ -2,7 +2,6 @@
 #define OUTGOINGNODESHANDLER_H
 
 #include "OutgoingRemoteNode.h"
-#include "OutgoingRemoteNodeNew.h"
 #include "OutgoingRemoteAddressNode.h"
 #include "../../../../contractors/ContractorsManager.h"
 
@@ -17,16 +16,11 @@ public:
     OutgoingNodesHandler (
         IOService &ioService,
         UDPSocket &socket,
-        UUID2Address &UUID2AddressService,
         ContractorsManager *contractorsManager,
         Logger &logger)
         noexcept;
 
     OutgoingRemoteNode* handler(
-        const NodeUUID &nodeUUID)
-        noexcept;
-
-    OutgoingRemoteNodeNew* handler(
         const ContractorID contractorID)
         noexcept;
 
@@ -45,9 +39,6 @@ protected:
     void removeOutdatedHandlers()
         noexcept;
 
-    void removeOutdatedHandlersNew()
-        noexcept;
-
     void removeOutdatedAddressHandlers()
         noexcept;
 
@@ -58,18 +49,15 @@ protected:
         noexcept;
 
 protected:
-    boost::unordered_map<NodeUUID, OutgoingRemoteNode::Unique> mNodes;
-    boost::unordered_map<ContractorID, OutgoingRemoteNodeNew::Unique> mNodesNew;
+    boost::unordered_map<ContractorID, OutgoingRemoteNode::Unique> mNodes;
     boost::unordered_map<string, OutgoingRemoteAddressNode::Unique> mAddressNodes;
-    boost::unordered_map<NodeUUID, DateTime> mLastAccessDateTimes;
-    boost::unordered_map<ContractorID, DateTime> mLastAccessDateTimesNew;
+    boost::unordered_map<ContractorID, DateTime> mLastAccessDateTimes;
     boost::unordered_map<string, DateTime> mLastAccessDateTimesAddress;
 
     boost::asio::steady_timer mCleaningTimer;
 
     IOService &mIOService;
     UDPSocket &mSocket;
-    UUID2Address &mUUID2AddressService;
     ContractorsManager *mContractorsManager;
     Logger &mLog;
 };

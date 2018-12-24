@@ -14,7 +14,6 @@ public:
 
 public:
     GetFirstLevelContractorsTransaction(
-        NodeUUID &nodeUUID,
         GetFirstLevelContractorsCommand::Shared command,
         TrustLinesManager *manager,
         Logger &logger)

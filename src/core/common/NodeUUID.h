@@ -44,15 +44,4 @@ public:
     const string stringUUID() const;
 };
 
-namespace std {
-    template <>
-    class hash<NodeUUID>{
-    public :
-        size_t operator()(const NodeUUID &nodeUUID) const {
-            const auto kPtr = reinterpret_cast<const size_t* >(nodeUUID.data);
-            return *kPtr;
-        }
-    };
-}
-
 #endif //GEO_NETWORK_CLIENT_NODEUUID_H

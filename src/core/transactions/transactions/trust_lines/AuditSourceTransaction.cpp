@@ -1,7 +1,6 @@
 #include "AuditSourceTransaction.h"
 
 AuditSourceTransaction::AuditSourceTransaction(
-    const NodeUUID &nodeUUID,
     ContractorID contractorID,
     const SerializedEquivalent equivalent,
     ContractorsManager *contractorsManager,
@@ -12,7 +11,6 @@ AuditSourceTransaction::AuditSourceTransaction(
     Logger &logger) :
     BaseTrustLineTransaction(
         BaseTransaction::AuditSourceTransactionType,
-        nodeUUID,
         equivalent,
         contractorID,
         contractorsManager,
@@ -28,7 +26,6 @@ AuditSourceTransaction::AuditSourceTransaction(
 }
 
 AuditSourceTransaction::AuditSourceTransaction(
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     ContractorsManager *contractorsManager,
     ContractorID contractorID,
@@ -39,7 +36,6 @@ AuditSourceTransaction::AuditSourceTransaction(
     Logger &logger) :
     BaseTrustLineTransaction(
         BaseTransaction::AuditSourceTransactionType,
-        nodeUUID,
         equivalent,
         contractorID,
         contractorsManager,
@@ -161,7 +157,6 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
     sendMessage<AuditMessage>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mContractorID,
@@ -246,7 +241,6 @@ TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
     sendMessage<AuditMessage>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mContractorID,
@@ -273,7 +267,6 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
             sendMessage<AuditMessage>(
                 mContractorID,
                 mEquivalent,
-                mNodeUUID,
                 mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
                 mContractorID,
@@ -292,7 +285,6 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         sendMessage<PingMessage>(
             mContractorID,
             0,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(mContractorID));
         return resultDone();
     }

@@ -16,7 +16,6 @@ public:
 
 public:
     GetFirstLevelContractorBalanceTransaction(
-        NodeUUID &nodeUUID,
         GetTrustLineCommand::Shared command,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,

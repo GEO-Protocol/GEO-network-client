@@ -1,14 +1,12 @@
 #include "GetFirstLevelContractorsTransaction.h"
 
 GetFirstLevelContractorsTransaction::GetFirstLevelContractorsTransaction(
-    NodeUUID &nodeUUID,
     GetFirstLevelContractorsCommand::Shared command,
     TrustLinesManager *manager,
     Logger &logger)
     noexcept :
     BaseTransaction(
         BaseTransaction::ContractorsList,
-        nodeUUID,
         command->equivalent(),
         logger),
     mCommand(command),

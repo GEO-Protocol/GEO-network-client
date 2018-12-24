@@ -4,6 +4,7 @@
 #include "../common/time/TimeUtils.h"
 #include "../logger/Logger.h"
 #include "../common/Types.h"
+#include "../transactions/transactions/base/TransactionUUID.h"
 
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/deadline_timer.hpp>
@@ -21,7 +22,6 @@ public:
 
 public:
     GatewayNotificationAndRoutingTablesDelayedTask(
-        const NodeUUID &nodeUUID,
         as::io_service &mIOService,
         Logger &logger);
 
@@ -46,7 +46,6 @@ private:
     static const uint32_t kUpdatingTimerPeriodSeconds = 60 * 60 * 24 * 2;
 
 private:
-    NodeUUID mNodeUUID;
     as::io_service &mIOService;
     unique_ptr<as::steady_timer> mNotificationTimer;
     Logger &mLog;

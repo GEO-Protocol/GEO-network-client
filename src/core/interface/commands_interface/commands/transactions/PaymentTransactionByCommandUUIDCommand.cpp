@@ -8,7 +8,7 @@ PaymentTransactionByCommandUUIDCommand::PaymentTransactionByCommandUUIDCommand(
         commandUUID,
         identifier())
 {
-    static const auto minCommandLength = NodeUUID::kHexSize + 1;
+    static const auto minCommandLength = CommandUUID::kHexSize + 1;
 
     if (commandBuffer.size() < minCommandLength) {
         throw ValueError(
@@ -17,13 +17,13 @@ PaymentTransactionByCommandUUIDCommand::PaymentTransactionByCommandUUIDCommand(
     }
 
     try {
-        string hexUUID = commandBuffer.substr(0, NodeUUID::kHexSize);
+        string hexUUID = commandBuffer.substr(0, CommandUUID::kHexSize);
         mPaymentTransactionCommandUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {
         throw ValueError(
             "PaymentTransactionByCommandUUIDCommand: can't parse command. "
-                    "Error occurred while parsing 'Payment transaction command UUID' token.");
+                    "Error occurred while parsing 'Payment transaction command NodeUUID' token.");
     }
 }
 

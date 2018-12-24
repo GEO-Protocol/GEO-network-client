@@ -14,7 +14,6 @@ public:
 public:
     AuditResponseMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         const KeyNumber keyNumber,
@@ -22,7 +21,6 @@ public:
 
     AuditResponseMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         OperationState state);

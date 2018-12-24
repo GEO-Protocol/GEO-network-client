@@ -18,7 +18,6 @@ public:
 
 public:
     CollectTopologyTransaction(
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         const vector<BaseAddress::Shared> &contractorAddresses,
         ContractorsManager *contractorsManager,

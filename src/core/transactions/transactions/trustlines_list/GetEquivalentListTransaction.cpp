@@ -1,14 +1,12 @@
 #include "GetEquivalentListTransaction.h"
 
 GetEquivalentListTransaction::GetEquivalentListTransaction(
-    NodeUUID &nodeUUID,
     EquivalentListCommand::Shared command,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     Logger &logger)
     noexcept :
     BaseTransaction(
         BaseTransaction::EquivalentsList,
-        nodeUUID,
         0,
         logger),
     mCommand(command),

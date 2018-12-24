@@ -2,14 +2,12 @@
 
 RequestCycleMessage::RequestCycleMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID),
     mAmount(amount)

@@ -15,7 +15,6 @@ public:
 
 public:
     AuditTargetTransaction(
-        const NodeUUID &nodeUUID,
         AuditMessage::Shared message,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,

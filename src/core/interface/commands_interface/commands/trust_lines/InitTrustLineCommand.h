@@ -18,9 +18,6 @@ public:
     static const string &identifier()
     noexcept;
 
-    const NodeUUID &contractorUUID() const
-    noexcept;
-
     const SerializedEquivalent equivalent() const
     noexcept;
 
@@ -28,7 +25,6 @@ public:
     noexcept;
 
 private:
-    NodeUUID mContractorUUID;
     SerializedEquivalent mEquivalent;
     BaseAddress::Shared mContractorAddress;
 };

@@ -12,7 +12,6 @@ public:
 
 public:
     ReceiverPaymentTransaction(
-        const NodeUUID &currentNodeUUID,
         ReceiverInitPaymentRequestMessage::ConstShared message,
         bool iAmGateway,
         ContractorsManager *contractorsManager,
@@ -26,7 +25,6 @@ public:
 
     ReceiverPaymentTransaction(
         BytesShared buffer,
-        const NodeUUID &nodeUUID,
         bool iAmGateway,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,

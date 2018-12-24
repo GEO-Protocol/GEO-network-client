@@ -15,7 +15,6 @@ public:
 public:
     FinalAmountsConfigurationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
@@ -24,7 +23,6 @@ public:
     // if coordinator has reservation with current node it also send receipt
     FinalAmountsConfigurationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,

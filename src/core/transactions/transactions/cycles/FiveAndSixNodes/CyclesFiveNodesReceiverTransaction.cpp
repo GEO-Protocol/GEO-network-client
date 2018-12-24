@@ -1,14 +1,12 @@
 #include "CyclesFiveNodesReceiverTransaction.h"
 
 CyclesFiveNodesReceiverTransaction::CyclesFiveNodesReceiverTransaction(
-    const NodeUUID &nodeUUID,
     CyclesFiveNodesInBetweenMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     Logger &logger) :
     BaseTransaction(
         BaseTransaction::Cycles_FiveNodesReceiverTransaction,
-        nodeUUID,
         message->equivalent(),
         logger),
     mContractorsManager(contractorsManager),

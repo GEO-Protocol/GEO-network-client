@@ -2,14 +2,12 @@
 
 ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
     vector<BaseAddress::Shared> senderAddresses,
     vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &outgoingFlows,
     vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &incomingFlows) :
 
     MaxFlowCalculationConfirmationMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         0),
     mOutgoingFlows(outgoingFlows),

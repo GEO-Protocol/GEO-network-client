@@ -18,12 +18,10 @@ public:
 
     ContractorID getContractorID(
         IOTransaction::Shared ioTransaction,
-        BaseAddress::Shared contractorAddress,
-        const NodeUUID &contractorUUID);
+        BaseAddress::Shared contractorAddress);
 
     ContractorID getContractorID(
         BaseAddress::Shared contractorAddress,
-        const NodeUUID &contractorUUID,
         ContractorID idOnContractorSide,
         IOTransaction::Shared ioTransaction = nullptr);
 

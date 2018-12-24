@@ -5,7 +5,6 @@ IOTransaction::IOTransaction(
     TrustLineHandler *trustLineHandler,
     HistoryStorage *historyStorage,
     TransactionsHandler *transactionHandler,
-    BlackListHandler *blackListHandler,
     OwnKeysHandler *ownKeysHandler,
     ContractorKeysHandler *contractorKeysHandler,
     AuditHandler *auditHandler,
@@ -20,7 +19,6 @@ IOTransaction::IOTransaction(
     mTrustLineHandler(trustLineHandler),
     mHistoryStorage(historyStorage),
     mTransactionHandler(transactionHandler),
-    mBlackListHandler(blackListHandler),
     mOwnKeysHandler(ownKeysHandler),
     mContractorKeysHandler(contractorKeysHandler),
     mAuditHandler(auditHandler),
@@ -225,12 +223,4 @@ void IOTransaction::beginTransactionQuery() {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "transaction begin";
 #endif
-}
-
-BlackListHandler *IOTransaction::blackListHandler() {
-    if (!mIsTransactionBegin) {
-        throw IOError("IOTransaction::historyStorage: "
-                          "transaction was rollback, it can't be use now");
-    }
-    return mBlackListHandler;
 }

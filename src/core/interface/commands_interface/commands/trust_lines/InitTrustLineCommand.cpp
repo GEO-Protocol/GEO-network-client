@@ -8,7 +8,7 @@ InitTrustLineCommand::InitTrustLineCommand(
         commandUUID,
         identifier())
 {
-    static const auto minCommandLength = NodeUUID::kHexSize + 1;
+    static const auto minCommandLength = 7;
 
     if (command.size() < minCommandLength) {
         throw ValueError(
@@ -16,17 +16,7 @@ InitTrustLineCommand::InitTrustLineCommand(
                 "Received command is to short.");
     }
 
-    try {
-        string hexUUID = command.substr(0, NodeUUID::kHexSize);
-        mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
-
-    } catch (...) {
-        throw ValueError(
-            "InitTrustLineCommand: can't parse command. "
-                "Error occurred while parsing 'Contractor UUID' token.");
-    }
-
-    size_t contractorAddressStartPos = NodeUUID::kHexSize + 1;
+    size_t contractorAddressStartPos = 0;
     size_t tokenSeparatorPos = command.find(
         kTokensSeparator,
         contractorAddressStartPos);
@@ -60,12 +50,6 @@ noexcept
 {
     static const string identifier = "INIT:contractors/trust-line";
     return identifier;
-}
-
-const NodeUUID &InitTrustLineCommand::contractorUUID() const
-noexcept
-{
-    return mContractorUUID;
 }
 
 const SerializedEquivalent InitTrustLineCommand::equivalent() const

@@ -1,7 +1,6 @@
 #include "FindPathByMaxFlowTransaction.h"
 
 FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
-    NodeUUID &nodeUUID,
     BaseAddress::Shared contractorAddress,
     const TransactionUUID &requestedTransactionUUID,
     const SerializedEquivalent equivalent,
@@ -17,7 +16,6 @@ FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
 
     BaseCollectTopologyTransaction(
         BaseTransaction::FindPathByMaxFlowTransactionType,
-        nodeUUID,
         equivalent,
         contractorsManager,
         manager,
@@ -43,7 +41,6 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::sendRequestForColle
             mContractorAddress);
         info() << "ContractorID " << mContractorID;
         const auto kTransaction = make_shared<CollectTopologyTransaction>(
-            mNodeUUID,
             mEquivalent,
             contractors,
             mContractorsManager,

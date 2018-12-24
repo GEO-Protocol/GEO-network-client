@@ -94,7 +94,6 @@ void TrustLinesManager::loadTrustLinesFromStorage()
 
 void TrustLinesManager::open(
     ContractorID contractorID,
-    const NodeUUID &contractorUUID,
     IOTransaction::Shared ioTransaction)
 {
     if (trustLineIsPresent(contractorID)) {
@@ -106,7 +105,6 @@ void TrustLinesManager::open(
     // new trust line should be created.
     // contractor is not gateway by default
     auto trustLine = make_shared<TrustLine>(
-        contractorUUID,
         contractorID,
         trustLineID);
     mTrustLines[contractorID] = trustLine;
@@ -120,7 +118,6 @@ void TrustLinesManager::open(
 
 void TrustLinesManager::accept(
     ContractorID contractorID,
-    const NodeUUID &contractorUUID,
     IOTransaction::Shared ioTransaction)
 {
     if (trustLineIsPresent(contractorID)) {
@@ -133,7 +130,6 @@ void TrustLinesManager::accept(
     // new trust line should be created.
     // contractor is not gateway by default
     auto trustLine = make_shared<TrustLine>(
-        contractorUUID,
         contractorID,
         trustLineID);
     mTrustLines[contractorID] = trustLine;

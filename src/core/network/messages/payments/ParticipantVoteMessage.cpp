@@ -2,13 +2,11 @@
 
 ParticipantVoteMessage::ParticipantVoteMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     lamport::Signature::Shared signature) :
     TransactionMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID),
     mSignature(signature)

@@ -13,7 +13,6 @@ public:
 
 public:
     MaxFlowCalculationFullyTransaction(
-        const NodeUUID &nodeUUID,
         const InitiateMaxFlowCalculationFullyCommand::Shared command,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,

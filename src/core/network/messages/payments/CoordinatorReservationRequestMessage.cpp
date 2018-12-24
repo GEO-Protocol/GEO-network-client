@@ -3,7 +3,6 @@
 
 CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID& transactionUUID,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
@@ -11,7 +10,6 @@ CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
 
     RequestMessageWithReservations(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID,
         finalAmountsConfig),

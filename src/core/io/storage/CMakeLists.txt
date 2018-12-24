@@ -32,9 +32,6 @@ set(SOURCE_FILES
         CommunicatorMessagesQueueHandler.h
         CommunicatorMessagesQueueHandler.cpp
 
-        BlackListHandler.h
-        BlackListHandler.cpp
-
         OwnKeysHandler.h
         OwnKeysHandler.cpp
         ContractorKeysHandler.h

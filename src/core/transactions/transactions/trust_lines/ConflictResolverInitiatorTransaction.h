@@ -19,7 +19,6 @@ public:
 
 public:
     ConflictResolverInitiatorTransaction(
-        const NodeUUID &nodeUUID,
         SerializedEquivalent equivalent,
         ContractorID contractorID,
         ContractorsManager *contractorsManager,
@@ -31,7 +30,6 @@ public:
 
     ConflictResolverInitiatorTransaction(
         BytesShared buffer,
-        const NodeUUID &nodeUUID,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
         StorageHandler *storageHandler,

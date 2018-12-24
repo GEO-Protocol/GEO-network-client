@@ -11,7 +11,6 @@ public:
 public:
     MaxFlowCalculationConfirmationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> senderAddresses,
         const ConfirmationID confirmationID);
 

@@ -1,7 +1,6 @@
 #include "MaxFlowCalculationSourceFstLevelTransaction.h"
 
 MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTransaction(
-    const NodeUUID &nodeUUID,
     MaxFlowCalculationSourceFstLevelMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
@@ -10,7 +9,6 @@ MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTra
 
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationSourceFstLevelTransactionType,
-        nodeUUID,
         message->equivalent(),
         logger),
     mMessage(message),
@@ -37,7 +35,6 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
             contractorsAddresses.at(0),
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             outgoingFlows,
             incomingFlows);
@@ -55,7 +52,6 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
         sendMessage<MaxFlowCalculationSourceSndLevelMessage>(
             nodeIDWithOutgoingFlow,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(
                 nodeIDWithOutgoingFlow),
             mContractorsManager->contractorAddresses(

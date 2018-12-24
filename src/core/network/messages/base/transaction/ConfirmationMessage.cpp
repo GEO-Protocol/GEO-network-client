@@ -2,27 +2,23 @@
 
 ConfirmationMessage::ConfirmationMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const OperationState state) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
         transactionUUID),
     mState(state)
 {}
 
 ConfirmationMessage::ConfirmationMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     ContractorID idOnReceiverSide,
     const TransactionUUID &transactionUUID,
     const OperationState state) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
         idOnReceiverSide,
         transactionUUID),
     mState(state)

@@ -14,7 +14,6 @@ class VotesStatusResponsePaymentTransaction:
         public BaseTransaction{
 public:
     VotesStatusResponsePaymentTransaction(
-        const NodeUUID &nodeUUID,
         VotesStatusRequestMessage::Shared message,
         ContractorsManager *contractorsManager,
         StorageHandler *storageHandler,

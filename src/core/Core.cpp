@@ -19,13 +19,8 @@ int Core::run()
     }
 
     writePIDFile();
-    updateProcessName();
 
     try {
-        if (!mCommunicator->joinUUID2Address(mNodeUUID)) {
-            error() << "Core can't be initialised. Process will now be stopped.";
-            return -1;
-        }
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
 
@@ -57,15 +52,6 @@ int Core::initSubsystems()
 
     } catch (std::exception &e) {
         cerr << utc_now() <<" : ERROR\tSETTINGS\t" <<  e.what() << "." << endl;
-        return -1;
-    }
-
-    try {
-        mNodeUUID = mSettings->nodeUUID(&conf);
-
-    } catch (RuntimeError &) {
-        // Logger was not initialized yet
-        cerr << utc_now() <<" : ERROR\tCORE\tCan't read UUID of the node from the settings" << endl;
         return -1;
     }
 
@@ -161,7 +147,7 @@ int Core::initSettings()
 int Core::initLogger()
 {
     try {
-        mLog = make_unique<Logger>(mNodeUUID);
+        mLog = make_unique<Logger>();
         return 0;
 
     } catch (...) {
@@ -178,10 +164,7 @@ int Core::initCommunicator(
             mIOService,
             mSettings->interface(&conf),
             mSettings->port(&conf),
-            mSettings->uuid2addressHost(&conf),
-            mSettings->uuid2addressPort(&conf),
             mContractorsManager.get(),
-            mNodeUUID,
             *mLog);
 
         info() << "Network communicator is successfully initialised";
@@ -212,7 +195,6 @@ int Core::initEquivalentsSubsystemsRouter(
 {
     try {
         mEquivalentsSubsystemsRouter = make_unique<EquivalentsSubsystemsRouter>(
-            mNodeUUID,
             mStorageHandler.get(),
             mKeysStore.get(),
             mContractorsManager.get(),
@@ -244,7 +226,6 @@ int Core::initTransactionsManager()
 {
     try {
         mTransactionsManager = make_unique<TransactionsManager>(
-            mNodeUUID,
             mIOService,
             mContractorsManager.get(),
             mEquivalentsSubsystemsRouter.get(),
@@ -378,13 +359,6 @@ void Core::connectCommunicatorSignals()
 
     //transactions manager's to communicator slot
     mTransactionsManager->transactionOutgoingMessageReadySignal.connect(
-        boost::bind(
-            &Core::onMessageSendSlot,
-            this,
-            _1,
-            _2));
-
-    mTransactionsManager->transactionOutgoingMessageReadyNewSignal.connect(
         boost::bind(
             &Core::onMessageSendNewSlot,
             this,
@@ -536,28 +510,6 @@ void Core::onClearTopologyCacheSlot(
     }
 }
 
-void Core::onMessageSendSlot(
-    Message::Shared message,
-    const NodeUUID &contractorUUID)
-{
-#ifdef TESTS
-    if (not mSubsystemsController->isNetworkOn()) {
-        // Ignore outgoing message in case if network was disabled.
-        debug() << "Ignore send message";
-        return;
-    }
-#endif
-
-    try {
-        mCommunicator->sendMessage(
-            message,
-            contractorUUID);
-
-    } catch (exception &e) {
-        mLog->logException("Core", e);
-    }
-}
-
 void Core::onMessageSendNewSlot(
     Message::Shared message,
     const ContractorID contractorID)
@@ -680,13 +632,6 @@ void Core::writePIDFile()
     } catch (std::exception &e) {
         error() << "Can't write/update pid file. Error message is: " << e.what();
     }
-}
-
-void Core::updateProcessName()
-{
-    const string kProcessName(string("GEO:") + mNodeUUID.stringUUID());
-    prctl(PR_SET_NAME, kProcessName.c_str());
-    strcpy(mCommandDescriptionPtr, kProcessName.c_str());
 }
 
 string Core::logHeader()

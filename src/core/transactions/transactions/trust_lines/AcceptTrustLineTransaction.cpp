@@ -1,7 +1,6 @@
 #include "AcceptTrustLineTransaction.h"
 
 AcceptTrustLineTransaction::AcceptTrustLineTransaction(
-    const NodeUUID &nodeUUID,
     TrustLineInitialMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
@@ -15,10 +14,8 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     BaseTransaction(
         BaseTransaction::AcceptTrustLineTransaction,
         message->transactionUUID(),
-        nodeUUID,
         message->equivalent(),
         logger),
-    mContractorUUID(message->senderUUID),
     mOwnIdOnContractorSide(message->contractorID()),
     mSenderIncomingIP(message->senderIncomingIP()),
     mContractorAddresses(message->senderAddresses),
@@ -50,7 +47,6 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     try {
         mContractorID = mContractorsManager->getContractorID(
             mContractorAddresses.at(0),
-            mContractorUUID,
             mOwnIdOnContractorSide,
             ioTransaction);
     } catch (IOError &e) {
@@ -69,7 +65,6 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
                 Message::TrustLines_Initial,
                 kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
                 mEquivalent,
-                mNodeUUID,
                 mOwnIdOnContractorSide,
                 mTransactionUUID,
                 mContractorID,
@@ -103,7 +98,6 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
             // todo : add parameter mSenderIsGateway
             mTrustLinesManager->accept(
                 mContractorID,
-                mContractorUUID,
                 ioTransaction);
             mTrustLinesManager->setTrustLineState(
                 mContractorID,
@@ -148,7 +142,6 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         Message::TrustLines_Initial,
         kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
         mEquivalent,
-        mNodeUUID,
         mOwnIdOnContractorSide,
         mTransactionUUID,
         mContractorID,
@@ -164,7 +157,6 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::sendTrustLineErrorCon
     sendMessage<TrustLineConfirmationMessage>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         mOwnIdOnContractorSide,
         mTransactionUUID,
         // todo : current node did't accept request and not send contractorID
@@ -191,7 +183,7 @@ void AcceptTrustLineTransaction::populateHistory(
     auto record = make_shared<TrustLineRecord>(
         mTransactionUUID,
         operationType,
-        mContractorUUID,
+        NodeUUID::empty(),
         0);
 
     ioTransaction->historyStorage()->saveTrustLineRecord(

@@ -1,7 +1,6 @@
 #include "EquivalentsSubsystemsRouter.h"
 
 EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
-    NodeUUID &nodeUUID,
     StorageHandler *storageHandler,
     Keystore *keystore,
     ContractorsManager *contractorsManager,
@@ -9,7 +8,6 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     vector<SerializedEquivalent> &equivalentsIAmGateway,
     Logger &logger):
 
-    mNodeUUID(nodeUUID),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
     mContractorsManager(contractorsManager),
@@ -98,7 +96,6 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     }
 
     mGatewayNotificationAndRoutingTablesDelayedTask = make_unique<GatewayNotificationAndRoutingTablesDelayedTask>(
-        mNodeUUID,
         mIOService,
         mLogger);
     subscribeForGatewayNotification(

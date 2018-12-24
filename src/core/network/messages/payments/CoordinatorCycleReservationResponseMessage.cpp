@@ -2,7 +2,6 @@
 
 CoordinatorCycleReservationResponseMessage::CoordinatorCycleReservationResponseMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
     vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const ResponseCycleMessage::OperationState state,
@@ -10,7 +9,6 @@ CoordinatorCycleReservationResponseMessage::CoordinatorCycleReservationResponseM
 
     ResponseCycleMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID,
         state),

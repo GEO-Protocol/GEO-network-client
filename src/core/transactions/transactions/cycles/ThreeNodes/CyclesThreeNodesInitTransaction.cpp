@@ -1,7 +1,6 @@
 #include "CyclesThreeNodesInitTransaction.h"
 
 CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
-    const NodeUUID &nodeUUID,
     ContractorID contractorID,
     const SerializedEquivalent equivalent,
     ContractorsManager *contractorsManager,
@@ -12,7 +11,6 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
 
     BaseTransaction(
         BaseTransaction::Cycles_ThreeNodesInitTransaction,
-        nodeUUID,
         equivalent,
         logger),
     mContractorsManager(contractorsManager),
@@ -53,7 +51,6 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
     sendMessage<CyclesThreeNodesBalancesRequestMessage>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         currentTransactionUUID(),
         commonNeighbors);

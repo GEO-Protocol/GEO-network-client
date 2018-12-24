@@ -14,7 +14,6 @@ public:
 public:
     PublicKeyHashConfirmation(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         KeyNumber number,
@@ -22,7 +21,6 @@ public:
 
     PublicKeyHashConfirmation(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         OperationState state);

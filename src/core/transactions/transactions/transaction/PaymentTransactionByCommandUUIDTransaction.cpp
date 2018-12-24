@@ -1,24 +1,17 @@
 #include "PaymentTransactionByCommandUUIDTransaction.h"
 
 PaymentTransactionByCommandUUIDTransaction::PaymentTransactionByCommandUUIDTransaction(
-    NodeUUID &nodeUUID,
     PaymentTransactionByCommandUUIDCommand::Shared command,
     BaseTransaction::Shared requestedTransaction,
     Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::TransactionByCommandUUIDType,
-        nodeUUID,
         0,      // none equivalent
         logger),
     mCommand(command),
     mRequestedPaymentTransaction(requestedTransaction)
 {}
-
-PaymentTransactionByCommandUUIDCommand::Shared PaymentTransactionByCommandUUIDTransaction::command() const
-{
-    return mCommand;
-}
 
 TransactionResult::SharedConst PaymentTransactionByCommandUUIDTransaction::run()
 {

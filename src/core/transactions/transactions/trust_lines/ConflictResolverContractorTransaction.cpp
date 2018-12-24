@@ -1,7 +1,6 @@
 #include "ConflictResolverContractorTransaction.h"
 
 ConflictResolverContractorTransaction::ConflictResolverContractorTransaction(
-    const NodeUUID &nodeUUID,
     ConflictResolverMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
@@ -12,7 +11,6 @@ ConflictResolverContractorTransaction::ConflictResolverContractorTransaction(
     BaseTransaction(
         BaseTransaction::ConflictResolverContractorTransactionType,
         message->transactionUUID(),
-        nodeUUID,
         message->equivalent(),
         logger),
     mMessage(message),
@@ -37,7 +35,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
         sendMessage<ConflictResolverResponseMessage>(
             mContractorID,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
@@ -71,7 +68,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
         sendMessage<ConflictResolverResponseMessage>(
             mContractorID,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             ConfirmationMessage::Audit_Reject);
@@ -79,7 +75,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
         if (!isConflictResolvingSecondTime) {
             info() << "run ConflictResolverInitiatorTransaction signal";
             auto conflictResolverInitiatorTransaction = make_shared<ConflictResolverInitiatorTransaction>(
-                mNodeUUID,
                 mEquivalent,
                 mContractorID,
                 mContractorsManager,
@@ -116,7 +111,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                 sendMessage<ConflictResolverResponseMessage>(
                     mContractorID,
                     mEquivalent,
-                    mNodeUUID,
                     mContractorsManager->idOnContractorSide(mContractorID),
                     mTransactionUUID,
                     ConfirmationMessage::Audit_Invalid);
@@ -127,7 +121,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
             sendMessage<ConflictResolverResponseMessage>(
                 mContractorID,
                 mEquivalent,
-                mNodeUUID,
                 mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
                 ConfirmationMessage::Audit_KeyNotFound);
@@ -148,7 +141,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                 sendMessage<ConflictResolverResponseMessage>(
                     mContractorID,
                     mEquivalent,
-                    mNodeUUID,
                     mContractorsManager->idOnContractorSide(mContractorID),
                     mTransactionUUID,
                     ConfirmationMessage::Audit_Invalid);
@@ -159,7 +151,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
             sendMessage<ConflictResolverResponseMessage>(
                 mContractorID,
                 mEquivalent,
-                mNodeUUID,
                 mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
                 ConfirmationMessage::Audit_KeyNotFound);
@@ -190,7 +181,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                     sendMessage<ConflictResolverResponseMessage>(
                         mContractorID,
                         mEquivalent,
-                        mNodeUUID,
                         mContractorsManager->idOnContractorSide(mContractorID),
                         mTransactionUUID,
                         ConfirmationMessage::Audit_Invalid);
@@ -201,7 +191,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                 sendMessage<ConflictResolverResponseMessage>(
                     mContractorID,
                     mEquivalent,
-                    mNodeUUID,
                     mContractorsManager->idOnContractorSide(mContractorID),
                     mTransactionUUID,
                     ConfirmationMessage::Audit_KeyNotFound);
@@ -233,7 +222,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                     sendMessage<ConflictResolverResponseMessage>(
                         mContractorID,
                         mEquivalent,
-                        mNodeUUID,
                         mContractorsManager->idOnContractorSide(mContractorID),
                         mTransactionUUID,
                         ConfirmationMessage::Audit_Invalid);
@@ -244,7 +232,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
                 sendMessage<ConflictResolverResponseMessage>(
                     mContractorID,
                     mEquivalent,
-                    mNodeUUID,
                     mContractorsManager->idOnContractorSide(mContractorID),
                     mTransactionUUID,
                     ConfirmationMessage::Audit_KeyNotFound);
@@ -266,7 +253,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
         sendMessage<ConflictResolverResponseMessage>(
             mContractorID,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             ConfirmationMessage::OK);
@@ -357,7 +343,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
         sendMessage<ConflictResolverResponseMessage>(
            mContractorID,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             ConfirmationMessage::Audit_Reject);
@@ -365,7 +350,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
         if (!isConflictResolvingSecondTime) {
             info() << "run ConflictResolverInitiatorTransaction signal";
             auto conflictResolverInitiatorTransaction = make_shared<ConflictResolverInitiatorTransaction>(
-                mNodeUUID,
                 mEquivalent,
                 mContractorID,
                 mContractorsManager,
@@ -394,7 +378,6 @@ TransactionResult::SharedConst ConflictResolverContractorTransaction::run()
         sendMessage<ConflictResolverResponseMessage>(
             mContractorID,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(mContractorID),
             mTransactionUUID,
             ConfirmationMessage::OK);

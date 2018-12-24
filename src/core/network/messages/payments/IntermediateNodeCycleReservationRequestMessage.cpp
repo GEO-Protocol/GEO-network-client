@@ -2,7 +2,6 @@
 
 IntermediateNodeCycleReservationRequestMessage::IntermediateNodeCycleReservationRequestMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID& transactionUUID,
     const TrustLineAmount& amount,
@@ -11,7 +10,6 @@ IntermediateNodeCycleReservationRequestMessage::IntermediateNodeCycleReservation
 
     RequestCycleMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID,
         amount),

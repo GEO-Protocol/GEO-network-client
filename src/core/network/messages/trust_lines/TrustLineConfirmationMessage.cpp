@@ -2,7 +2,6 @@
 
 TrustLineConfirmationMessage::TrustLineConfirmationMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     ContractorID idOnSenderSide,
     const TransactionUUID &transactionUUID,
     ContractorID contractorID,
@@ -11,7 +10,6 @@ TrustLineConfirmationMessage::TrustLineConfirmationMessage(
 
     ConfirmationMessage(
         equivalent,
-        senderUUID,
         idOnSenderSide,
         transactionUUID,
         state),

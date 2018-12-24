@@ -11,14 +11,9 @@ public:
     OutgoingMessagesHandler(
         IOService &ioService,
         UDPSocket &socket,
-        UUID2Address &uuid2AddressService,
         ContractorsManager *contractorsManager,
         Logger &log)
         noexcept;
-
-    void sendMessage(
-        const Message::Shared message,
-        const NodeUUID &addressee);
 
     void sendMessage(
         const Message::Shared message,

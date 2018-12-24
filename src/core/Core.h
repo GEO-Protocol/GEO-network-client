@@ -96,10 +96,6 @@ private:
     void onMessageReceivedSlot(
         Message::Shared message);
 
-    void onMessageSendSlot(
-        Message::Shared message,
-        const NodeUUID &contractorUUID);
-
     void onMessageSendNewSlot(
         Message::Shared message,
         const ContractorID contractorID);
@@ -130,8 +126,6 @@ private:
 
     void writePIDFile();
 
-    void updateProcessName();
-
 protected:
     static string logHeader()
     noexcept;
@@ -153,7 +147,6 @@ protected:
     // By default, it would point to the standard argv[0] char sequence;
     char* mCommandDescriptionPtr;
 
-    NodeUUID mNodeUUID;
     as::io_service mIOService;
 
     unique_ptr<Logger> mLog;

@@ -28,7 +28,6 @@ public:
 
 public:
     CoordinatorPaymentTransaction(
-        const NodeUUID &currentNodeUUID,
         const CreditUsageCommand::Shared kCommand,
         bool iAmGateway,
         ContractorsManager *contractorsManager,

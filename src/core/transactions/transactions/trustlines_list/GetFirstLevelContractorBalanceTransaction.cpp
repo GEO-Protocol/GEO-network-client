@@ -1,7 +1,6 @@
 #include "GetFirstLevelContractorBalanceTransaction.h"
 
 GetFirstLevelContractorBalanceTransaction::GetFirstLevelContractorBalanceTransaction(
-    NodeUUID &nodeUUID,
     GetTrustLineCommand::Shared command,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
@@ -9,7 +8,6 @@ GetFirstLevelContractorBalanceTransaction::GetFirstLevelContractorBalanceTransac
 noexcept:
     BaseTransaction(
         BaseTransaction::TrustLineOne,
-        nodeUUID,
         command->equivalent(),
         logger),
     mCommand(command),

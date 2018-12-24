@@ -20,15 +20,14 @@ ContractorsManager::ContractorsManager(
     }
     for (const auto &contractor : mContractors) {
         info() << contractor.second->getID() << " " << contractor.second->ownIdOnContractorSide() << " "
-               << contractor.second->getUUID() << " " << contractor.second->getAddress()->fullAddress();
+               << " " << contractor.second->getAddress()->fullAddress();
     }
     info() << "Own ip " << mOwnIPv4->fullAddress();
 }
 
 ContractorID ContractorsManager::getContractorID(
     IOTransaction::Shared ioTransaction,
-    BaseAddress::Shared contractorAddress,
-    const NodeUUID &contractorUUID)
+    BaseAddress::Shared contractorAddress)
 {
     for (const auto &contractor : mContractors) {
         if (contractor.second->getAddress() == contractorAddress) {
@@ -39,7 +38,6 @@ ContractorID ContractorsManager::getContractorID(
     info() << "New contractor initializing " << id;
     mContractors[id] = make_shared<Contractor>(
         id,
-        contractorUUID,
         contractorAddress);
     ioTransaction->contractorsHandler()->saveContractor(
         mContractors[id]);
@@ -48,7 +46,6 @@ ContractorID ContractorsManager::getContractorID(
 
 ContractorID ContractorsManager::getContractorID(
     BaseAddress::Shared contractorAddress,
-    const NodeUUID &contractorUUID,
     ContractorID idOnContractorSide,
     IOTransaction::Shared ioTransaction)
 {
@@ -64,7 +61,6 @@ ContractorID ContractorsManager::getContractorID(
         mContractors[id] = make_shared<Contractor>(
             id,
             idOnContractorSide,
-            contractorUUID,
             contractorAddress);
         ioTransaction->contractorsHandler()->saveContractorFull(
             mContractors[id]);

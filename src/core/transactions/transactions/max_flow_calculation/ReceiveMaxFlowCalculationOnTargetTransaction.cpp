@@ -1,7 +1,6 @@
 #include "ReceiveMaxFlowCalculationOnTargetTransaction.h"
 
 ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetTransaction(
-    const NodeUUID &nodeUUID,
     InitiateMaxFlowCalculationMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
@@ -10,7 +9,6 @@ ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetT
 
     BaseTransaction(
         BaseTransaction::TransactionType::ReceiveMaxFlowCalculationOnTargetTransactionType,
-        nodeUUID,
         message->equivalent(),
         logger),
     mMessage(message),
@@ -66,7 +64,6 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator()
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->senderAddresses.at(0),
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             outgoingFlows,
             incomingFlows);
@@ -113,7 +110,6 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->senderAddresses.at(0),
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             outgoingFlowsForSending,
             incomingFlowsForSending);
@@ -140,7 +136,6 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel()
         sendMessage<MaxFlowCalculationTargetFstLevelMessage>(
             nodeIDWithIncomingFlow,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(nodeIDWithIncomingFlow),
             mMessage->senderAddresses,
             mMessage->isSenderGateway());

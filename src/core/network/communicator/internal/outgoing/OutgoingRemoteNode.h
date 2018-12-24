@@ -1,13 +1,12 @@
-#ifndef OUTGOINGREMOTENODE_H
-#define OUTGOINGREMOTENODE_H
+#ifndef GEO_NETWORK_CLIENT_OUTGOINGREMOTENODE_H
+#define GEO_NETWORK_CLIENT_OUTGOINGREMOTENODE_H
 
 #include "../common/Types.h"
 #include "../common/Packet.hpp"
-#include "../uuid2address/UUID2Address.h"
 
 #include "../../../messages/Message.hpp"
+#include "../../../../contractors/Contractor.h"
 
-#include "../../../../common/NodeUUID.h"
 #include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../logger/Logger.h"
 #include "../../../../common/exceptions/Exception.h"
@@ -16,6 +15,7 @@
 #include <boost/asio/steady_timer.hpp>
 #include <queue>
 
+namespace as = boost::asio;
 
 class OutgoingRemoteNode {
 public:
@@ -24,8 +24,7 @@ public:
 
 public:
     OutgoingRemoteNode(
-        const NodeUUID &remoteNodeUUID,
-        UUID2Address &uuid2addressService,
+        Contractor::Shared remoteContractor,
         UDPSocket &socket,
         IOService &ioService,
         Logger &logger)
@@ -57,9 +56,8 @@ protected:
     LoggerStream debug() const;
 
 protected:
-    const NodeUUID mRemoteNodeUUID;
+    Contractor::Shared mRemoteContractor;
 
-    UUID2Address &mUUID2AddressService;
     IOService &mIOService;
     UDPSocket &mSocket;
     Logger &mLog;
@@ -67,11 +65,11 @@ protected:
     queue<pair<byte*, Packet::Size>> mPacketsQueue;
     PacketHeader::ChannelIndex mNextAvailableChannelIndex;
 
-    // This pair contains date time of last packet sendind
+    // This pair contains date time of last packet sending
     // and count of sending operations, that would be done in interval, less than 50 msecs between 2 operations.
     pair<boost::posix_time::ptime, size_t> mCyclesStats;
     as::deadline_timer mSendingDelayTimer;
-
 };
 
-#endif // OUTGOINGREMOTENODE_H
+
+#endif //GEO_NETWORK_CLIENT_OUTGOINGREMOTENODE_H

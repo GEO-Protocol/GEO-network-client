@@ -12,7 +12,6 @@ public:
 public:
     DestinationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnSenderSide,
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
@@ -21,7 +20,6 @@ public:
 
     DestinationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         ContractorID destinationID)

@@ -18,7 +18,6 @@ public:
     // (true if amount > 0)
     IntermediateNodeReservationResponseMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const PathID &pathID,

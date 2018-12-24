@@ -1,24 +1,17 @@
 #include "HistoryWithContractorTransaction.h"
 
 HistoryWithContractorTransaction::HistoryWithContractorTransaction(
-    NodeUUID &nodeUUID,
     HistoryWithContractorCommand::Shared command,
     StorageHandler *storageHandler,
     Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::HistoryWithContractorTransactionType,
-        nodeUUID,
         command->equivalent(),
         logger),
     mCommand(command),
     mStorageHandler(storageHandler)
 {}
-
-HistoryWithContractorCommand::Shared HistoryWithContractorTransaction::command() const
-{
-    return mCommand;
-}
 
 TransactionResult::SharedConst HistoryWithContractorTransaction::run()
 {

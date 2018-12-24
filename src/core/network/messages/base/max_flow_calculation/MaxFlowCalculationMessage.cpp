@@ -3,13 +3,11 @@
 
 MaxFlowCalculationMessage::MaxFlowCalculationMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
     ContractorID idOnReceiverSide,
     vector<BaseAddress::Shared> targetAddresses) :
 
     SenderMessage(
         equivalent,
-        senderUUID,
         idOnReceiverSide),
 
     mTargetAddresses(targetAddresses)

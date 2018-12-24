@@ -16,14 +16,12 @@ class CyclesFourNodesReceiverTransaction:
 
 public:
     CyclesFourNodesReceiverTransaction(
-        const NodeUUID &nodeUUID,
         CyclesFourNodesNegativeBalanceRequestMessage::Shared message,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         Logger &logger);
 
     CyclesFourNodesReceiverTransaction(
-        const NodeUUID &nodeUUID,
         CyclesFourNodesPositiveBalanceRequestMessage::Shared message,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,

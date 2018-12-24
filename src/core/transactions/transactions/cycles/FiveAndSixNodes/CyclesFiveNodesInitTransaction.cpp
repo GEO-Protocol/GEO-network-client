@@ -1,7 +1,6 @@
 #include "CyclesFiveNodesInitTransaction.h"
 
 CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
@@ -9,7 +8,6 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
     Logger &logger) :
     CyclesBaseFiveSixNodesInitTransaction(
         BaseTransaction::Cycles_FiveNodesInitTransaction,
-        nodeUUID,
         equivalent,
         contractorsManager,
         trustLinesManager,

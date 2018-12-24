@@ -12,7 +12,6 @@ public:
 
 public:
     IntermediateNodePaymentTransaction(
-        const NodeUUID &currentNodeUUID,
         IntermediateNodeReservationRequestMessage::ConstShared message,
         bool iAmGateway,
         ContractorsManager *contractorsManager,
@@ -26,7 +25,6 @@ public:
 
     IntermediateNodePaymentTransaction(
         BytesShared buffer,
-        const NodeUUID &nodeUUID,
         bool iAmGateway,
         ContractorsManager *contractorsManager,
         TrustLinesManager* trustLines,

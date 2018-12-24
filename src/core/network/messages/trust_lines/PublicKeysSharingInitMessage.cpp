@@ -2,14 +2,12 @@
 
 PublicKeysSharingInitMessage::PublicKeysSharingInitMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const KeysCount keysCount,
     const KeyNumber number,
     const lamport::PublicKey::Shared publicKey):
     PublicKeyMessage(
         equivalent,
-        senderUUID,
         transactionUUID,
         number,
         publicKey),
@@ -18,7 +16,6 @@ PublicKeysSharingInitMessage::PublicKeysSharingInitMessage(
 
 PublicKeysSharingInitMessage::PublicKeysSharingInitMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     ContractorID idOnSenderSide,
     const TransactionUUID &transactionUUID,
     const KeysCount keysCount,
@@ -26,7 +23,6 @@ PublicKeysSharingInitMessage::PublicKeysSharingInitMessage(
     const lamport::PublicKey::Shared publicKey):
     PublicKeyMessage(
         equivalent,
-        senderUUID,
         idOnSenderSide,
         transactionUUID,
         number,

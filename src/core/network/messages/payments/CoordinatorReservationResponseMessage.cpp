@@ -3,7 +3,6 @@
 
 CoordinatorReservationResponseMessage::CoordinatorReservationResponseMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
     vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const PathID& pathID,
@@ -12,7 +11,6 @@ CoordinatorReservationResponseMessage::CoordinatorReservationResponseMessage(
 
     ResponseMessage(
         equivalent,
-        senderUUID,
         senderAddresses,
         transactionUUID,
         pathID,

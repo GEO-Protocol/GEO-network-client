@@ -6,7 +6,6 @@ CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage
     vector<BaseAddress::Shared> &path):
     SenderMessage(
         equivalent,
-        NodeUUID::empty(),
         idOnReceiverSide),
     mPath(path)
 {}

@@ -1,7 +1,6 @@
 #include "ReceiveResultMaxFlowCalculationTransaction.h"
 
 ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTransaction(
-    NodeUUID &nodeUUID,
     ResultMaxFlowCalculationMessage::Shared message,
     TrustLinesManager *trustLinesManager,
     TopologyTrustLinesManager *topologyTrustLineManager,
@@ -9,7 +8,6 @@ ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTrans
 
     BaseTransaction(
         BaseTransaction::TransactionType::ReceiveResultMaxFlowCalculationTransactionType,
-        nodeUUID,
         message->equivalent(),
         logger),
     mMessage(message),
@@ -19,7 +17,6 @@ ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTrans
 {}
 
 ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTransaction(
-    NodeUUID &nodeUUID,
     ResultMaxFlowCalculationGatewayMessage::Shared message,
     TrustLinesManager *trustLinesManager,
     TopologyTrustLinesManager *topologyTrustLineManager,
@@ -27,7 +24,6 @@ ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTrans
 
     BaseTransaction(
         BaseTransaction::TransactionType::ReceiveResultMaxFlowCalculationTransactionType,
-        nodeUUID,
         message->equivalent(),
         logger),
     mMessage(message),

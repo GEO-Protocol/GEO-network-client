@@ -11,7 +11,6 @@ public:
 public:
     TrustLineConfirmationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         ContractorID contractorID,

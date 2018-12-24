@@ -20,7 +20,6 @@ public:
 
 public:
     OpenTrustLineTransaction(
-        const NodeUUID &nodeUUID,
         InitTrustLineCommand::Shared command,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
@@ -31,7 +30,6 @@ public:
         Logger &logger);
 
     OpenTrustLineTransaction(
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         ContractorID contractorID,
         ContractorsManager *contractorsManager,
@@ -82,7 +80,6 @@ protected:
 
 protected:
     InitTrustLineCommand::Shared mCommand;
-    NodeUUID mContractorUUID;
     ContractorID mContractorID;
     ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLines;

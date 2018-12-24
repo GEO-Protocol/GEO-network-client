@@ -1,7 +1,6 @@
 #include "CyclesFourNodesReceiverTransaction.h"
 
 CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
-    const NodeUUID &nodeUUID,
     CyclesFourNodesNegativeBalanceRequestMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
@@ -9,7 +8,6 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
     BaseTransaction(
         BaseTransaction::Cycles_FourNodesReceiverTransaction,
         message->transactionUUID(),
-        nodeUUID,
         message->equivalent(),
         logger),
     mContractorsManager(contractorsManager),
@@ -19,7 +17,6 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
 {}
 
 CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
-    const NodeUUID &nodeUUID,
     CyclesFourNodesPositiveBalanceRequestMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
@@ -27,7 +24,6 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
     BaseTransaction(
         BaseTransaction::Cycles_FourNodesReceiverTransaction,
         message->transactionUUID(),
-        nodeUUID,
         message->equivalent(),
         logger),
     mContractorsManager(contractorsManager),
@@ -62,7 +58,6 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run()
         sendMessage<CyclesFourNodesBalancesResponseMessage>(
             mRequestMessage->senderAddresses.at(0),
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             mSuitableNodes);

@@ -21,7 +21,6 @@ public:
 
 public:
     PongReactionTransaction(
-        const NodeUUID &nodeUUID,
         PongMessage::Shared message,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         StorageHandler *storageHandler,

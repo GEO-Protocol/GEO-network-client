@@ -3,14 +3,12 @@
 
 CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     ContractorID idOnReceiverSide,
     const TransactionUUID &transactionUUID,
     vector<BaseAddress::Shared> &neighbors):
 
     TransactionMessage(
         equivalent,
-        senderUUID,
         idOnReceiverSide,
         transactionUUID),
     mNeighbors(neighbors)

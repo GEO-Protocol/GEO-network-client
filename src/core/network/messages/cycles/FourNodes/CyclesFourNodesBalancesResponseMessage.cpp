@@ -2,14 +2,12 @@
 
 CyclesFourNodesBalancesResponseMessage::CyclesFourNodesBalancesResponseMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
     vector<BaseAddress::Shared> &suitableNodes):
 
     TransactionMessage(
         equivalent,
-        senderUUID,
         0,
         senderAddresses,
         transactionUUID),

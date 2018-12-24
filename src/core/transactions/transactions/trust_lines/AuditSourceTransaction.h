@@ -10,7 +10,6 @@ public:
 
 public:
     AuditSourceTransaction(
-        const NodeUUID &nodeUUID,
         ContractorID contractorID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,
@@ -21,7 +20,6 @@ public:
         Logger &logger);
 
     AuditSourceTransaction(
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,
         ContractorID contractorID,

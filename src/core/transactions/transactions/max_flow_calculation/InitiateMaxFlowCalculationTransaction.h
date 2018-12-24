@@ -17,7 +17,6 @@ public:
 
 public:
     InitiateMaxFlowCalculationTransaction(
-        NodeUUID &nodeUUID,
         InitiateMaxFlowCalculationCommand::Shared command,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,

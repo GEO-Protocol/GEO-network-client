@@ -1,7 +1,6 @@
 #include "GatewayNotificationSenderTransaction.h"
 
 GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
-    const NodeUUID &nodeUUID,
     ContractorsManager *contractorsManager,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     EquivalentsCyclesSubsystemsRouter *equivalentsCyclesSubsystemsRouter,
@@ -9,7 +8,6 @@ GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
 
     BaseTransaction(
         BaseTransaction::TransactionType::GatewayNotificationSenderType,
-        nodeUUID,
         0,
         logger),
     mContractorsManager(contractorsManager),
@@ -53,7 +51,6 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::sendGateway
         info() << "Send Gateway notification to node " << neighbor;
         sendMessage<GatewayNotificationMessage>(
             neighbor,
-            mNodeUUID,
             mContractorsManager->idOnContractorSide(neighbor),
             mTransactionUUID,
             mGatewaysEquivalents);
@@ -119,7 +116,6 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRout
             info() << "Send Gateway notification to node " << neighbor;
             sendMessage<GatewayNotificationMessage>(
                 neighbor,
-                mNodeUUID,
                 mContractorsManager->idOnContractorSide(neighbor),
                 mTransactionUUID,
                 mGatewaysEquivalents);

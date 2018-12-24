@@ -16,7 +16,6 @@ public:
 
 public:
     GatewayNotificationReceiverTransaction(
-        const NodeUUID &nodeUUID,
         GatewayNotificationMessage::Shared message,
         ContractorsManager *contractorsManager,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,

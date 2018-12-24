@@ -8,7 +8,6 @@ TrustLine::TrustLine(
 
     mID(trustLineID),
     mContractorID(contractorID),
-    mContractorNodeUUID(NodeUUID::empty()),
     mIncomingTrustAmount(kZeroAmount()),
     mOutgoingTrustAmount(kZeroAmount()),
     mBalance(kZeroBalance()),
@@ -22,11 +21,9 @@ TrustLine::TrustLine(
 {}
 
 TrustLine::TrustLine(
-    const NodeUUID &nodeUUID,
     const ContractorID contractorID,
     const TrustLineID trustLineID):
 
-    mContractorNodeUUID(nodeUUID),
     mContractorID(contractorID),
     mID(trustLineID),
     mIncomingTrustAmount(kZeroAmount()),
@@ -40,12 +37,6 @@ TrustLine::TrustLine(
     mIsOwnKeysPresent(false),
     mIsContractorKeysPresent(false)
 {}
-
-void TrustLine::setContractorUUID(
-    const NodeUUID &contractorUUID)
-{
-    mContractorNodeUUID = contractorUUID;
-}
 
 /**
  * Sets incoming trust amount of the trust line.
@@ -100,11 +91,6 @@ void TrustLine::setBalance(
 const ContractorID TrustLine::contractorID() const
 {
     return mContractorID;
-}
-
-const NodeUUID &TrustLine::contractorNodeUUID() const
-{
-    return mContractorNodeUUID;
 }
 
 const TrustLineAmount &TrustLine::incomingTrustAmount() const
@@ -284,14 +270,14 @@ bool operator==(
     const TrustLine::Shared contractor1,
     const TrustLine::Shared contractor2)
 {
-    return contractor1->contractorNodeUUID() == contractor2->contractorNodeUUID();
+    return contractor1->contractorID() == contractor2->contractorID();
 }
 
 bool operator==(
     const TrustLine &contractor1,
     const TrustLine &contractor2)
 {
-    return contractor1.contractorNodeUUID() == contractor2.contractorNodeUUID();
+    return contractor1.contractorID() == contractor2.contractorID();
 }
 
 /**

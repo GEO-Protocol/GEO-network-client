@@ -14,7 +14,6 @@ public:
 public:
     ParticipantVoteMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         lamport::Signature::Shared signature);

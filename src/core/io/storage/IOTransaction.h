@@ -5,7 +5,6 @@
 #include "TrustLineHandler.h"
 #include "HistoryStorage.h"
 #include "TransactionsHandler.h"
-#include "BlackListHandler.h"
 
 #include "OwnKeysHandler.h"
 #include "ContractorKeysHandler.h"
@@ -30,7 +29,6 @@ public:
         TrustLineHandler *trustLinesHandler,
         HistoryStorage *historyStorage,
         TransactionsHandler *transactionHandler,
-        BlackListHandler *blackListHandler,
         OwnKeysHandler *ownKeysHandler,
         ContractorKeysHandler *contractorKeysHandler,
         AuditHandler *auditHandler,
@@ -48,8 +46,6 @@ public:
     HistoryStorage *historyStorage();
 
     TransactionsHandler *transactionHandler();
-
-    BlackListHandler *blackListHandler();
 
     OwnKeysHandler *ownKeysHandler();
 
@@ -86,7 +82,6 @@ private:
     TrustLineHandler *mTrustLineHandler;
     HistoryStorage *mHistoryStorage;
     TransactionsHandler *mTransactionHandler;
-    BlackListHandler *mBlackListHandler;
 
     OwnKeysHandler *mOwnKeysHandler;
     ContractorKeysHandler *mContractorKeysHandler;

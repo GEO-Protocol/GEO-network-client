@@ -13,7 +13,6 @@ public:
 public:
     IntermediateNodeCycleReservationRequestMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID& senderUUID,
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID& transactionUUID,
         const TrustLineAmount& amount,

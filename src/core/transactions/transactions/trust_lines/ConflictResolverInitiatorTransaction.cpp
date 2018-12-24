@@ -1,7 +1,6 @@
 #include "ConflictResolverInitiatorTransaction.h"
 
 ConflictResolverInitiatorTransaction::ConflictResolverInitiatorTransaction(
-    const NodeUUID &nodeUUID,
     SerializedEquivalent equivalent,
     ContractorID contractorID,
     ContractorsManager *contractorsManager,
@@ -13,7 +12,6 @@ ConflictResolverInitiatorTransaction::ConflictResolverInitiatorTransaction(
 
     BaseTransaction(
         BaseTransaction::ConflictResolverInitiatorTransactionType,
-        nodeUUID,
         equivalent,
         logger),
     mContractorID(contractorID),
@@ -26,7 +24,6 @@ ConflictResolverInitiatorTransaction::ConflictResolverInitiatorTransaction(
 
 ConflictResolverInitiatorTransaction::ConflictResolverInitiatorTransaction(
     BytesShared buffer,
-    const NodeUUID &nodeUUID,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
     StorageHandler *storageHandler,
@@ -36,7 +33,6 @@ ConflictResolverInitiatorTransaction::ConflictResolverInitiatorTransaction(
 
     BaseTransaction(
         buffer,
-        nodeUUID,
         logger),
     mContractorsManager(contractorsManager),
     mTrustLinesManager(trustLinesManager),
@@ -113,7 +109,6 @@ TransactionResult::SharedConst ConflictResolverInitiatorTransaction::runInitiali
     sendMessage<ConflictResolverMessage>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         auditRecord,

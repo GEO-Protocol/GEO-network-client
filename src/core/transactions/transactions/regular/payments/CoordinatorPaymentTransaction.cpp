@@ -1,7 +1,6 @@
 ﻿#include "CoordinatorPaymentTransaction.h"
 
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
-    const NodeUUID &currentNodeUUID,
     const CreditUsageCommand::Shared command,
     bool iAmGateway,
     ContractorsManager *contractorsManager,
@@ -18,7 +17,6 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 
     BasePaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction,
-        currentNodeUUID,
         command->equivalent(),
         iAmGateway,
         contractorsManager,
@@ -102,7 +100,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
         return resultForbiddenRun();
     }
     debug() << "Operation initialised to the node " << mCommand->contractorAddress()->fullAddress();
-    debug() << "Command UUID: " << mCommand->UUID();
+    debug() << "Command NodeUUID: " << mCommand->UUID();
     debug() << "Operation amount: " << mCommand->amount();
 
     if (mCommand->contractorAddress() == mContractorsManager->ownAddresses().at(0)) {
@@ -176,7 +174,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
     sendMessage<ReceiverInitPaymentRequestMessage>(
         mCommand->contractorAddress(),
         mEquivalent,
-        currentNodeUUID(),
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
         mCommand->amount());
@@ -308,7 +305,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
         sendMessage<ParticipantsPublicKeysMessage>(
             nodeAndPaymentID.second,
             mEquivalent,
-            mNodeUUID,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             mParticipantsPublicKeys);
@@ -437,7 +433,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     sendMessage<IntermediateNodeReservationRequestMessage>(
         receiverID,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         reservations);
@@ -610,7 +605,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     sendMessage<IntermediateNodeReservationRequestMessage>(
         neighborID,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         reservations);
@@ -660,7 +654,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
     sendMessage<CoordinatorReservationRequestMessage>(
         neighbor,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         reservations,
@@ -702,7 +695,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorAddress(),
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -797,7 +789,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorAddress(),
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -858,7 +849,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorAddress(),
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -882,7 +872,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorAddress(),
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -903,7 +892,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorAddress(),
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -1005,7 +993,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     sendMessage<CoordinatorReservationRequestMessage>(
         remoteNode,
         mEquivalent,
-        mNodeUUID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         reservations,
@@ -1037,7 +1024,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorAddress(),
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -1092,7 +1078,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorAddress(),
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -1122,7 +1107,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorAddress(),
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -1149,7 +1133,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorAddress(),
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
@@ -1309,7 +1292,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
             sendMessage<FinalAmountsConfigurationMessage>(
                 paymentNodeIdAndAddress.second,
                 mEquivalent,
-                currentNodeUUID(),
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 mNodesFinalAmountsConfiguration[paymentNodeIdAndAddress.second->fullAddress()],
@@ -1321,7 +1303,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
             sendMessage<FinalAmountsConfigurationMessage>(
                 paymentNodeIdAndAddress.second,
                 mEquivalent,
-                currentNodeUUID(),
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 mNodesFinalAmountsConfiguration[paymentNodeIdAndAddress.second->fullAddress()],
@@ -1685,7 +1666,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
         const auto ownAddresses = mContractorsManager->ownAddresses();
         mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
             mEquivalent,
-            mNodeUUID,
             ownAddresses,
             mTransactionUUID,
             mParticipantsSignatures);
@@ -1711,7 +1691,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
             sendMessage<TTLProlongationResponseMessage>(
                 senderAddress,
                 mEquivalent,
-                currentNodeUUID(),
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 TTLProlongationResponseMessage::Continue);
@@ -1723,7 +1702,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
             sendMessage<TTLProlongationResponseMessage>(
                 senderAddress,
                 mEquivalent,
-                currentNodeUUID(),
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 TTLProlongationResponseMessage::Continue);
@@ -1732,7 +1710,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
             sendMessage<TTLProlongationResponseMessage>(
                 senderAddress,
                 mEquivalent,
-                currentNodeUUID(),
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 TTLProlongationResponseMessage::Finish);
@@ -1744,7 +1721,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
             sendMessage<TTLProlongationResponseMessage>(
                 senderAddress,
                 mEquivalent,
-                currentNodeUUID(),
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 TTLProlongationResponseMessage::Continue);
@@ -1753,7 +1729,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
             sendMessage<TTLProlongationResponseMessage>(
                 senderAddress,
                 mEquivalent,
-                currentNodeUUID(),
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 TTLProlongationResponseMessage::Finish);
@@ -1897,7 +1872,6 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
         sendMessage<FinalPathConfigurationMessage>(
             intermediateNode,
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             pathID,
@@ -1922,7 +1896,6 @@ void CoordinatorPaymentTransaction::sendFinalPathConfiguration(
         sendMessage<FinalPathConfigurationMessage>(
             intermediateNode,
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             pathID,
@@ -1937,7 +1910,6 @@ void CoordinatorPaymentTransaction::informAllNodesAboutTransactionFinish()
         sendMessage<TTLProlongationResponseMessage>(
             paymentNodeIdAndAddress.second,
             mEquivalent,
-            currentNodeUUID(),
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Finish);

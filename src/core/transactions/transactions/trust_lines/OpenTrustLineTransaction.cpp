@@ -1,7 +1,6 @@
 #include "OpenTrustLineTransaction.h"
 
 OpenTrustLineTransaction::OpenTrustLineTransaction(
-    const NodeUUID &nodeUUID,
     InitTrustLineCommand::Shared command,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
@@ -13,11 +12,9 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
 
     BaseTransaction(
         BaseTransaction::OpenTrustLineTransaction,
-        nodeUUID,
         command->equivalent(),
         logger),
     mCommand(command),
-    mContractorUUID(mCommand->contractorUUID()),
     mCountSendingAttempts(0),
     mContractorsManager(contractorsManager),
     mTrustLines(manager),
@@ -30,7 +27,6 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
 }
 
 OpenTrustLineTransaction::OpenTrustLineTransaction(
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     ContractorID contractorID,
     ContractorsManager *contractorsManager,
@@ -43,10 +39,8 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
 
     BaseTransaction(
         BaseTransaction::OpenTrustLineTransaction,
-        nodeUUID,
         equivalent,
         logger),
-    mContractorUUID(NodeUUID::empty()),
     mContractorID(contractorID),
     mCountSendingAttempts(0),
     mContractorsManager(contractorsManager),
@@ -90,8 +84,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
     try {
         mContractorID = mContractorsManager->getContractorID(
             ioTransaction,
-            mCommand->contractorAddress(),
-            mContractorUUID);
+            mCommand->contractorAddress());
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Error during getting ContractorID. Details: " << e.what();
@@ -119,7 +112,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
         } else {
             mTrustLines->open(
                 mContractorID,
-                mContractorUUID,
                 ioTransaction);
             info() << "TrustLine to the node " << mContractorID
                    << " successfully initialised.";
@@ -143,7 +135,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
     sendMessage<TrustLineInitialMessage>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         // todo : this field is unuseful, because we don't know our id on contractor side
         // use different type of messages hierarchy
         0,
@@ -193,7 +184,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
     sendMessage<TrustLineInitialMessage>(
         mContractorID,
         mEquivalent,
-        mNodeUUID,
         // todo : this field is unuseful, because we don't know our id on contractor side
         // use different type of messages hierarchy
         0,
@@ -218,7 +208,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
             sendMessage<TrustLineInitialMessage>(
                 mContractorID,
                 mEquivalent,
-                mNodeUUID,
                 // todo : this field is unuseful, because we don't know our id on contractor side
                 // use different type of messages hierarchy
                 0,
@@ -236,7 +225,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
         sendMessage<PingMessage>(
             mContractorID,
             0,
-            mNodeUUID,
             // todo : contractor don't have info about current node yet, that's why we send contractorID on our side
             // and contractor will return this id for pong identifying
             mContractorID);

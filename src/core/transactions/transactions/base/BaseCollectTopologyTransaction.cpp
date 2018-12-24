@@ -2,7 +2,6 @@
 
 BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     const TransactionType type,
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
@@ -13,7 +12,6 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
 
     BaseTransaction(
         type,
-        nodeUUID,
         equivalent,
         logger),
     mContractorsManager(contractorsManager),
@@ -26,7 +24,6 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
 BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID,
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
@@ -38,7 +35,6 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     BaseTransaction(
         type,
         transactionUUID,
-        nodeUUID,
         equivalent,
         logger),
     mContractorsManager(contractorsManager),

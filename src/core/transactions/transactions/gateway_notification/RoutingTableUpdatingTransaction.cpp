@@ -1,7 +1,6 @@
 #include "RoutingTableUpdatingTransaction.h"
 
 RoutingTableUpdatingTransaction::RoutingTableUpdatingTransaction(
-    const NodeUUID &nodeUUID,
     RoutingTableResponseMessage::Shared message,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     EquivalentsCyclesSubsystemsRouter *equivalentsCyclesSubsystemsRouter,
@@ -10,7 +9,6 @@ RoutingTableUpdatingTransaction::RoutingTableUpdatingTransaction(
     BaseTransaction(
         BaseTransaction::TransactionType::RoutingTableUpdatingType,
         message->transactionUUID(),
-        nodeUUID,
         0,
         logger),
     mMessage(message),

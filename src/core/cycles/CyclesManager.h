@@ -35,7 +35,6 @@ public:
 public:
     CyclesManager(
         const SerializedEquivalent equivalent,
-        const NodeUUID &nodeUUID,
         TransactionsScheduler *transactionsScheduler,
         as::io_service &ioService,
         Logger &logger,
@@ -128,7 +127,6 @@ private:
 
 private:
     TransactionsScheduler *mTransactionScheduler;
-    NodeUUID mNodeUUID;
     SerializedEquivalent mEquivalent;
     as::io_service &mIOService;
 
