@@ -9,9 +9,9 @@
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/multiprecision/MultiprecisionUtils.h"
 
-#include "record/base/Record.h"
 #include "record/payment/PaymentRecord.h"
 #include "record/trust_line/TrustLineRecord.h"
+#include "record/payment/PaymentAdditionalRecord.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -33,6 +33,10 @@ public:
 
     void savePaymentRecord(
         PaymentRecord::Shared record,
+        const SerializedEquivalent equivalent);
+
+    void savePaymentAdditionalRecord(
+        PaymentAdditionalRecord::Shared record,
         const SerializedEquivalent equivalent);
 
     vector<TrustLineRecord::Shared> allTrustLineRecords(
@@ -60,7 +64,7 @@ public:
     vector<PaymentRecord::Shared> paymentRecordsByCommandUUID(
         const CommandUUID &commandUUID);
 
-    vector<PaymentRecord::Shared> allPaymentAdditionalRecords(
+    vector<PaymentAdditionalRecord::Shared> allPaymentAdditionalRecords(
         const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord,
@@ -91,10 +95,6 @@ private:
         PaymentRecord::Shared record,
         const SerializedEquivalent equivalent);
 
-    void savePaymentAdditionalRecord(
-        PaymentRecord::Shared record,
-        const SerializedEquivalent equivalent);
-
     vector<PaymentRecord::Shared> allPaymentRecords(
         const SerializedEquivalent equivalent,
         size_t recordsCount,
@@ -104,7 +104,7 @@ private:
         DateTime timeTo,
         bool isTimeToPresent);
 
-    vector<PaymentRecord::Shared> allPaymentAdditionalRecords(
+    vector<PaymentAdditionalRecord::Shared> allPaymentAdditionalRecords(
         const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord,
@@ -123,22 +123,13 @@ private:
         size_t recordsCount,
         size_t fromRecord);
 
-    pair<BytesShared, size_t> serializedTrustLineRecordBody(
-        TrustLineRecord::Shared);
-
-    pair<BytesShared, size_t> serializedPaymentRecordBody(
-        PaymentRecord::Shared);
-
-    pair<BytesShared, size_t> serializedPaymentAdditionalRecordBody(
-        PaymentRecord::Shared);
-
     TrustLineRecord::Shared deserializeTrustLineRecord(
         sqlite3_stmt *stmt);
 
     PaymentRecord::Shared deserializePaymentRecord(
         sqlite3_stmt *stmt);
 
-    PaymentRecord::Shared deserializePaymentAdditionalRecord(
+    PaymentAdditionalRecord::Shared deserializePaymentAdditionalRecord(
         sqlite3_stmt *stmt);
 
     LoggerStream info() const;

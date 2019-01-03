@@ -24,8 +24,7 @@ public:
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfiguration() const;
 
 protected:
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-    throw (bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
     const size_t kOffsetToInheritedBytes() const
     noexcept;

@@ -288,7 +288,7 @@ protected:
      * @return
      */
     bool isPathValid(
-            Path::Shared path) const;
+        Path::Shared path) const;
 
     /**
      * try build new paths if reserved amount on previously built paths is less then required
@@ -303,6 +303,7 @@ protected:
 protected:
     // Command on which current transaction was started
     CreditUsageCommand::Shared mCommand;
+    Contractor::Shared mContractor;
 
     // Contains special stats data, such as current max flow,
     // for all paths involved into the transaction.
@@ -319,6 +320,11 @@ protected:
 
     // Reservation stage contains it's own internal steps counter.
     byte mReservationsStage;
+
+    // Contains all addresses of participants of current path.
+    // Only main addresses are used for building paths.
+    // During reservations all participants inform coordinator about theirs all addresses.
+    vector<Contractor::Shared> mCurrentPathParticipants;
 
     /*
      * If true - then it means that direct path between coordinator and receiver has been already processed.

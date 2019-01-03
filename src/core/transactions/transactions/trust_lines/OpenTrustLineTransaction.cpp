@@ -78,13 +78,20 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
         debug() << "It is forbidden run trust line transactions";
         return resultForbiddenRun();
     }
-    info() << "Try init TL to Contractor on address " << mCommand->contractorAddress()->fullAddress();
+    info() << "Try init TL to Contractor on addresses:";
+    for (const auto &address : mCommand->contractorAddresses()) {
+        info() << address->fullAddress();
+    }
+    if (mCommand->contractorAddresses().empty()) {
+        warning() << "Contractor addresses are empty";
+        return resultProtocolError();
+    }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
         mContractorID = mContractorsManager->getContractorID(
             ioTransaction,
-            mCommand->contractorAddress());
+            mCommand->contractorAddresses());
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Error during getting ContractorID. Details: " << e.what();
@@ -332,7 +339,7 @@ void OpenTrustLineTransaction::populateHistory(
     auto record = make_shared<TrustLineRecord>(
         mTransactionUUID,
         operationType,
-        mContractorUUID,
+        mContractorsManager->contractor(mContractorID),
         0);
 
     ioTransaction->historyStorage()->saveTrustLineRecord(

@@ -15,6 +15,7 @@
 #include "PaymentParticipantsVotesHandler.h"
 
 #include "ContractorsHandler.h"
+#include "AddressHandler.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -37,6 +38,7 @@ public:
         PaymentKeysHandler *paymentKeysHandler,
         PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler,
         ContractorsHandler *contractorsHandler,
+        AddressHandler *addressHandler,
         Logger &logger);
 
     ~IOTransaction();
@@ -62,6 +64,8 @@ public:
     PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler();
 
     ContractorsHandler *contractorsHandler();
+
+    AddressHandler *addressHandler();
 
     void rollback();
 
@@ -92,6 +96,7 @@ private:
     PaymentParticipantsVotesHandler *mPaymentParticipantsVotesHandler;
 
     ContractorsHandler *mContractorsHandler;
+    AddressHandler *mAddressHandler;
 
     bool mIsTransactionBegin;
     Logger &mLog;

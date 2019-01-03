@@ -190,7 +190,7 @@ protected:
      * @param contractorUUID node to which message will be sent
      */
     TransactionResult::SharedConst sendVotesRequestMessageAndWaitForResponse(
-        BaseAddress::Shared contractorAddress);
+        Contractor::Shared contractor);
 
     /**
     * process next node in participants votes message during recovery stage
@@ -379,7 +379,7 @@ protected:
     bool checkPublicKeysAppropriate();
 
     pair<BytesShared, size_t> getSerializedParticipantsVotesData(
-        BaseAddress::Shared participantAddress);
+        Contractor::Shared contractor);
 
     bool checkSignaturesAppropriate();
 
@@ -436,14 +436,14 @@ protected:
     bool mIAmGateway;
 
     // Votes recovery
-    vector<BaseAddress::Shared> mNodesToCheckVotes;
-    BaseAddress::Shared mCurrentNodeToCheckVotes;
+    vector<Contractor::Shared> mNodesToCheckVotes;
+    Contractor::Shared mCurrentNodeToCheckVotes;
 
     // this amount used for saving in payment history
     TrustLineAmount mCommittedAmount;
 
     // ids of nodes inside payment transaction
-    map<PaymentNodeID, BaseAddress::Shared> mPaymentParticipants;
+    map<PaymentNodeID, Contractor::Shared> mPaymentParticipants;
     map<string, PaymentNodeID> mPaymentNodesIds;
     map<string, pair<PaymentNodeID, lamport::KeyHash::Shared>> mParticipantsPublicKeysHashes;
     map<PaymentNodeID, lamport::PublicKey::Shared> mParticipantsPublicKeys;

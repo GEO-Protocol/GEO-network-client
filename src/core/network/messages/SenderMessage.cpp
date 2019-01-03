@@ -49,11 +49,7 @@ SenderMessage::SenderMessage(
     }
 }
 
-/**
- * @throws bad_alloc;
- */
 pair<BytesShared, size_t> SenderMessage::serializeToBytes() const
-    noexcept(false)
 {
     BytesSerializer serializer;
 
@@ -80,21 +76,3 @@ const size_t SenderMessage::kOffsetToInheritedBytes() const
     }
     return kOffset;
 }
-
-//BaseAddress::Shared SenderMessage::deserializeAddress(
-//    byte *offset)
-//{
-//    const uint16_t kAddressType =
-//            *(reinterpret_cast<BaseAddress::SerializedType *>(offset));
-//
-//    switch (kAddressType) {
-//        case BaseAddress::IPv4_IncludingPort: {
-//            return make_shared<IPv4WithPortAddress>(
-//                offset);
-//        }
-//        default: {
-//            // todo : need correct reaction
-//            return nullptr;
-//        }
-//    }
-//}

@@ -33,10 +33,7 @@ public:
         BytesShared buffer)
         noexcept;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
-
-//    static BaseAddress::Shared deserializeAddress(
-//        byte* offset);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
     virtual const size_t kOffsetToInheritedBytes() const

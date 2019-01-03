@@ -116,7 +116,7 @@ protected:
     const string logHeader() const;
 
 protected:
-    BaseAddress::Shared mCoordinatorAddress;
+    Contractor::Shared mCoordinator;
 
     TrustLineAmount mTransactionAmount;
 

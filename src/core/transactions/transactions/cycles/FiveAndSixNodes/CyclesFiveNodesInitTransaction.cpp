@@ -51,7 +51,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
     TrustLineBalance creditorsStepFlow;
     for (const auto &mess: mContext) {
         auto message = static_pointer_cast<CyclesFiveNodesBoundaryMessage>(mess);
-        auto stepPath = message->Path();
+        auto stepPath = message->path();
         //  It has to be exactly nodes count in path
         if (stepPath.size() < 2) {
             warning() << "Received message contains " << stepPath.size() << " nodes";
@@ -67,7 +67,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
         }
         creditorsStepFlow = mTrustLinesManager->balance(contractorID);
         //  If it is Debtor branch - skip it
-        if (creditorsStepFlow > TrustLine::kZeroBalance()) {
+        if (creditorsStepFlow < TrustLine::kZeroBalance()) {
             continue;
         }
         if (stepPath.size() != 2) {
@@ -96,7 +96,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
     TrustLineBalance commonStepMaxFlow;
     for(const auto &mess: mContext) {
         auto message = static_pointer_cast<CyclesFiveNodesBoundaryMessage>(mess);
-        auto stepPathDebtors = message->Path();
+        auto stepPathDebtors = message->path();
         if (stepPathDebtors.size() < 2) {
             warning() << "Received message contains " << stepPathDebtors.size() << " nodes";
             continue;
@@ -111,7 +111,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
         }
         debtorsStepFlow = mTrustLinesManager->balance(contractorID);
         //  If it is Creditors branch - skip it
-        if (debtorsStepFlow < TrustLine::kZeroBalance()) {
+        if (debtorsStepFlow > TrustLine::kZeroBalance()) {
             continue;
         }
         if (stepPathDebtors.size() != 3) {
@@ -129,12 +129,11 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
             auto nodeAddressAndPathRange = creditors.equal_range(nodeAddress->fullAddress());
             for (auto nodeAddressAndPathIt = nodeAddressAndPathRange.first;
                  nodeAddressAndPathIt != nodeAddressAndPathRange.second; ++nodeAddressAndPathIt) {
-                //  Find minMax flow between 3 value. 1 in map. 1 in boundaryNodes. 1 we get from creditor first node in path
                 vector <BaseAddress::Shared> stepCyclePath = {
-                                                   stepPathDebtors[1],
-                                                   stepPathDebtors[2],
-                                                   nodeAddress,
-                                                   nodeAddressAndPathIt->second.back()};
+                        nodeAddressAndPathIt->second.back(),
+                        nodeAddress,
+                        stepPathDebtors[2],
+                        stepPathDebtors[1]};
 
                 const auto cyclePath = make_shared<Path>(
                     stepCyclePath);

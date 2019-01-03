@@ -34,12 +34,29 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
             tokenSeparatorPos = command.find(
                 kTokensSeparator,
                 contractorAddressStartPoint);
-            string addressStr = command.substr(
+
+            string addressWithTypeStr = command.substr(
                 contractorAddressStartPoint,
                 tokenSeparatorPos - contractorAddressStartPoint);
-            mContractorAddresses.push_back(
-                make_shared<IPv4WithPortAddress>(
-                    addressStr));
+            auto addressTypeSeparatorPos = addressWithTypeStr.find(kAddressTypeSeparator);
+            auto addressTypeStr = addressWithTypeStr.substr(0, addressTypeSeparatorPos);
+            auto addressType = (BaseAddress::AddressType)std::stoul(addressTypeStr);
+            auto addressStr = addressWithTypeStr.substr(
+                addressTypeSeparatorPos + 1,
+                addressWithTypeStr.length() - addressTypeSeparatorPos + 1);
+            switch (addressType) {
+                case BaseAddress::IPv4_IncludingPort: {
+                    mContractorAddresses.push_back(
+                        make_shared<IPv4WithPortAddress>(
+                            addressStr));
+                    break;
+                }
+                default:
+                    throw ValueError(
+                            "InitiateMaxFlowCalculationFullyCommand: can't parse command. "
+                                "Error occurred while parsing 'Contractor Address' token.");
+
+            }
             contractorAddressStartPoint = tokenSeparatorPos + 1;
         } catch (...) {
             throw ValueError(

@@ -37,6 +37,7 @@ const size_t kTrustLineBalanceSerializeBytesCount = 33;
 
 static const constexpr char kCommandsSeparator = '\n';
 static const constexpr char kTokensSeparator = '\t';
+static const constexpr char kAddressTypeSeparator = '-';
 static const constexpr char kAddressSeparator = ':';
 
 typedef uint16_t SerializedRecordsCount;

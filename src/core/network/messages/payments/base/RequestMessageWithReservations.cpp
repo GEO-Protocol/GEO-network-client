@@ -48,12 +48,7 @@ const vector<pair<PathID, ConstSharedTrustLineAmount>>& RequestMessageWithReserv
     return mFinalAmountsConfiguration;
 }
 
-/*!
- *
- * Throws bad_alloc;
- */
 pair<BytesShared, size_t> RequestMessageWithReservations::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount =

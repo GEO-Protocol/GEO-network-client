@@ -11,7 +11,7 @@ PaymentParticipantsVotesHandler::PaymentParticipantsVotesHandler(
 {
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    " (transaction_uuid BLOB NOT NULL, "
-                   "node_uuid BLOB NOT NULL, "
+                   "contractor BLOB NOT NULL, "
                    "payment_node_id INTEGER NOT NULL, "
                    "public_key BLOB NOT NULL, "
                    "signature BLOB NOT NULL, "
@@ -47,12 +47,12 @@ PaymentParticipantsVotesHandler::PaymentParticipantsVotesHandler(
 
 void PaymentParticipantsVotesHandler::saveRecord(
     const TransactionUUID &transactionUUID,
-    const NodeUUID &nodeUUID,
+    Contractor::Shared contractor,
     const PaymentNodeID paymentNodeID,
     const lamport::PublicKey::Shared publicKey,
     const lamport::Signature::Shared signature)
 {
-    string query = "INSERT INTO " + mTableName + " (transaction_uuid, node_uuid, "
+    string query = "INSERT INTO " + mTableName + " (transaction_uuid, contractor, "
                         "payment_node_id, public_key, signature, recording_time) VALUES(?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
@@ -65,10 +65,11 @@ void PaymentParticipantsVotesHandler::saveRecord(
         throw IOError("PaymentParticipantsVotesHandler::saveRecord: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 2, nodeUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    auto contractorSerializedData = contractor->serializeToBytes();
+    rc = sqlite3_bind_blob(stmt, 2, contractorSerializedData.get(), (int)contractor->serializedSize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentParticipantsVotesHandler::saveRecord: "
-                          "Bad binding of NodeUUID; sqlite error: " + to_string(rc));
+                          "Bad binding of Contractor; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_int(stmt, 3, paymentNodeID);
     if (rc != SQLITE_OK) {
@@ -78,12 +79,12 @@ void PaymentParticipantsVotesHandler::saveRecord(
     rc = sqlite3_bind_blob(stmt, 4, publicKey->data(), (int)publicKey->keySize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentParticipantsVotesHandler::saveRecord: "
-                              "Bad binding of Public Key; sqlite error: " + to_string(rc));
+                          "Bad binding of Public Key; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 5, signature->data(), (int)signature->signatureSize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentParticipantsVotesHandler::saveRecord: "
-                              "Bad binding of Signature; sqlite error: " + to_string(rc));
+                          "Bad binding of Signature; sqlite error: " + to_string(rc));
     }
     GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(utc_now());
     rc = sqlite3_bind_int64(stmt, 6, timestamp);
@@ -113,9 +114,9 @@ map<PaymentNodeID, lamport::Signature::Shared> PaymentParticipantsVotesHandler::
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::byTransaction: "
-                              "Bad query; sqlite error: " + to_string(rc));
+                          "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentParticipantsVotesHandler::participantsSignatures: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));

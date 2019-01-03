@@ -428,7 +428,7 @@ void SetOutgoingTrustLineTransaction::populateHistory(
     auto record = make_shared<TrustLineRecord>(
         mTransactionUUID,
         operationType,
-        NodeUUID::empty(),
+        mContractorsManager->contractor(mContractorID),
         mCommand->amount());
 
     ioTransaction->historyStorage()->saveTrustLineRecord(

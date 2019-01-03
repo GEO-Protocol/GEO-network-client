@@ -210,8 +210,7 @@ void HistoryStorage::saveTrustLineRecord(
         throw IOError("HistoryStorage::insert trustline: "
                           "Bad binding of RecordType; sqlite error: " + to_string(rc));
     }
-    auto serializedTrustLineRecordAndSize = serializedTrustLineRecordBody(
-            record);
+    auto serializedTrustLineRecordAndSize = record->serializedHistoryRecordBody();
     rc = sqlite3_bind_blob(stmt, 5, serializedTrustLineRecordAndSize.first.get(),
                            (int) serializedTrustLineRecordAndSize.second,
                            SQLITE_STATIC);
@@ -250,13 +249,6 @@ void HistoryStorage::savePaymentRecord(
             break;
         case PaymentRecord::IncomingPaymentType:
             savePaymentMainIncomingRecord(
-                record,
-                equivalent);
-            break;
-        case PaymentRecord::IntermediatePaymentType:
-        case PaymentRecord::CycleCloserType:
-        case PaymentRecord::CyclerCloserIntermediateType:
-            savePaymentAdditionalRecord(
                 record,
                 equivalent);
             break;
@@ -305,8 +297,7 @@ void HistoryStorage::savePaymentMainOutgoingRecord(
                           "Bad binding of RecordType; sqlite error: " + to_string(rc));
     }
 
-    auto serializedPaymentRecordAndSize = serializedPaymentRecordBody(
-        record);
+    auto serializedPaymentRecordAndSize = record->serializedHistoryRecordBody();
     rc = sqlite3_bind_blob(stmt, 5, serializedPaymentRecordAndSize.first.get(),
                            (int) serializedPaymentRecordAndSize.second, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
@@ -378,8 +369,7 @@ void HistoryStorage::savePaymentMainIncomingRecord(
                           "Bad binding of RecordType; sqlite error: " + to_string(rc));
     }
 
-    auto serializedPaymentRecordAndSize = serializedPaymentRecordBody(
-        record);
+    auto serializedPaymentRecordAndSize = record->serializedHistoryRecordBody();
     rc = sqlite3_bind_blob(stmt, 5, serializedPaymentRecordAndSize.first.get(),
                            (int) serializedPaymentRecordAndSize.second, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
@@ -407,7 +397,7 @@ void HistoryStorage::savePaymentMainIncomingRecord(
 }
 
 void HistoryStorage::savePaymentAdditionalRecord(
-    PaymentRecord::Shared record,
+    PaymentAdditionalRecord::Shared record,
     const SerializedEquivalent equivalent)
 {
     string query = "INSERT INTO " + mAdditionalTableName
@@ -440,8 +430,7 @@ void HistoryStorage::savePaymentAdditionalRecord(
         throw IOError("HistoryStorage::insert additional payment: "
                           "Bad binding of RecordType; sqlite error: " + to_string(rc));
     }
-    auto serializedPaymentRecordAndSize = serializedPaymentAdditionalRecordBody(
-        record);
+    auto serializedPaymentRecordAndSize = record->serializedHistoryRecordBody();
     rc = sqlite3_bind_blob(stmt, 5, serializedPaymentRecordAndSize.first.get(),
                            (int) serializedPaymentRecordAndSize.second, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
@@ -706,7 +695,7 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentRecords(
     return result;
 }
 
-vector<PaymentRecord::Shared> HistoryStorage::allPaymentAdditionalRecords(
+vector<PaymentAdditionalRecord::Shared> HistoryStorage::allPaymentAdditionalRecords(
     const SerializedEquivalent equivalent,
     size_t recordsCount,
     size_t fromRecord,
@@ -729,14 +718,14 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentAdditionalRecords(
             timeTo,
             isTimeToPresent);
     }
-    vector<PaymentRecord::Shared> result;
+    vector<PaymentAdditionalRecord::Shared> result;
     size_t paymentRecordsCount = countRecordsByType(
-        Record::PaymentRecordType,
+        Record::PaymentAdditionalRecordType,
         equivalent);
     size_t currentOffset = 0;
     size_t countRecordsUnderConditions = 0;
     while (result.size() < recordsCount && currentOffset < paymentRecordsCount) {
-        auto paymentRecords = allPaymentRecords(
+        auto paymentAdditionalRecords = allPaymentAdditionalRecords(
             equivalent,
             kPortionRequestSize,
             currentOffset,
@@ -744,20 +733,20 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentAdditionalRecords(
             isTimeFromPresent,
             timeTo,
             isTimeToPresent);
-        for (auto &paymentRecord : paymentRecords) {
+        for (auto &paymentAdditionalRecord : paymentAdditionalRecords) {
             bool recordUnderConditions = true;
             if (isLowBoundaryAmountPresent) {
                 recordUnderConditions = recordUnderConditions &&
-                                        (paymentRecord->amount() >= lowBoundaryAmount);
+                        (paymentAdditionalRecord->amount() >= lowBoundaryAmount);
             }
             if (isHighBoundaryAmountPresent) {
                 recordUnderConditions = recordUnderConditions &&
-                                        (paymentRecord->amount() <= highBoundaryAmount);
+                        (paymentAdditionalRecord->amount() <= highBoundaryAmount);
             }
             if (recordUnderConditions) {
                 countRecordsUnderConditions++;
                 if (countRecordsUnderConditions > fromRecord) {
-                    result.push_back(paymentRecord);
+                    result.push_back(paymentAdditionalRecord);
                 }
             }
             if (result.size() >= recordsCount) {
@@ -769,7 +758,7 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentAdditionalRecords(
     return result;
 }
 
-vector<PaymentRecord::Shared> HistoryStorage::allPaymentAdditionalRecords(
+vector<PaymentAdditionalRecord::Shared> HistoryStorage::allPaymentAdditionalRecords(
     const SerializedEquivalent equivalent,
     size_t recordsCount,
     size_t fromRecord,
@@ -778,7 +767,7 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentAdditionalRecords(
     DateTime timeTo,
     bool isTimeToPresent)
 {
-    vector<PaymentRecord::Shared> result;
+    vector<PaymentAdditionalRecord::Shared> result;
     string query = "SELECT operation_uuid, operation_timestamp, record_body, record_body_bytes_count FROM "
                    + mAdditionalTableName + " WHERE equivalent = ? AND record_type = ? ";
     if (isTimeFromPresent) {
@@ -935,7 +924,8 @@ vector<Record::Shared> HistoryStorage::recordsWithContractor(
             kPortionRequestSize,
             currentOffset);
         for (auto &record : records) {
-            if (record->contractorUUID() == contractorUUID) {
+            // todo : use contractor instead contractorUUID if (record->contractor() == contractor)
+            if (1) {
                 countRecordsUnderConditions++;
                 if (countRecordsUnderConditions > fromRecord) {
                     result.push_back(record);
@@ -1012,133 +1002,12 @@ bool HistoryStorage::whetherOperationWasConducted(
     return result;
 }
 
-pair<BytesShared, size_t> HistoryStorage::serializedTrustLineRecordBody(
-    TrustLineRecord::Shared trustLineRecord)
-{
-    size_t recordBodySize = sizeof(TrustLineRecord::SerializedTrustLineOperationType) + NodeUUID::kBytesSize;
-    if (trustLineRecord->trustLineOperationType() != TrustLineRecord::TrustLineOperationType::Closing &&
-        trustLineRecord->trustLineOperationType() != TrustLineRecord::TrustLineOperationType::Rejecting) {
-        recordBodySize += kTrustLineAmountBytesCount;
-    }
-
-    BytesShared bytesBuffer = tryCalloc(
-        recordBodySize);
-    size_t bytesBufferOffset = 0;
-
-    TrustLineRecord::SerializedTrustLineOperationType operationType
-        = (TrustLineRecord::SerializedTrustLineOperationType) trustLineRecord->trustLineOperationType();
-    memcpy(
-        bytesBuffer.get() + bytesBufferOffset,
-        &operationType,
-        sizeof(TrustLineRecord::SerializedTrustLineOperationType));
-    bytesBufferOffset += sizeof(
-        TrustLineRecord::SerializedTrustLineOperationType);
-
-    memcpy(
-        bytesBuffer.get() + bytesBufferOffset,
-        trustLineRecord->contractorUUID().data,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
-
-    if (trustLineRecord->trustLineOperationType() != TrustLineRecord::TrustLineOperationType::Closing &&
-        trustLineRecord->trustLineOperationType() != TrustLineRecord::TrustLineOperationType::Rejecting) {
-        auto trustAmountBytes = trustLineAmountToBytes(
-            trustLineRecord->amount());
-
-        memcpy(
-            bytesBuffer.get() + bytesBufferOffset,
-            trustAmountBytes.data(),
-            kTrustLineAmountBytesCount);
-    }
-    return make_pair(
-        bytesBuffer,
-        recordBodySize);
-}
-
-pair<BytesShared, size_t> HistoryStorage::serializedPaymentRecordBody(
-    PaymentRecord::Shared paymentRecord)
-{
-    size_t recordBodySize = sizeof(PaymentRecord::SerializedPaymentOperationType)
-           + NodeUUID::kBytesSize
-           + kTrustLineAmountBytesCount
-           + kTrustLineBalanceSerializeBytesCount;
-
-    BytesShared bytesBuffer = tryCalloc(
-        recordBodySize);
-    size_t bytesBufferOffset = 0;
-
-    PaymentRecord::SerializedPaymentOperationType operationType
-        = (PaymentRecord::SerializedPaymentOperationType) paymentRecord->paymentOperationType();
-    memcpy(
-        bytesBuffer.get() + bytesBufferOffset,
-        &operationType,
-        sizeof(PaymentRecord::SerializedPaymentOperationType));
-    bytesBufferOffset += sizeof(
-        PaymentRecord::SerializedPaymentOperationType);
-
-    memcpy(
-        bytesBuffer.get() + bytesBufferOffset,
-        paymentRecord->contractorUUID().data,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
-
-    auto trustAmountBytes = trustLineAmountToBytes(
-        paymentRecord->amount());
-    memcpy(
-        bytesBuffer.get() + bytesBufferOffset,
-        trustAmountBytes.data(),
-        kTrustLineAmountBytesCount);
-    bytesBufferOffset += kTrustLineAmountBytesCount;
-
-    auto trustBalanceBytes = trustLineBalanceToBytes(
-        paymentRecord->balanceAfterOperation());
-    memcpy(
-        bytesBuffer.get() + bytesBufferOffset,
-        trustBalanceBytes.data(),
-        kTrustLineBalanceSerializeBytesCount);
-
-    return make_pair(
-        bytesBuffer,
-        recordBodySize);
-}
-
-pair<BytesShared, size_t> HistoryStorage::serializedPaymentAdditionalRecordBody(
-        PaymentRecord::Shared paymentRecord)
-{
-    size_t recordBodySize = sizeof(PaymentRecord::SerializedPaymentOperationType)
-                + kTrustLineAmountBytesCount;
-
-    BytesShared bytesBuffer = tryCalloc(
-        recordBodySize);
-    size_t bytesBufferOffset = 0;
-
-    PaymentRecord::SerializedPaymentOperationType operationType
-        = (PaymentRecord::SerializedPaymentOperationType) paymentRecord->paymentOperationType();
-    memcpy(
-        bytesBuffer.get() + bytesBufferOffset,
-        &operationType,
-        sizeof(PaymentRecord::SerializedPaymentOperationType));
-    bytesBufferOffset += sizeof(
-            PaymentRecord::SerializedPaymentOperationType);
-
-    auto trustAmountBytes = trustLineAmountToBytes(
-        paymentRecord->amount());
-    memcpy(
-        bytesBuffer.get() + bytesBufferOffset,
-        trustAmountBytes.data(),
-        kTrustLineAmountBytesCount);
-
-    return make_pair(
-        bytesBuffer,
-        recordBodySize);
-}
-
 TrustLineRecord::Shared HistoryStorage::deserializeTrustLineRecord(
     sqlite3_stmt *stmt)
 {
     TransactionUUID operationUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
-    GEOEpochTimestamp timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 1);
-    size_t recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 3);
+    auto timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 1);
+    auto recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 3);
     BytesShared recordBody = tryMalloc(recordBodyBytesCount);
     memcpy(
         recordBody.get(),
@@ -1146,13 +1015,14 @@ TrustLineRecord::Shared HistoryStorage::deserializeTrustLineRecord(
         recordBodyBytesCount);
 
     size_t dataBufferOffset = 0;
-    TrustLineRecord::SerializedTrustLineOperationType *operationType =
+    TrustLineRecord::SerializedTrustLineOperationType* operationType =
         new (recordBody.get() + dataBufferOffset) TrustLineRecord::SerializedTrustLineOperationType;
     dataBufferOffset += sizeof(
         TrustLineRecord::SerializedTrustLineOperationType);
 
-    NodeUUID contractorUUID(recordBody.get() + dataBufferOffset);
-    dataBufferOffset += NodeUUID::kBytesSize;
+    Contractor::Shared contractor = make_shared<Contractor>(
+        recordBody.get() + dataBufferOffset);
+    dataBufferOffset += contractor->serializedSize();
 
     TrustLineAmount amount(0);
     if (*operationType != TrustLineRecord::TrustLineOperationType::Closing &&
@@ -1167,7 +1037,7 @@ TrustLineRecord::Shared HistoryStorage::deserializeTrustLineRecord(
     return make_shared<TrustLineRecord>(
         operationUUID,
         (TrustLineRecord::TrustLineOperationType) *operationType,
-        contractorUUID,
+        contractor,
         amount,
         timestamp);
 }
@@ -1176,8 +1046,8 @@ PaymentRecord::Shared HistoryStorage::deserializePaymentRecord(
     sqlite3_stmt *stmt)
 {
     TransactionUUID operationUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
-    GEOEpochTimestamp timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 1);
-    size_t recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 3);
+    auto timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 1);
+    auto recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 3);
     BytesShared recordBody = tryMalloc(recordBodyBytesCount);
     memcpy(
         recordBody.get(),
@@ -1190,8 +1060,9 @@ PaymentRecord::Shared HistoryStorage::deserializePaymentRecord(
     dataBufferOffset += sizeof(
         PaymentRecord::SerializedPaymentOperationType);
 
-    NodeUUID contractorUUID(recordBody.get() + dataBufferOffset);
-    dataBufferOffset += NodeUUID::kBytesSize;
+    Contractor::Shared contractor = make_shared<Contractor>(
+        recordBody.get() + dataBufferOffset);
+    dataBufferOffset += contractor->serializedSize();
 
     vector<byte> amountBytes(
         recordBody.get() + dataBufferOffset,
@@ -1209,18 +1080,18 @@ PaymentRecord::Shared HistoryStorage::deserializePaymentRecord(
     return make_shared<PaymentRecord>(
         operationUUID,
         (PaymentRecord::PaymentOperationType) *operationType,
-        contractorUUID,
+        contractor,
         amount,
         balanceAfterOperation,
         timestamp);
 }
 
-PaymentRecord::Shared HistoryStorage::deserializePaymentAdditionalRecord(
+PaymentAdditionalRecord::Shared HistoryStorage::deserializePaymentAdditionalRecord(
     sqlite3_stmt *stmt)
 {
     TransactionUUID operationUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
-    GEOEpochTimestamp timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 1);
-    size_t recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 3);
+    auto timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 1);
+    auto recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 3);
     BytesShared recordBody = tryMalloc(recordBodyBytesCount);
     memcpy(
         recordBody.get(),
@@ -1228,8 +1099,8 @@ PaymentRecord::Shared HistoryStorage::deserializePaymentAdditionalRecord(
         recordBodyBytesCount);
 
     size_t dataBufferOffset = 0;
-    PaymentRecord::SerializedPaymentOperationType *operationType
-        = new (recordBody.get() + dataBufferOffset) PaymentRecord::SerializedPaymentOperationType;
+    PaymentAdditionalRecord::SerializedPaymentOperationType* operationType
+        = new (recordBody.get() + dataBufferOffset) PaymentAdditionalRecord::SerializedPaymentOperationType;
     dataBufferOffset += sizeof(
         PaymentRecord::SerializedPaymentOperationType);
 
@@ -1239,9 +1110,9 @@ PaymentRecord::Shared HistoryStorage::deserializePaymentAdditionalRecord(
     TrustLineAmount amount = bytesToTrustLineAmount(
             amountBytes);
 
-    return make_shared<PaymentRecord>(
+    return make_shared<PaymentAdditionalRecord>(
         operationUUID,
-        (PaymentRecord::PaymentOperationType) *operationType,
+        (PaymentAdditionalRecord::PaymentAdditionalOperationType) *operationType,
         amount,
         timestamp);
 }

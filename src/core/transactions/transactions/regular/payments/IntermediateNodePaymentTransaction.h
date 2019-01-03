@@ -157,7 +157,7 @@ protected:
     IntermediateNodeReservationRequestMessage::ConstShared mMessage;
 
     TrustLineAmount mLastReservedAmount;
-    BaseAddress::Shared mCoordinator;
+    Contractor::Shared mCoordinator;
     // id of path, which was processed last
     PathID mLastProcessedPath;
 };

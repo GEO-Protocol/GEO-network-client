@@ -301,13 +301,13 @@ void AuditTargetTransaction::populateHistory(
         record = make_shared<TrustLineRecord>(
             mTransactionUUID,
             operationType,
-            NodeUUID::empty(),
+            mContractorsManager->contractor(mContractorID),
             mMessage->outgoingAmount());
     } else {
         record = make_shared<TrustLineRecord>(
             mTransactionUUID,
             operationType,
-            NodeUUID::empty());
+            mContractorsManager->contractor(mContractorID));
     }
 
     ioTransaction->historyStorage()->saveTrustLineRecord(

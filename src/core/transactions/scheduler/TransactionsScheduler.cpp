@@ -160,7 +160,7 @@ void TransactionsScheduler::launchTransaction(
             && kTAType <= BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
 
             info() << "Payment or cycle closing TA launched:"
-                << " NodeUUID: " << transaction->currentTransactionUUID()
+                << " TransactionUUID: " << transaction->currentTransactionUUID()
                 << " Type: " << transaction->transactionType()
                 << " Step: " << transaction->currentStep();
         }

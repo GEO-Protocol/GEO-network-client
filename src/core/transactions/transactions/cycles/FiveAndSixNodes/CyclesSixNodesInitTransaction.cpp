@@ -43,7 +43,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
     TrustLineBalance creditorsStepFlow;
     for(const auto &mess: mContext){
         auto message = static_pointer_cast<CyclesSixNodesBoundaryMessage>(mess);
-        auto stepPath = message->Path();
+        auto stepPath = message->path();
         //  It has to be exactly nodes count in path
         if (stepPath.size() != 3) {
             warning() << "Received message contains " << stepPath.size() << " nodes";
@@ -83,7 +83,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
 #endif
     for(const auto &mess: mContext) {
         auto message = static_pointer_cast<CyclesSixNodesBoundaryMessage>(mess);
-        auto stepPath = message->Path();
+        auto stepPath = message->path();
         //  It has to be exactly nodes count in path
         if (stepPath.size() != 3) {
             warning() << "Received message contains " << stepPath.size() << " nodes";

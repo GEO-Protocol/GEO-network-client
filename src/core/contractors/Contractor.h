@@ -1,8 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_CONTRACTOR_H
 #define GEO_NETWORK_CLIENT_CONTRACTOR_H
 
-#include "../common/Types.h"
-#include "addresses/IPv4WithPortAddress.h"
+#include "../common/multiprecision/MultiprecisionUtils.h"
 
 class Contractor {
 public:
@@ -11,17 +10,22 @@ public:
 public:
     Contractor(
         ContractorID id,
-        BaseAddress::Shared address);
+        vector<BaseAddress::Shared> &addresses);
 
     Contractor(
         ContractorID id,
         ContractorID idOnContractorSide,
-        BaseAddress::Shared address);
+        vector<BaseAddress::Shared> addresses);
 
     Contractor(
         ContractorID id,
-        ContractorID idOnContractorSide,
-        const string &address);
+        ContractorID idOnContractorSide);
+
+    Contractor(
+        vector<BaseAddress::Shared> addresses);
+
+    Contractor(
+        byte* buffer);
 
     const ContractorID getID() const;
 
@@ -29,16 +33,31 @@ public:
 
     void setOwnIdOnContractorSide(ContractorID id);
 
-    const BaseAddress::Shared getAddress() const;
-
     vector<BaseAddress::Shared> addresses() const;
 
+    void setAddresses(
+        vector<BaseAddress::Shared> &addresses);
+
     BaseAddress::Shared mainAddress() const;
+
+    BytesShared serializeToBytes() const;
+
+    size_t serializedSize() const;
+
+    friend bool operator== (
+        Contractor::Shared contractor1,
+        Contractor::Shared contractor2);
+
+    friend bool operator!= (
+        Contractor::Shared contractor1,
+        Contractor::Shared contractor2);
+
+    string toString() const;
 
 private:
     ContractorID mID;
     ContractorID mOwnIdOnContractorSide;
-    BaseAddress::Shared mAddress;
+    vector<BaseAddress::Shared> mAddresses;
 };
 
 

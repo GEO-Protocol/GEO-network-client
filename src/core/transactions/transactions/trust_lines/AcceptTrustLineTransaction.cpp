@@ -46,7 +46,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
         mContractorID = mContractorsManager->getContractorID(
-            mContractorAddresses.at(0),
+            mContractorAddresses,
             mOwnIdOnContractorSide,
             ioTransaction);
     } catch (IOError &e) {
@@ -183,7 +183,7 @@ void AcceptTrustLineTransaction::populateHistory(
     auto record = make_shared<TrustLineRecord>(
         mTransactionUUID,
         operationType,
-        NodeUUID::empty(),
+        mContractorsManager->contractor(mContractorID),
         0);
 
     ioTransaction->historyStorage()->saveTrustLineRecord(

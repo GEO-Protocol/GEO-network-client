@@ -96,7 +96,7 @@ private:
     void onMessageReceivedSlot(
         Message::Shared message);
 
-    void onMessageSendNewSlot(
+    void onMessageSendSlot(
         Message::Shared message,
         const ContractorID contractorID);
 
@@ -125,6 +125,8 @@ private:
         BaseResource::Shared resource);
 
     void writePIDFile();
+
+    void updateProcessName();
 
 protected:
     static string logHeader()

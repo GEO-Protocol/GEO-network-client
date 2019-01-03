@@ -3,14 +3,8 @@
 
 #include "../base/Record.h"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/NodeUUID.h"
-#include "../../../../transactions/transactions/base/TransactionUUID.h"
 #include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
-
-#include <memory>
-#include <vector>
 
 class TrustLineRecord: public Record {
 public:
@@ -33,18 +27,18 @@ public:
     TrustLineRecord(
         const TransactionUUID &operationUUID,
         const TrustLineRecord::TrustLineOperationType operationType,
-        const NodeUUID &contractorUUID);
+        Contractor::Shared contractor);
 
     TrustLineRecord(
         const TransactionUUID &operationUUID,
         const TrustLineRecord::TrustLineOperationType operationType,
-        const NodeUUID &contractorUUID,
+        Contractor::Shared contractor,
         const TrustLineAmount &amount);
 
     TrustLineRecord(
         const TransactionUUID &operationUUID,
         const TrustLineRecord::TrustLineOperationType operationType,
-        const NodeUUID &contractorUUID,
+        Contractor::Shared contractor,
         const TrustLineAmount &amount,
         const GEOEpochTimestamp geoEpochTimestamp);
 
@@ -53,6 +47,8 @@ public:
     const TrustLineAmount amount() const;
 
     const bool isTrustLineRecord() const;
+
+    pair<BytesShared, size_t> serializedHistoryRecordBody() const override;
 
 private:
     TrustLineOperationType mTrustLineOperationType;

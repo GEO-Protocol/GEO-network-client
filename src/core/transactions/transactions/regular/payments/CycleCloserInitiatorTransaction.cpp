@@ -198,12 +198,12 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
             mPublicKey));
 
     // send message with all public keys to all participants and wait for voting results
-    for (const auto &paymentIdAndAddress : mPaymentParticipants) {
-        if (paymentIdAndAddress.first == kCoordinatorPaymentNodeID) {
+    for (const auto &paymentIdAndContractor : mPaymentParticipants) {
+        if (paymentIdAndContractor.first == kCoordinatorPaymentNodeID) {
             continue;
         }
         sendMessage<ParticipantsPublicKeysMessage>(
-            paymentIdAndAddress.second,
+            paymentIdAndContractor.second->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -500,6 +500,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
         return resultDone();
     }
 
+    mCurrentPathParticipants.push_back(
+        make_shared<Contractor>(
+            message->senderAddresses));
+
     mPathStats->setNodeState(
         0,
         PathStats::ReservationApproved);
@@ -631,6 +635,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
 
     const auto reservedAmount = message->amountReserved();
     debug() << "Sender reserved " << reservedAmount;
+
+    mCurrentPathParticipants.push_back(
+        make_shared<Contractor>(
+            message->senderAddresses));
 
     mPathStats->setNodeState(
         remoteNodePathPosition,
@@ -954,19 +962,19 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
 #endif
 
     const auto kMessage = popNextMessage<ParticipantVoteMessage>();
-    auto senderAddress = kMessage->senderAddresses.at(0);
-    debug () << "Participant vote message received from " << senderAddress->fullAddress();
+    auto sender = make_shared<Contractor>(kMessage->senderAddresses);
+    debug () << "Participant vote message received from " << sender->mainAddress()->fullAddress();
 
-    if (mPaymentNodesIds.find(senderAddress->fullAddress()) == mPaymentNodesIds.end()) {
+    if (mPaymentNodesIds.find(sender->mainAddress()->fullAddress()) == mPaymentNodesIds.end()) {
         warning() << "Sender is not participant of current transaction";
         return resultContinuePreviousState();
     }
 
     auto participantSignature = kMessage->signature();
-    auto participantPaymentID = mPaymentNodesIds[senderAddress->fullAddress()];
+    auto participantPaymentID = mPaymentNodesIds[sender->mainAddress()->fullAddress()];
     auto participantPublicKey = mParticipantsPublicKeys[participantPaymentID];
     auto participantSerializedVotesData = getSerializedParticipantsVotesData(
-        senderAddress);
+        sender);
     // todo if we store participants public keys on database, then we should use KeyChain,
     // or we can check sign directly from mParticipantsPublicKeys
     if (!participantSignature->check(
@@ -985,7 +993,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
         info() << "all participants sign their data";
 
         auto serializedOwnVotesData = getSerializedParticipantsVotesData(
-            mContractorsManager->ownAddresses().at(0));
+            mContractorsManager->selfContractor());
         {
             auto ioTransaction = mStorageHandler->beginTransaction();
             auto ownSignature = mKeysStore->signPaymentTransaction(
@@ -1056,35 +1064,32 @@ bool CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
     const TrustLineAmount &finalPathAmount)
 {
     debug() << "sendFinalPathConfiguration";
-    mPaymentParticipants.insert(make_pair(
-        kCoordinatorPaymentNodeID,
-        mContractorsManager->ownAddresses().at(0)));
+    mPaymentParticipants.insert(
+        make_pair(
+            kCoordinatorPaymentNodeID,
+            mContractorsManager->selfContractor()));
     mPaymentNodesIds.insert(
         make_pair(
-            mContractorsManager->ownAddresses().at(0)->fullAddress(),
+            mContractorsManager->selfContractor()->mainAddress()->fullAddress(),
             kCoordinatorPaymentNodeID));
-    PaymentNodeID currentNodeID = kCoordinatorPaymentNodeID + 1;
-    for (const auto &intermediateNode : mPathStats->path()->intermediates()) {
-        if (intermediateNode == mPaymentParticipants[kCoordinatorPaymentNodeID]) {
-            // skip coordinator
-            continue;
-        }
+    auto currentNodeID = kCoordinatorPaymentNodeID + 1;
+    for (const auto &intermediateNode : mCurrentPathParticipants) {
         mPaymentParticipants.insert(
             make_pair(
                 currentNodeID,
                 intermediateNode));
         mPaymentNodesIds.insert(
             make_pair(
-                intermediateNode->fullAddress(),
+                intermediateNode->mainAddress()->fullAddress(),
                 currentNodeID));
         currentNodeID++;
     }
     mParticipantsPublicKeys.clear();
-    for (const auto &paymentNodeIdAndAddress : mPaymentParticipants) {
-        if (paymentNodeIdAndAddress.first == kCoordinatorPaymentNodeID) {
+    for (const auto &paymentNodeIdAndContractor : mPaymentParticipants) {
+        if (paymentNodeIdAndContractor.first == kCoordinatorPaymentNodeID) {
             continue;
         }
-        if (paymentNodeIdAndAddress.second == mNextNode) {
+        if (paymentNodeIdAndContractor.first == kCoordinatorPaymentNodeID + 1) {
             // we should send receipt to first intermediate node
             auto keyChain = mKeysStore->keychain(
                 mTrustLinesManager->trustLineID(mNextNodeID));
@@ -1121,9 +1126,10 @@ bool CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
                 signatureAndKeyNumber.second,
                 signatureAndKeyNumber.first);
         } else {
-            info() << "send message with final path amount info for node " << paymentNodeIdAndAddress.second->fullAddress();
+            info() << "send message with final path amount info for node "
+                   << paymentNodeIdAndContractor.second->mainAddress()->fullAddress();
             sendMessage<FinalPathCycleConfigurationMessage>(
-                paymentNodeIdAndAddress.second,
+                paymentNodeIdAndContractor.second->mainAddress(),
                 mEquivalent,
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
@@ -1144,7 +1150,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::approve()
             continue;
         }
         sendMessage(
-            paymentNodeIdAndAddress.second,
+            paymentNodeIdAndAddress.second->mainAddress(),
             mParticipantsVotesMessage);
     }
     return resultDone();
@@ -1154,10 +1160,10 @@ void CycleCloserInitiatorTransaction::savePaymentOperationIntoHistory(
     IOTransaction::Shared ioTransaction)
 {
     debug() << "savePaymentOperationIntoHistory";
-    ioTransaction->historyStorage()->savePaymentRecord(
-        make_shared<PaymentRecord>(
+    ioTransaction->historyStorage()->savePaymentAdditionalRecord(
+        make_shared<PaymentAdditionalRecord>(
             currentTransactionUUID(),
-            PaymentRecord::PaymentOperationType::CycleCloserType,
+            PaymentAdditionalRecord::CycleCloserType,
             mCommittedAmount),
         mEquivalent);
     debug() << "Operation saved";

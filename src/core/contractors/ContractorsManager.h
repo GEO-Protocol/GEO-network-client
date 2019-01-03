@@ -18,10 +18,10 @@ public:
 
     ContractorID getContractorID(
         IOTransaction::Shared ioTransaction,
-        BaseAddress::Shared contractorAddress);
+        vector<BaseAddress::Shared> contractorAddresses);
 
     ContractorID getContractorID(
-        BaseAddress::Shared contractorAddress,
+        vector<BaseAddress::Shared> contractorAddresses,
         ContractorID idOnContractorSide,
         IOTransaction::Shared ioTransaction = nullptr);
 
@@ -51,7 +51,13 @@ public:
     ContractorID contractorIDByAddress(
         BaseAddress::Shared address) const;
 
+    Contractor::Shared selfContractor() const;
+
 protected:
+    // returns id of contractor if addresses will be founded and kNotFoundContractorID otherwise
+    ContractorID contractorIDByAddresses(
+        vector<BaseAddress::Shared> &checkedAddresses) const;
+
     const ContractorID nextFreeID(
         IOTransaction::Shared ioTransaction) const;
 

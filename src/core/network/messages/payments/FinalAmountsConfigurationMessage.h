@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_FINALAMOUNTSCONFIGURATIONMESSAGE_H
 
 #include "base/RequestMessageWithReservations.h"
+#include "../../../contractors/Contractor.h"
 #include "../../../crypto/lamportscheme.h"
 #include <map>
 
@@ -18,7 +19,7 @@ public:
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
-        const map<PaymentNodeID, BaseAddress::Shared> &paymentParticipants);
+        const map<PaymentNodeID, Contractor::Shared> &paymentParticipants);
 
     // if coordinator has reservation with current node it also send receipt
     FinalAmountsConfigurationMessage(
@@ -26,7 +27,7 @@ public:
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
-        const map<PaymentNodeID, BaseAddress::Shared> &mPaymentParticipants,
+        const map<PaymentNodeID, Contractor::Shared> &mPaymentParticipants,
         const KeyNumber publicKeyNumber,
         const lamport::Signature::Shared signature);
 
@@ -35,7 +36,7 @@ public:
 
     const MessageType typeID() const;
 
-    const map<PaymentNodeID, BaseAddress::Shared> &paymentParticipants() const;
+    const map<PaymentNodeID, Contractor::Shared> &paymentParticipants() const;
 
     bool isReceiptContains() const;
 
@@ -44,11 +45,10 @@ public:
     const lamport::Signature::Shared signature() const;
 
 protected:
-    pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc);
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
-    map<PaymentNodeID, BaseAddress::Shared> mPaymentParticipants;
+    map<PaymentNodeID, Contractor::Shared> mPaymentParticipants;
     bool mIsReceiptContains;
     KeyNumber mPublicKeyNumber;
     lamport::Signature::Shared mSignature;

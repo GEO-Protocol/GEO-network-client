@@ -4,7 +4,6 @@
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
 #include "../../../io/storage/StorageHandler.h"
-#include "../../../io/storage/record/payment/PaymentRecord.h"
 
 #include <vector>
 
@@ -26,7 +25,7 @@ protected:
 
 private:
     TransactionResult::SharedConst resultOk(
-        const vector<PaymentRecord::Shared> &records);
+        const vector<PaymentAdditionalRecord::Shared> &records);
 
 private:
     HistoryAdditionalPaymentsCommand::Shared mCommand;

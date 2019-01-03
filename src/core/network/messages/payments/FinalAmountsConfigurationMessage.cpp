@@ -5,7 +5,7 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
-    const map<PaymentNodeID, BaseAddress::Shared> &paymentParticipants) :
+    const map<PaymentNodeID, Contractor::Shared> &paymentParticipants) :
 
     RequestMessageWithReservations(
         equivalent,
@@ -21,7 +21,7 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
-    const map<PaymentNodeID, BaseAddress::Shared> &paymentParticipants,
+    const map<PaymentNodeID, Contractor::Shared> &paymentParticipants,
     const KeyNumber publicKeyNumber,
     const lamport::Signature::Shared signature) :
 
@@ -50,13 +50,13 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
         auto *paymentNodeID = new (bytesBufferOffset) PaymentNodeID;
         bytesBufferOffset += sizeof(PaymentNodeID);
         //---------------------------------------------------
-        auto address = deserializeAddress(bytesBufferOffset);
-        bytesBufferOffset += address->serializedSize();
+        auto contractor = make_shared<Contractor>(bytesBufferOffset);
+        bytesBufferOffset += contractor->serializedSize();
         //---------------------------------------------------
         mPaymentParticipants.insert(
             make_pair(
                 *paymentNodeID,
-                address));
+                contractor));
     }
     //----------------------------------------------------
     memcpy(
@@ -83,7 +83,7 @@ const Message::MessageType FinalAmountsConfigurationMessage::typeID() const
     return Message::Payments_FinalAmountsConfiguration;
 }
 
-const map<PaymentNodeID, BaseAddress::Shared>& FinalAmountsConfigurationMessage::paymentParticipants() const
+const map<PaymentNodeID, Contractor::Shared>& FinalAmountsConfigurationMessage::paymentParticipants() const
 {
     return mPaymentParticipants;
 }
@@ -103,12 +103,7 @@ const lamport::Signature::Shared FinalAmountsConfigurationMessage::signature() c
     return mSignature;
 }
 
-/*!
- *
- * Throws bad_alloc;
- */
 pair<BytesShared, size_t> FinalAmountsConfigurationMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = RequestMessageWithReservations::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
@@ -139,19 +134,19 @@ pair<BytesShared, size_t> FinalAmountsConfigurationMessage::serializeToBytes() c
         sizeof(SerializedRecordsCount));
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     //----------------------------------------------------
-    for (auto const &paymentNodeIdAndAddress : mPaymentParticipants) {
+    for (auto const &paymentNodeIdAndContractor : mPaymentParticipants) {
         memcpy(
             bytesBufferOffset,
-            &paymentNodeIdAndAddress.first,
+            &paymentNodeIdAndContractor.first,
             sizeof(PaymentNodeID));
         bytesBufferOffset += sizeof(PaymentNodeID);
 
-        auto serializedAddress = paymentNodeIdAndAddress.second->serializeToBytes();
+        auto contractorSerializedData = paymentNodeIdAndContractor.second->serializeToBytes();
         memcpy(
             bytesBufferOffset,
-            serializedAddress.get(),
-            paymentNodeIdAndAddress.second->serializedSize());
-        bytesBufferOffset += paymentNodeIdAndAddress.second->serializedSize();
+            contractorSerializedData.get(),
+            paymentNodeIdAndContractor.second->serializedSize());
+        bytesBufferOffset += paymentNodeIdAndContractor.second->serializedSize();
     }
     //----------------------------------------------------
     memcpy(

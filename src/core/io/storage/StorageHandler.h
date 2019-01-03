@@ -54,6 +54,7 @@ private:
     const string kPaymentParticipantsVotesTableName = "payment_participants_votes";
 
     const string kContractorsTableName = "contractors";
+    const string kContractorAddressesTablename = "contractors_addresses";
 
 private:
     static sqlite3 *mDBConnection;
@@ -71,6 +72,7 @@ private:
     PaymentKeysHandler mPaymentKeysHandler;
     PaymentParticipantsVotesHandler mPaymentParticipantsVotesHandler;
     ContractorsHandler mContractorsHandler;
+    AddressHandler mAddressHandler;
     string mDirectory;
     string mDataBaseName;
 };

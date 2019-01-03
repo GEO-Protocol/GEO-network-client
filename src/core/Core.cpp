@@ -19,6 +19,7 @@ int Core::run()
     }
 
     writePIDFile();
+    updateProcessName();
 
     try {
         mCommunicator->beginAcceptMessages();
@@ -360,7 +361,7 @@ void Core::connectCommunicatorSignals()
     //transactions manager's to communicator slot
     mTransactionsManager->transactionOutgoingMessageReadySignal.connect(
         boost::bind(
-            &Core::onMessageSendNewSlot,
+            &Core::onMessageSendSlot,
             this,
             _1,
             _2));
@@ -510,7 +511,7 @@ void Core::onClearTopologyCacheSlot(
     }
 }
 
-void Core::onMessageSendNewSlot(
+void Core::onMessageSendSlot(
     Message::Shared message,
     const ContractorID contractorID)
 {
@@ -632,6 +633,13 @@ void Core::writePIDFile()
     } catch (std::exception &e) {
         error() << "Can't write/update pid file. Error message is: " << e.what();
     }
+}
+
+void Core::updateProcessName()
+{
+    const string kProcessName(string("GEO:") + mContractorsManager->selfContractor()->mainAddress()->fullAddress());
+    prctl(PR_SET_NAME, kProcessName.c_str());
+    strcpy(mCommandDescriptionPtr, kProcessName.c_str());
 }
 
 string Core::logHeader()

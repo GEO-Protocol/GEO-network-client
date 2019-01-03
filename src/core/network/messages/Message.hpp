@@ -184,11 +184,7 @@ public:
 
     virtual const MessageType typeID() const = 0;
 
-    /**
-     * @throws bad_alloc;
-     */
     virtual pair<BytesShared, size_t> serializeToBytes() const
-        noexcept(false)
     {
         SerializedProtocolVersion kProtocolVersion = ProtocolVersion::Latest;
         const SerializedType kMessageType = typeID();

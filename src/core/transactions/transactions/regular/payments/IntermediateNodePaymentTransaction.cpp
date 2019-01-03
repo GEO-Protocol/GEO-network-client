@@ -234,7 +234,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     // TODO: add check for previous nodes amount reservation
 
     const auto kMessage = popNextMessage<CoordinatorReservationRequestMessage>();
-    mCoordinator = kMessage->senderAddresses.at(0);
+    mCoordinator = make_shared<Contractor>(kMessage->senderAddresses);
     // todo : on this stage node should know coordinator and check sender
     const auto kNextNode = kMessage->nextNodeInPath();
     if (kMessage->finalAmountsConfiguration().empty()) {
@@ -408,7 +408,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 #endif
 
     sendMessage<CoordinatorReservationResponseMessage>(
-        mCoordinator,
+        mCoordinator->mainAddress(),
         mEquivalent,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
@@ -490,9 +490,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservatio
 
     // Node is clarifying of coordinator if transaction is still alive
     if (!contextIsValid(Message::Payments_FinalAmountsConfiguration)) {
-        debug() << "Send TTLTransaction message to coordinator " << mCoordinator->fullAddress();
+        debug() << "Send TTLTransaction message to coordinator " << mCoordinator->mainAddress()->fullAddress();
         sendMessage<TTLProlongationRequestMessage>(
-            mCoordinator,
+            mCoordinator->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID());
@@ -584,9 +584,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmoun
         return reject("Coordinator send TTL message with transaction finish state. Rolling Back");
     }
 
-    debug() << "Send TTLTransaction message to coordinator " << mCoordinator->fullAddress();
+    debug() << "Send TTLTransaction message to coordinator " << mCoordinator->mainAddress()->fullAddress();
     sendMessage<TTLProlongationRequestMessage>(
-        mCoordinator,
+        mCoordinator->mainAddress(),
         mEquivalent,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID());
@@ -634,7 +634,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
     for (const auto &paymentParticipant : mPaymentParticipants) {
         mPaymentNodesIds.insert(
             make_pair(
-                paymentParticipant.second->fullAddress(),
+                paymentParticipant.second->mainAddress()->fullAddress(),
                 paymentParticipant.first));
     }
     if (!checkAllNeighborsWithReservationsAreInFinalParticipantsList()) {
@@ -707,11 +707,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
     // to nodes with outgoing reservations - outgoing receipts and public key hash;
     // to rest nodes - only public key hash
     auto ownPaymentID = mPaymentNodesIds[mContractorsManager->ownAddresses().at(0)->fullAddress()];
-    for (const auto &nodePaymentIdAndAddress : mPaymentParticipants) {
-        if (nodePaymentIdAndAddress.second == mCoordinator) {
+    for (const auto &nodePaymentIdAndContractor : mPaymentParticipants) {
+        if (nodePaymentIdAndContractor.second == mCoordinator) {
             continue;
         }
-        if (nodePaymentIdAndAddress.second == mContractorsManager->ownAddresses().at(0)) {
+        if (nodePaymentIdAndContractor.second == mContractorsManager->selfContractor()) {
             continue;
         }
 
@@ -719,11 +719,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
         mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage(mPaymentParticipants.size() - 2);
 #endif
 
-        auto participantID = mContractorsManager->contractorIDByAddress(nodePaymentIdAndAddress.second);
+        auto participantID = mContractorsManager->contractorIDByAddress(nodePaymentIdAndContractor.second->mainAddress());
         if (mReservations.find(participantID) == mReservations.end()) {
-            info() << "Send public key hash to " << nodePaymentIdAndAddress.second->fullAddress();
+            info() << "Send public key hash to " << nodePaymentIdAndContractor.second->mainAddress()->fullAddress();
             sendMessage<TransactionPublicKeyHashMessage>(
-                nodePaymentIdAndAddress.second,
+                nodePaymentIdAndContractor.second->mainAddress(),
                 mEquivalent,
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
@@ -759,10 +759,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
                 sendErrorMessageOnFinalAmountsConfiguration();
                 return reject("Can't save outgoing receipt. Rejected.");
             }
-            info() << "Send public key hash to " << nodePaymentIdAndAddress.second->fullAddress()
+            info() << "Send public key hash to " << nodePaymentIdAndContractor.second->mainAddress()->fullAddress()
                    << " with receipt " << outgoingReservedAmount;
             sendMessage<TransactionPublicKeyHashMessage>(
-                nodePaymentIdAndAddress.second,
+                nodePaymentIdAndContractor.second->mainAddress(),
                 mEquivalent,
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
@@ -771,9 +771,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
                 signatureAndKeyNumber.second,
                 signatureAndKeyNumber.first);
         } else {
-            info() << "Send public key hash to " << nodePaymentIdAndAddress.second->fullAddress();
+            info() << "Send public key hash to " << nodePaymentIdAndContractor.second->mainAddress()->fullAddress();
             sendMessage<TransactionPublicKeyHashMessage>(
-                nodePaymentIdAndAddress.second,
+                nodePaymentIdAndContractor.second->mainAddress(),
                 mEquivalent,
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
@@ -791,7 +791,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
         }
 
         sendMessage<FinalAmountsConfigurationResponseMessage>(
-            mCoordinator,
+            mCoordinator->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -894,7 +894,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
         }
 
         sendMessage<FinalAmountsConfigurationResponseMessage>(
-            mCoordinator,
+            mCoordinator->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -961,9 +961,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
         return reject("Invalid TTL transaction state. Rolling back");
     }
 
-    debug() << "Send TTLTransaction message to coordinator " << mCoordinator->fullAddress();
+    debug() << "Send TTLTransaction message to coordinator " << mCoordinator->mainAddress()->fullAddress();
     sendMessage<TTLProlongationRequestMessage>(
-        mCoordinator,
+        mCoordinator->mainAddress(),
         mEquivalent,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID());
@@ -1039,17 +1039,17 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::approve()
 
 BaseAddress::Shared IntermediateNodePaymentTransaction::coordinatorAddress() const
 {
-    return mCoordinator;
+    return mCoordinator->mainAddress();
 }
 
 void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory(
     IOTransaction::Shared ioTransaction)
 {
     debug() << "savePaymentOperationIntoHistory";
-    ioTransaction->historyStorage()->savePaymentRecord(
-        make_shared<PaymentRecord>(
+    ioTransaction->historyStorage()->savePaymentAdditionalRecord(
+        make_shared<PaymentAdditionalRecord>(
             currentTransactionUUID(),
-            PaymentRecord::PaymentOperationType::IntermediatePaymentType,
+            PaymentAdditionalRecord::IntermediatePaymentType,
             mCommittedAmount),
         mEquivalent);
     debug() << "Operation saved";
@@ -1121,7 +1121,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::sendErrorMess
     ResponseMessage::OperationState errorState)
 {
     sendMessage<CoordinatorReservationResponseMessage>(
-        mCoordinator,
+        mCoordinator->mainAddress(),
         mEquivalent,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
@@ -1146,7 +1146,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::sendErrorMess
     ResponseMessage::OperationState errorState)
 {
     sendMessage<CoordinatorReservationResponseMessage>(
-        mCoordinator,
+        mCoordinator->mainAddress(),
         mEquivalent,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
@@ -1170,7 +1170,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::sendErrorMess
 void IntermediateNodePaymentTransaction::sendErrorMessageOnFinalAmountsConfiguration()
 {
     sendMessage<FinalAmountsConfigurationResponseMessage>(
-        mCoordinator,
+        mCoordinator->mainAddress(),
         mEquivalent,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,

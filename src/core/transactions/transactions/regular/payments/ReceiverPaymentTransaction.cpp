@@ -26,7 +26,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         keystore,
         log,
         subsystemsController),
-    mCoordinatorAddress(message->senderAddresses.at(0)),
+    mCoordinator(make_shared<Contractor>(message->senderAddresses)),
     mTransactionAmount(message->amount()),
     mTransactionShouldBeRejected(false)
 {
@@ -102,8 +102,10 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::runInitializationStage()
 {
-    debug() << "Operation for " << mTransactionAmount
-            << " initialised by the (" << mCoordinatorAddress->fullAddress() << ")";
+    debug() << "Operation for " << mTransactionAmount << " initialised by the:";
+    for (const auto &address : mCoordinator->addresses()) {
+        debug() << address->fullAddress();
+    }
 
     // Check if total incoming possibilities of the node are <= of the payment amount.
     // If not - there is no reason to process the operation at all.
@@ -112,7 +114,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitializationStag
     debug() << "Total incoming amount: " << kTotalAvailableIncomingAmount;
     if (kTotalAvailableIncomingAmount < mTransactionAmount) {
         sendMessage<ReceiverInitPaymentResponseMessage>(
-            mCoordinatorAddress,
+            mCoordinator->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -123,7 +125,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitializationStag
     }
 
     sendMessage<ReceiverInitPaymentResponseMessage>(
-        mCoordinatorAddress,
+        mCoordinator->mainAddress(),
         mEquivalent,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
@@ -160,9 +162,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
 
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationRequest)) {
         debug() << "No amount reservation request was received.";
-        debug() << "Send TTLTransaction message to coordinator " << mCoordinatorAddress->fullAddress();
+        debug() << "Send TTLTransaction message to coordinator " << mCoordinator->mainAddress();
         sendMessage<TTLProlongationRequestMessage>(
-            mCoordinatorAddress,
+            mCoordinator->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID());
@@ -395,9 +397,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalAmountsConfig
         return reject("Coordinator send TTL message with transaction finish state. Rolling Back");
     }
 
-    debug() << "Send TTLTransaction message to coordinator " << mCoordinatorAddress->fullAddress();
+    debug() << "Send TTLTransaction message to coordinator " << mCoordinator->mainAddress();
     sendMessage<TTLProlongationRequestMessage>(
-        mCoordinatorAddress,
+        mCoordinator->mainAddress(),
         mEquivalent,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID());
@@ -444,7 +446,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
     for (const auto &paymentNodeIdAndAddress : mPaymentParticipants) {
         mPaymentNodesIds.insert(
             make_pair(
-                paymentNodeIdAndAddress.second->fullAddress(),
+                paymentNodeIdAndAddress.second->mainAddress()->fullAddress(),
                 paymentNodeIdAndAddress.first));
     }
     if (!checkAllNeighborsWithReservationsAreInFinalParticipantsList()) {
@@ -514,16 +516,16 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
 
     // send public key hash to all participants except coordinator
     auto ownPaymentID = mPaymentNodesIds[mContractorsManager->ownAddresses().at(0)->fullAddress()];
-    for (const auto &paymentNodeIdAndAddress : mPaymentParticipants) {
-        if (paymentNodeIdAndAddress.second == mCoordinatorAddress) {
+    for (const auto &paymentNodeIdAndContractor : mPaymentParticipants) {
+        if (paymentNodeIdAndContractor.second == mCoordinator) {
             continue;
         }
-        if (paymentNodeIdAndAddress.second == mContractorsManager->ownAddresses().at(0)) {
+        if (paymentNodeIdAndContractor.second == mContractorsManager->selfContractor()) {
             continue;
         }
-        info() << "Send public key hash to " << paymentNodeIdAndAddress.second->fullAddress();
+        info() << "Send public key hash to " << paymentNodeIdAndContractor.second->mainAddress()->fullAddress();
         sendMessage<TransactionPublicKeyHashMessage>(
-            paymentNodeIdAndAddress.second,
+            paymentNodeIdAndContractor.second->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -542,7 +544,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
         info() << "All public key hashes are properly";
 
         sendMessage<FinalAmountsConfigurationResponseMessage>(
-            mCoordinatorAddress,
+            mCoordinator->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -644,7 +646,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
         }
 
         sendMessage<FinalAmountsConfigurationResponseMessage>(
-            mCoordinatorAddress,
+            mCoordinator->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -724,9 +726,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runVotesCheckingStage
         return runVotesCheckingStage();
     }
 
-    debug() << "Send TTLTransaction message to coordinator " << mCoordinatorAddress->fullAddress();
+    debug() << "Send TTLTransaction message to coordinator " << mCoordinator->mainAddress()->fullAddress();
     sendMessage<TTLProlongationRequestMessage>(
-        mCoordinatorAddress,
+        mCoordinator->mainAddress(),
         mEquivalent,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID());
@@ -803,8 +805,7 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::IncomingPaymentType,
-            // todo : use coordinator address
-            NodeUUID::empty(),
+            mCoordinator,
             mCommittedAmount,
             *mTrustLinesManager->totalBalance().get()),
         mEquivalent);
@@ -847,7 +848,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::sendErrorMessageOnPre
 void ReceiverPaymentTransaction::sendErrorMessageOnFinalAmountsConfiguration()
 {
     sendMessage<FinalAmountsConfigurationResponseMessage>(
-        mCoordinatorAddress,
+        mCoordinator->mainAddress(),
         mEquivalent,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
@@ -856,7 +857,7 @@ void ReceiverPaymentTransaction::sendErrorMessageOnFinalAmountsConfiguration()
 
 BaseAddress::Shared ReceiverPaymentTransaction::coordinatorAddress() const
 {
-    return mCoordinatorAddress;
+    return mCoordinator->mainAddress();
 }
 
 const string ReceiverPaymentTransaction::logHeader() const

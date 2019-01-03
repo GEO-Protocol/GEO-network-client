@@ -16,20 +16,50 @@ InitTrustLineCommand::InitTrustLineCommand(
                 "Received command is to short.");
     }
 
-    size_t contractorAddressStartPos = 0;
-    size_t tokenSeparatorPos = command.find(
-        kTokensSeparator,
-        contractorAddressStartPos);
-    auto contractorAddressStr = command.substr(
-        contractorAddressStartPos,
-        tokenSeparatorPos - contractorAddressStartPos);
+    size_t tokenSeparatorPos = command.find(kTokensSeparator);
+    auto contractorAddressesCntStr = command.substr(0, tokenSeparatorPos);
     try {
-        mContractorAddress = make_shared<IPv4WithPortAddress>(
-            contractorAddressStr);
+        mContractorAddressesCount = (uint32_t)std::stoul(contractorAddressesCntStr);
     } catch (...) {
         throw ValueError(
             "InitTrustLineCommand: can't parse command. "
-                "Error occurred while parsing 'Contractor Address' token.");
+                "Error occurred while parsing  'contractor addresses count' token.");
+    }
+
+    mContractorAddresses.reserve(mContractorAddressesCount);
+    size_t contractorAddressStartPos = tokenSeparatorPos + 1;
+    for (size_t idx = 0; idx < mContractorAddressesCount; idx++) {
+        try {
+            tokenSeparatorPos = command.find(
+                kTokensSeparator,
+                contractorAddressStartPos);
+            string addressWithTypeStr = command.substr(
+                contractorAddressStartPos,
+                tokenSeparatorPos - contractorAddressStartPos);
+            auto addressTypeSeparatorPos = addressWithTypeStr.find(kAddressTypeSeparator);
+            auto addressTypeStr = addressWithTypeStr.substr(0, addressTypeSeparatorPos);
+            auto addressType = (BaseAddress::AddressType)std::stoul(addressTypeStr);
+            auto addressStr = addressWithTypeStr.substr(
+                addressTypeSeparatorPos + 1,
+                addressWithTypeStr.length() - addressTypeSeparatorPos + 1);
+            switch (addressType) {
+                case BaseAddress::IPv4_IncludingPort: {
+                    mContractorAddresses.push_back(
+                        make_shared<IPv4WithPortAddress>(
+                            addressStr));
+                    break;
+                }
+                default:
+                    throw ValueError(
+                        "InitTrustLineCommand: can't parse command. "
+                            "Error occurred while parsing 'Contractor Address' token.");
+            }
+            contractorAddressStartPos = tokenSeparatorPos + 1;
+        } catch (...) {
+            throw ValueError(
+                "InitTrustLineCommand: can't parse command. "
+                    "Error occurred while parsing 'Contractor Address' token.");
+        }
     }
 
     size_t equivalentOffset = tokenSeparatorPos + 1;
@@ -58,8 +88,8 @@ noexcept
     return mEquivalent;
 }
 
-BaseAddress::Shared InitTrustLineCommand::contractorAddress() const
+vector<BaseAddress::Shared> InitTrustLineCommand::contractorAddresses() const
 noexcept
 {
-    return mContractorAddress;
+    return mContractorAddresses;
 }

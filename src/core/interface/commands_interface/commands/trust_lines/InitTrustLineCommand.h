@@ -21,12 +21,13 @@ public:
     const SerializedEquivalent equivalent() const
     noexcept;
 
-    BaseAddress::Shared contractorAddress() const
+    vector<BaseAddress::Shared> contractorAddresses() const
     noexcept;
 
 private:
     SerializedEquivalent mEquivalent;
-    BaseAddress::Shared mContractorAddress;
+    size_t mContractorAddressesCount;
+    vector<BaseAddress::Shared> mContractorAddresses;
 };
 
 

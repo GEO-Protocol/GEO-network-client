@@ -571,7 +571,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     for (const auto &paymentParticipant : mPaymentParticipants) {
         mPaymentNodesIds.insert(
             make_pair(
-                paymentParticipant.second->fullAddress(),
+                paymentParticipant.second->mainAddress()->fullAddress(),
                 paymentParticipant.first));
     }
     if (!checkAllNeighborsWithReservationsAreInFinalParticipantsList()) {
@@ -644,17 +644,17 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     // to nodes with outgoing reservations - outgoing receipts and public key hash;
     // to rest nodes - only public key hash
     auto ownPaymentID = mPaymentNodesIds[mContractorsManager->ownAddresses().at(0)->fullAddress()];
-    for (const auto &paymentNodeIdAndAddress : mPaymentParticipants) {
-        if (paymentNodeIdAndAddress.second == mContractorsManager->ownAddresses().at(0)) {
+    for (const auto &paymentNodeIdAndContractor : mPaymentParticipants) {
+        if (paymentNodeIdAndContractor.second == mContractorsManager->selfContractor()) {
             continue;
         }
-        auto participantID = mContractorsManager->contractorIDByAddress(paymentNodeIdAndAddress.second);
+        auto participantID = mContractorsManager->contractorIDByAddress(paymentNodeIdAndContractor.second->mainAddress());
         if (mReservations.find(participantID) == mReservations.end()) {
-            if (paymentNodeIdAndAddress.first == kCoordinatorPaymentNodeID) {
+            if (paymentNodeIdAndContractor.first == kCoordinatorPaymentNodeID) {
                 continue;
             }
             sendMessage<TransactionPublicKeyHashMessage>(
-                paymentNodeIdAndAddress.second,
+                paymentNodeIdAndContractor.second->mainAddress(),
                 mEquivalent,
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
@@ -688,7 +688,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
                 return reject("Can't save outgoing receipt. Rejected.");
             }
             sendMessage<TransactionPublicKeyHashMessage>(
-                paymentNodeIdAndAddress.second,
+                paymentNodeIdAndContractor.second->mainAddress(),
                 mEquivalent,
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
@@ -697,11 +697,11 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
                 signatureAndKeyNumber.second,
                 signatureAndKeyNumber.first);
         } else {
-            if (paymentNodeIdAndAddress.first == kCoordinatorPaymentNodeID) {
+            if (paymentNodeIdAndContractor.first == kCoordinatorPaymentNodeID) {
                 continue;
             }
             sendMessage<TransactionPublicKeyHashMessage>(
-                paymentNodeIdAndAddress.second,
+                paymentNodeIdAndContractor.second->mainAddress(),
                 mEquivalent,
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
@@ -892,10 +892,10 @@ void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory(
     IOTransaction::Shared ioTransaction)
 {
     debug() << "savePaymentOperationIntoHistory";
-    ioTransaction->historyStorage()->savePaymentRecord(
-        make_shared<PaymentRecord>(
+    ioTransaction->historyStorage()->savePaymentAdditionalRecord(
+        make_shared<PaymentAdditionalRecord>(
             currentTransactionUUID(),
-            PaymentRecord::PaymentOperationType::CyclerCloserIntermediateType,
+            PaymentAdditionalRecord::CycleCloserIntermediateType,
             mCommittedAmount),
         mEquivalent);
     debug() << "Operation saved";

@@ -25,7 +25,7 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
-    vector<BaseAddress::Shared> Path() const;
+    vector<BaseAddress::Shared> path() const;
 
     void addNodeToPath(
         BaseAddress::Shared inBetweenNode);

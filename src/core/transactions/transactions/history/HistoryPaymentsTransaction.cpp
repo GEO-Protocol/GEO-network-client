@@ -69,7 +69,7 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::resultOk(
 
         stream << kTokensSeparator << kRecord->operationUUID() << kTokensSeparator;
         stream << kUnixTimestampMicrosec << kTokensSeparator;
-        stream << kRecord->contractorUUID() << kTokensSeparator;
+        // todo : add contractor info
         stream << formattedOperationType << kTokensSeparator;
         stream << kRecord->amount() << kTokensSeparator;
         stream << kRecord->balanceAfterOperation();

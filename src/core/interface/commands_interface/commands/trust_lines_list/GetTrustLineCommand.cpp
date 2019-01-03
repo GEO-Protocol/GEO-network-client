@@ -17,14 +17,23 @@ GetTrustLineCommand::GetTrustLineCommand(
     }
 
     auto tokenSeparatorPos = commandBuffer.find(kTokensSeparator);
-    auto contractorAddressStr = commandBuffer.substr(0, tokenSeparatorPos);
-    try {
-        mContractorAddress = make_shared<IPv4WithPortAddress>(
-            contractorAddressStr);
-    } catch (...) {
-        throw ValueError(
-            "GetTrustLineCommand: can't parse command. "
-                "Error occurred while parsing 'Contractor Address' token.");
+    auto addressWithTypeStr = commandBuffer.substr(0, tokenSeparatorPos);
+    auto addressTypeSeparatorPos = addressWithTypeStr.find(kAddressTypeSeparator);
+    auto addressTypeStr = addressWithTypeStr.substr(0, addressTypeSeparatorPos);
+    auto addressType = (BaseAddress::AddressType)std::stoul(addressTypeStr);
+    auto addressStr = addressWithTypeStr.substr(
+        addressTypeSeparatorPos + 1,
+        addressWithTypeStr.length() - addressTypeSeparatorPos + 1);
+    switch (addressType) {
+        case BaseAddress::IPv4_IncludingPort: {
+            mContractorAddress = make_shared<IPv4WithPortAddress>(
+                addressStr);
+            break;
+        }
+        default:
+            throw ValueError(
+                    "GetTrustLineCommand: can't parse command. "
+                        "Error occurred while parsing 'Contractor Address' token.");
     }
 
     size_t equivalentOffset = tokenSeparatorPos + 1;

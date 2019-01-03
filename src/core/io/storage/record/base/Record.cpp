@@ -1,16 +1,13 @@
 #include "Record.h"
 
-Record::Record()
-{}
-
 Record::Record(
     const Record::RecordType recordType,
     const TransactionUUID &operationUUID,
-    const NodeUUID &contractorUUID):
+    Contractor::Shared contractor):
 
     mOperationUUID(operationUUID),
     mTimestamp(utc_now()),
-    mContractorUUID(contractorUUID)
+    mContractor(contractor)
 {
     mRecordType = recordType;
 }
@@ -18,15 +15,14 @@ Record::Record(
 Record::Record(
     const Record::RecordType recordType,
     const TransactionUUID &operationUUID,
-    const NodeUUID &contractorUUID,
+    Contractor::Shared contractor,
     const GEOEpochTimestamp geoEpochTimestamp) :
 
-    mOperationUUID(operationUUID)
+    mOperationUUID(operationUUID),
+    mTimestamp(dateTimeFromGEOEpochTimestamp(geoEpochTimestamp)),
+    mContractor(contractor)
 {
     mRecordType = recordType;
-    mContractorUUID = contractorUUID,
-    mTimestamp = dateTimeFromGEOEpochTimestamp(
-        geoEpochTimestamp);
 }
 
 const bool Record::isTrustLineRecord() const
@@ -54,7 +50,7 @@ const DateTime Record::timestamp() const
     return mTimestamp;
 }
 
-const NodeUUID Record::contractorUUID() const
+Contractor::Shared Record::contractor() const
 {
-    return mContractorUUID;
+    return mContractor;
 }

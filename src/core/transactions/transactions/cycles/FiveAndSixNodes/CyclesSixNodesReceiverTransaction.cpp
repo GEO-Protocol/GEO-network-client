@@ -16,12 +16,13 @@ CyclesSixNodesReceiverTransaction::CyclesSixNodesReceiverTransaction(
 
 TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
 {
+    info() << "Neighbor " << mInBetweenNodeTopologyMessage->idOnReceiverSide << " sent request";
     auto contractorID = mInBetweenNodeTopologyMessage->idOnReceiverSide;
     if (!mContractorsManager->contractorPresent(contractorID)) {
         warning() << "There is no contractor " << contractorID;
         return resultDone();
     }
-    vector<BaseAddress::Shared> path = mInBetweenNodeTopologyMessage->Path();
+    vector<BaseAddress::Shared> path = mInBetweenNodeTopologyMessage->path();
     if (!mTrustLinesManager->trustLineIsActive(contractorID)) {
         warning() << "TL with previous node " << contractorID << " is not active";
         return resultDone();
@@ -34,11 +35,26 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
         return resultDone();
     }
     auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(
-            contractorBalance < TrustLine::kZeroBalance());
+        contractorBalance < TrustLine::kZeroBalance());
+    if (firstLevelNodes.empty()) {
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+        debug() << "No suitable firstLevelNodes";
+#endif
+        return resultDone();
+    }
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+    stringstream ss;
+    ss << "suitable neighbors: ";
+    for(const auto &neighborID: firstLevelNodes) {
+        ss << neighborID << " ";
+    }
+    debug() << ss.str();
+#endif
+
     //  Update message path and send to next level nodes
     const auto kCurrentDepth = (SerializedPathLengthSize)path.size();
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
-    info() << "current depth: " << to_string(kCurrentDepth);
+    info() << "current depth: " << (uint16_t)kCurrentDepth;
 #endif
     if (kCurrentDepth == 1) {
         mInBetweenNodeTopologyMessage->addNodeToPath(
@@ -47,6 +63,7 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
             sendMessage(
                 neighborID,
                 mInBetweenNodeTopologyMessage);
+            info() << "send request message to neighbor " << neighborID;
         }
     }
     else if (kCurrentDepth == 2) {
@@ -62,9 +79,10 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
             mEquivalent,
             path,
             boundaryNodes);
+        info() << "send response message to " << path.front()->fullAddress();
     }
     else {
-        warning() << "Wrong path size " << to_string(kCurrentDepth);
+        warning() << "Wrong path size " << (uint16_t)kCurrentDepth;
     }
     return resultDone();
 }

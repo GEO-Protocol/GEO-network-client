@@ -17,20 +17,50 @@ CreditUsageCommand::CreditUsageCommand(
                     "Received command is too short.");
     }
 
-    size_t contractorAddressStartPos = 0;
-    size_t tokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator,
-        contractorAddressStartPos);
-    auto contractorAddressStr = commandBuffer.substr(
-        contractorAddressStartPos,
-        tokenSeparatorPos - contractorAddressStartPos);
+    size_t tokenSeparatorPos = commandBuffer.find(kTokensSeparator);
+    auto contractorAddressesCntStr = commandBuffer.substr(0, tokenSeparatorPos);
     try {
-        mContractorAddress = make_shared<IPv4WithPortAddress>(
-            contractorAddressStr);
+        mContractorAddressesCount = (uint32_t)std::stoul(contractorAddressesCntStr);
     } catch (...) {
         throw ValueError(
+            "CreditUsageCommand: can't parse command. "
+                "Error occurred while parsing  'contractor addresses count' token.");
+    }
+
+    mContractorAddresses.reserve(mContractorAddressesCount);
+    size_t contractorAddressStartPos = tokenSeparatorPos + 1;
+    for (size_t idx = 0; idx < mContractorAddressesCount; idx++) {
+        try {
+            tokenSeparatorPos = commandBuffer.find(
+                kTokensSeparator,
+                contractorAddressStartPos);
+            string addressWithTypeStr = commandBuffer.substr(
+                contractorAddressStartPos,
+                tokenSeparatorPos - contractorAddressStartPos);
+            auto addressTypeSeparatorPos = addressWithTypeStr.find(kAddressTypeSeparator);
+            auto addressTypeStr = addressWithTypeStr.substr(0, addressTypeSeparatorPos);
+            auto addressType = (BaseAddress::AddressType)std::stoul(addressTypeStr);
+            auto addressStr = addressWithTypeStr.substr(
+                addressTypeSeparatorPos + 1,
+                addressWithTypeStr.length() - addressTypeSeparatorPos + 1);
+            switch (addressType) {
+                case BaseAddress::IPv4_IncludingPort: {
+                    mContractorAddresses.push_back(
+                        make_shared<IPv4WithPortAddress>(
+                            addressStr));
+                    break;
+                }
+                default:
+                    throw ValueError(
+                        "CreditUsageCommand: can't parse command. "
+                            "Error occurred while parsing 'Contractor Address' token.");
+            }
+            contractorAddressStartPos = tokenSeparatorPos + 1;
+        } catch (...) {
+            throw ValueError(
                 "CreditUsageCommand: can't parse command. "
                     "Error occurred while parsing 'Contractor Address' token.");
+        }
     }
 
     size_t amountStartPos = tokenSeparatorPos + 1;
@@ -73,9 +103,9 @@ const string& CreditUsageCommand::identifier()
     return identifier;
 }
 
-BaseAddress::Shared CreditUsageCommand::contractorAddress() const
+vector<BaseAddress::Shared> CreditUsageCommand::contractorAddresses() const
 {
-    return mContractorAddress;
+    return mContractorAddresses;
 }
 
 const TrustLineAmount& CreditUsageCommand::amount() const

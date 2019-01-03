@@ -10,7 +10,7 @@ CommunicatorMessagesQueueHandler::CommunicatorMessagesQueueHandler(
     mLog(logger)
 {
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
-                   " (contractor_id BLOB NOT NULL, "
+                   " (contractor_id INT NOT NULL, "
                    "equivalent INT NOT NULL, "
                    "transaction_uuid BLOB NOT NULL, "
                    "message_type INT NOT NULL, "

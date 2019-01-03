@@ -172,6 +172,11 @@ protected:
     // for closing cycle involved into the transaction.
     unique_ptr<PathStats> mPathStats;
 
+    // Contains all addresses of participants of current path.
+    // Only main addresses are used for building paths.
+    // During reservations all participants inform coordinator about theirs all addresses.
+    vector<Contractor::Shared> mCurrentPathParticipants;
+
     // fields, for continue process coordinator request after releasing conflicted reservation
     // transaction on which reservation we pretend
     TransactionUUID mConflictedTransaction;

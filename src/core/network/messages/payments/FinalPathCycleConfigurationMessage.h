@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_FINALPATHCYCLECONFIGURATIONMESSAGE_H
 
 #include "base/RequestCycleMessage.h"
+#include "../../../contractors/Contractor.h"
 #include "../../../crypto/lamportscheme.h"
 #include <map>
 
@@ -19,14 +20,14 @@ public:
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount,
-        const map<PaymentNodeID, BaseAddress::Shared> &paymentPaticipants);
+        const map<PaymentNodeID, Contractor::Shared> &paymentPaticipants);
 
     FinalPathCycleConfigurationMessage(
         const SerializedEquivalent equivalent,
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount,
-        const map<PaymentNodeID, BaseAddress::Shared> &paymentPaticipants,
+        const map<PaymentNodeID, Contractor::Shared> &paymentPaticipants,
         const KeyNumber publicKeyNumber,
         const lamport::Signature::Shared signature);
 
@@ -35,7 +36,7 @@ public:
 
     const MessageType typeID() const;
 
-    const map<PaymentNodeID, BaseAddress::Shared>& paymentParticipants() const;
+    const map<PaymentNodeID, Contractor::Shared>& paymentParticipants() const;
 
     bool isReceiptContains() const;
 
@@ -48,7 +49,7 @@ protected:
     throw(bad_alloc);
 
 private:
-    map<PaymentNodeID, BaseAddress::Shared> mPaymentParticipants;
+    map<PaymentNodeID, Contractor::Shared> mPaymentParticipants;
     bool mIsReceiptContains;
     KeyNumber mPublicKeyNumber;
     lamport::Signature::Shared mSignature;

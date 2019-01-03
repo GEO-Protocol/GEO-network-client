@@ -84,7 +84,7 @@ const size_t CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes()
 }
 
 
-vector<BaseAddress::Shared> CycleBaseFiveOrSixNodesInBetweenMessage::Path() const
+vector<BaseAddress::Shared> CycleBaseFiveOrSixNodesInBetweenMessage::path() const
 {
     return mPath;
 }

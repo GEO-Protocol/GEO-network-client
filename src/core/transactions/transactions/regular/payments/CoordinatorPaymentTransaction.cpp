@@ -39,6 +39,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     mParticipantsKeysProblem(false)
 {
     mStep = Stages::Coordinator_Initialization;
+    mContractor = make_shared<Contractor>(command->contractorAddresses());
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
@@ -99,11 +100,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
         debug() << "It is forbidden run payment transactions";
         return resultForbiddenRun();
     }
-    debug() << "Operation initialised to the node " << mCommand->contractorAddress()->fullAddress();
+    debug() << "Operation initialised to the node " << mContractor->toString();
     debug() << "Command NodeUUID: " << mCommand->UUID();
     debug() << "Operation amount: " << mCommand->amount();
 
-    if (mCommand->contractorAddress() == mContractorsManager->ownAddresses().at(0)) {
+    if (mContractor == mContractorsManager->selfContractor()) {
         warning() << "Attempt to initialise operation against itself was prevented. Canceled.";
         return resultProtocolError();
     }
@@ -119,7 +120,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
 
     mResourcesManager->requestPaths(
         currentTransactionUUID(),
-        mCommand->contractorAddress(),
+        mContractor->mainAddress(),
         mEquivalent);
 
     mStep = Stages::Coordinator_ReceiverResourceProcessing;
@@ -143,7 +144,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
             response->pathCollection()->resetCurrentPath();
             while (response->pathCollection()->hasNextPath()) {
                 auto path = response->pathCollection()->nextPath();
-                info() << "New path " << path->toString();
+                info() << "path " << path->toString();
                 // todo : correct method isPathValid
                 if (isPathValid(path)) {
                     addPathForFurtherProcessing(path);
@@ -172,7 +173,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
 
     // Sending message to the receiver note to approve the payment receiving.
     sendMessage<ReceiverInitPaymentRequestMessage>(
-        mCommand->contractorAddress(),
+        mContractor->mainAddress(),
         mEquivalent,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
@@ -205,13 +206,23 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverRespons
 
     debug() << "Receiver accepted operation. Begin reserving amounts.";
     mCurrentFreePaymentID = kCoordinatorPaymentNodeID;
+    auto selfContractor = make_shared<Contractor>(mContractorsManager->ownAddresses());
     mPaymentParticipants.insert(
         make_pair(
             mCurrentFreePaymentID,
-            mContractorsManager->ownAddresses().at(0)));
+            selfContractor));
     mPaymentNodesIds.insert(
         make_pair(
-            mContractorsManager->ownAddresses().at(0)->fullAddress(),
+            selfContractor->mainAddress()->fullAddress(),
+            mCurrentFreePaymentID));
+    mCurrentFreePaymentID++;
+    mPaymentParticipants.insert(
+        make_pair(
+            mCurrentFreePaymentID,
+            mContractor));
+    mPaymentNodesIds.insert(
+        make_pair(
+            mContractor->mainAddress()->fullAddress(),
             mCurrentFreePaymentID));
     mCurrentFreePaymentID++;
     mStep = Stages::Coordinator_AmountReservation;
@@ -279,8 +290,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
             << mParticipantsPublicKeys.size();
 #ifdef DEBUG
     debug() << "Participants order is the next:";
-    for (const auto &kNodeUUIDAndPaymentNodeID : mPaymentNodesIds) {
-        debug() << kNodeUUIDAndPaymentNodeID.first << " " << kNodeUUIDAndPaymentNodeID.second;
+    for (const auto &paymentNodeIdAndContractor : mPaymentParticipants) {
+        debug() << paymentNodeIdAndContractor.first << " " << paymentNodeIdAndContractor.second->mainAddress()->fullAddress();
     }
 #endif
 
@@ -298,12 +309,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
             mPublicKey));
 
     // send message with all public keys to all participants and wait for voting results
-    for (const auto &nodeAndPaymentID : mPaymentParticipants) {
-        if (nodeAndPaymentID.first == kCoordinatorPaymentNodeID) {
+    for (const auto &paymentNodeIdAndAddress : mPaymentParticipants) {
+        if (paymentNodeIdAndAddress.first == kCoordinatorPaymentNodeID) {
             continue;
         }
         sendMessage<ParticipantsPublicKeysMessage>(
-            nodeAndPaymentID.second,
+            paymentNodeIdAndAddress.second->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -336,6 +347,7 @@ void CoordinatorPaymentTransaction::initAmountsReservationOnNextPath()
     mCurrentAmountReservingPathIdentifier = *mPathIDs.cbegin();
     debug() << "[" << mCurrentAmountReservingPathIdentifier << "] {"
             << currentAmountReservationPathStats()->path()->toString() << "}";
+    mCurrentPathParticipants.clear();
 }
 
 /*
@@ -365,7 +377,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
            << "Trying to reserve amount directly on the receiver side.";
 
     auto receiverID = mContractorsManager->contractorIDByAddress(
-        mCommand->contractorAddress());
+        mContractor->mainAddress());
     if (receiverID == ContractorsManager::kNotFoundContractorID) {
         warning() << "Direct path wrong because receiver is not neighbor of contractor";
         pathStats->setUnusable();
@@ -414,16 +426,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     reservations.emplace_back(
         mCurrentAmountReservingPathIdentifier,
         make_shared<const TrustLineAmount>(kReservationAmount));
-
-    auto contractorAddressKey = mCommand->contractorAddress()->fullAddress();
-    if (mNodesFinalAmountsConfiguration.find(contractorAddressKey) != mNodesFinalAmountsConfiguration.end()) {
-        // add existing contractor reservations
-        const auto kContractorReservations = mNodesFinalAmountsConfiguration[contractorAddressKey];
-        reservations.insert(
-            reservations.end(),
-            kContractorReservations.begin(),
-            kContractorReservations.end());
-    }
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageToReceiverOnReservationStage();
@@ -478,7 +480,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveNextInte
                 nextAfterRemoteNodeAddress);
         }
 
-    } catch(NotFoundError) {
+    } catch(NotFoundError&) {
         debug() << "No unprocessed paths are left. Requested amount can't be collected. Canceling.";
         rollBack();
         informAllNodesAboutTransactionFinish();
@@ -502,7 +504,7 @@ void CoordinatorPaymentTransaction::addPathForFurtherProcessing(
         PathID identifier = currentPathID++;// boost::uuids::random_generator()();
         if (mPathsStats.count(identifier) == 0){
             mPathsStats[identifier] = make_unique<PathStats>(path);
-            mPathsStats[identifier]->path()->addReceiver(mCommand->contractorAddress());
+            mPathsStats[identifier]->path()->addReceiver(mContractor->mainAddress());
             mPathIDs.push_back(identifier);
             return;
         }
@@ -693,7 +695,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
 
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
-            mCommand->contractorAddress(),
+            mContractor->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -735,7 +737,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
     if (message->state() == IntermediateNodeReservationResponseMessage::Rejected) {
         warning() << "Neighbor node doesn't approved reservation request";
         dropReservationsOnPath(
-                currentAmountReservationPathStats(),
+            currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
         mRejectedTrustLines.emplace_back(
             mContractorsManager->ownAddresses().at(0),
@@ -746,7 +748,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
     if (message->state() == IntermediateNodeReservationResponseMessage::RejectedDueContractorKeysAbsence) {
         warning() << "Neighbor node doesn't approved reservation request due to contractor keys absence";
         dropReservationsOnPath(
-                currentAmountReservationPathStats(),
+            currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
         mRejectedTrustLines.emplace_back(
             mContractorsManager->ownAddresses().at(0),
@@ -782,12 +784,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
     debug() << "processNeighborFurtherReservationResponse";
     if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)) {
         dropReservationsOnPath(
-                currentAmountReservationPathStats(),
+            currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier,
             true);
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
-            mCommand->contractorAddress(),
+            mContractor->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -827,14 +829,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
     if (message->state() == CoordinatorReservationResponseMessage::NextNodeInaccessible) {
         warning() << "Next node after neighbor is inaccessible. Rejecting request.";
         dropReservationsOnPath(
-                currentAmountReservationPathStats(),
+            currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
 
         // next after remote node is inaccessible, we add it to offline nodes
         const auto kPathStats = currentAmountReservationPathStats();
         const auto addressAndPos = kPathStats->currentIntermediateNodeAndPos();
         const auto nextNodeAddress = kPathStats->path()->intermediates()[addressAndPos.second + 1];
-        if (nextNodeAddress == mCommand->contractorAddress()) {
+        if (nextNodeAddress == mContractor->mainAddress()) {
             mCountReceiverInaccessible++;
             if (mCountReceiverInaccessible >= kMaxReceiverInaccessible) {
                 reject("Contractor is offline. Rollback.");
@@ -847,7 +849,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
 
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
-            mCommand->contractorAddress(),
+            mContractor->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -859,7 +861,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
     if (message->amountReserved() == 0 || message->state() == CoordinatorReservationResponseMessage::Rejected) {
         warning() << "Neighbor node doesn't accepted coordinator request.";
         dropReservationsOnPath(
-                currentAmountReservationPathStats(),
+            currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
         // processed trustLine was rejected, we add it to Rejected TrustLines
         const auto kPathStats = currentAmountReservationPathStats();
@@ -870,7 +872,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
             nextNeighborAddress);
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
-            mCommand->contractorAddress(),
+            mContractor->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -882,7 +884,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
             message->state() == CoordinatorReservationResponseMessage::RejectedDueContractorKeysAbsence) {
         warning() << "Neighbor node doesn't accepted coordinator request due to keys absence";
         dropReservationsOnPath(
-                currentAmountReservationPathStats(),
+            currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
         mRejectedTrustLines.emplace_back(
             mContractorsManager->ownAddresses().at(0),
@@ -890,7 +892,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         mParticipantsKeysProblem = true;
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
-            mCommand->contractorAddress(),
+            mContractor->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -907,6 +909,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         0,
         PathStats::ReservationApproved);
     debug() << "Neighbor node accepted coordinator request. Reserved: " << message->amountReserved();
+    mCurrentPathParticipants.push_back(
+        make_shared<Contractor>(
+            message->senderAddresses));
 
     if (message->amountReserved() != path->maxFlow()) {
         path->shortageMaxFlow(message->amountReserved());
@@ -920,7 +925,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
     if (path->isLastIntermediateNodeProcessed()) {
 
         const auto kTotalAmount = totalReservedAmount(
-                AmountReservation::Outgoing);
+            AmountReservation::Outgoing);
 
         debug() << "Current path reservation finished";
         debug() << "Total collected amount by all paths: " << kTotalAmount;
@@ -1017,12 +1022,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
     debug() << "processRemoteNodeResponse";
     if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)){
         dropReservationsOnPath(
-                currentAmountReservationPathStats(),
+            currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier,
             true);
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
-            mCommand->contractorAddress(),
+            mContractor->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -1056,14 +1061,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
     if (message->state() == CoordinatorReservationResponseMessage::NextNodeInaccessible) {
         warning() << "Next node after remote node is inaccessible. Rejecting request.";
         dropReservationsOnPath(
-                currentAmountReservationPathStats(),
+            currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
 
         // next after remote node is inaccessible, we add it to offline nodes
         const auto kPathStats = currentAmountReservationPathStats();
         const auto remoteNodeAddressAndPos = kPathStats->currentIntermediateNodeAndPos();
         const auto nextAfterRemoteNode = kPathStats->path()->intermediates()[remoteNodeAddressAndPos.second + 1];
-        if (nextAfterRemoteNode == mCommand->contractorAddress()) {
+        if (nextAfterRemoteNode == mContractor->mainAddress()) {
             mCountReceiverInaccessible++;
             if (mCountReceiverInaccessible >= kMaxReceiverInaccessible) {
                 reject("Contractor is offline. Rollback.");
@@ -1076,7 +1081,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
-            mCommand->contractorAddress(),
+            mContractor->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -1097,7 +1102,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
     if (0 == message->amountReserved() || message->state() == CoordinatorReservationResponseMessage::Rejected) {
         warning() << "Remote node rejected reservation. Switching to another path.";
         dropReservationsOnPath(
-                currentAmountReservationPathStats(),
+            currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
         // processed trustLine was rejected, we add it to Rejected TrustLines
         mRejectedTrustLines.emplace_back(
@@ -1105,7 +1110,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             nextAfterRemoteNode);
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
-            mCommand->contractorAddress(),
+            mContractor->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -1123,7 +1128,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             message->state() == CoordinatorReservationResponseMessage::RejectedDueContractorKeysAbsence) {
         warning() << "Remote node doesn't accepted coordinator request due to keys absence. Switching to another path.";
         dropReservationsOnPath(
-                currentAmountReservationPathStats(),
+            currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
         mRejectedTrustLines.emplace_back(
             remoteNodeAndPos.first,
@@ -1131,7 +1136,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         mParticipantsKeysProblem = true;
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
-            mCommand->contractorAddress(),
+            mContractor->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
@@ -1146,6 +1151,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
     const auto reservedAmount = message->amountReserved();
     debug() << "Remote node reserved " << reservedAmount;
 
+    mCurrentPathParticipants.push_back(
+        make_shared<Contractor>(
+            message->senderAddresses));
     path->setNodeState(
         remoteNodeAndPos.second,
         PathStats::ReservationApproved);
@@ -1164,7 +1172,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
     if (path->isLastIntermediateNodeProcessed()) {
 
         const auto kTotalAmount = totalReservedAmount(
-                AmountReservation::Outgoing);
+            AmountReservation::Outgoing);
 
         debug() << "Current path reservation finished";
         debug() << "Total collected amount by all paths: " << kTotalAmount;
@@ -1191,7 +1199,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             mCurrentAmountReservingPathIdentifier,
             path);
 
-        if (kTotalAmount == mCommand->amount()){
+        if (kTotalAmount == mCommand->amount()) {
             debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
 
             mStep = Coordinator_FinalAmountsConfigurationConfirmation;
@@ -1206,6 +1214,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath()
 {
     debug() << "tryProcessNextPath";
+    mCurrentPathParticipants.clear();
     try {
         switchToNextPath();
         return runAmountReservationStage();
@@ -1240,7 +1249,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     debug() << "sendFinalAmountsConfigurationToAllParticipants";
 
     // check if reservation to contractor present
-    auto receiverID = mContractorsManager->contractorIDByAddress(mCommand->contractorAddress());
+    auto receiverID = mContractorsManager->contractorIDByAddress(mContractor->mainAddress());
     const auto contractorNodeReservations = mReservations.find(receiverID);
     if (contractorNodeReservations != mReservations.end()) {
         if (contractorNodeReservations->second.size() > 1) {
@@ -1253,11 +1262,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
 #endif
 
     mParticipantsPublicKeys.clear();
-    for (auto const &paymentNodeIdAndAddress : mPaymentParticipants) {
-        if (paymentNodeIdAndAddress.first == kCoordinatorPaymentNodeID) {
+    for (auto const &paymentNodeIdAndContractor : mPaymentParticipants) {
+        if (paymentNodeIdAndContractor.first == kCoordinatorPaymentNodeID) {
             continue;
         }
-        auto participantID = mContractorsManager->contractorIDByAddress(paymentNodeIdAndAddress.second);
+        auto participantID = mContractorsManager->contractorIDByAddress(paymentNodeIdAndContractor.second->mainAddress());
         // if coordinator has reservations with current node it also send receipt
         // if current node is not neighbor of coordinator then next condition will not work
         if (mReservations.find(participantID) != mReservations.end()) {
@@ -1287,25 +1296,29 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
                     signatureAndKeyNumber.first)) {
                 return reject("Can't save outgoing receipt. Rejected.");
             }
-            info() << "send final amount configuration to " << paymentNodeIdAndAddress.second->fullAddress()
+            info() << "send final amount configuration to " << paymentNodeIdAndContractor.second->mainAddress()->fullAddress()
                    << " with receipt " << outgoingReservedAmount;
+            info() << "mNodesFinalAmountsConfiguration size " << mNodesFinalAmountsConfiguration.size();
+            info() << "FinalAmountsConfiguration size "
+                   << mNodesFinalAmountsConfiguration[paymentNodeIdAndContractor.second->mainAddress()->fullAddress()].size();
             sendMessage<FinalAmountsConfigurationMessage>(
-                paymentNodeIdAndAddress.second,
+                paymentNodeIdAndContractor.second->mainAddress(),
                 mEquivalent,
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
-                mNodesFinalAmountsConfiguration[paymentNodeIdAndAddress.second->fullAddress()],
+                mNodesFinalAmountsConfiguration[paymentNodeIdAndContractor.second->mainAddress()->fullAddress()],
                 mPaymentParticipants,
                 signatureAndKeyNumber.second,
                 signatureAndKeyNumber.first);
+            info() << "Message sent";
         } else {
-            info() << "send final amount configuration to " << paymentNodeIdAndAddress.second->fullAddress();
+            info() << "send final amount configuration to " << paymentNodeIdAndContractor.second->mainAddress()->fullAddress();
             sendMessage<FinalAmountsConfigurationMessage>(
-                paymentNodeIdAndAddress.second,
+                paymentNodeIdAndContractor.second->mainAddress(),
                 mEquivalent,
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
-                mNodesFinalAmountsConfiguration[paymentNodeIdAndAddress.second->fullAddress()],
+                mNodesFinalAmountsConfiguration[paymentNodeIdAndContractor.second->mainAddress()->fullAddress()],
                 mPaymentParticipants);
         }
     }
@@ -1471,7 +1484,7 @@ const string CoordinatorPaymentTransaction::logHeader() const
 TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 {
     mCommittedAmount = totalReservedAmount(
-            AmountReservation::Outgoing);
+        AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
     BasePaymentTransaction::runThreeNodesCyclesTransactions();
     BasePaymentTransaction::runFourNodesCyclesTransactions();
@@ -1485,12 +1498,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
     mSubsystemsController->testTerminateProcessOnCoordinatorAfterApproveBeforeSendMessage();
 #endif
 
-    for (const auto &nodeUUIDAndPaymentNodeID : mPaymentParticipants) {
-        if (nodeUUIDAndPaymentNodeID.first == kCoordinatorPaymentNodeID) {
+    for (const auto &paymentNodeIdAndContractor : mPaymentParticipants) {
+        if (paymentNodeIdAndContractor.first == kCoordinatorPaymentNodeID) {
             continue;
         }
         sendMessage(
-            nodeUUIDAndPaymentNodeID.second,
+            paymentNodeIdAndContractor.second->mainAddress(),
             mParticipantsVotesMessage);
     }
     return resultOK();
@@ -1510,7 +1523,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
     auto pathStats = currentAmountReservationPathStats();
     if (not contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
         debug() << "No reservation response was received from the receiver node. "
-               << "Amount reservation is impossible. Switching to another path.";
+                << "Amount reservation is impossible. Switching to another path.";
 
         mCountReceiverInaccessible++;
         if (mCountReceiverInaccessible >= kMaxReceiverInaccessible) {
@@ -1576,7 +1589,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
     }
 
     const auto kTotalAmount = totalReservedAmount(
-            AmountReservation::Outgoing);
+        AmountReservation::Outgoing);
     debug() << "Current path reservation finished";
     debug() << "Total collected amount by all paths: " << kTotalAmount;
 
@@ -1591,7 +1604,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
         mCurrentAmountReservingPathIdentifier,
         pathStats);
 
-    if (kTotalAmount == mCommand->amount()){
+    if (kTotalAmount == mCommand->amount()) {
         debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
         debug() << "Begin processing participants votes.";
 
@@ -1620,17 +1633,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
     }
 
     const auto kMessage = popNextMessage<ParticipantVoteMessage>();
-    auto senderAddress = kMessage->senderAddresses.at(0);
-    debug () << "Participant vote message received from " << senderAddress->fullAddress();
-    if (mPaymentNodesIds.find(senderAddress->fullAddress()) == mPaymentNodesIds.end()) {
+    auto sender = make_shared<Contractor>(kMessage->senderAddresses);
+    debug () << "Participant vote message received from " << sender->mainAddress()->fullAddress();
+    if (mPaymentNodesIds.find(sender->mainAddress()->fullAddress()) == mPaymentNodesIds.end()) {
         warning() << "Sender is not participant of current transaction";
         return resultContinuePreviousState();
     }
     auto participantSignature = kMessage->signature();
-    auto participantPaymentID = mPaymentNodesIds[senderAddress->fullAddress()];
+    auto participantPaymentID = mPaymentNodesIds[sender->mainAddress()->fullAddress()];
     auto participantPublicKey = mParticipantsPublicKeys[participantPaymentID];
     auto participantSerializedVotesData = getSerializedParticipantsVotesData(
-        senderAddress);
+        sender);
     // todo if we store participants public keys on database, then we should use KeyChain,
     // or we can check sign directly from mParticipantsPublicKeys
     if (!participantSignature->check(
@@ -1649,7 +1662,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
         info() << "all participants sign their data";
 
         auto serializedOwnVotesData = getSerializedParticipantsVotesData(
-            mContractorsManager->ownAddresses().at(0));
+            mContractorsManager->selfContractor());
         {
             auto ioTransaction = mStorageHandler->beginTransaction();
             auto ownSign = mKeysStore->signPaymentTransaction(
@@ -1687,7 +1700,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
     info() << "sender " << senderAddress->fullAddress();
     if (mPaymentParticipants.empty()) {
         // reservation stage
-        if (senderAddress == mCommand->contractorAddress()) {
+        if (senderAddress == mContractor->mainAddress()) {
             sendMessage<TTLProlongationResponseMessage>(
                 senderAddress,
                 mEquivalent,
@@ -1740,7 +1753,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
 }
 
 bool CoordinatorPaymentTransaction::isPathValid(
-        Path::Shared path) const
+    Path::Shared path) const
 {
     return true;
     // todo : check if node no equal to contractor node and to self
@@ -1764,10 +1777,10 @@ void CoordinatorPaymentTransaction::addFinalConfigurationOnPath(
     PathStats* pathStats)
 {
     debug() << "Add final configuration on path " << pathID;
-    for (const auto &node : pathStats->path()->intermediates()) {
+    for (const auto &contractor : mCurrentPathParticipants) {
         bool participantIncluded = false;
         for (const auto &paymentParticipant : mPaymentParticipants) {
-            if (node == paymentParticipant.second) {
+            if (contractor == paymentParticipant.second) {
                 participantIncluded = true;
                 break;
             }
@@ -1776,10 +1789,10 @@ void CoordinatorPaymentTransaction::addFinalConfigurationOnPath(
             mPaymentParticipants.insert(
                 make_pair(
                     mCurrentFreePaymentID,
-                    node));
+                    contractor));
             mPaymentNodesIds.insert(
                 make_pair(
-                    node->fullAddress(),
+                    contractor->mainAddress()->fullAddress(),
                     mCurrentFreePaymentID));
             mCurrentFreePaymentID++;
         }
@@ -1791,8 +1804,8 @@ void CoordinatorPaymentTransaction::addFinalConfigurationOnPath(
             pathStats->maxFlow()));
 
     // add final path configuration for all intermediate nodes
-    for (const auto &node : pathStats->path()->intermediates()) {
-        auto nodeKey = node->fullAddress();
+    for (const auto &contractor : mCurrentPathParticipants) {
+        auto nodeKey = contractor->mainAddress()->fullAddress();
         if (mNodesFinalAmountsConfiguration.find(nodeKey) == mNodesFinalAmountsConfiguration.end()) {
             vector<pair<PathID, ConstSharedTrustLineAmount>> newVector;
             newVector.push_back(pathIDAndAmount);
@@ -1805,6 +1818,8 @@ void CoordinatorPaymentTransaction::addFinalConfigurationOnPath(
                 pathIDAndAmount);
         }
     }
+    mNodesFinalAmountsConfiguration[mContractor->mainAddress()->fullAddress()].push_back(
+        pathIDAndAmount);
 }
 
 void CoordinatorPaymentTransaction::shortageReservationsOnPath(
@@ -1844,8 +1859,8 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
             debug() << "Dropping reservation: [ => ] " << itPathIDAndReservation->second->amount()
                     << " for (" << firstIntermediateNode->fullAddress() << ") [" << pathID << "]";
             mTrustLinesManager->dropAmountReservation(
-                    firstIntermediateNodeID,
-                    itPathIDAndReservation->second);
+                firstIntermediateNodeID,
+                itPathIDAndReservation->second);
 
             itPathIDAndReservation = nodeReservations->second.erase(itPathIDAndReservation);
             // coordinator has only one reservation on each path
@@ -1889,7 +1904,7 @@ void CoordinatorPaymentTransaction::sendFinalPathConfiguration(
 {
     debug() << "sendFinalPathConfiguration";
     for (const auto &intermediateNode : pathStats->path()->intermediates()) {
-        if (intermediateNode == mCommand->contractorAddress()) {
+        if (intermediateNode == mContractor->mainAddress()) {
             continue;
         }
         debug() << "send message with final path amount info for node " << intermediateNode->fullAddress();
@@ -1906,14 +1921,14 @@ void CoordinatorPaymentTransaction::sendFinalPathConfiguration(
 void CoordinatorPaymentTransaction::informAllNodesAboutTransactionFinish()
 {
     debug() << "informAllNodesAboutTransactionFinish";
-    for (auto const &paymentNodeIdAndAddress : mPaymentParticipants) {
+    for (auto const &paymentNodeIdAndContractor : mPaymentParticipants) {
         sendMessage<TTLProlongationResponseMessage>(
-            paymentNodeIdAndAddress.second,
+            paymentNodeIdAndContractor.second->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Finish);
-        debug() << "Send transaction finishing message to node " << paymentNodeIdAndAddress.first;
+        debug() << "Send transaction finishing message to node " << paymentNodeIdAndContractor.first;
     }
 }
 
@@ -1941,7 +1956,7 @@ void CoordinatorPaymentTransaction::buildPathsAgain()
             rejectedTrustLine.second);
     }
     mPathsManager->reBuildPaths(
-        mCommand->contractorAddress(),
+        mContractor->mainAddress(),
         mInaccessibleNodes);
     mPathsManager->pathCollection()->resetCurrentPath();
     while (mPathsManager->pathCollection()->hasNextPath()) {
@@ -1962,7 +1977,7 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::OutgoingPaymentType,
-            NodeUUID::empty(),
+            mContractor,
             mCommittedAmount,
             *mTrustLinesManager->totalBalance().get(),
             mCommand->UUID()),

@@ -7,6 +7,8 @@ set(SOURCE_FILES
         record/trust_line/TrustLineRecord.cpp
         record/payment/PaymentRecord.h
         record/payment/PaymentRecord.cpp
+        record/payment/PaymentAdditionalRecord.h
+        record/payment/PaymentAdditionalRecord.cpp
         record/audit/AuditRecord.h
         record/audit/AuditRecord.cpp
         record/audit/ReceiptRecord.h
@@ -50,7 +52,9 @@ set(SOURCE_FILES
         AuditRulesHandler.cpp
 
         ContractorsHandler.h
-        ContractorsHandler.cpp)
+        ContractorsHandler.cpp
+        AddressHandler.h
+        AddressHandler.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

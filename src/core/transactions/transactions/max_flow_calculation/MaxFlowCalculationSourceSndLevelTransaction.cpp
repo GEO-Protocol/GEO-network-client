@@ -47,15 +47,15 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator()
     info() << "sendResultToInitiator";
 #endif
     vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlows;
-    bool isSourceFirstLevelNodeNew = false;
+    bool isSourceFirstLevelNode = false;
     auto initiatorID = mContractorsManager->contractorIDByAddress(mMessage->targetAddresses().at(0));
     if (initiatorID != ContractorsManager::kNotFoundContractorID) {
         if (mTrustLinesManager->trustLineIsPresent(initiatorID) and
             *mTrustLinesManager->incomingFlow(initiatorID).second > TrustLine::kZeroAmount()) {
-            isSourceFirstLevelNodeNew = true;
+            isSourceFirstLevelNode = true;
         }
     }
-    if (!isSourceFirstLevelNodeNew) {
+    if (!isSourceFirstLevelNode) {
         auto senderMainAddress = mContractorsManager->contractorMainAddress(mMessage->idOnReceiverSide);
         for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlows()) {
             if (*outgoingFlow.second.get() > TrustLine::kZeroAmount() &&
@@ -98,12 +98,15 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
     info() << "sendCachedResultToInitiator";
 #endif
     vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsForSending;
-    bool isSourceFirstLevelNodeNew = false;
-    if (mTrustLinesManager->trustLineIsPresent(mMessage->idOnReceiverSide) and
-        *mTrustLinesManager->incomingFlow(mMessage->idOnReceiverSide).second > TrustLine::kZeroAmount()) {
-        isSourceFirstLevelNodeNew = true;
+    bool isSourceFirstLevelNode = false;
+    auto initiatorID = mContractorsManager->contractorIDByAddress(mMessage->targetAddresses().at(0));
+    if (initiatorID != ContractorsManager::kNotFoundContractorID) {
+        if (mTrustLinesManager->trustLineIsPresent(initiatorID) and
+            *mTrustLinesManager->incomingFlow(initiatorID).second > TrustLine::kZeroAmount()) {
+            isSourceFirstLevelNode = true;
+        }
     }
-    if (!isSourceFirstLevelNodeNew) {
+    if (!isSourceFirstLevelNode) {
         auto senderMainAddress = mContractorsManager->contractorMainAddress(mMessage->idOnReceiverSide);
         for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlows()) {
             if (*outgoingFlow.second.get() > TrustLine::kZeroAmount() &&
@@ -150,12 +153,15 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendGatewayResultToInitiator()
     info() << "sendGatewayResultToInitiator";
 #endif
     vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlows;
-    bool isSourceFirstLevelNodeNew = false;
-    if (mTrustLinesManager->trustLineIsPresent(mMessage->idOnReceiverSide) and
-        *mTrustLinesManager->incomingFlow(mMessage->idOnReceiverSide).second > TrustLine::kZeroAmount()) {
-        isSourceFirstLevelNodeNew = true;
+    bool isSourceFirstLevelNode = false;
+    auto initiatorID = mContractorsManager->contractorIDByAddress(mMessage->targetAddresses().at(0));
+    if (initiatorID != ContractorsManager::kNotFoundContractorID) {
+        if (mTrustLinesManager->trustLineIsPresent(initiatorID) and
+            *mTrustLinesManager->incomingFlow(initiatorID).second > TrustLine::kZeroAmount()) {
+            isSourceFirstLevelNode = true;
+        }
     }
-    if (!isSourceFirstLevelNodeNew) {
+    if (!isSourceFirstLevelNode) {
         auto senderMainAddress = mContractorsManager->contractorMainAddress(mMessage->idOnReceiverSide);
         for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlowsToGateways()) {
             if (*outgoingFlow.second.get() > TrustLine::kZeroAmount() &&
@@ -199,12 +205,15 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedGatewayResultToIniti
     info() << "sendCachedGatewayResultToInitiator";
 #endif
     vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsForSending;
-    bool isSourceFirstLevelNodeNew = false;
-    if (mTrustLinesManager->trustLineIsPresent(mMessage->idOnReceiverSide) and
-        *mTrustLinesManager->incomingFlow(mMessage->idOnReceiverSide).second > TrustLine::kZeroAmount()) {
-        isSourceFirstLevelNodeNew = true;
+    bool isSourceFirstLevelNode = false;
+    auto initiatorID = mContractorsManager->contractorIDByAddress(mMessage->targetAddresses().at(0));
+    if (initiatorID != ContractorsManager::kNotFoundContractorID) {
+        if (mTrustLinesManager->trustLineIsPresent(initiatorID) and
+            *mTrustLinesManager->incomingFlow(initiatorID).second > TrustLine::kZeroAmount()) {
+            isSourceFirstLevelNode = true;
+        }
     }
-    if (!isSourceFirstLevelNodeNew) {
+    if (!isSourceFirstLevelNode) {
         auto senderMainAddress = mContractorsManager->contractorMainAddress(mMessage->idOnReceiverSide);
         for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlowsToGateways()) {
             if (*outgoingFlow.second.get() > TrustLine::kZeroAmount() &&

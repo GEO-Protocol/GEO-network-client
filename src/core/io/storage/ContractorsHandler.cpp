@@ -12,8 +12,7 @@ ContractorsHandler::ContractorsHandler(
     sqlite3_stmt *stmt;
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    "(id INTEGER PRIMARY KEY, "
-                   "id_on_contractor_side INTEGER, "
-                   "ip_v4 TEXT NOT NULL);";
+                   "id_on_contractor_side INTEGER);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::creating table: "
@@ -48,8 +47,7 @@ void ContractorsHandler::saveContractor(
     Contractor::Shared contractor)
 {
     string query = "INSERT INTO " + mTableName +
-                   "(id, ip_v4) "
-                   "VALUES (?, ?);";
+                   "(id) VALUES (?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -61,12 +59,6 @@ void ContractorsHandler::saveContractor(
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::saveContractor: "
                           "Bad binding of ID; sqlite error: " + to_string(rc));
-    }
-    rc = sqlite3_bind_text(stmt, 2, contractor->getAddress()->fullAddress().c_str(),
-                           (int)contractor->getAddress()->fullAddress().length(), SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("ContractorsHandler::saveContractor: "
-                          "Bad binding of IPv4; sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
@@ -86,8 +78,8 @@ void ContractorsHandler::saveContractorFull(
     Contractor::Shared contractor)
 {
     string query = "INSERT INTO " + mTableName +
-                   "(id, id_on_contractor_side, ip_v4) "
-                   "VALUES (?, ?, ?);";
+                   "(id, id_on_contractor_side) "
+                   "VALUES (?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -104,12 +96,6 @@ void ContractorsHandler::saveContractorFull(
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::saveContractorFull: "
                           "Bad binding of ID on contractor side; sqlite error: " + to_string(rc));
-    }
-    rc = sqlite3_bind_text(stmt, 3, contractor->getAddress()->fullAddress().c_str(),
-                           (int)contractor->getAddress()->fullAddress().length(), SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("ContractorsHandler::saveContractorFull: "
-                          "Bad binding of IPv4; sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
@@ -181,7 +167,7 @@ vector<Contractor::Shared> ContractorsHandler::allContractors()
     vector<Contractor::Shared> result;
     result.reserve(rowCount);
 
-    string query = "SELECT id, id_on_contractor_side, ip_v4 FROM " + mTableName;
+    string query = "SELECT id, id_on_contractor_side FROM " + mTableName;
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::allContractors: "
@@ -190,13 +176,11 @@ vector<Contractor::Shared> ContractorsHandler::allContractors()
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         auto id = (ContractorID)sqlite3_column_int(stmt, 0);
         auto idOnContractorSide = (ContractorID)sqlite3_column_int(stmt, 1);
-        string ipv4((char*)sqlite3_column_text(stmt, 2));
         try {
             result.push_back(
                 make_shared<Contractor>(
                     id,
-                    idOnContractorSide,
-                    ipv4));
+                    idOnContractorSide));
         } catch (...) {
             throw Exception("ContractorsHandler::allContractors. "
                                 "Unable to create contractor instance from DB.");

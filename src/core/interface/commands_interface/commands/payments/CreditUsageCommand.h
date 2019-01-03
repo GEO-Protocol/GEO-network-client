@@ -3,7 +3,6 @@
 
 #include "../BaseUserCommand.h"
 
-#include "../../../../contractors/addresses/BaseAddress.h"
 #include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
@@ -26,7 +25,7 @@ public:
 
     const TrustLineAmount& amount() const;
 
-    BaseAddress::Shared contractorAddress() const;
+    vector<BaseAddress::Shared> contractorAddresses() const;
 
     const SerializedEquivalent equivalent() const;
 
@@ -36,7 +35,8 @@ public:
         string &transactionUUID) const;
 
 private:
-    BaseAddress::Shared mContractorAddress;
+    size_t mContractorAddressesCount;
+    vector<BaseAddress::Shared> mContractorAddresses;
     TrustLineAmount mAmount;
     SerializedEquivalent mEquivalent;
 };

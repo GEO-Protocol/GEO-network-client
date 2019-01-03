@@ -87,6 +87,13 @@ const string IPv4WithPortAddress::fullAddress() const
     return ss.str();
 }
 
+const string IPv4WithPortAddress::addressForCommandResult() const
+{
+    stringstream ss;
+    ss << (int)typeID() << kAddressTypeSeparator << fullAddress();
+    return ss.str();
+}
+
 const BaseAddress::AddressType IPv4WithPortAddress::typeID() const
 {
     return BaseAddress::IPv4_IncludingPort;
