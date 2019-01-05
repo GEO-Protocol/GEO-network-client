@@ -8,12 +8,13 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
         uuid,
         identifier())
 {
-    const auto minCommandLength = NodeUUID::kHexSize + 5;
+    const auto minCommandLength = 7;
     if (commandBuffer.size() < minCommandLength) {
         throw ValueError(
                 "HistoryWithContractorCommand: can't parse command. "
                     "Received command is to short.");
     }
+
     size_t tokenSeparatorPos = commandBuffer.find(
         kTokensSeparator);
     string historyFromStr = commandBuffer.substr(
@@ -41,19 +42,60 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
                     "Error occurred while parsing 'count' token.");
     }
 
-    tokenSeparatorPos = nextTokenSeparatorPos;
+    nextTokenSeparatorPos = commandBuffer.find(
+        kTokensSeparator,
+        tokenSeparatorPos + 1);
+    auto contractorAddressesCntStr = commandBuffer.substr(
+        tokenSeparatorPos + 1,
+        nextTokenSeparatorPos - tokenSeparatorPos - 1);
     try {
-        string hexUUID = commandBuffer.substr(
-            tokenSeparatorPos + 1,
-            NodeUUID::kHexSize);
-        mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
+        mContractorsCount = (uint32_t)std::stoul(contractorAddressesCntStr);
     } catch (...) {
         throw ValueError(
                 "HistoryWithContractorCommand: can't parse command. "
-                    "Error occurred while parsing 'Contractor NodeUUID' token.");
+                    "Error occurred while parsing  'contractor addresses count' token.");
     }
 
-    tokenSeparatorPos = tokenSeparatorPos + NodeUUID::kHexSize;
+    mContractorAddresses.reserve(mContractorsCount);
+    size_t contractorAddressStartPos = nextTokenSeparatorPos + 1;
+    for (size_t idx = 0; idx < mContractorsCount; idx++) {
+        try {
+            tokenSeparatorPos = commandBuffer.find(
+                kTokensSeparator,
+                contractorAddressStartPos);
+            string addressTypeStr = commandBuffer.substr(
+                contractorAddressStartPos,
+                tokenSeparatorPos - contractorAddressStartPos);
+            auto addressType = (BaseAddress::AddressType)std::stoul(addressTypeStr);
+
+            contractorAddressStartPos = tokenSeparatorPos + 1;
+            tokenSeparatorPos = commandBuffer.find(
+                kTokensSeparator,
+                contractorAddressStartPos);
+            string addressStr = commandBuffer.substr(
+                contractorAddressStartPos,
+                tokenSeparatorPos - contractorAddressStartPos);
+
+            switch (addressType) {
+                case BaseAddress::IPv4_IncludingPort: {
+                    mContractorAddresses.push_back(
+                        make_shared<IPv4WithPortAddress>(
+                            addressStr));
+                    break;
+                }
+                default:
+                    throw ValueError(
+                            "HistoryWithContractorCommand: can't parse command. "
+                                "Error occurred while parsing 'Contractor Address' token.");
+            }
+            contractorAddressStartPos = tokenSeparatorPos + 1;
+        } catch (...) {
+            throw ValueError(
+                    "HistoryWithContractorCommand: can't parse command. "
+                        "Error occurred while parsing 'Contractor Address' token.");
+        }
+    }
+
     nextTokenSeparatorPos = commandBuffer.size() - 1;
     string equivalentStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
@@ -83,9 +125,9 @@ const size_t HistoryWithContractorCommand::historyCount() const
     return mHistoryCount;
 }
 
-const NodeUUID& HistoryWithContractorCommand::contractorUUID() const
+const vector<BaseAddress::Shared>& HistoryWithContractorCommand::contractorAddresses() const
 {
-    return mContractorUUID;
+    return mContractorAddresses;
 }
 
 const SerializedEquivalent HistoryWithContractorCommand::equivalent() const

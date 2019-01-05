@@ -15,37 +15,23 @@ json Settings::loadParsedJSON() const {
     }
 }
 
-/*
- * Returns network interface of the node;
- * Throws RuntimeError in case when settings can't be read.
- */
-const string Settings::interface(const json *conf) const {
+vector<pair<string, string>> Settings::addresses(const json *conf) const {
     if (conf == nullptr) {
         auto j = loadParsedJSON();
         conf = &j;
     }
+    vector<pair<string, string>> result;
     try {
-        return (*conf).at("network").at("interface");
+        auto addresses = (*conf).at("addresses");
+        for (const auto &address : addresses) {
+            result.emplace_back(
+                address.at("type").get<string>(),
+                address.at("address").get<string>());
+        }
+        return result;
     } catch (...) {
-        throw RuntimeError(
-            "Settings::interface: can't read node interface settings.");
-    }
-}
-
-/*
- * Returns network port of the node;
- * Throws RuntimeError in case when settings can't be read.
- */
-const uint16_t Settings::port(const json *conf) const {
-    if (conf == nullptr) {
-        auto j = loadParsedJSON();
-        conf = &j;
-    }
-    try {
-        return (*conf).at("network").at("port");
-    } catch (...) {
-        throw RuntimeError(
-            "Settings::port: can't read node interface settings.");
+        // todo : throw RuntimeError
+        return result;
     }
 }
 

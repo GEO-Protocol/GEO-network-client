@@ -3,13 +3,9 @@
 
 Communicator::Communicator(
     IOService &IOService,
-    const Host &interface,
-    const Port port,
     ContractorsManager *contractorsManager,
     Logger &logger):
 
-    mInterface(interface),
-    mPort(port),
     mIOService(IOService),
     mContractorsManager(contractorsManager),
     mLog(logger),
@@ -18,7 +14,7 @@ Communicator::Communicator(
             IOService,
             udp::endpoint(
                 udp::v4(),
-                port))),
+                contractorsManager->selfContractor()->mainAddress()->port()))),
 
     mIncomingMessagesHandler(
         make_unique<IncomingMessagesHandler>(

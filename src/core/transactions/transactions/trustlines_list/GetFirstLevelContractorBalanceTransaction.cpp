@@ -28,6 +28,9 @@ TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::run()
     stringstream ss;
     auto kContractorTrustLine = mTrustLinesManager->trustLineReadOnly(contractorID);
     ss << contractorID << kTokensSeparator;
+    ss << kContractorTrustLine->state() << kTokensSeparator;
+    ss << kContractorTrustLine->isOwnKeysPresent() << kTokensSeparator;
+    ss << kContractorTrustLine->isContractorKeysPresent() << kTokensSeparator;
     ss << kContractorTrustLine->incomingTrustAmount() << kTokensSeparator;
     ss << kContractorTrustLine->outgoingTrustAmount() << kTokensSeparator;
     ss << kContractorTrustLine->balance();

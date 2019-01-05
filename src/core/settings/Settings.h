@@ -17,10 +17,7 @@ using json = nlohmann::json;
 
 class Settings {
 public:
-    const string interface(
-        const json *conf = nullptr) const;
-
-    const uint16_t port(
+    vector<pair<string, string>> addresses(
         const json *conf = nullptr) const;
 
     vector<SerializedEquivalent> iAmGateway(

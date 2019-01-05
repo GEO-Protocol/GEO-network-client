@@ -29,8 +29,6 @@ public:
 
     const string fullAddress() const override;
 
-    const string addressForCommandResult() const override;
-
     const AddressType typeID() const override;
 
     BytesShared serializeToBytes() const override;

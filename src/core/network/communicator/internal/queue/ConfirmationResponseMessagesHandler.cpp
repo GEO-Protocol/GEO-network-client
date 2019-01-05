@@ -23,7 +23,7 @@ void ConfirmationResponseMessagesHandler::addCachedMessage(
         cacheLivingTime);
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     debug() << "Message " << cachedMessage->typeID() << " added for " << incomingMessageTypeFilter
-            << " from contractor" << contractorID << " equivalent " << cachedMessage->equivalent();
+            << " from contractor " << contractorID << " equivalent " << cachedMessage->equivalent();
     debug() << "mCachedMessages size " << mCachedMessages.size();
 #endif
     if (mCachedMessages.size() == 1) {

@@ -33,15 +33,19 @@ InitTrustLineCommand::InitTrustLineCommand(
             tokenSeparatorPos = command.find(
                 kTokensSeparator,
                 contractorAddressStartPos);
-            string addressWithTypeStr = command.substr(
+            string addressTypeStr = command.substr(
                 contractorAddressStartPos,
                 tokenSeparatorPos - contractorAddressStartPos);
-            auto addressTypeSeparatorPos = addressWithTypeStr.find(kAddressTypeSeparator);
-            auto addressTypeStr = addressWithTypeStr.substr(0, addressTypeSeparatorPos);
             auto addressType = (BaseAddress::AddressType)std::stoul(addressTypeStr);
-            auto addressStr = addressWithTypeStr.substr(
-                addressTypeSeparatorPos + 1,
-                addressWithTypeStr.length() - addressTypeSeparatorPos + 1);
+
+            contractorAddressStartPos = tokenSeparatorPos + 1;
+            tokenSeparatorPos = command.find(
+                kTokensSeparator,
+                contractorAddressStartPos);
+            string addressStr = command.substr(
+                contractorAddressStartPos,
+                tokenSeparatorPos - contractorAddressStartPos);
+
             switch (addressType) {
                 case BaseAddress::IPv4_IncludingPort: {
                     mContractorAddresses.push_back(

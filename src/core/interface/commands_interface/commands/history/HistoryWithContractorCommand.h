@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_HISTORYWITHCONTRACTORCOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../common/NodeUUID.h"
+#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/exceptions/ValueError.h"
 
 class HistoryWithContractorCommand : public BaseUserCommand {
@@ -24,14 +24,15 @@ public:
 
     const size_t historyCount() const;
 
-    const NodeUUID& contractorUUID() const;
+    const vector<BaseAddress::Shared> &contractorAddresses() const;
 
     const SerializedEquivalent equivalent() const;
 
 private:
     size_t mHistoryFrom;
     size_t mHistoryCount;
-    NodeUUID mContractorUUID;
+    size_t mContractorsCount;
+    vector<BaseAddress::Shared> mContractorAddresses;
     SerializedEquivalent mEquivalent;
 };
 

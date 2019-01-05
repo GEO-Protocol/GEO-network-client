@@ -34,6 +34,12 @@ TransactionResult::SharedConst GetFirstLevelContractorsBalancesTransaction::run(
             ss << kTokensSeparator;
             ss << kNodeIDAndTrustLine.first;
             ss << kTokensSeparator;
+            ss << kNodeIDAndTrustLine.second->state();
+            ss << kTokensSeparator;
+            ss << kNodeIDAndTrustLine.second->isOwnKeysPresent();
+            ss << kTokensSeparator;
+            ss << kNodeIDAndTrustLine.second->isContractorKeysPresent();
+            ss << kTokensSeparator;
             ss << kNodeIDAndTrustLine.second->incomingTrustAmount();
             ss << kTokensSeparator;
             ss << kNodeIDAndTrustLine.second->outgoingTrustAmount();

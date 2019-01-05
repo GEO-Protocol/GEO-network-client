@@ -163,8 +163,6 @@ int Core::initCommunicator(
     try {
         mCommunicator = make_unique<Communicator>(
             mIOService,
-            mSettings->interface(&conf),
-            mSettings->port(&conf),
             mContractorsManager.get(),
             *mLog);
 
@@ -281,8 +279,7 @@ int Core::initContractorsManager(
 {
     try {
         mContractorsManager = make_unique<ContractorsManager>(
-            mSettings->interface(&conf),
-            mSettings->port(&conf),
+            mSettings->addresses(&conf),
             mStorageHandler.get(),
             *mLog);
         info() << "Contractors manager is successfully initialised";

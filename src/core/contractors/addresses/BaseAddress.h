@@ -39,8 +39,6 @@ public:
 
     virtual const string fullAddress() const = 0;
 
-    virtual const string addressForCommandResult() const = 0;
-
     virtual BytesShared serializeToBytes() const = 0;
 
     virtual size_t serializedSize() const = 0;

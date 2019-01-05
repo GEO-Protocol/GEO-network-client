@@ -34,16 +34,19 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
             tokenSeparatorPos = command.find(
                 kTokensSeparator,
                 contractorAddressStartPoint);
-
-            string addressWithTypeStr = command.substr(
+            string addressTypeStr = command.substr(
                 contractorAddressStartPoint,
                 tokenSeparatorPos - contractorAddressStartPoint);
-            auto addressTypeSeparatorPos = addressWithTypeStr.find(kAddressTypeSeparator);
-            auto addressTypeStr = addressWithTypeStr.substr(0, addressTypeSeparatorPos);
             auto addressType = (BaseAddress::AddressType)std::stoul(addressTypeStr);
-            auto addressStr = addressWithTypeStr.substr(
-                addressTypeSeparatorPos + 1,
-                addressWithTypeStr.length() - addressTypeSeparatorPos + 1);
+
+            contractorAddressStartPoint = tokenSeparatorPos + 1;
+            tokenSeparatorPos = command.find(
+                kTokensSeparator,
+                contractorAddressStartPoint);
+            string addressStr = command.substr(
+                contractorAddressStartPoint,
+                tokenSeparatorPos - contractorAddressStartPoint);
+
             switch (addressType) {
                 case BaseAddress::IPv4_IncludingPort: {
                     mContractorAddresses.push_back(

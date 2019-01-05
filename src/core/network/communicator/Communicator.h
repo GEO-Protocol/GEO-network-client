@@ -30,8 +30,6 @@ public:
 public:
     explicit Communicator(
         IOService &ioService,
-        const Host &interface,
-        const Port port,
         ContractorsManager *contractorsManager,
         Logger &logger)
         noexcept(false);
@@ -103,8 +101,6 @@ protected:
     noexcept;
 
 protected:
-    const Host mInterface;
-    const Port mPort;
     IOService &mIOService;
     unique_ptr<CommunicatorStorageHandler> mCommunicatorStorageHandler;
     Logger &mLog;

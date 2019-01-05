@@ -833,7 +833,6 @@ vector<PaymentAdditionalRecord::Shared> HistoryStorage::allPaymentAdditionalReco
 }
 
 vector<Record::Shared> HistoryStorage::recordsPortionWithContractor(
-    const NodeUUID &contractorUUID,
     const SerializedEquivalent equivalent,
     size_t recordsCount,
     size_t fromRecord)
@@ -890,7 +889,7 @@ vector<Record::Shared> HistoryStorage::recordsPortionWithContractor(
 }
 
 vector<Record::Shared> HistoryStorage::recordsWithContractor(
-    const NodeUUID &contractorUUID,
+    Contractor::Shared contractor,
     const SerializedEquivalent equivalent,
     size_t recordsCount,
     size_t fromRecord)
@@ -919,13 +918,11 @@ vector<Record::Shared> HistoryStorage::recordsWithContractor(
     size_t countRecordsUnderConditions = 0;
     while (result.size() < recordsCount && currentOffset < allRecordsCount) {
         auto records = recordsPortionWithContractor(
-            contractorUUID,
             equivalent,
             kPortionRequestSize,
             currentOffset);
         for (auto &record : records) {
-            // todo : use contractor instead contractorUUID if (record->contractor() == contractor)
-            if (1) {
+            if (record->contractor() == contractor) {
                 countRecordsUnderConditions++;
                 if (countRecordsUnderConditions > fromRecord) {
                     result.push_back(record);

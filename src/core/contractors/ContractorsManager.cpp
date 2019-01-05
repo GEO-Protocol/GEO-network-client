@@ -1,16 +1,30 @@
 #include "ContractorsManager.h"
 
 ContractorsManager::ContractorsManager(
-    const Host &interface,
-    const Port port,
+    vector<pair<string, string>> ownAddressesStr,
     StorageHandler *storageHandler,
     Logger &logger):
     mStorageHandler(storageHandler),
     mLogger(logger)
 {
-    mOwnIPv4 = make_shared<IPv4WithPortAddress>(
-        interface,
-        port);
+    vector<BaseAddress::Shared> selfAddresses;
+    for (const auto &addressStr : ownAddressesStr) {
+        if (addressStr.first == "ipv4") {
+            try {
+                selfAddresses.push_back(
+                    make_shared<IPv4WithPortAddress>(
+                        addressStr.second));
+            } catch (...) {
+                throw ValueError("ContractorsManager: can't create own address of type " + addressStr.first);
+            }
+
+        } else {
+            throw ValueError("ContractorsManager: can't create own address. "
+                                 "Wrong address type " + addressStr.first);
+        }
+    }
+    mSelf = make_shared<Contractor>(selfAddresses);
+
     auto ioTransaction = mStorageHandler->beginTransaction();
     for (const auto &contractor : ioTransaction->contractorsHandler()->allContractors()) {
         auto contractorAddresses = ioTransaction->addressHandler()->contractorAddresses(
@@ -24,7 +38,7 @@ ContractorsManager::ContractorsManager(
     for (const auto &contractor : mContractors) {
         info() << contractor.second->toString();
     }
-    info() << "Own ip " << mOwnIPv4->fullAddress();
+    info() << "Own ip " << mSelf->mainAddress()->fullAddress();
 }
 
 ContractorID ContractorsManager::getContractorID(
@@ -168,9 +182,7 @@ const ContractorID ContractorsManager::nextFreeID(
 
 vector<BaseAddress::Shared> ContractorsManager::ownAddresses() const
 {
-    vector<BaseAddress::Shared> result;
-    result.push_back(mOwnIPv4);
-    return result;
+    return mSelf->addresses();
 }
 
 vector<BaseAddress::Shared> ContractorsManager::contractorAddresses(
@@ -206,9 +218,7 @@ ContractorID ContractorsManager::contractorIDByAddress(
 
 Contractor::Shared ContractorsManager::selfContractor() const
 {
-    vector<BaseAddress::Shared> ownAddresses;
-    ownAddresses.push_back(mOwnIPv4);
-    return make_shared<Contractor>(ownAddresses);
+    return mSelf;
 }
 
 const string ContractorsManager::logHeader() const

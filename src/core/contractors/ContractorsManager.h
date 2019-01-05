@@ -3,6 +3,7 @@
 
 #include "Contractor.h"
 #include "../io/storage/StorageHandler.h"
+#include "../common/exceptions/ValueError.h"
 #include "../common/exceptions/NotFoundError.h"
 
 #include <map>
@@ -11,8 +12,7 @@ class ContractorsManager {
 
 public:
     ContractorsManager(
-        const Host &interface,
-        const Port port,
+        vector<pair<string, string>> ownAddresses,
         StorageHandler *storageHandler,
         Logger &logger);
 
@@ -76,7 +76,7 @@ public:
 
 private:
     map<ContractorID, Contractor::Shared> mContractors;
-    IPv4WithPortAddress::Shared mOwnIPv4;
+    Contractor::Shared mSelf;
     StorageHandler *mStorageHandler;
     Logger &mLogger;
 };

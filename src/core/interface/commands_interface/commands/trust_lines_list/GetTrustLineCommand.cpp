@@ -16,24 +16,38 @@ GetTrustLineCommand::GetTrustLineCommand(
                     "Received command is to short.");
     }
 
-    auto tokenSeparatorPos = commandBuffer.find(kTokensSeparator);
-    auto addressWithTypeStr = commandBuffer.substr(0, tokenSeparatorPos);
-    auto addressTypeSeparatorPos = addressWithTypeStr.find(kAddressTypeSeparator);
-    auto addressTypeStr = addressWithTypeStr.substr(0, addressTypeSeparatorPos);
-    auto addressType = (BaseAddress::AddressType)std::stoul(addressTypeStr);
-    auto addressStr = addressWithTypeStr.substr(
-        addressTypeSeparatorPos + 1,
-        addressWithTypeStr.length() - addressTypeSeparatorPos + 1);
-    switch (addressType) {
-        case BaseAddress::IPv4_IncludingPort: {
-            mContractorAddress = make_shared<IPv4WithPortAddress>(
-                addressStr);
-            break;
+    auto tokenSeparatorPos = commandBuffer.find(
+        kTokensSeparator);
+    string addressTypeStr = commandBuffer.substr(
+        0,
+        tokenSeparatorPos);
+
+    try {
+        auto addressType = (BaseAddress::AddressType) std::stoul(addressTypeStr);
+
+        auto contractorAddressStartPos = tokenSeparatorPos + 1;
+        tokenSeparatorPos = commandBuffer.find(
+            kTokensSeparator,
+            contractorAddressStartPos);
+        string addressStr = commandBuffer.substr(
+            contractorAddressStartPos,
+            tokenSeparatorPos - contractorAddressStartPos);
+
+        switch (addressType) {
+            case BaseAddress::IPv4_IncludingPort: {
+                mContractorAddress = make_shared<IPv4WithPortAddress>(
+                    addressStr);
+                break;
+            }
+            default:
+                throw ValueError(
+                        "GetTrustLineCommand: can't parse command. "
+                            "Error occurred while parsing 'Contractor Address' token.");
         }
-        default:
-            throw ValueError(
-                    "GetTrustLineCommand: can't parse command. "
-                        "Error occurred while parsing 'Contractor Address' token.");
+    } catch (...) {
+        throw ValueError(
+                "GetTrustLineCommand: can't parse command. "
+                    "Error occurred while parsing 'Contractor Address' token.");
     }
 
     size_t equivalentOffset = tokenSeparatorPos + 1;

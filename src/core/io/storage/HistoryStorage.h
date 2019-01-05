@@ -1,7 +1,6 @@
 #ifndef GEO_NETWORK_CLIENT_HISTORYSTORAGE_H
 #define GEO_NETWORK_CLIENT_HISTORYSTORAGE_H
 
-#include "../../common/NodeUUID.h"
 #include "../../transactions/transactions/base/TransactionUUID.h"
 #include "../../common/Types.h"
 #include "../../logger/Logger.h"
@@ -78,7 +77,7 @@ public:
         bool isHighBoundaryAmountPresent);
 
     vector<Record::Shared> recordsWithContractor(
-        const NodeUUID &contractorUUID,
+        Contractor::Shared contractor,
         const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord);
@@ -118,7 +117,6 @@ private:
         const SerializedEquivalent equivalent);
 
     vector<Record::Shared> recordsPortionWithContractor(
-        const NodeUUID &contractorUUID,
         const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord);

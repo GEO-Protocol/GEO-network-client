@@ -359,8 +359,9 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultFina
     for (const auto &nodeIDAndMaxFlow : mMaxFlows) {
         for (const auto &nodeIDAndAddress : mContractorIDs) {
             if (nodeIDAndAddress.first == nodeIDAndMaxFlow.first) {
-                ss << kTokensSeparator << nodeIDAndAddress.second->addressForCommandResult()
-                    << kTokensSeparator << nodeIDAndMaxFlow.second;
+                ss << kTokensSeparator << nodeIDAndAddress.second->typeID()
+                   << kTokensSeparator << nodeIDAndAddress.second->fullAddress()
+                   << kTokensSeparator << nodeIDAndMaxFlow.second;
                 break;
             }
         }
@@ -380,8 +381,9 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultInte
     for (const auto &nodeIDAndMaxFlow : mMaxFlows) {
         for (const auto &nodeIDAndAddress : mContractorIDs) {
             if (nodeIDAndAddress.first == nodeIDAndMaxFlow.first) {
-                ss << kTokensSeparator << nodeIDAndAddress.second->addressForCommandResult()
-                    << kTokensSeparator << nodeIDAndMaxFlow.second;
+                ss << kTokensSeparator << nodeIDAndAddress.second->typeID()
+                   << kTokensSeparator << nodeIDAndAddress.second->fullAddress()
+                   << kTokensSeparator << nodeIDAndMaxFlow.second;
                 break;
             }
         }
