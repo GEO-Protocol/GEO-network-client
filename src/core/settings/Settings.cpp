@@ -1,6 +1,7 @@
 ﻿#include "Settings.h"
 
-json Settings::loadParsedJSON() const {
+json Settings::loadParsedJSON() const
+{
     string buffer;
     try {
         ifstream stream("conf.json");
@@ -15,7 +16,9 @@ json Settings::loadParsedJSON() const {
     }
 }
 
-vector<pair<string, string>> Settings::addresses(const json *conf) const {
+vector<pair<string, string>> Settings::addresses(
+    const json *conf) const
+{
     if (conf == nullptr) {
         auto j = loadParsedJSON();
         conf = &j;
@@ -35,7 +38,31 @@ vector<pair<string, string>> Settings::addresses(const json *conf) const {
     }
 }
 
-vector<SerializedEquivalent> Settings::iAmGateway(const json *conf) const {
+vector<pair<string, string>> Settings::observers(
+    const json *conf) const
+{
+    if (conf == nullptr) {
+        auto j = loadParsedJSON();
+        conf = &j;
+    }
+    vector<pair<string, string>> result;
+    try {
+        auto addresses = (*conf).at("observers");
+        for (const auto &address : addresses) {
+            result.emplace_back(
+                    address.at("type").get<string>(),
+                    address.at("address").get<string>());
+        }
+        return result;
+    } catch (...) {
+        // todo : throw RuntimeError
+        return result;
+    }
+}
+
+vector<SerializedEquivalent> Settings::iAmGateway(
+    const json *conf) const
+{
     if (conf == nullptr) {
         auto j = loadParsedJSON();
         conf = &j;

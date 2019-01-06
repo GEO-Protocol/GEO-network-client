@@ -80,7 +80,12 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initCommunicator(conf);
+    initCode = initCommunicator();
+    if (initCode != 0) {
+        return initCode;
+    }
+
+    initCode = initObservingCommunicator(conf);
     if (initCode != 0) {
         return initCode;
     }
@@ -157,8 +162,7 @@ int Core::initLogger()
     }
 }
 
-int Core::initCommunicator(
-    const json &conf)
+int Core::initCommunicator()
 {
     try {
         mCommunicator = make_unique<Communicator>(
@@ -167,6 +171,23 @@ int Core::initCommunicator(
             *mLog);
 
         info() << "Network communicator is successfully initialised";
+        return 0;
+
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initObservingCommunicator(
+    const json &conf)
+{
+    try {
+        mObservingCommunicator = make_unique<ObservingCommunicator>(
+            mIOService,
+            mSettings->observers(&conf));
+
+        info() << "Observing communicator is successfully initialised";
         return 0;
 
     } catch (const std::exception &e) {
@@ -379,6 +400,12 @@ void Core::connectCommunicatorSignals()
             _3,
             _4));
 
+    mTransactionsManager->observingMessageReadySignal.connect(
+        boost::bind(
+            &Core::onMessageSendToObserverSlot,
+            this,
+            _1));
+
     mTransactionsManager->ProcessConfirmationMessageSignal.connect(
         boost::bind(
             &Core::onProcessConfirmationMessageSlot,
@@ -576,6 +603,12 @@ void Core::onMessageSendWithCachingSlot(
     } catch (exception &e) {
         mLog->logException("Core", e);
     }
+}
+
+void Core::onMessageSendToObserverSlot(
+    Message::Shared message)
+{
+    mObservingCommunicator->sendRequestToObservers(message);
 }
 
 void Core::onPathsResourceRequestedSlot(

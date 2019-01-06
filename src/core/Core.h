@@ -15,6 +15,7 @@
 #include "equivalents/EquivalentsSubsystemsRouter.h"
 #include "crypto/keychain.h"
 #include "contractors/ContractorsManager.h"
+#include "network/communicator_observing/ObservingCommunicator.h"
 
 #include "logger/Logger.h"
 
@@ -53,7 +54,9 @@ private:
 
     int initLogger();
 
-    int initCommunicator(
+    int initCommunicator();
+
+    int initObservingCommunicator(
         const json &conf);
 
     int initCommandsInterface();
@@ -110,6 +113,9 @@ private:
         Message::MessageType incomingMessageTypeFilter,
         uint32_t cacheTimeLiving);
 
+    void onMessageSendToObserverSlot(
+        Message::Shared message);
+
     void onProcessConfirmationMessageSlot(
         ConfirmationMessage::Shared confirmationMessage);
 
@@ -164,6 +170,7 @@ protected:
     unique_ptr<EquivalentsSubsystemsRouter> mEquivalentsSubsystemsRouter;
     unique_ptr<Keystore> mKeysStore;
     unique_ptr<ContractorsManager> mContractorsManager;
+    unique_ptr<ObservingCommunicator> mObservingCommunicator;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

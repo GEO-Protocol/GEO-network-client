@@ -38,6 +38,7 @@ public:
             ContractorID,
             Message::MessageType,
             uint32_t)> SendMessageWithCachingSignal;
+    typedef signals::signal<void(Message::Shared)> SendObservingMessageSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
     typedef signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
     typedef signals::signal<void(ContractorID, const SerializedEquivalent, bool)> TrustLineActionSignal;
@@ -252,6 +253,15 @@ protected:
             cacheLivingSecondsTime);
     }
 
+    template <typename MessageType, typename... Args>
+    inline void sendObservingMessage(
+        Args&&... args) const
+    {
+        const auto message = make_shared<MessageType>(args...);
+        sendObservingMessageSignal(
+            message);
+    }
+
     void processConfirmationMessage(
         const ConfirmationMessage::Shared confirmationMessage)
     {
@@ -317,6 +327,7 @@ public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
     mutable SendMessageToAddressSignal outgoingMessageToAddressReadySignal;
     mutable SendMessageWithCachingSignal sendMessageWithCachingSignal;
+    mutable SendObservingMessageSignal sendObservingMessageSignal;
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
     mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;
     mutable ProcessPongMessageSignal processPongMessageSignal;

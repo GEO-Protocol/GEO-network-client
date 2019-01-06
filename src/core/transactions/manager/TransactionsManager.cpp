@@ -98,6 +98,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                         transaction->mBuildCycleFourNodesSignal);
                     subscribeForTrustLineActionSignal(
                         transaction->trustLineActionSignal);
+                    subscribeForOutgoingObservingMessage(
+                        transaction->sendObservingMessageSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -129,6 +131,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                         transaction->mBuildCycleFourNodesSignal);
                     subscribeForTrustLineActionSignal(
                         transaction->trustLineActionSignal);
+                    subscribeForOutgoingObservingMessage(
+                        transaction->sendObservingMessageSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -156,6 +160,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                         mSubsystemsController);
                     subscribeForTrustLineActionSignal(
                         transaction->trustLineActionSignal);
+                    subscribeForOutgoingObservingMessage(
+                        transaction->sendObservingMessageSignal);
                     prepareAndSchedule(
                         transaction,
                         false,
@@ -1015,6 +1021,8 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             transaction->mBuildCycleFourNodesSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
+        subscribeForOutgoingObservingMessage(
+            transaction->sendObservingMessageSignal);
         prepareAndSchedule(transaction, false, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for ReceiverPaymentTransaction "
@@ -1050,6 +1058,8 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
             transaction->mBuildCycleFourNodesSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
+        subscribeForOutgoingObservingMessage(
+            transaction->sendObservingMessageSignal);
         prepareAndSchedule(transaction, false, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for IntermediateNodePaymentTransaction "
@@ -1133,6 +1143,8 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
             mSubsystemsController);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
+        subscribeForOutgoingObservingMessage(
+            transaction->sendObservingMessageSignal);
         prepareAndSchedule(
             transaction,
             false,
@@ -1794,6 +1806,16 @@ void TransactionsManager::subscribeForOutgoingMessagesWithCaching(
             _4));
 }
 
+void TransactionsManager::subscribeForOutgoingObservingMessage(
+    BaseTransaction::SendObservingMessageSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onObservingOutgoingMessageReady,
+            this,
+            _1));
+}
+
 void TransactionsManager::subscribeForSerializeTransaction(
     TransactionsScheduler::SerializeTransactionSignal &signal)
 {
@@ -1969,6 +1991,12 @@ void TransactionsManager::onTransactionOutgoingMessageWithCachingReady(
         contractorID,
         incomingMessageTypeFilter,
         cacheLivingTime);
+}
+
+void TransactionsManager::onObservingOutgoingMessageReady(
+    Message::Shared message)
+{
+    observingMessageReadySignal(message);
 }
 
 /*!

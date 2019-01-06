@@ -37,6 +37,7 @@
 #include "../../../../../network/messages/payments/TransactionPublicKeyHashMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsPublicKeysMessage.h"
 #include "../../../../../network/messages/payments/ParticipantVoteMessage.h"
+#include "../../../../../network/messages/observing/ObservingRequestMessage.h"
 
 #include "../../../../../subsystems_controller/SubsystemsController.h"
 
@@ -217,6 +218,8 @@ protected:
      * rollback current transaction because of cycle closing conflict
      */
     TransactionResult::SharedConst runRollbackByOtherTransactionStage();
+
+    TransactionResult::SharedConst runObservingStage();
 
 protected:
     /**
@@ -399,6 +402,8 @@ protected:
 
     static const uint32_t kWaitMillisecondsToTryRecoverAgain = 30000;
 
+    static const uint8_t kMaxRecoveryAttempts = 3;
+
     // todo : make static
     const PaymentNodeID kCoordinatorPaymentNodeID = 0;
 
@@ -438,6 +443,7 @@ protected:
     // Votes recovery
     vector<Contractor::Shared> mNodesToCheckVotes;
     Contractor::Shared mCurrentNodeToCheckVotes;
+    uint8_t mCountRecoveryAttemts;
 
     // this amount used for saving in payment history
     TrustLineAmount mCommittedAmount;

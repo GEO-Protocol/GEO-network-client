@@ -183,6 +183,7 @@ target_link_libraries(geo_network_client
 
         network__communicator
         network__messages
+        observing__communicator
 
         interface__commands
         interface__results

@@ -129,6 +129,7 @@ public:
             ContractorID,
             Message::MessageType,
             uint32_t)> transactionOutgoingMessageWithCachingReadySignal;
+    signals::signal<void(Message::Shared)> observingMessageReadySignal;
     signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
     signals::signal<void(ContractorID)> ProcessPongMessageSignal;
 
@@ -356,6 +357,9 @@ protected:
     void subscribeForOutgoingMessagesWithCaching(
         BaseTransaction::SendMessageWithCachingSignal &signal);
 
+    void subscribeForOutgoingObservingMessage(
+        BaseTransaction::SendObservingMessageSignal &signal);
+
     void subscribeForCommandResult(
         TransactionsScheduler::CommandResultSignal &signal);
 
@@ -415,6 +419,9 @@ protected:
         ContractorID contractorID,
         Message::MessageType incomingMessageTypeFilter,
         uint32_t cacheTimeLiving);
+
+    void onObservingOutgoingMessageReady(
+        Message::Shared message);
 
     void onCommandResultReady(
         CommandResult::SharedConst result);

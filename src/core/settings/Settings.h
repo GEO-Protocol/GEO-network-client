@@ -20,6 +20,9 @@ public:
     vector<pair<string, string>> addresses(
         const json *conf = nullptr) const;
 
+    vector<pair<string, string>> observers(
+        const json *conf = nullptr) const;
+
     vector<SerializedEquivalent> iAmGateway(
         const json *conf = nullptr) const;
 

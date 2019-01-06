@@ -374,7 +374,7 @@ TransactionResult::SharedConst BasePaymentTransaction::processParticipantsVotesM
                 participantSerializedVotesData.second,
                 participantPublicKey)) {
             warning() << "Node " << paymentNodeIdAndContractor.second->mainAddress()->fullAddress() << " signature is wrong";
-            return reject("Consensus not achieved.");
+            return recover("Consensus not achieved.");
         }
     }
 
@@ -656,6 +656,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover(
         mStep = Stages::Common_Recovery;
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
         clearContext();
+        mCountRecoveryAttemts = 0;
         return runVotesRecoveryParentStage();
     } else {
         warning() << "Transaction doesn't sent/receive participants votes message and will be closed";
@@ -928,7 +929,13 @@ TransactionResult::SharedConst BasePaymentTransaction::processNextNodeToCheckVot
 {
     debug() << "processNextNodeToCheckVotes";
     if (mNodesToCheckVotes.empty()) {
-        debug() << "No nodes left to be asked. Sleep";
+        debug() << "No nodes left to be asked";
+        mCountRecoveryAttemts++;
+        if (mCountRecoveryAttemts >= kMaxRecoveryAttempts) {
+            debug() << "Max count recovery attempts";
+            return runObservingStage();
+        }
+        debug() << "Sleep and try again later";
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
         return resultAwakeAfterMilliseconds(
             kWaitMillisecondsToTryRecoverAgain);
@@ -960,6 +967,20 @@ const TrustLineAmount BasePaymentTransaction::totalReservedAmount(
         }
     }
     return totalAmount;
+}
+
+TransactionResult::SharedConst BasePaymentTransaction::runObservingStage()
+{
+    info() << "runObservingStage";
+    // todo : serialize transaction.
+    // After that control of this transaction will be under ObservingCommunicator
+
+    sendObservingMessage<ObservingRequestMessage>(
+        mTransactionUUID,
+        mParticipantsPublicKeys);
+
+    // todo : result should be like wait for message from ObservingCommunicator
+    return resultDone();
 }
 
 pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
