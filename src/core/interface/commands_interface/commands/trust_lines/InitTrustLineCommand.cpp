@@ -1,6 +1,5 @@
 #include "InitTrustLineCommand.h"
-#include <boost/spirit/home/x3.hpp>
-#include <boost/spirit/include/qi_no_skip.hpp>
+
 InitTrustLineCommand::InitTrustLineCommand(
         const CommandUUID &commandUUID,
         const string &command) :
@@ -9,43 +8,28 @@ InitTrustLineCommand::InitTrustLineCommand(
                 commandUUID,
                 identifier()) {
 
-    using boost::spirit::x3::int_;
-    using boost::spirit::x3::char_;
-    using boost::spirit::x3::_attr;
-    using boost::spirit::x3::ascii::space;
+    std::string address("");
+    uint32_t addressType, addressCount, equivalentID;
+    auto address_Type = [&](auto &ctx) { addressType += _attr(ctx); };
+    auto address_add = [&](auto &ctx) { address += _attr(ctx); };
+    auto address_Count = [&](auto &ctx) { addressCount += _attr(ctx); };
+    auto equivalentID_add = [&](auto &ctx) { equivalentID += _attr(ctx); };
 
-    auto first = command.begin(), last = command.end();
-    std::string addressStr("");
-    uint32_t addressType, addressCunt, equiv;
-    auto adr_type = [&](auto &ctx) { addressType += _attr(ctx); };
-    auto adr_str = [&](auto &ctx) { addressStr += _attr(ctx); };
-    auto adr_cnt = [&](auto &ctx) { addressCunt += _attr(ctx); };
-    auto equiv_add = [&](auto &ctx) { equiv += _attr(ctx); };
-
-    static const auto minCommandLength = 7;
-
-    if (command.size() < minCommandLength) {
-        throw ValueError(
-                "InitTrustLineCommand: can't parse command. "
-                "Received command is to short.");
-    }
-
-    parse(first, last,
+    parse(command.begin(), command.end(),
           (
-                  +(int_[adr_cnt] - space) >> space
-                                           >> +(int_[adr_type] - "-") >> "-"
-                                           >> +(char_[adr_str] - space) >> space
-                                           >> +(int_[equiv_add] - space)
+                  +(int_[address_Count] - space) >> space
+                  >> +(int_[address_Type] - "-") >> "-"
+                  >> +(char_[address_add ] - space) >> space
+                  >> +(int_[equivalentID_add] - space)
           )
     );
 
-    mContractorAddressesCount = addressCunt;
-    mContractorAddresses.reserve(mContractorAddressesCount);
+    mContractorAddresses.reserve(addressCount);
     switch (addressType) {
         case BaseAddress::IPv4_IncludingPort: {
             mContractorAddresses.push_back(
                     make_shared<IPv4WithPortAddress>(
-                            addressStr));
+                            address));
             break;
         }
         default:
@@ -53,7 +37,7 @@ InitTrustLineCommand::InitTrustLineCommand(
                     "InitTrustLineCommand: can't parse command. "
                     "Error occurred while parsing 'Contractor Address' token.");
     }
-    mEquivalent = equiv;
+    mEquivalent = equivalentID;
 }
 
 const string &InitTrustLineCommand::identifier()

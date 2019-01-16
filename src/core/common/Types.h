@@ -2,11 +2,18 @@
 #define GEO_NETWORK_CLIENT_TYPES_H
 
 #include <boost/multiprecision/cpp_int.hpp>
-
+#include <boost/spirit/home/x3.hpp>
 #include <memory>
 #include <cstdint>
 
 using namespace std;
+/*
+ * Parser
+ */
+using boost::spirit::x3::int_;
+using boost::spirit::x3::char_;
+using boost::spirit::x3::_attr;
+using boost::spirit::x3::ascii::space;
 
 /*
  * Byte
