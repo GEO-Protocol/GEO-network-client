@@ -4,11 +4,15 @@
 #include "../../../common/Types.h"
 #include "../../../common/time/TimeUtils.h"
 #include "../../../common/memory/MemoryUtils.h"
-
+#include <boost/spirit/home/x3.hpp>
 #include "../../results_interface/result/CommandResult.h"
 
 #include <boost/uuid/uuid.hpp>
 
+using boost::spirit::x3::int_;
+using boost::spirit::x3::char_;
+using boost::spirit::x3::_attr;
+using boost::spirit::x3::ascii::space;
 
 namespace uuids = boost::uuids;
 

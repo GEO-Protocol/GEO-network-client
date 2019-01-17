@@ -8,23 +8,23 @@ InitTrustLineCommand::InitTrustLineCommand(
                 commandUUID,
                 identifier()) {
 
-    std::string address("");
-    uint32_t addressType, addressCount, equivalentID;
-    auto address_Type = [&](auto &ctx) { addressType += _attr(ctx); };
+    std::string address;
+    uint32_t addressType, addressesCount, equivalentID;
+    auto parserType = [&](auto &ctx) { addressType += _attr(ctx); };
     auto address_add = [&](auto &ctx) { address += _attr(ctx); };
-    auto address_Count = [&](auto &ctx) { addressCount += _attr(ctx); };
+    auto address_Count = [&](auto &ctx) { addressesCount += _attr(ctx); };
     auto equivalentID_add = [&](auto &ctx) { equivalentID += _attr(ctx); };
 
     parse(command.begin(), command.end(),
           (
                   +(int_[address_Count] - space) >> space
-                  >> +(int_[address_Type] - "-") >> "-"
+                  >> +(int_[parserType] - "-") >> "-"
                   >> +(char_[address_add ] - space) >> space
                   >> +(int_[equivalentID_add] - space)
           )
     );
 
-    mContractorAddresses.reserve(addressCount);
+    mContractorAddresses.reserve(addressesCount);
     switch (addressType) {
         case BaseAddress::IPv4_IncludingPort: {
             mContractorAddresses.push_back(
