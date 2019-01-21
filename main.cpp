@@ -1,5 +1,5 @@
 #include "src/core/Core.h"
-
+#include "src/tests/TestCore.h"
 //#define TESTS
 
 
@@ -26,7 +26,6 @@
 #include "src/tests/db/fields/tl_direction_column/TrustLineDirectionColumnTests.cpp"
 #endif
 
-
 #ifdef TESTS__ROUTING_TABLE
 #include "src/tests/io/routing_tables/OperationsLogTests.cpp"
 #include "src/tests/io/routing_tables/operations/SetOperationTests.cpp"
@@ -38,7 +37,6 @@
 #ifdef TESTS__TRUSTLINES
 #include "src/tests/trust_lines/TrustLineTests.cpp"
 #endif
-
 
 //#include <boost/endian/arithmetic.hpp>
 
@@ -215,6 +213,6 @@ int main(int argc, char** argv) {
 //    auto imported = bytesToTLBalance(exported);
 
 //    cout << a << endl << imported << endl;
-
+    Catch::Session().run();
     return Core(argv[0]).run();
 }
