@@ -14,7 +14,7 @@ set(SOURCE_FILES
         commands/trust_lines/InitTrustLineCommand.cpp
         commands/trust_lines/SetOutgoingTrustLineCommand.h
         commands/trust_lines/SetOutgoingTrustLineCommand.cpp
-        commands/trust_lines/CloseIncomingTrustLineCommand.h
+        commands/trust_lines/CloseIncomingTrustLineCommandTest.h
         commands/trust_lines/CloseIncomingTrustLineCommand.cpp
         commands/trust_lines/ShareKeysCommand.h
         commands/trust_lines/ShareKeysCommand.cpp

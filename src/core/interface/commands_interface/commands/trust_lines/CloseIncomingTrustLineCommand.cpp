@@ -1,4 +1,4 @@
-#include "CloseIncomingTrustLineCommand.h"
+#include "CloseIncomingTrustLineCommandTest.h"
 
 CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
     const CommandUUID &commandUUID,
@@ -9,10 +9,17 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
         identifier())
 {
 
-    auto contractorid_add = [&](auto& ctx) {mContractorID = _attr(ctx);};
-    auto equivalentid_add = [&](auto& ctx) {mEquivalent = _attr(ctx);};
+    auto contractorid_add = [&](auto& ctx) { mContractorID = _attr(ctx); };
+    auto equivalentid_add = [&](auto& ctx) { mEquivalent = _attr(ctx); };
 
-    parse(command.begin(), command.end(), (int_[contractorid_add] >> space >> int_[equivalentid_add]));
+    try
+    {
+        parse(command.begin(), command.end(), *(int_[contractorid_add]) > space > *(int_[equivalentid_add]) > space);
+    }
+    catch(...)
+    {
+        throw ValueError("CloseIncomingTrustLineCommand: can't parse command.");
+    }
 
 }
 

@@ -9,53 +9,20 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
         commandUUID,
         identifier())
 {
-    static const auto minCommandLength = 5;
 
-    if (command.size() < minCommandLength) {
-        throw ValueError(
-            "SetTrustLineCommand: can't parse command. "
-            "Received command is to short.");
+    auto contractorID_add = [&](auto &ctx) { mContractorID = _attr(ctx); };
+    auto amount_add = [&](auto &ctx) { mAmount = _attr(ctx); };
+    auto equivalent_add = [&](auto &ctx) { mEquivalent = _attr(ctx); };
+
+    try
+    {
+        parse(command.begin(), command.end(), *(int_[contractorID_add]) > char_('\t')  > *(int_[amount_add]) > char_('\t')  > int_[equivalent_add] > eol );
+    }
+    catch(...)
+    {
+        throw ValueError("SetOutgoingTrustLineCommand : can't parse command");
     }
 
-    size_t tokenSeparatorPos = command.find(
-        kTokensSeparator,
-        0);
-    string contractorIDStr = command.substr(0, tokenSeparatorPos);
-    try {
-        mContractorID = (uint32_t)std::stoul(contractorIDStr);
-    } catch (...) {
-        throw ValueError(
-            "SetTrustLineCommand: can't parse command. "
-                "Error occurred while parsing  'contractorID' token.");
-    }
-
-    size_t amountTokenOffset = tokenSeparatorPos + 1;
-    tokenSeparatorPos = command.find(
-        kTokensSeparator,
-        amountTokenOffset);
-    try {
-        mAmount = TrustLineAmount(
-            command.substr(
-                amountTokenOffset,
-                tokenSeparatorPos - amountTokenOffset));
-
-    } catch (...) {
-        throw ValueError(
-                "SetTrustLineCommand: can't parse command. "
-                    "Error occurred while parsing 'New amount' token.");
-    }
-
-    size_t equivalentOffset = tokenSeparatorPos + 1;
-    string equivalentStr = command.substr(
-        equivalentOffset,
-        command.size() - equivalentOffset - 1);
-    try {
-        mEquivalent = (uint32_t)std::stoul(equivalentStr);
-    } catch (...) {
-        throw ValueError(
-                "SetTrustLineCommand: can't parse command. "
-                    "Error occurred while parsing  'equivalent' token.");
-    }
 }
 
 const string &SetOutgoingTrustLineCommand::identifier()

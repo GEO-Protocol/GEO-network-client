@@ -19,7 +19,7 @@
  */
 #include "../../interface/commands_interface/commands/trust_lines/InitTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
+#include "../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommandTest.h"
 #include "../../interface/commands_interface/commands/trust_lines/ShareKeysCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"

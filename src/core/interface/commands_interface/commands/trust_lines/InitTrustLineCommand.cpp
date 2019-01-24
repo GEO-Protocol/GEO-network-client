@@ -6,14 +6,17 @@ InitTrustLineCommand::InitTrustLineCommand(
 
         BaseUserCommand(
                 commandUUID,
-                identifier()) {
+                identifier())
+{
 
-    std::string address ;
+    std::string address;
     uint32_t addressType, addressesCount, equivalentID;
     auto parserType = [&](auto &ctx) { addressType = _attr(ctx); };
     auto address_add = [&](auto &ctx) { address += _attr(ctx); };
+    auto address_number_add = [&](auto &ctx) { address += std::to_string(_attr(ctx)); };
     auto address_Count = [&](auto &ctx) { addressesCount = _attr(ctx); };
-    auto address_vector = [&](auto &ctx){
+    auto address_vector = [&](auto &ctx)
+    {
 
         switch (addressType)
         {
@@ -25,27 +28,35 @@ InitTrustLineCommand::InitTrustLineCommand(
                 break;
 
                 }
-            default:
-                throw ValueError(
-                        "InitTrustLineCommand: can't parse command. "
-                        "Error occurred while parsing 'Contractor Address' token.");
         }
 
         address.erase();
     };
 
     auto equivalentID_add = [&](auto &ctx) { equivalentID = _attr(ctx); };
-    parse(command.begin(), command.end(), +(int_[address_Count] - space));
+
+    try
+    {
+    parse(command.begin(), command.end(), *(int_[address_Count]-char_('\t')) > char_('\t'));
+
     mContractorAddresses.reserve(addressesCount);
 
     parse(command.begin(), command.end(),
           (
-                  +(int_[address_Count] - space) >> space >>repeat(addressesCount)[
-                          +(int_[parserType] - space) >> space
-                                                    >> +(char_[address_add] - space) >> space[address_vector]]
-                                                 >> +(int_[equivalentID_add] - space)
+                  *(int_[address_Count]) > char_('\t')
+                  > repeat(addressesCount)[*(int_[parserType] - char_('\t')) > char_('\t')
+                  > repeat(3)[int_[address_number_add]> char_('.') [address_add]]
+                  > int_[address_number_add] > char_(':') [address_add]
+                  > int_[address_number_add] > char_('\t') [address_vector]]
+                  > +(int_[equivalentID_add]) > eol
           )
-    );
+         );
+
+    }
+    catch(...)
+    {
+        throw ValueError("InitTrustLineCommand: can't parse command.");
+    }
 
     mEquivalent = equivalentID;
 }

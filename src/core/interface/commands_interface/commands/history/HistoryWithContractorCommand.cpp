@@ -8,105 +8,67 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
         uuid,
         identifier())
 {
-    const auto minCommandLength = 7;
-    if (commandBuffer.size() < minCommandLength) {
-        throw ValueError(
-                "HistoryWithContractorCommand: can't parse command. "
-                    "Received command is to short.");
-    }
 
-    size_t tokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator);
-    string historyFromStr = commandBuffer.substr(
-        0,
-        tokenSeparatorPos);
-    try {
-        mHistoryFrom = std::stoul(historyFromStr);
-    } catch (...) {
-        throw ValueError(
-                "HistoryWithContractorCommand: can't parse command. "
-                    "Error occurred while parsing  'from' token.");
-    }
+    std::string address;
+    uint32_t addressType;
+    auto historyFrom_add = [&](auto &ctx) { mHistoryFrom = _attr(ctx); };
+    auto historyCount_add = [&](auto &ctx) { mHistoryCount = _attr(ctx); };
+    auto contractorsCount_add = [&](auto &ctx) { mContractorsCount = _attr(ctx); };
+    auto parserType = [&](auto &ctx) { addressType = _attr(ctx); };
+    auto equivalentID_add = [&](auto &ctx) { mEquivalent = _attr(ctx); };
+    auto address_add = [&](auto &ctx) { address += _attr(ctx); };
+    auto address_number_add = [&](auto &ctx){ address += std::to_string(_attr(ctx)); };
 
-    size_t nextTokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator,
-        tokenSeparatorPos + 1);
-    string historyCountStr = commandBuffer.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    try {
-        mHistoryCount = std::stoul(historyCountStr);
-    } catch (...) {
-        throw ValueError(
-                "HistoryWithContractorCommand: can't parse command. "
-                    "Error occurred while parsing 'count' token.");
-    }
+    auto address_vector = [&](auto &ctx)
+    {
 
-    nextTokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator,
-        tokenSeparatorPos + 1);
-    auto contractorAddressesCntStr = commandBuffer.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    try {
-        mContractorsCount = (uint32_t)std::stoul(contractorAddressesCntStr);
-    } catch (...) {
-        throw ValueError(
-                "HistoryWithContractorCommand: can't parse command. "
-                    "Error occurred while parsing  'contractor addresses count' token.");
-    }
-
-    mContractorAddresses.reserve(mContractorsCount);
-    size_t contractorAddressStartPos = nextTokenSeparatorPos + 1;
-    for (size_t idx = 0; idx < mContractorsCount; idx++) {
-        try {
-            tokenSeparatorPos = commandBuffer.find(
-                kTokensSeparator,
-                contractorAddressStartPos);
-            string addressTypeStr = commandBuffer.substr(
-                contractorAddressStartPos,
-                tokenSeparatorPos - contractorAddressStartPos);
-            auto addressType = (BaseAddress::AddressType)std::stoul(addressTypeStr);
-
-            contractorAddressStartPos = tokenSeparatorPos + 1;
-            tokenSeparatorPos = commandBuffer.find(
-                kTokensSeparator,
-                contractorAddressStartPos);
-            string addressStr = commandBuffer.substr(
-                contractorAddressStartPos,
-                tokenSeparatorPos - contractorAddressStartPos);
-
-            switch (addressType) {
-                case BaseAddress::IPv4_IncludingPort: {
-                    mContractorAddresses.push_back(
+        switch (addressType)
+        {
+            case BaseAddress::IPv4_IncludingPort:
+                {
+                mContractorAddresses.push_back(
                         make_shared<IPv4WithPortAddress>(
-                            addressStr));
-                    break;
+                                address));
+                break;
                 }
-                default:
-                    throw ValueError(
-                            "HistoryWithContractorCommand: can't parse command. "
-                                "Error occurred while parsing 'Contractor Address' token.");
-            }
-            contractorAddressStartPos = tokenSeparatorPos + 1;
-        } catch (...) {
-            throw ValueError(
-                    "HistoryWithContractorCommand: can't parse command. "
-                        "Error occurred while parsing 'Contractor Address' token.");
         }
+
+        address.erase();
+    };
+    try
+    {
+        parse(commandBuffer.begin(), commandBuffer.end(),
+                (
+                      *(int_[historyFrom_add] - char_('\t'))
+                      > char_('\t')
+                      > *(int_[historyCount_add] - char_('\t'))
+                      > char_('\t')  > *(int_[contractorsCount_add] - char_('\t' ))
+                )
+
+
+              );
+
+        parse(commandBuffer.begin(), commandBuffer.end(),
+              (
+                      *(int_) > char_('\t')  >*(int_)
+                      > char_('\t')  > *(int_)
+                      > char_('\t')  > repeat(mContractorsCount)[*(int_[parserType] - char_('\t') ) > char_('\t')
+                      >repeat(3)[int_[address_number_add]>char_('.') [address_add]]
+                      >int_[address_number_add]
+                      >char_(':') [address_add]
+                      > int_[address_number_add]
+                      > char_('\t')  [address_vector]]
+                      > +(int_[equivalentID_add]) > eol
+              )
+
+             );
+
+    }
+    catch (...)
+    {
+        throw ValueError("HistorWithContractorCommand: can't parse command.");
     }
 
-    nextTokenSeparatorPos = commandBuffer.size() - 1;
-    string equivalentStr = commandBuffer.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    try {
-        mEquivalent = (uint32_t)std::stoul(equivalentStr);
-    } catch (...) {
-        throw ValueError(
-                "HistoryWithContractorCommand: can't parse command. "
-                    "Error occurred while parsing 'equivalent' token.");
-    }
 }
 
 const string &HistoryWithContractorCommand::identifier()

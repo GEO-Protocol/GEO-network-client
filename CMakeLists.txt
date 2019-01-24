@@ -26,7 +26,7 @@ ENDIF (${PLATFORM} MATCHES "LINUX")
 # Debug options
 # (available options are: DEBUG | RELEASE | TESTS)
 #
-set(BUILD_CONFIGURATION "TESTS")
+set(BUILD_CONFIGURATION "RELEASE")
 
 IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
     set(CMAKE_BUILD_TYPE "Debug")
@@ -68,6 +68,8 @@ IF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
 ENDIF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
 
 IF (${BUILD_CONFIGURATION} MATCHES "TESTS")
+    add_subdirectory(src/tests)
+
     add_definitions(
         -DTESTS
         -DINTERNAL_ARGUMENTS_VALIDATION
@@ -166,8 +168,7 @@ set(SOURCE_FILES
         src/core/Core.h
 
         # libs
-        src/libs/json/json.h src/tests/interface/сommands_interface/commands/trust_lines/InitTrustLineTest.cpp src/tests/TestCore.h src/tests/TestCore.h src/tests/interface/сommands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.cpp)
-
+        src/libs/json/json.h)
 add_executable(geo_network_client ${SOURCE_FILES})
 
 target_link_libraries(geo_network_client
