@@ -8,9 +8,9 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
         uuid,
         identifier())
 {
-
     std::string address;
     uint32_t addressType;
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("HistoryWithContractorCommand: there is no input ");}};
     auto historyFrom_add = [&](auto &ctx) { mHistoryFrom = _attr(ctx); };
     auto historyCount_add = [&](auto &ctx) { mHistoryCount = _attr(ctx); };
     auto contractorsCount_add = [&](auto &ctx) { mContractorsCount = _attr(ctx); };
@@ -37,6 +37,7 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
     };
     try
     {
+        parse(commandBuffer.begin(), commandBuffer.end(), char_[check]);
         parse(commandBuffer.begin(), commandBuffer.end(),
                 (
                       *(int_[historyFrom_add] - char_('\t'))
@@ -68,7 +69,6 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
     {
         throw ValueError("HistorWithContractorCommand: can't parse command.");
     }
-
 }
 
 const string &HistoryWithContractorCommand::identifier()

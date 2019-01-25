@@ -2,65 +2,54 @@
 
 GetTrustLineCommand::GetTrustLineCommand(
     const CommandUUID &uuid,
-    const string &commandBuffer)
-    noexcept:
+    const string &commandBuffer):
+
     BaseUserCommand(
         uuid,
         identifier())
 {
-    const auto minCommandLength = 7;
+    std::string address;
+    uint32_t addressType, equivalentID;
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("GetTrustLineCommand: there is no input ");}};
+    auto parserType = [&](auto &ctx) { addressType = _attr(ctx); };
+    auto address_add = [&](auto &ctx) { address += _attr(ctx); };
+    auto address_number_add = [&](auto &ctx) { address += std::to_string(_attr(ctx)); };
+    auto address_vector = [&](auto &ctx)
+    {
 
-    if (commandBuffer.size() < minCommandLength) {
-        throw ValueError(
-                "GetTrustLineCommand: can't parse command. "
-                    "Received command is to short.");
-    }
-
-    auto tokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator);
-    string addressTypeStr = commandBuffer.substr(
-        0,
-        tokenSeparatorPos);
-
-    try {
-        auto addressType = (BaseAddress::AddressType) std::stoul(addressTypeStr);
-
-        auto contractorAddressStartPos = tokenSeparatorPos + 1;
-        tokenSeparatorPos = commandBuffer.find(
-            kTokensSeparator,
-            contractorAddressStartPos);
-        string addressStr = commandBuffer.substr(
-            contractorAddressStartPos,
-            tokenSeparatorPos - contractorAddressStartPos);
-
-        switch (addressType) {
-            case BaseAddress::IPv4_IncludingPort: {
-                mContractorAddress = make_shared<IPv4WithPortAddress>(
-                    addressStr);
+        switch (addressType)
+        {
+            case BaseAddress::IPv4_IncludingPort:
+            {
+                mContractorAddress = make_shared<IPv4WithPortAddress>(address);
                 break;
-            }
-            default:
-                throw ValueError(
-                        "GetTrustLineCommand: can't parse command. "
-                            "Error occurred while parsing 'Contractor Address' token.");
-        }
-    } catch (...) {
-        throw ValueError(
-                "GetTrustLineCommand: can't parse command. "
-                    "Error occurred while parsing 'Contractor Address' token.");
-    }
 
-    size_t equivalentOffset = tokenSeparatorPos + 1;
-    string equivalentStr = commandBuffer.substr(
-        equivalentOffset,
-        commandBuffer.size() - equivalentOffset - 1);
-    try {
-        mEquivalent = (uint32_t)std::stoul(equivalentStr);
-    } catch (...) {
-        throw ValueError(
-                "GetTrustLineCommand: can't parse command. "
-                    "Error occurred while parsing  'equivalent' token.");
+            }
+        }
+
+        address.erase();
+    };
+
+    auto equivalentID_add = [&](auto &ctx) { equivalentID = _attr(ctx); };
+
+    try
+    {
+        parse(commandBuffer.begin(), commandBuffer.end(), char_[check]);
+        parse(commandBuffer.begin(), commandBuffer.end(),
+              (
+                     *(int_[parserType] - char_('\t')) > char_('\t')
+                     > repeat(3)[int_[address_number_add]> char_('.') [address_add]]
+                     > int_[address_number_add] > char_(':') [address_add]
+                     > int_[address_number_add] > char_('\t') [address_vector]
+                      > +(int_[equivalentID_add]) > eol
+              )
+        );
     }
+    catch(...)
+    {
+        throw ValueError("InitTrustLineCommand: can't parse command.");
+    }
+    mEquivalent = equivalentID;
 }
 
 const string &GetTrustLineCommand::identifier()

@@ -8,8 +8,7 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
         uuid,
         identifier())
 {
-
-
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("HistoryTrustLinesCommand: there is no input ");}};
     auto historyfrom_add = [&](auto &ctx) { mHistoryFrom = _attr(ctx); };
     auto historycount_add = [&](auto &ctx) { mHistoryCount = _attr(ctx); };
     auto timefrompresent_null = [&](auto &ctx) { mIsTimeFromPresent = false; };
@@ -33,6 +32,7 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
 
     try
     {
+        parse(commandBuffer.begin(), commandBuffer.end(), char_[check]);
         parse(commandBuffer.begin(), commandBuffer.end(),
               (
                       *(int_[historyfrom_add])
@@ -49,7 +49,7 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
                       > eol
 
               )
-        );
+             );
 
     }
     catch(...)

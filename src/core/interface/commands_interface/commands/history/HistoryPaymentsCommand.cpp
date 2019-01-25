@@ -8,9 +8,9 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         uuid,
         identifier())
 {
-
     uint32_t flag_low = 0, flag_high = 0, flag_4 = 0, flag_8 =0 , flag_12 = 0;
     std::string lowBoundaryAmount, highBoundaryAmount, paymentRecordCommandUUID;
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("HistoryPaymentsCommand: there is no input ");}};
     auto historyfrom_add = [&](auto &ctx) { mHistoryFrom = _attr(ctx); };
     auto historycount_add = [&](auto &ctx) { mHistoryCount = _attr(ctx); };
     auto timefrompresent_null = [&](auto &ctx) { mIsTimeFromPresent = false; };
@@ -38,6 +38,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         mIsLowBoundaryAmountPresent = true;
         flag_low++;
         if(flag_low>39) {throw ValueError("Amount is too big");}
+        else if (flag_low == 1 && _attr(ctx) <= 0) {throw ValueError("Amount can't be zero or low");}
 
     };
 
@@ -48,7 +49,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         mIsHighBoundaryAmountPresent = true;
         flag_high++;
         if(flag_high>39) {throw ValueError("Amount is too big");}
-
+        else if (flag_high == 1 && _attr(ctx) <= 0) {throw ValueError("Amount can't be zero or low");}
 
     };
 
@@ -87,6 +88,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
 
     try
     {
+        parse(commandBuffer.begin(), commandBuffer.end(), char_[check]);
         parse(commandBuffer.begin(), commandBuffer.end(),
               (
                       *(int_[historyfrom_add])
@@ -115,7 +117,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
                       > eol
 
               )
-        );
+             );
 
         mLowBoundaryAmount = TrustLineAmount(lowBoundaryAmount);
         mHighBoundaryAmount = TrustLineAmount(highBoundaryAmount);
@@ -125,10 +127,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
     {
         throw ValueError("HistoryPaymentsCommand : can't parse command");
     }
-
 }
-
-
 
 const string &HistoryPaymentsCommand::identifier()
 {

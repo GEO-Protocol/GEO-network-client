@@ -2,59 +2,35 @@
 
 GetTrustLinesCommand::GetTrustLinesCommand(
     const CommandUUID &uuid,
-    const string &commandBuffer)
-    noexcept:
+    const string &commandBuffer):
+
 
     BaseUserCommand(
         uuid,
         identifier())
 {
-    static const auto minCommandLength = 5;
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("GetTrustLinesCommand: there is no input ");}};
+    auto mfrom_add = [&](auto &ctx){ mFrom = _attr(ctx); };
+    auto mcount_add = [&](auto &ctx){ mCount = _attr(ctx); };
+    auto mequivalent_add = [&](auto &ctx){ mEquivalent = _attr(ctx); };
 
-    if (commandBuffer.size() < minCommandLength) {
-        throw ValueError(
-                "GetTrustLinesCommand: can't parse command. "
-                    "Received command is to short.");
+    try
+    {
+        parse(commandBuffer.begin(), commandBuffer.end(), char_[check]);
+        parse(commandBuffer.begin(), commandBuffer.end(),
+              (
+                      *(int_[mfrom_add])
+                      > char_('\t')
+                      > *(int_[mcount_add])
+                      > char_('\t')
+                      > *(int_[mequivalent_add])
+                      > eol
+              )
+             );
     }
-
-    size_t tokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator);
-    string historyFromStr = commandBuffer.substr(
-        0,
-        tokenSeparatorPos);
-    try {
-        mFrom = std::stoul(historyFromStr);
-    } catch (...) {
-        throw ValueError(
-                "GetTrustLinesCommand: can't parse command. "
-                    "Error occurred while parsing  'from' token.");
-    }
-
-    size_t nextTokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator,
-        tokenSeparatorPos + 1);
-    string historyCountStr = commandBuffer.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    try {
-        mCount = std::stoul(historyCountStr);
-    } catch (...) {
-        throw ValueError(
-                "GetTrustLinesCommand: can't parse command. "
-                    "Error occurred while parsing 'count' token.");
-    }
-
-    tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = commandBuffer.size() - 1;
-    string equivalentStr = commandBuffer.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    try {
-        mEquivalent = (uint32_t)std::stoul(equivalentStr);
-    } catch (...) {
-        throw ValueError(
-                "GetTrustLinesCommand: can't parse command. "
-                    "Error occurred while parsing 'equivalent' token.");
+    catch(...)
+    {
+        throw ValueError("GetTrustLinesCommand: can't parse command");
     }
 }
 

@@ -1,4 +1,4 @@
-#include "CloseIncomingTrustLineCommandTest.h"
+#include "CloseIncomingTrustLineCommand.h"
 
 CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
     const CommandUUID &commandUUID,
@@ -8,19 +8,19 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
         commandUUID,
         identifier())
 {
-
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("CloseIncomingTrustLineCommand: there is no input ");}};
     auto contractorid_add = [&](auto& ctx) { mContractorID = _attr(ctx); };
     auto equivalentid_add = [&](auto& ctx) { mEquivalent = _attr(ctx); };
 
     try
     {
-        parse(command.begin(), command.end(), *(int_[contractorid_add]) > space > *(int_[equivalentid_add]) > space);
+        parse(command.begin(), command.end(), char_[check]);
+              parse(command.begin(), command.end(), *(int_[contractorid_add]) > char_('\t') > *(int_[equivalentid_add]) > eol);
     }
     catch(...)
     {
         throw ValueError("CloseIncomingTrustLineCommand: can't parse command.");
     }
-
 }
 
 const string &CloseIncomingTrustLineCommand::identifier()

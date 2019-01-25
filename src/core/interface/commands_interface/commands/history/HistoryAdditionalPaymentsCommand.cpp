@@ -8,10 +8,9 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
         uuid,
         identifier())
 {
-
-
     uint32_t flag_low = 0, flag_high = 0;
     std::string lowBoundaryAmount, highBoundaryAmount;
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("HistoryAdditionalPayments: there is no input ");}};
     auto historyfrom_add = [&](auto &ctx) { mHistoryFrom = _attr(ctx); };
     auto historycount_add = [&](auto &ctx) { mHistoryCount = _attr(ctx); };
     auto timefrompresent_null = [&](auto &ctx) { mIsTimeFromPresent = false; };
@@ -57,8 +56,9 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
 
     try
     {
-    parse(commandBuffer.begin(), commandBuffer.end(),
-          (
+        parse(commandBuffer.begin(), commandBuffer.end(),char_[check]);
+        parse(commandBuffer.begin(), commandBuffer.end(),
+                 (
                   *(int_[historyfrom_add])
                   > char_('\t')
                   > *(int_[historycount_add])
@@ -78,18 +78,17 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
                   > int_[equivalentID_add]
                   > eol
 
-          )
-    );
+                 )
+             );
 
-    mLowBoundaryAmount = TrustLineAmount(lowBoundaryAmount);
-    mHighBoundaryAmount = TrustLineAmount(highBoundaryAmount);
+        mLowBoundaryAmount = TrustLineAmount(lowBoundaryAmount);
+        mHighBoundaryAmount = TrustLineAmount(highBoundaryAmount);
 
     }
     catch(...)
     {
        throw ValueError("HistoryAdditionalPaymentsCommand : can't parse command");
     }
-
 }
 
 const string &HistoryAdditionalPaymentsCommand::identifier()

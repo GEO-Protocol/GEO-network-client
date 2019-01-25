@@ -7,33 +7,28 @@ TEST_CASE("Testing HistoryAdditionalPaymentsCommand")
 
     SECTION("Different number in input")
     {
-
         REQUIRE_NOTHROW(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"3423\t34543\t45128987\t69779\t192847\t39381728\t34029\n"));
     }
 
     SECTION("No input")
     {
-
         REQUIRE_THROWS(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, ""));
 
+        REQUIRE_THROWS(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\n"));
     }
 
     SECTION("Characters in input")
     {
-
         REQUIRE_THROWS(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "sdfsfdsffs"));
-
     }
 
     SECTION("Forget delimeter")
     {
-
         REQUIRE_THROWS(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"3423\34543\t45128987\t69779\t0192847\39381728\t34029\n"));
     }
 
     SECTION("Max number in input")
     {
-
         REQUIRE_NOTHROW(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"999\t99\t999\t999\t340282366920938463463374607431768211456\t999\t999\n"));
 
         REQUIRE_NOTHROW(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"999\t99\t999\t999\t99\t340282366920938463463374607431768211456\t999\n"));
@@ -41,7 +36,6 @@ TEST_CASE("Testing HistoryAdditionalPaymentsCommand")
 
     SECTION("Overflow in input (40 digits)")
     {
-
         REQUIRE_THROWS(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"999\t99\t999\t999\t3402823669209384634633746074317682114560\t999\t999\n"));
 
         REQUIRE_THROWS(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"999\t99\t999\t999\t99\t3402823669209384634633746074317682114560\t999\n"));
@@ -51,7 +45,6 @@ TEST_CASE("Testing HistoryAdditionalPaymentsCommand")
 
     SECTION("Characters in integer values")
     {
-
         REQUIRE_THROWS(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"342d3\t34543\t45128987\t69779\t0192847\t39381728\t34029\n"));
 
         REQUIRE_THROWS(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"3423\t34s543\t45128987\t69779\t0192847\t39381728\t34029\n"));
@@ -83,7 +76,6 @@ TEST_CASE("Testing HistoryAdditionalPaymentsCommand")
 
     SECTION("Float in integer values")
     {
-
         REQUIRE_THROWS(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"342.3\t34543\t45128987\t69779\t0192847\t39381728\t34029\n"));
 
         REQUIRE_THROWS(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"3423\t3454.3\t45128987\t69779\t0192847\t39381728\t34029\n"));

@@ -7,7 +7,7 @@
 
 #include "../commands/trust_lines/InitTrustLineCommand.h"
 #include "../commands/trust_lines/SetOutgoingTrustLineCommand.h"
-#include "../commands/trust_lines/CloseIncomingTrustLineCommandTest.h"
+#include "../commands/trust_lines/CloseIncomingTrustLineCommand.h"
 #include "../commands/trust_lines/ShareKeysCommand.h"
 #include "../commands/payments/CreditUsageCommand.h"
 #include "../commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"

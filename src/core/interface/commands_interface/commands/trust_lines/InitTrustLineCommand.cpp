@@ -8,9 +8,9 @@ InitTrustLineCommand::InitTrustLineCommand(
                 commandUUID,
                 identifier())
 {
-
     std::string address;
     uint32_t addressType, addressesCount, equivalentID;
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("InitTrustLineCommand: there is no input ");}};
     auto parserType = [&](auto &ctx) { addressType = _attr(ctx); };
     auto address_add = [&](auto &ctx) { address += _attr(ctx); };
     auto address_number_add = [&](auto &ctx) { address += std::to_string(_attr(ctx)); };
@@ -37,6 +37,8 @@ InitTrustLineCommand::InitTrustLineCommand(
 
     try
     {
+        parse(command.begin(), command.end(), char_[check]);
+
     parse(command.begin(), command.end(), *(int_[address_Count]-char_('\t')) > char_('\t'));
 
     mContractorAddresses.reserve(addressesCount);
@@ -57,7 +59,6 @@ InitTrustLineCommand::InitTrustLineCommand(
     {
         throw ValueError("InitTrustLineCommand: can't parse command.");
     }
-
     mEquivalent = equivalentID;
 }
 
