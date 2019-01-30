@@ -9,6 +9,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    ResourcesManager *resourcesManager,
     Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController)
@@ -23,6 +24,7 @@ noexcept :
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        resourcesManager,
         keystore,
         log,
         subsystemsController),
@@ -45,6 +47,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
 
             case Stages::Coordinator_PreviousNeighborRequestProcessing:
                 return runPreviousNeighborRequestProcessingStage();
+
+            case Stages::Common_ObservingBlockNumberProcessing:
+                return sendFinalPathConfigurationToAllParticipants();
 
             case Stages::Coordinator_FinalAmountsConfigurationConfirmation:
                 return runFinalAmountsConfigurationConfirmationProcessingStage();
@@ -187,15 +192,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
 #endif
-
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
-        ioTransaction,
-        currentTransactionUUID());
-    mParticipantsPublicKeys.insert(
-        make_pair(
-            kCoordinatorPaymentNodeID,
-            mPublicKey));
 
     // send message with all public keys to all participants and wait for voting results
     for (const auto &paymentIdAndContractor : mPaymentParticipants) {
@@ -669,25 +665,12 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
         debug() << "Total count of all participants without coordinator is "
                 << mPathStats->path()->intermediates().size();
 
-#ifdef TESTS
-        mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration(
-            mPathStats->path()->intermediates().size());
-#endif
-
-        // send final path amount to all intermediate nodes on path
-        if (!sendFinalPathConfiguration(
-            mPathStats->maxFlow())) {
-            return reject("Can't send final path configuration. Rejected.");
-        }
-
-        mAllNodesSentConfirmationOnFinalAmountsConfiguration = false;
-        mAllNeighborsSentFinalReservations = false;
-
-        mStep = Coordinator_FinalAmountsConfigurationConfirmation;
-        return resultWaitForMessageTypes(
-            {Message::Payments_FinalAmountsConfigurationResponse,
-             Message::Payments_TransactionPublicKeyHash},
-            maxNetworkDelay(3));
+        mStep = Common_ObservingBlockNumberProcessing;
+        mResourcesManager->requestObservingBlockNumber(
+            mTransactionUUID);
+        return resultWaitForResourceTypes(
+            {BaseResource::ObservingBlockNumber},
+            maxNetworkDelay(1));
     }
 
     debug() << "Go to the next node in path";
@@ -832,6 +815,117 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
         maxNetworkDelay(2));
 }
 
+TransactionResult::SharedConst CycleCloserInitiatorTransaction::sendFinalPathConfigurationToAllParticipants()
+{
+    debug() << "sendFinalPathConfigurationToAllParticipants";
+
+    if (!resourceIsValid(BaseResource::ObservingBlockNumber)) {
+        return resultDone();
+    }
+    auto blockNumberResource = popNextResource<BlockNumberRecourse>();
+    mMaximalClaimingBlockNumber = blockNumberResource->actualObservingBlockNumber() + kCountBlocksForClaiming;
+
+    mPaymentParticipants.insert(
+        make_pair(
+            kCoordinatorPaymentNodeID,
+            mContractorsManager->selfContractor()));
+    mPaymentNodesIds.insert(
+        make_pair(
+            mContractorsManager->selfContractor()->mainAddress()->fullAddress(),
+            kCoordinatorPaymentNodeID));
+    auto currentNodeID = kCoordinatorPaymentNodeID + 1;
+    for (const auto &intermediateNode : mCurrentPathParticipants) {
+        mPaymentParticipants.insert(
+            make_pair(
+                currentNodeID,
+                intermediateNode));
+        mPaymentNodesIds.insert(
+            make_pair(
+                intermediateNode->mainAddress()->fullAddress(),
+                currentNodeID));
+        currentNodeID++;
+    }
+
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration(
+        mPathStats->path()->intermediates().size());
+#endif
+
+    mParticipantsPublicKeys.clear();
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
+        ioTransaction,
+        currentTransactionUUID());
+    mParticipantsPublicKeys.insert(
+        make_pair(
+            kCoordinatorPaymentNodeID,
+            mPublicKey));
+
+    for (const auto &paymentNodeIdAndContractor : mPaymentParticipants) {
+        if (paymentNodeIdAndContractor.first == kCoordinatorPaymentNodeID) {
+            continue;
+        }
+        if (paymentNodeIdAndContractor.first == kCoordinatorPaymentNodeID + 1) {
+            // we should send receipt to first intermediate node
+            auto keyChain = mKeysStore->keychain(
+                mTrustLinesManager->trustLineID(mNextNodeID));
+            // coordinator should have one outgoing reservation to first intermediate node
+            auto serializedOutgoingReceiptData = getSerializedReceipt(
+                mNextNodeID,
+                mContractorsManager->idOnContractorSide(mNextNodeID),
+                mPublicKey->hash(),
+                mPathStats->maxFlow(),
+                true);
+            auto signatureAndKeyNumber = keyChain.sign(
+                ioTransaction,
+                serializedOutgoingReceiptData.first,
+                serializedOutgoingReceiptData.second);
+            if (!keyChain.saveOutgoingPaymentReceipt(
+                ioTransaction,
+                mTrustLinesManager->auditNumber(mNextNodeID),
+                mTransactionUUID,
+                signatureAndKeyNumber.second,
+                mPathStats->maxFlow(),
+                signatureAndKeyNumber.first)) {
+                return reject("Can't save outgoing receipt. Rejected.");
+            }
+            info() << "send message with final path amount info for node "
+                   << mNextNode->fullAddress() << " with receipt";
+            sendMessage<FinalPathCycleConfigurationMessage>(
+                mNextNode,
+                mEquivalent,
+                mContractorsManager->ownAddresses(),
+                currentTransactionUUID(),
+                mPathStats->maxFlow(),
+                mPaymentParticipants,
+                mMaximalClaimingBlockNumber,
+                signatureAndKeyNumber.second,
+                signatureAndKeyNumber.first,
+                mPublicKey->hash());
+        } else {
+            info() << "send message with final path amount info for node "
+                   << paymentNodeIdAndContractor.second->mainAddress()->fullAddress();
+            sendMessage<FinalPathCycleConfigurationMessage>(
+                paymentNodeIdAndContractor.second->mainAddress(),
+                mEquivalent,
+                mContractorsManager->ownAddresses(),
+                currentTransactionUUID(),
+                mPathStats->maxFlow(),
+                mPaymentParticipants,
+                mMaximalClaimingBlockNumber);
+        }
+    }
+
+    mAllNodesSentConfirmationOnFinalAmountsConfiguration = false;
+    mAllNeighborsSentFinalReservations = false;
+
+    mStep = Coordinator_FinalAmountsConfigurationConfirmation;
+    return resultWaitForMessageTypes(
+        {Message::Payments_FinalAmountsConfigurationResponse,
+         Message::Payments_TransactionPublicKeyHash},
+        maxNetworkDelay(3));
+}
+
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalAmountsConfigurationConfirmationProcessingStage()
 {
     debug() << "runFinalAmountsConfigurationConfirmationProcessingStage";
@@ -862,7 +956,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalAmountsP
     debug() << "Sender confirmed final amounts";
     mParticipantsPublicKeys[mPaymentNodesIds[senderAddress->fullAddress()]] = kMessage->publicKey();
 
-    if (mParticipantsPublicKeys.size() + 1 < mPaymentNodesIds.size()) {
+    if (mParticipantsPublicKeys.size() < mPaymentNodesIds.size()) {
         debug() << "Some nodes are still not confirmed final amounts. Waiting.";
         if (mAllNeighborsSentFinalReservations) {
             return resultWaitForMessageTypes(
@@ -916,6 +1010,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalReservat
     auto serializedIncomingReceiptData = getSerializedReceipt(
         mContractorsManager->idOnContractorSide(mPreviousNodeID),
         mPreviousNodeID,
+        kMessage->transactionPublicKeyHash(),
         participantTotalIncomingReservationAmount,
         false);
     if (!keyChain.checkSign(
@@ -1005,6 +1100,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
                 make_pair(
                     kCoordinatorPaymentNodeID,
                     ownSignature));
+
+            ioTransaction->paymentTransactionsHandler()->saveRecord(
+                mTransactionUUID,
+                mMaximalClaimingBlockNumber);
         }
         debug() << "Voted +";
         mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
@@ -1058,86 +1157,6 @@ void CycleCloserInitiatorTransaction::informIntermediateNodesAboutTransactionFin
         debug() << "send message with transaction finishing instruction to node "
                 << mPathStats->path()->intermediates().at(nodePosition)->fullAddress();
     }
-}
-
-bool CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
-    const TrustLineAmount &finalPathAmount)
-{
-    debug() << "sendFinalPathConfiguration";
-    mPaymentParticipants.insert(
-        make_pair(
-            kCoordinatorPaymentNodeID,
-            mContractorsManager->selfContractor()));
-    mPaymentNodesIds.insert(
-        make_pair(
-            mContractorsManager->selfContractor()->mainAddress()->fullAddress(),
-            kCoordinatorPaymentNodeID));
-    auto currentNodeID = kCoordinatorPaymentNodeID + 1;
-    for (const auto &intermediateNode : mCurrentPathParticipants) {
-        mPaymentParticipants.insert(
-            make_pair(
-                currentNodeID,
-                intermediateNode));
-        mPaymentNodesIds.insert(
-            make_pair(
-                intermediateNode->mainAddress()->fullAddress(),
-                currentNodeID));
-        currentNodeID++;
-    }
-    mParticipantsPublicKeys.clear();
-    for (const auto &paymentNodeIdAndContractor : mPaymentParticipants) {
-        if (paymentNodeIdAndContractor.first == kCoordinatorPaymentNodeID) {
-            continue;
-        }
-        if (paymentNodeIdAndContractor.first == kCoordinatorPaymentNodeID + 1) {
-            // we should send receipt to first intermediate node
-            auto keyChain = mKeysStore->keychain(
-                mTrustLinesManager->trustLineID(mNextNodeID));
-            // coordinator should have one outgoing reservation to first intermediate node
-            auto serializedOutgoingReceiptData = getSerializedReceipt(
-                mNextNodeID,
-                mContractorsManager->idOnContractorSide(mNextNodeID),
-                finalPathAmount,
-                true);
-            auto ioTransaction = mStorageHandler->beginTransaction();
-            auto signatureAndKeyNumber = keyChain.sign(
-                ioTransaction,
-                serializedOutgoingReceiptData.first,
-                serializedOutgoingReceiptData.second);
-            if (!keyChain.saveOutgoingPaymentReceipt(
-                    ioTransaction,
-                    mTrustLinesManager->auditNumber(mNextNodeID),
-                    mTransactionUUID,
-                    signatureAndKeyNumber.second,
-                    finalPathAmount,
-                    signatureAndKeyNumber.first)) {
-                warning() << "Can't save outgoing receipt.";
-                return false;
-            }
-            info() << "send message with final path amount info for node "
-                   << mNextNode->fullAddress() << " with receipt";
-            sendMessage<FinalPathCycleConfigurationMessage>(
-                mNextNode,
-                mEquivalent,
-                mContractorsManager->ownAddresses(),
-                currentTransactionUUID(),
-                finalPathAmount,
-                mPaymentParticipants,
-                signatureAndKeyNumber.second,
-                signatureAndKeyNumber.first);
-        } else {
-            info() << "send message with final path amount info for node "
-                   << paymentNodeIdAndContractor.second->mainAddress()->fullAddress();
-            sendMessage<FinalPathCycleConfigurationMessage>(
-                paymentNodeIdAndContractor.second->mainAddress(),
-                mEquivalent,
-                mContractorsManager->ownAddresses(),
-                currentTransactionUUID(),
-                finalPathAmount,
-                mPaymentParticipants);
-        }
-    }
-    return true;
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::approve()

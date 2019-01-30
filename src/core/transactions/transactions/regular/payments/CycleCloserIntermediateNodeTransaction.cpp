@@ -8,6 +8,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    ResourcesManager *resourcesManager,
     Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
@@ -22,6 +23,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        resourcesManager,
         keystore,
         log,
         subsystemsController),
@@ -39,6 +41,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    ResourcesManager *resourcesManager,
     Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
@@ -51,6 +54,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        resourcesManager,
         keystore,
         log,
         subsystemsController),
@@ -73,6 +77,9 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::run()
             case Stages::Common_FinalPathConfigurationChecking:
                 return runFinalPathConfigurationProcessingStage();
 
+            case Stages::Common_ObservingBlockNumberProcessing:
+                return runCheckObservingBlockNumber();
+
             case Stages::Common_VotesChecking:
                 return runVotesCheckingStageWithPossibleTTL();
 
@@ -87,6 +94,12 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::run()
 
             case Stages::Common_RollbackByOtherTransaction:
                 return runRollbackByOtherTransactionStage();
+
+            case Stages::Common_Observing:
+                return runObservingStageAfterRestoring();
+
+            case Stages::Common_ObservingReject:
+                return runObservingRejectTransaction();
 
             default:
                 throw RuntimeError(
@@ -533,6 +546,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     // todo : check if sender is coordinator
 
     debug() << "Final payment path configuration received";
+    mMaximalClaimingBlockNumber = kMessage->maximalClaimingBlockNumber();
+    debug() << "maximal claiming block number: " << mMaximalClaimingBlockNumber;
 
     // path was cancelled, drop all reservations belong it
     if (kMessage->amount() == 0) {
@@ -594,6 +609,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         auto serializedIncomingReceiptData = getSerializedReceipt(
             mContractorsManager->idOnContractorSide(coordinatorID),
             coordinatorID,
+            kMessage->transactionPublicKeyHash(),
             coordinatorTotalIncomingReservationAmount,
             false);
         if (!keyChain.checkSign(
@@ -630,20 +646,52 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         }
     }
 
+    mStep = Common_ObservingBlockNumberProcessing;
+    mResourcesManager->requestObservingBlockNumber(
+        mTransactionUUID);
+    mBlockNumberObtainingInProcess = true;
+    return resultWaitForResourceAndMessagesTypes(
+        {BaseResource::ObservingBlockNumber},
+        {Message::Payments_TransactionPublicKeyHash,
+         Message::Payments_TTLProlongationResponse},
+        maxNetworkDelay(1));
+}
+
+TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCheckObservingBlockNumber()
+{
+    info() << "runCheckObservingBlockNumber";
+    if (contextIsValid(Message::Payments_TransactionPublicKeyHash, false)) {
+        return runFinalReservationsNeighborConfirmation();
+    }
+
+    if (!resourceIsValid(BaseResource::ObservingBlockNumber)) {
+        sendErrorMessageOnFinalAmountsConfiguration();
+        return reject("Can't check observing actual block number. Rejected.");
+    }
+    auto blockNumberResource = popNextResource<BlockNumberRecourse>();
+    auto maximalClaimingBlockNumber = blockNumberResource->actualObservingBlockNumber() + kCountBlocksForClaiming;
+    debug() << "maximal claiming block number on own side: " << maximalClaimingBlockNumber;
+    if (!checkMaxClaimingBlockNumber(maximalClaimingBlockNumber)) {
+        sendErrorMessageOnFinalAmountsConfiguration();
+        return reject("Max claiming block number sending by coordinator is invalid . Rejected.");
+    }
+    mBlockNumberObtainingInProcess = false;
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
     mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
         ioTransaction,
         currentTransactionUUID());
     mParticipantsPublicKeysHashes.insert(
         make_pair(
-            mContractorsManager->ownAddresses().at(0)->fullAddress(),
+            mContractorsManager->selfContractor()->mainAddress()->fullAddress(),
             make_pair(
-                mPaymentNodesIds[mContractorsManager->ownAddresses().at(0)->fullAddress()],
+                mPaymentNodesIds[mContractorsManager->selfContractor()->mainAddress()->fullAddress()],
                 mPublicKey->hash())));
 
     // send messages to all participants except coordinator:
     // to nodes with outgoing reservations - outgoing receipts and public key hash;
     // to rest nodes - only public key hash
-    auto ownPaymentID = mPaymentNodesIds[mContractorsManager->ownAddresses().at(0)->fullAddress()];
+    auto ownPaymentID = mPaymentNodesIds[mContractorsManager->selfContractor()->mainAddress()->fullAddress()];
     for (const auto &paymentNodeIdAndContractor : mPaymentParticipants) {
         if (paymentNodeIdAndContractor.second == mContractorsManager->selfContractor()) {
             continue;
@@ -671,6 +719,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
             auto serializedOutgoingReceiptData = getSerializedReceipt(
                 participantID,
                 mContractorsManager->idOnContractorSide(participantID),
+                mPublicKey->hash(),
                 outgoingReservedAmount,
                 true);
             auto signatureAndKeyNumber = keyChain.sign(
@@ -735,6 +784,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
             maxNetworkDelay(5)); // todo : need discuss this parameter (5)
     }
 
+    mStep = Common_FinalPathConfigurationChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_TransactionPublicKeyHash,
          Message::Payments_TTLProlongationResponse},
@@ -768,6 +818,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
         auto serializedIncomingReceiptData = getSerializedReceipt(
             mContractorsManager->idOnContractorSide(senderID),
             senderID,
+            kMessage->transactionPublicKeyHash(),
             participantTotalIncomingReservationAmount,
             false);
         if (!keyChain.checkSign(
@@ -810,6 +861,13 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
             {Message::Payments_FinalPathCycleConfiguration,
              Message::Payments_TransactionPublicKeyHash,
              Message::Payments_TTLProlongationResponse},
+            maxNetworkDelay(1));
+    }
+
+    if (mBlockNumberObtainingInProcess) {
+        return resultWaitForResourceAndMessagesTypes(
+            {BaseResource::ObservingBlockNumber},
+            {Message::Payments_TransactionPublicKeyHash},
             maxNetworkDelay(1));
     }
 

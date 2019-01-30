@@ -3,4 +3,3 @@ find_package(Boost COMPONENTS system REQUIRED)
 
 add_subdirectory(messages)
 add_subdirectory(communicator)
-add_subdirectory(communicator_observing)

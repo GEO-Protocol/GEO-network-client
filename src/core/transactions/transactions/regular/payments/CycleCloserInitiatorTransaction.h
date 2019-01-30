@@ -20,6 +20,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController)
@@ -123,6 +124,11 @@ protected:
      */
     TransactionResult::SharedConst processRemoteNodeResponse();
 
+    /**
+     * send messages to all transaction participants with final amount which should be committed
+     */
+    TransactionResult::SharedConst sendFinalPathConfigurationToAllParticipants();
+
     TransactionResult::SharedConst propagateVotesListAndWaitForVotingResult();
 
 protected:
@@ -137,13 +143,6 @@ protected:
      */
     void checkPath(
         const Path::ConstShared path);
-
-    /**
-     * send messages to all transaction participants with final amount which should be committed
-     * @param finalPathAmount final amount which should be committed
-     */
-    bool sendFinalPathConfiguration(
-        const TrustLineAmount &finalPathAmount);
 
     /**
      * send messages to intermediate nodes with instruction "finish transaction"

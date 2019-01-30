@@ -129,9 +129,10 @@ public:
             ContractorID,
             Message::MessageType,
             uint32_t)> transactionOutgoingMessageWithCachingReadySignal;
-    signals::signal<void(Message::Shared)> observingMessageReadySignal;
-    signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
-    signals::signal<void(ContractorID)> ProcessPongMessageSignal;
+    signals::signal<void(ObservingClaimAppendRequestMessage::Shared)> observingClaimSignal;
+    signals::signal<void(ConfirmationMessage::Shared)> processConfirmationMessageSignal;
+    signals::signal<void(ContractorID)> processPongMessageSignal;
+    signals::signal<void(TransactionUUID, BlockNumber)> observingTransactionCommittedSignal;
 
 public:
     TransactionsManager(
@@ -164,8 +165,14 @@ public:
         BaseAddress::Shared destinationNodeAddress,
         const SerializedEquivalent equivalent);
 
-protected:
-    void loadTransactionsFromStorage();
+    void launchPaymentTransactionAfterGettingObservingSignatures(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber,
+        map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures);
+
+    void launchPaymentTransactionForObservingRejecting(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
 
 protected: // Transactions
     /*
@@ -357,8 +364,8 @@ protected:
     void subscribeForOutgoingMessagesWithCaching(
         BaseTransaction::SendMessageWithCachingSignal &signal);
 
-    void subscribeForOutgoingObservingMessage(
-        BaseTransaction::SendObservingMessageSignal &signal);
+    void subscribeForObserving(
+        BasePaymentTransaction::Shared transaction);
 
     void subscribeForCommandResult(
         TransactionsScheduler::CommandResultSignal &signal);
@@ -420,8 +427,12 @@ protected:
         Message::MessageType incomingMessageTypeFilter,
         uint32_t cacheTimeLiving);
 
-    void onObservingOutgoingMessageReady(
-        Message::Shared message);
+    void onObservingClaimReady(
+        ObservingClaimAppendRequestMessage::Shared message);
+
+    void onObservingTransactionCommitted(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maxBlockNumberForClaiming);
 
     void onCommandResultReady(
         CommandResult::SharedConst result);
@@ -476,7 +487,14 @@ protected:
         const SerializedEquivalent equivalent,
         const BaseTransaction::TransactionType transactionType);
 
-protected:
+private:
+    void loadTransactionsFromStorage();
+
+    BasePaymentTransaction::Shared deserializePaymentTransaction(
+        BytesShared buffer,
+        BaseTransaction::SerializedTransactionType transactionType,
+        SerializedEquivalent equivalent);
+
     void prepareAndSchedule(
         BaseTransaction::Shared transaction,
         bool regenerateUUID=false,

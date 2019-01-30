@@ -244,7 +244,8 @@ bool CyclesManager::resolveReservationConflict(
     if (isChallengerTransactionWinReservation(
             challengerTransaction,
             reservedTransaction)) {
-        reservedTransaction->setRollbackByOtherTransactionStage();
+        reservedTransaction->setTransactionState(
+            BasePaymentTransaction::Common_RollbackByOtherTransaction);
         mTransactionScheduler->postponeTransaction(
             reservedTransaction,
             kPostponingRollbackTransactionTimeMSec);

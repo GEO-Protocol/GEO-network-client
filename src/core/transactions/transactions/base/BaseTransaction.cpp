@@ -116,6 +116,18 @@ TransactionResult::Shared BaseTransaction::resultWaitForResourceTypes(
             noLongerThanMilliseconds));
 }
 
+TransactionResult::Shared BaseTransaction::resultWaitForResourceAndMessagesTypes(
+    vector<BaseResource::ResourceType> &&requiredResourcesType,
+    vector<Message::MessageType> &&requiredMessagesTypes,
+    uint32_t noLongerThanMilliseconds) const
+{
+    return make_shared<TransactionResult>(
+        TransactionState::waitForResourcesAndMessagesTypes(
+            move(requiredResourcesType),
+            move(requiredMessagesTypes),
+            noLongerThanMilliseconds));
+}
+
 TransactionResult::Shared BaseTransaction::resultAwakeAfterMilliseconds(
     uint32_t responseWaitTime) const
 {

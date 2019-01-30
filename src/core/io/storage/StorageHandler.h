@@ -52,9 +52,10 @@ private:
     const string kAuditTableName = "audit";
     const string kPaymentKeysTableName = "payment_keys";
     const string kPaymentParticipantsVotesTableName = "payment_participants_votes";
+    const string kPaymentTransactionsTableName = "payment_transactions";
 
     const string kContractorsTableName = "contractors";
-    const string kContractorAddressesTablename = "contractors_addresses";
+    const string kContractorAddressesTableName = "contractors_addresses";
 
 private:
     static sqlite3 *mDBConnection;
@@ -71,6 +72,7 @@ private:
     OutgoingPaymentReceiptHandler mOutgoingPaymentReceiptHandler;
     PaymentKeysHandler mPaymentKeysHandler;
     PaymentParticipantsVotesHandler mPaymentParticipantsVotesHandler;
+    PaymentTransactionsHandler mPaymentTransactionsHandler;
     ContractorsHandler mContractorsHandler;
     AddressHandler mAddressHandler;
     string mDirectory;

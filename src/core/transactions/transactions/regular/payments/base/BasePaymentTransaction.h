@@ -12,6 +12,8 @@
 #include "../../../../../io/storage/StorageHandler.h"
 #include "../../../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../../../resources/manager/ResourcesManager.h"
+#include "../../../../../resources/resources/BlockNumberRecourse.h"
 #include "../../../../../crypto/keychain.h"
 #include "../../../../../crypto/lamportkeys.h"
 #include "../../../../../crypto/lamportscheme.h"
@@ -37,7 +39,7 @@
 #include "../../../../../network/messages/payments/TransactionPublicKeyHashMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsPublicKeysMessage.h"
 #include "../../../../../network/messages/payments/ParticipantVoteMessage.h"
-#include "../../../../../network/messages/observing/ObservingRequestMessage.h"
+#include "../../../../../observing/messages/ObservingClaimAppendRequestMessage.h"
 
 #include "../../../../../subsystems_controller/SubsystemsController.h"
 
@@ -55,6 +57,8 @@ public:
 public:
     typedef signals::signal<void(set<ContractorID>&, const SerializedEquivalent)> BuildCycleThreeNodesSignal;
     typedef signals::signal<void(set<ContractorID>&, const SerializedEquivalent)> BuildCycleFourNodesSignal;
+    typedef signals::signal<void(ObservingClaimAppendRequestMessage::Shared)> ObservingClaimSignal;
+    typedef signals::signal<void(const TransactionUUID&, BlockNumber)> TransactionCommittedObservingSignal;
 
 public:
     BasePaymentTransaction(
@@ -66,6 +70,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
@@ -80,6 +85,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
@@ -92,6 +98,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
@@ -118,13 +125,13 @@ public:
      */
     bool isCommonVotesCheckingStage() const;
 
-    /**
-     * method, which sets stage of current transaction on Common_RollbackByOtherTransaction
-     * used in CyclesManager for resolving cycle closing conflicts
-     */
-    void setRollbackByOtherTransactionStage();
+    void setTransactionState(
+        BaseTransaction::SerializedStep transactionState);
 
-protected:
+    void setObservingParticipantsSignatures(
+        map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures);
+
+public:
     enum Stages {
         Coordinator_Initialization = 1,
         Coordinator_ReceiverResourceProcessing,
@@ -145,12 +152,15 @@ protected:
         Cycles_WaitForOutgoingAmountReleasing,
         Cycles_WaitForIncomingAmountReleasing,
 
+        Common_ObservingBlockNumberProcessing,
         Common_VotesChecking,
         Common_FinalPathConfigurationChecking,
         Common_Recovery,
         Common_ClarificationTransactionBeforeVoting,
         Common_ClarificationTransactionDuringFinalAmountsClarification,
         Common_ClarificationTransactionDuringVoting,
+        Common_Observing,
+        Common_ObservingReject,
 
         Common_RollbackByOtherTransaction
     };
@@ -220,6 +230,10 @@ protected:
     TransactionResult::SharedConst runRollbackByOtherTransactionStage();
 
     TransactionResult::SharedConst runObservingStage();
+
+    TransactionResult::SharedConst runObservingStageAfterRestoring();
+
+    TransactionResult::SharedConst runObservingRejectTransaction();
 
 protected:
     /**
@@ -303,6 +317,9 @@ protected:
         Message::MessageType messageType,
         bool showErrorMessage = true) const;
 
+    const bool resourceIsValid(
+        BaseResource::ResourceType resourceType) const;
+
     /**
      * drop all reservations of current node on specified path
      * @param pathID id of path on which reservations will be dropped
@@ -369,6 +386,7 @@ protected:
     pair<BytesShared, size_t> getSerializedReceipt(
         ContractorID source,
         ContractorID target,
+        lamport::KeyHash::Shared sourceTransactionPublicKeyHash,
         const TrustLineAmount &amount,
         bool isSource);
 
@@ -385,6 +403,9 @@ protected:
         Contractor::Shared contractor);
 
     bool checkSignaturesAppropriate();
+
+    bool checkMaxClaimingBlockNumber(
+        BlockNumber maxClaimingBlockNumberOnOwnSide);
 
 protected:
     // Specifies how long node must wait for the response from the remote node.
@@ -407,6 +428,9 @@ protected:
     // todo : make static
     const PaymentNodeID kCoordinatorPaymentNodeID = 0;
 
+    static const uint64_t kCountBlocksForClaiming = 20;
+    static const uint64_t kAllowableBlockNumberDifference = 1;
+
 public:
     // signal for launching transaction of building cycles on three nodes
     mutable BuildCycleThreeNodesSignal mBuildCycleThreeNodesSignal;
@@ -414,12 +438,17 @@ public:
     // signal for launching transaction of building cycles on four nodes
     mutable BuildCycleFourNodesSignal mBuildCycleFourNodesSignal;
 
+    mutable ObservingClaimSignal observingClaimSignal;
+
+    mutable TransactionCommittedObservingSignal mTransactionCommittedObservingSignal;
+
 protected:
     ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
+    ResourcesManager *mResourcesManager;
     Keystore *mKeysStore;
 
     // If true - votes check stage has been processed and transaction has been approved.
@@ -443,7 +472,7 @@ protected:
     // Votes recovery
     vector<Contractor::Shared> mNodesToCheckVotes;
     Contractor::Shared mCurrentNodeToCheckVotes;
-    uint8_t mCountRecoveryAttemts;
+    uint8_t mCountRecoveryAttempts;
 
     // this amount used for saving in payment history
     TrustLineAmount mCommittedAmount;
@@ -460,6 +489,9 @@ protected:
     bool mAllNeighborsSentFinalReservations;
 
     lamport::PublicKey::Shared mPublicKey;
+
+    BlockNumber mMaximalClaimingBlockNumber;
+    bool mBlockNumberObtainingInProcess;
 
 protected:
     SubsystemsController *mSubsystemsController;

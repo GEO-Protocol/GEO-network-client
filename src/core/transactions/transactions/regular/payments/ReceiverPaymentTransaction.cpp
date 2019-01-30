@@ -9,6 +9,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    ResourcesManager *resourcesManager,
     Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
@@ -23,6 +24,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        resourcesManager,
         keystore,
         log,
         subsystemsController),
@@ -41,6 +43,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    ResourcesManager *resourcesManager,
     Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
@@ -53,6 +56,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        resourcesManager,
         keystore,
         log,
         subsystemsController)
@@ -79,6 +83,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
             case Stages::Common_ClarificationTransactionDuringFinalAmountsClarification:
                 return runClarificationOfTransactionDuringFinalAmountsClarification();
 
+            case Stages::Common_ObservingBlockNumberProcessing:
+                return runCheckObservingBlockNumber();
+
             case Stages::Common_VotesChecking:
                 return runVotesCheckingStageWithCoordinatorClarification();
 
@@ -88,6 +95,11 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
             case Stages::Common_Recovery:
                 return runVotesRecoveryParentStage();
 
+            case Stages::Common_Observing:
+                return runObservingStageAfterRestoring();
+
+            case Stages::Common_ObservingReject:
+                return runObservingRejectTransaction();
 
             default:
                 throw RuntimeError(
@@ -423,6 +435,10 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
     auto kMessage = popNextMessage<FinalAmountsConfigurationMessage>();
     auto coordinatorAddress = kMessage->senderAddresses.at(0);
     // todo : check coordinator
+
+    mMaximalClaimingBlockNumber = kMessage->maximalClaimingBlockNumber();
+    debug() << "maximal claiming block number: " << mMaximalClaimingBlockNumber;
+
     if (!updateReservations(
             kMessage->finalAmountsConfiguration())) {
         sendErrorMessageOnFinalAmountsConfiguration();
@@ -469,6 +485,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
         auto serializedIncomingReceiptData = getSerializedReceipt(
             coordinatorID,
             mContractorsManager->idOnContractorSide(coordinatorID),
+            kMessage->transactionPublicKeyHash(),
             coordinatorTotalIncomingReservationAmount,
             false);
         if (!keyChain.checkSign(
@@ -504,18 +521,50 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
         }
     }
 
+    mStep = Common_ObservingBlockNumberProcessing;
+    mResourcesManager->requestObservingBlockNumber(
+        mTransactionUUID);
+    mBlockNumberObtainingInProcess = true;
+    return resultWaitForResourceAndMessagesTypes(
+        {BaseResource::ObservingBlockNumber},
+        {Message::Payments_TransactionPublicKeyHash,
+         Message::Payments_TTLProlongationResponse},
+        maxNetworkDelay(1));
+}
+
+TransactionResult::SharedConst ReceiverPaymentTransaction::runCheckObservingBlockNumber()
+{
+    info() << "runCheckObservingBlockNumber";
+    if (contextIsValid(Message::Payments_TransactionPublicKeyHash, false)) {
+        return runFinalReservationsNeighborConfirmation();
+    }
+
+    if (!resourceIsValid(BaseResource::ObservingBlockNumber)) {
+        sendErrorMessageOnFinalAmountsConfiguration();
+        return reject("Can't check observing actual block number. Rejected.");
+    }
+    auto blockNumberResource = popNextResource<BlockNumberRecourse>();
+    auto maximalClaimingBlockNumber = blockNumberResource->actualObservingBlockNumber() + kCountBlocksForClaiming;
+    debug() << "maximal claiming block number on own side: " << maximalClaimingBlockNumber;
+    if (!checkMaxClaimingBlockNumber(maximalClaimingBlockNumber)) {
+        sendErrorMessageOnFinalAmountsConfiguration();
+        return reject("Max claiming block number sending by coordinator is invalid . Rejected.");
+    }
+    mBlockNumberObtainingInProcess = false;
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
     mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
         ioTransaction,
         currentTransactionUUID());
     mParticipantsPublicKeysHashes.insert(
         make_pair(
-            mContractorsManager->ownAddresses().at(0)->fullAddress(),
+            mContractorsManager->selfContractor()->mainAddress()->fullAddress(),
             make_pair(
-                mPaymentNodesIds[mContractorsManager->ownAddresses().at(0)->fullAddress()],
+                mPaymentNodesIds[mContractorsManager->selfContractor()->mainAddress()->fullAddress()],
                 mPublicKey->hash())));
 
     // send public key hash to all participants except coordinator
-    auto ownPaymentID = mPaymentNodesIds[mContractorsManager->ownAddresses().at(0)->fullAddress()];
+    auto ownPaymentID = mPaymentNodesIds[mContractorsManager->selfContractor()->mainAddress()->fullAddress()];
     for (const auto &paymentNodeIdAndContractor : mPaymentParticipants) {
         if (paymentNodeIdAndContractor.second == mCoordinator) {
             continue;
@@ -559,6 +608,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
             maxNetworkDelay(5)); // todo : need discuss this parameter (5)
     }
 
+    mStep = Coordinator_FinalAmountsConfigurationConfirmation;
     return resultWaitForMessageTypes(
         {Message::Payments_TransactionPublicKeyHash,
          Message::Payments_TTLProlongationResponse},
@@ -591,6 +641,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
         auto serializedIncomingReceiptData = getSerializedReceipt(
             senderID,
             mContractorsManager->idOnContractorSide(senderID),
+            kMessage->transactionPublicKeyHash(),
             participantTotalIncomingReservationAmount,
             false);
         if (!keyChain.checkSign(
@@ -633,6 +684,13 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
             {Message::Payments_FinalAmountsConfiguration,
              Message::Payments_TransactionPublicKeyHash,
              Message::Payments_TTLProlongationResponse},
+            maxNetworkDelay(1));
+    }
+
+    if (mBlockNumberObtainingInProcess) {
+        return resultWaitForResourceAndMessagesTypes(
+            {BaseResource::ObservingBlockNumber},
+            {Message::Payments_TransactionPublicKeyHash},
             maxNetworkDelay(1));
     }
 

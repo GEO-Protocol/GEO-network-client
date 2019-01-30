@@ -80,22 +80,22 @@ int Core::initSubsystems()
         return initCode;
     }
 
+    initCode = initResourcesManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initCommunicator();
     if (initCode != 0) {
         return initCode;
     }
 
-    initCode = initObservingCommunicator(conf);
+    initCode = initObservingHandler(conf);
     if (initCode != 0) {
         return initCode;
     }
 
     initCode = initResultsInterface();
-    if (initCode != 0) {
-        return initCode;
-    }
-
-    initCode = initResourcesManager();
     if (initCode != 0) {
         return initCode;
     }
@@ -179,15 +179,18 @@ int Core::initCommunicator()
     }
 }
 
-int Core::initObservingCommunicator(
+int Core::initObservingHandler(
     const json &conf)
 {
     try {
-        mObservingCommunicator = make_unique<ObservingCommunicator>(
+        mObservingHandler = make_unique<ObservingHandler>(
+            mSettings->observers(&conf),
             mIOService,
-            mSettings->observers(&conf));
+            mStorageHandler.get(),
+            mResourcesManager.get(),
+            *mLog);
 
-        info() << "Observing communicator is successfully initialised";
+        info() << "Observing handler is successfully initialised";
         return 0;
 
     } catch (const std::exception &e) {
@@ -400,19 +403,13 @@ void Core::connectCommunicatorSignals()
             _3,
             _4));
 
-    mTransactionsManager->observingMessageReadySignal.connect(
-        boost::bind(
-            &Core::onMessageSendToObserverSlot,
-            this,
-            _1));
-
-    mTransactionsManager->ProcessConfirmationMessageSignal.connect(
+    mTransactionsManager->processConfirmationMessageSignal.connect(
         boost::bind(
             &Core::onProcessConfirmationMessageSlot,
             this,
             _1));
 
-    mTransactionsManager->ProcessPongMessageSignal.connect(
+    mTransactionsManager->processPongMessageSignal.connect(
         boost::bind(
             &Core::onProcessPongMessageSlot,
             this,
@@ -425,6 +422,37 @@ void Core::connectCommunicatorSignals()
     mEquivalentsSubsystemsRouter->clearContractorsShouldBePinged();
 }
 
+void Core::connectObservingSignals()
+{
+    mTransactionsManager->observingClaimSignal.connect(
+        boost::bind(
+            &Core::onMessageSendToObserverSlot,
+            this,
+            _1));
+
+    mTransactionsManager->observingTransactionCommittedSignal.connect(
+        boost::bind(
+            &Core::onAddTransactionToObservingCheckingSlot,
+            this,
+            _1,
+            _2));
+
+    mObservingHandler->mParticipantsVotesSignal.connect(
+        boost::bind(
+            &Core::onObservingParticipantsVotesSlot,
+            this,
+            _1,
+            _2,
+            _3));
+
+    mObservingHandler->mRejectTransactionSignal.connect(
+        boost::bind(
+            &Core::onObservingTransactionRejectSlot,
+            this,
+            _1,
+            _2));
+}
+
 void Core::connectResourcesManagerSignals()
 {
     mResourcesManager->requestPathsResourcesSignal.connect(
@@ -434,6 +462,12 @@ void Core::connectResourcesManagerSignals()
             _1,
             _2,
             _3));
+
+    mResourcesManager->requestObservingBlockNumberSignal.connect(
+        boost::bind(
+            &Core::onObservingBlockNumberRequestSlot,
+            this,
+            _1));
 
     mResourcesManager->attachResourceSignal.connect(
         boost::bind(
@@ -446,6 +480,7 @@ void Core::connectSignalsToSlots()
     connectCommandsInterfaceSignals();
     connectCommunicatorSignals();
     connectResourcesManagerSignals();
+    connectObservingSignals();
 }
 
 void Core::onCommandReceivedSlot (
@@ -606,9 +641,38 @@ void Core::onMessageSendWithCachingSlot(
 }
 
 void Core::onMessageSendToObserverSlot(
-    Message::Shared message)
+    ObservingClaimAppendRequestMessage::Shared message)
 {
-    mObservingCommunicator->sendRequestToObservers(message);
+    mObservingHandler->sendClaimRequestToObservers(message);
+}
+
+void Core::onAddTransactionToObservingCheckingSlot(
+    const TransactionUUID& transactionUUID,
+    BlockNumber maxBlockNumberForClaiming)
+{
+    mObservingHandler->addTransactionForChecking(
+        transactionUUID,
+        maxBlockNumberForClaiming);
+}
+
+void Core::onObservingParticipantsVotesSlot(
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber,
+    map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures)
+{
+    mTransactionsManager->launchPaymentTransactionAfterGettingObservingSignatures(
+        transactionUUID,
+        maximalClaimingBlockNumber,
+        participantsSignatures);
+}
+
+void Core::onObservingTransactionRejectSlot(
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber)
+{
+    mTransactionsManager->launchPaymentTransactionForObservingRejecting(
+        transactionUUID,
+        maximalClaimingBlockNumber);
 }
 
 void Core::onPathsResourceRequestedSlot(
@@ -625,6 +689,13 @@ void Core::onPathsResourceRequestedSlot(
     } catch (exception &e) {
         mLog->logException("Core", e);
     }
+}
+
+void Core::onObservingBlockNumberRequestSlot(
+    const TransactionUUID &transactionUUID)
+{
+    mObservingHandler->requestActualBlockNumber(
+        transactionUUID);
 }
 
 void Core::onResourceCollectedSlot(

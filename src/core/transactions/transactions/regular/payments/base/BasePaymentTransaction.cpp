@@ -9,6 +9,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    ResourcesManager *resourcesManager,
     Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
@@ -23,10 +24,12 @@ BasePaymentTransaction::BasePaymentTransaction(
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
+    mResourcesManager(resourcesManager),
     mKeysStore(keystore),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
-    mParticipantsVotesMessage(nullptr)
+    mParticipantsVotesMessage(nullptr),
+    mBlockNumberObtainingInProcess(false)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -39,6 +42,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    ResourcesManager *resourcesManager,
     Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
@@ -54,10 +58,12 @@ BasePaymentTransaction::BasePaymentTransaction(
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
+    mResourcesManager(resourcesManager),
     mKeysStore(keystore),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
-    mParticipantsVotesMessage(nullptr)
+    mParticipantsVotesMessage(nullptr),
+    mBlockNumberObtainingInProcess(false)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -68,6 +74,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     StorageHandler *storageHandler,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    ResourcesManager *resourcesManager,
     Keystore *keystore,
     Logger &log,
     SubsystemsController *subsystemsController) :
@@ -81,11 +88,15 @@ BasePaymentTransaction::BasePaymentTransaction(
     mStorageHandler(storageHandler),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
+    mResourcesManager(resourcesManager),
     mKeysStore(keystore),
     mSubsystemsController(subsystemsController)
 {
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
-    mStep = Stages::Common_Recovery;
+    if (mStep != Stages::Common_Observing) {
+        mStep = Stages::Common_Recovery;
+        mCountRecoveryAttempts = 0;
+    }
 
     // mReservations count
     SerializedRecordsCount reservationsCount;
@@ -210,6 +221,11 @@ BasePaymentTransaction::BasePaymentTransaction(
                 *paymentNodeID,
                 publicKey));
     }
+
+    memcpy(
+        &mMaximalClaimingBlockNumber,
+        buffer.get() + bytesBufferOffset,
+        sizeof(BlockNumber));
 }
 
 TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
@@ -289,6 +305,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     debug() << "Voted +";
     mTransactionIsVoted = true;
 
+    ioTransaction->paymentTransactionsHandler()->saveRecord(
+        mTransactionUUID,
+        mMaximalClaimingBlockNumber);
+
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageToCoordinatorOnVoteStage();
     mSubsystemsController->testSleepOnVoteConsistencyStage(
@@ -343,6 +363,7 @@ TransactionResult::SharedConst BasePaymentTransaction::processParticipantsVotesM
 {
     debug() << "processParticipantsVotesMessage";
     if (!checkSignaturesAppropriate()) {
+        // todo : reject on this stage is incorrect. need discuss
         return reject("Participants signatures map is incorrect. Rolling back.");
     }
     info() << "All signatures are appropriate";
@@ -354,6 +375,7 @@ TransactionResult::SharedConst BasePaymentTransaction::processParticipantsVotesM
             coordinatorSerializedVotesData.first.get(),
             coordinatorSerializedVotesData.second,
             coordinatorPublicKey)) {
+        // todo : reject on this stage is incorrect. need discuss
         reject("Final coordinator signature is wrong");
     }
     for (const auto &paymentNodeIdAndContractor : mPaymentParticipants) {
@@ -374,6 +396,7 @@ TransactionResult::SharedConst BasePaymentTransaction::processParticipantsVotesM
                 participantSerializedVotesData.second,
                 participantPublicKey)) {
             warning() << "Node " << paymentNodeIdAndContractor.second->mainAddress()->fullAddress() << " signature is wrong";
+            // todo : can be recursive
             return recover("Consensus not achieved.");
         }
     }
@@ -463,6 +486,21 @@ const bool BasePaymentTransaction::contextIsValid(
                     << ") It seems that remote node doesn't follows the protocol. Canceling.";
         }
 
+        return false;
+    }
+
+    return true;
+}
+
+const bool BasePaymentTransaction::resourceIsValid(
+    BaseResource::ResourceType resourceType) const
+{
+    if (mResources.empty()) {
+        warning() << "resources are empty";
+        return false;
+    }
+    if (mResources.at(0)->type() != resourceType) {
+            warning() << "Unexpected resource received. (ID " << mResources.at(0)->type() << ") Canceling.";
         return false;
     }
 
@@ -562,6 +600,10 @@ void BasePaymentTransaction::commit(
     // delete this transaction from storage
     ioTransaction->transactionHandler()->deleteRecord(
         currentTransactionUUID());
+
+    mTransactionCommittedObservingSignal(
+        mTransactionUUID,
+        mMaximalClaimingBlockNumber);
 }
 
 void BasePaymentTransaction::saveVotes(
@@ -656,7 +698,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover(
         mStep = Stages::Common_Recovery;
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
         clearContext();
-        mCountRecoveryAttemts = 0;
+        mCountRecoveryAttempts = 0;
         return runVotesRecoveryParentStage();
     } else {
         warning() << "Transaction doesn't sent/receive participants votes message and will be closed";
@@ -880,10 +922,8 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
         return resultContinuePreviousState();
     }
     if (kMessage->participantsSignatures().empty()) {
-        debug() << "Coordinator don't know result of this transaction yet. Sleep.";
-        mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
-        return resultAwakeAfterMilliseconds(
-            kWaitMillisecondsToTryRecoverAgain);
+        debug() << "Coordinator don't know result of this transaction yet.";
+        return processNextNodeToCheckVotes();
     }
 
     mParticipantsVotesMessage = kMessage;
@@ -930,9 +970,10 @@ TransactionResult::SharedConst BasePaymentTransaction::processNextNodeToCheckVot
     debug() << "processNextNodeToCheckVotes";
     if (mNodesToCheckVotes.empty()) {
         debug() << "No nodes left to be asked";
-        mCountRecoveryAttemts++;
-        if (mCountRecoveryAttemts >= kMaxRecoveryAttempts) {
+        mCountRecoveryAttempts++;
+        if (mCountRecoveryAttempts >= kMaxRecoveryAttempts) {
             debug() << "Max count recovery attempts";
+            mStep = Stages::Common_Observing;
             return runObservingStage();
         }
         debug() << "Sleep and try again later";
@@ -972,25 +1013,62 @@ const TrustLineAmount BasePaymentTransaction::totalReservedAmount(
 TransactionResult::SharedConst BasePaymentTransaction::runObservingStage()
 {
     info() << "runObservingStage";
-    // todo : serialize transaction.
+    observingClaimSignal(
+        make_shared<ObservingClaimAppendRequestMessage>(
+            mTransactionUUID,
+            mMaximalClaimingBlockNumber,
+            mParticipantsPublicKeys));
+
+    debug() << "Serializing transaction";
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto bytesAndCount = serializeToBytes();
+    debug() << "Transaction serialized";
+    ioTransaction->transactionHandler()->saveRecord(
+        currentTransactionUUID(),
+        bytesAndCount.first,
+        bytesAndCount.second);
+    debug() << "Transaction saved";
     // After that control of this transaction will be under ObservingCommunicator
-
-    sendObservingMessage<ObservingRequestMessage>(
-        mTransactionUUID,
-        mParticipantsPublicKeys);
-
-    // todo : result should be like wait for message from ObservingCommunicator
     return resultDone();
+}
+
+TransactionResult::SharedConst BasePaymentTransaction::runObservingStageAfterRestoring()
+{
+    info() << "runObservingStageAfterRestoring";
+    if (mParticipantsSignatures.empty()) {
+        info() << "Close and wait for claiming result";
+        observingClaimSignal(
+            make_shared<ObservingClaimAppendRequestMessage>(
+                mTransactionUUID,
+                mMaximalClaimingBlockNumber,
+                mParticipantsPublicKeys));
+        return resultDone();
+    }
+    info() << "Participants signatures receive";
+    return processParticipantsVotesMessage();
+}
+
+TransactionResult::SharedConst BasePaymentTransaction::runObservingRejectTransaction()
+{
+    info() << "runObservingRejectTransaction";
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    // todo : remove receipts that belong this transaction
+    ioTransaction->transactionHandler()->deleteRecord(
+        mTransactionUUID);
+    return reject("Reject by expiring claiming time");
 }
 
 pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
     ContractorID source,
     ContractorID target,
+    lamport::KeyHash::Shared sourceTransactionPublicKeyHash,
     const TrustLineAmount &amount,
     bool isSource)
 {
     size_t serializedDataSize = sizeof(ContractorID)
                                 + sizeof(ContractorID)
+                                + lamport::KeyHash::kBytesSize
+                                + sizeof(BlockNumber)
                                 + TransactionUUID::kBytesSize
                                 + kTrustLineAmountBytesCount
                                 + sizeof(AuditNumber);
@@ -1008,6 +1086,18 @@ pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
         &target,
         sizeof(ContractorID));
     bytesBufferOffset += sizeof(ContractorID);
+
+    memcpy(
+        serializedData.get() + bytesBufferOffset,
+        sourceTransactionPublicKeyHash->data(),
+        lamport::KeyHash::kBytesSize);
+    bytesBufferOffset += lamport::KeyHash::kBytesSize;
+
+    memcpy(
+        serializedData.get() + bytesBufferOffset,
+        &mMaximalClaimingBlockNumber,
+        sizeof(BlockNumber));
+    bytesBufferOffset += sizeof(BlockNumber);
 
     memcpy(
         serializedData.get() + bytesBufferOffset,
@@ -1109,27 +1199,24 @@ bool BasePaymentTransaction::checkPublicKeysAppropriate()
 pair<BytesShared, size_t> BasePaymentTransaction::getSerializedParticipantsVotesData(
     Contractor::Shared contractor)
 {
-    size_t serializedDataSize = TransactionUUID::kBytesSize
-                                + contractor->serializedSize()
-                                + sizeof(SerializedRecordsCount);
-    for (const auto &participant : mPaymentParticipants) {
-        serializedDataSize += sizeof(PaymentNodeID) + participant.second->serializedSize();
-    }
+    size_t serializedDataSize = sizeof(BlockNumber)
+                                + TransactionUUID::kBytesSize
+                                + sizeof(SerializedRecordsCount)
+                                + mPaymentParticipants.size() * sizeof(PaymentNodeID);
     BytesShared serializedData = tryMalloc(serializedDataSize);
 
     size_t bytesBufferOffset = 0;
     memcpy(
         serializedData.get() + bytesBufferOffset,
+        &mMaximalClaimingBlockNumber,
+        sizeof(BlockNumber));
+    bytesBufferOffset += sizeof(BlockNumber);
+
+    memcpy(
+        serializedData.get() + bytesBufferOffset,
         mTransactionUUID.data,
         TransactionUUID::kBytesSize);
     bytesBufferOffset += TransactionUUID::kBytesSize;
-
-    auto serializedContractor = contractor->serializeToBytes();
-    memcpy(
-        serializedData.get() + bytesBufferOffset,
-        serializedContractor.get(),
-        contractor->serializedSize());
-    bytesBufferOffset += contractor->serializedSize();
 
     auto participantsCount = mPaymentParticipants.size();
     memcpy(
@@ -1144,13 +1231,6 @@ pair<BytesShared, size_t> BasePaymentTransaction::getSerializedParticipantsVotes
             &paymentNodeIdAndContractor.first,
             sizeof(PaymentNodeID));
         bytesBufferOffset += sizeof(PaymentNodeID);
-
-        auto contractorSerializedData = paymentNodeIdAndContractor.second->serializeToBytes();
-        memcpy(
-            serializedData.get() + bytesBufferOffset,
-            contractorSerializedData.get(),
-            paymentNodeIdAndContractor.second->serializedSize());
-        bytesBufferOffset += paymentNodeIdAndContractor.second->serializedSize();
     }
 
     return make_pair(
@@ -1172,13 +1252,26 @@ bool BasePaymentTransaction::checkSignaturesAppropriate()
     return true;
 }
 
+bool BasePaymentTransaction::checkMaxClaimingBlockNumber(
+    BlockNumber maxClaimingBlockNumberOnOwnSide)
+{
+    if (mMaximalClaimingBlockNumber > maxClaimingBlockNumberOnOwnSide) {
+        return mMaximalClaimingBlockNumber - maxClaimingBlockNumberOnOwnSide <= kAllowableBlockNumberDifference;
+    }
+    if (mMaximalClaimingBlockNumber < maxClaimingBlockNumberOnOwnSide) {
+        return maxClaimingBlockNumberOnOwnSide - mMaximalClaimingBlockNumber <= kAllowableBlockNumberDifference;
+    }
+    return true;
+}
+
 pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
 {
     const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(SerializedRecordsCount)
                         + reservationsSizeInBytes()
-                        + sizeof(SerializedRecordsCount);
+                        + sizeof(SerializedRecordsCount)
+                        + sizeof(BlockNumber);
     for (const auto &participant : mPaymentParticipants) {
         bytesCount += sizeof(PaymentNodeID) + participant.second->serializedSize() + lamport::PublicKey::keySize();
     }
@@ -1282,6 +1375,11 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
         dataBytesOffset += lamport::PublicKey::keySize();
     }
 
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &mMaximalClaimingBlockNumber,
+        sizeof(BlockNumber));
+
     return make_pair(
         dataBytesShared,
         bytesCount);
@@ -1319,9 +1417,16 @@ bool BasePaymentTransaction::isCommonVotesCheckingStage() const
     return mStep == Common_VotesChecking;
 }
 
-void BasePaymentTransaction::setRollbackByOtherTransactionStage()
+void BasePaymentTransaction::setTransactionState(
+    BaseTransaction::SerializedStep transactionState)
 {
-    mStep = Common_RollbackByOtherTransaction;
+    mStep = transactionState;
+}
+
+void BasePaymentTransaction::setObservingParticipantsSignatures(
+    map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures)
+{
+    mParticipantsSignatures = participantsSignatures;
 }
 
 void BasePaymentTransaction::runThreeNodesCyclesTransactions() {

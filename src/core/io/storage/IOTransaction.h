@@ -13,6 +13,7 @@
 #include "OutgoingPaymentReceiptHandler.h"
 #include "PaymentKeysHandler.h"
 #include "PaymentParticipantsVotesHandler.h"
+#include "PaymentTransactionsHandler.h"
 
 #include "ContractorsHandler.h"
 #include "AddressHandler.h"
@@ -37,6 +38,7 @@ public:
         OutgoingPaymentReceiptHandler *outgoingPaymentReceiptHandler,
         PaymentKeysHandler *paymentKeysHandler,
         PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler,
+        PaymentTransactionsHandler *paymentTransactionsHandler,
         ContractorsHandler *contractorsHandler,
         AddressHandler *addressHandler,
         Logger &logger);
@@ -62,6 +64,8 @@ public:
     PaymentKeysHandler *paymentKeysHandler();
 
     PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler();
+
+    PaymentTransactionsHandler *paymentTransactionsHandler();
 
     ContractorsHandler *contractorsHandler();
 
@@ -94,6 +98,7 @@ private:
     OutgoingPaymentReceiptHandler *mOutgoingPaymentReceiptHandler;
     PaymentKeysHandler *mPaymentKeysHandler;
     PaymentParticipantsVotesHandler *mPaymentParticipantsVotesHandler;
+    PaymentTransactionsHandler *mPaymentTransactionsHandler;
 
     ContractorsHandler *mContractorsHandler;
     AddressHandler *mAddressHandler;

@@ -6,7 +6,9 @@ set(SOURCE_FILES
         resources/BaseResource.h
         resources/BaseResource.cpp
         resources/PathsResource.h
-        resources/PathsResource.cpp)
+        resources/PathsResource.cpp
+        resources/BlockNumberRecourse.h
+        resources/BlockNumberRecourse.cpp)
 
 add_library(resources_manager ${SOURCE_FILES})
 

@@ -133,11 +133,9 @@ void TransactionsScheduler::tryAttachResourceToTransaction(
             }
 
             transactionAndState.first->pushResource(resource);
+            launchTransaction(transactionAndState.first);
+            return;
         }
-
-        launchTransaction(transactionAndState.first);
-        return;
-
     }
 
     throw NotFoundError(

@@ -152,6 +152,7 @@ add_subdirectory(src/core/subsystems_controller)
 add_subdirectory(src/core/equivalents)
 add_subdirectory(src/core/crypto)
 add_subdirectory(src/core/contractors)
+add_subdirectory(src/core/observing)
 
 
 #
@@ -183,7 +184,6 @@ target_link_libraries(geo_network_client
 
         network__communicator
         network__messages
-        observing__communicator
 
         interface__commands
         interface__results
@@ -199,4 +199,5 @@ target_link_libraries(geo_network_client
         equivalents
         crypto
 
-        contractors)
+        contractors
+        observing)

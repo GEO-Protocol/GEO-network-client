@@ -19,6 +19,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
@@ -31,6 +32,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
@@ -94,6 +96,8 @@ protected:
     TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
 
     TransactionResult::SharedConst runClarificationOfTransactionDuringFinalAmountsClarification();
+
+    TransactionResult::SharedConst runCheckObservingBlockNumber();
 
     /**
      * reaction on response TTL message from coordinator

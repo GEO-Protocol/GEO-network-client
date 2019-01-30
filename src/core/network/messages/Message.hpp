@@ -103,12 +103,8 @@ public:
         General_NoEquivalent,
 
         /*
-         * Observing
+         * Empty slot with codes 600-699
          */
-        Observing_Request = 601,
-        Observing_CheckRequest = 602,
-        Observing_ParticipantsVotes = 603,
-        Observing_CheckTransaction = 604,
 
         /*
          * Gateway notification & Routing tables

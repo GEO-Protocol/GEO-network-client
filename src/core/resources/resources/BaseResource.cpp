@@ -5,15 +5,16 @@ BaseResource::BaseResource(
     const TransactionUUID &transactionUUID) :
 
     mType(type),
-    mTransactionUUID(transactionUUID) {}
+    mTransactionUUID(transactionUUID)
+{}
 
-const BaseResource::ResourceType BaseResource::type() const {
-
+const BaseResource::ResourceType BaseResource::type() const
+{
     return mType;
 }
 
-const TransactionUUID &BaseResource::transactionUUID() const {
-
+const TransactionUUID &BaseResource::transactionUUID() const
+{
     return mTransactionUUID;
 }
 

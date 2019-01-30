@@ -12,6 +12,7 @@ IOTransaction::IOTransaction(
     OutgoingPaymentReceiptHandler *outgoingPaymentReceiptHandler,
     PaymentKeysHandler *paymentKeysHandler,
     PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler,
+    PaymentTransactionsHandler *paymentTransactionsHandler,
     ContractorsHandler *contractorsHandler,
     AddressHandler *addressHandler,
     Logger &logger) :
@@ -27,6 +28,7 @@ IOTransaction::IOTransaction(
     mOutgoingPaymentReceiptHandler(outgoingPaymentReceiptHandler),
     mPaymentKeysHandler(paymentKeysHandler),
     mPaymentParticipantsVotesHandler(paymentParticipantsVotesHandler),
+    mPaymentTransactionsHandler(paymentTransactionsHandler),
     mContractorsHandler(contractorsHandler),
     mAddressHandler(addressHandler),
     mIsTransactionBegin(true),
@@ -128,6 +130,15 @@ PaymentParticipantsVotesHandler* IOTransaction::paymentParticipantsVotesHandler(
                           "transaction was rollback, it can't be use now");
     }
     return mPaymentParticipantsVotesHandler;
+}
+
+PaymentTransactionsHandler* IOTransaction::paymentTransactionsHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::paymentTransactionsHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mPaymentTransactionsHandler;
 }
 
 ContractorsHandler* IOTransaction::contractorsHandler()

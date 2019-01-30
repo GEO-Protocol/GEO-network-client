@@ -19,7 +19,8 @@ public:
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
-        const map<PaymentNodeID, Contractor::Shared> &paymentParticipants);
+        const map<PaymentNodeID, Contractor::Shared> &paymentParticipants,
+        const BlockNumber maximalClaimingBlockNumber);
 
     // if coordinator has reservation with current node it also send receipt
     FinalAmountsConfigurationMessage(
@@ -28,8 +29,10 @@ public:
         const TransactionUUID &transactionUUID,
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
         const map<PaymentNodeID, Contractor::Shared> &mPaymentParticipants,
+        const BlockNumber maximalClaimingBlockNumber,
         const KeyNumber publicKeyNumber,
-        const lamport::Signature::Shared signature);
+        const lamport::Signature::Shared signature,
+        const lamport::KeyHash::Shared transactionPublicKeyHash);
 
     FinalAmountsConfigurationMessage(
         BytesShared buffer);
@@ -38,20 +41,26 @@ public:
 
     const map<PaymentNodeID, Contractor::Shared> &paymentParticipants() const;
 
+    const BlockNumber maximalClaimingBlockNumber() const;
+
     bool isReceiptContains() const;
 
     const KeyNumber publicKeyNumber() const;
 
     const lamport::Signature::Shared signature() const;
 
+    const lamport::KeyHash::Shared transactionPublicKeyHash() const;
+
 protected:
     pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     map<PaymentNodeID, Contractor::Shared> mPaymentParticipants;
+    BlockNumber mMaximalClaimingBlockNumber;
     bool mIsReceiptContains;
     KeyNumber mPublicKeyNumber;
     lamport::Signature::Shared mSignature;
+    lamport::KeyHash::Shared mTransactionPublicKeyHash;
 };
 
 

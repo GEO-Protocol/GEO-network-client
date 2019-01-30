@@ -59,4 +59,6 @@ typedef byte SerializedProtocolVersion;
 
 typedef uint32_t ContractorID;
 
+typedef uint64_t BlockNumber;
+
 #endif //GEO_NETWORK_CLIENT_TYPES_H

@@ -24,11 +24,11 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         storageHandler,
         topologyCacheManager,
         maxFlowCacheManager,
+        resourcesManager,
         keystore,
         log,
         subsystemsController),
     mCommand(command),
-    mResourcesManager(resourcesManager),
     mPathsManager(pathsManager),
     mReservationsStage(0),
     mDirectPathIsAlreadyProcessed(false),
@@ -63,6 +63,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
 
                 case Stages::Coordinator_ShortPathAmountReservationResponseProcessing:
                     return runDirectAmountReservationResponseProcessingStage();
+
+                case Stages::Common_ObservingBlockNumberProcessing:
+                    return sendFinalAmountsConfigurationToAllParticipants();
 
                 case Stages::Coordinator_FinalAmountsConfigurationConfirmation:
                     return runFinalAmountsConfigurationConfirmation();
@@ -125,7 +128,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
 
     mStep = Stages::Coordinator_ReceiverResourceProcessing;
     return resultWaitForResourceTypes(
-        {BaseResource::ResourceType::Paths},
+        {BaseResource::Paths},
         // this delay should be greater than time of FindPathByMaxFlowTransaction running,
         // because we didn't get resources
         maxNetworkDelay(10));
@@ -134,31 +137,20 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourceProcessingStage()
 {
     debug() << "runPathsResourceProcessingStage";
-    if (!mResources.empty()) {
-        auto responseResource = *mResources.begin();
-        if (responseResource->type() == BaseResource::ResourceType::Paths) {
-
-            PathsResource::Shared response = static_pointer_cast<PathsResource>(
-                responseResource);
-
-            response->pathCollection()->resetCurrentPath();
-            while (response->pathCollection()->hasNextPath()) {
-                auto path = response->pathCollection()->nextPath();
-                info() << "path " << path->toString();
-                // todo : correct method isPathValid
-                if (isPathValid(path)) {
-                    addPathForFurtherProcessing(path);
-                } else {
-                    warning() << "Invalid path: " << path->toString();
-                }
-            }
-        } else {
-            throw Exception("CoordinatorPaymentTransaction::runPathsResourceProcessingStage: "
-                                "unexpected resource type");
-        }
-    } else {
-        warning() << "resources are empty";
+    if (!resourceIsValid(BaseResource::Paths)) {
         return resultNoPathsError();
+    }
+    auto response = popNextResource<PathsResource>();
+    response->pathCollection()->resetCurrentPath();
+    while (response->pathCollection()->hasNextPath()) {
+        auto path = response->pathCollection()->nextPath();
+        info() << "path " << path->toString();
+        // todo : correct method isPathValid
+        if (isPathValid(path)) {
+            addPathForFurtherProcessing(path);
+        } else {
+            warning() << "Invalid path: " << path->toString();
+        }
     }
 
     // If there is no one path to the receiver - transaction can't proceed.
@@ -298,15 +290,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
 #endif
-
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
-        ioTransaction,
-        currentTransactionUUID());
-    mParticipantsPublicKeys.insert(
-        make_pair(
-            kCoordinatorPaymentNodeID,
-            mPublicKey));
 
     // send message with all public keys to all participants and wait for voting results
     for (const auto &paymentNodeIdAndAddress : mPaymentParticipants) {
@@ -955,7 +938,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         if (kTotalAmount == mCommand->amount()){
             debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
 
-            return sendFinalAmountsConfigurationToAllParticipants();
+            mStep = Common_ObservingBlockNumberProcessing;
+            mResourcesManager->requestObservingBlockNumber(
+                mTransactionUUID);
+            return resultWaitForResourceTypes(
+                {BaseResource::ObservingBlockNumber},
+                maxNetworkDelay(1));
         }
         return tryProcessNextPath();
     }
@@ -1202,8 +1190,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         if (kTotalAmount == mCommand->amount()) {
             debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
 
-            mStep = Coordinator_FinalAmountsConfigurationConfirmation;
-            return sendFinalAmountsConfigurationToAllParticipants();
+            mStep = Common_ObservingBlockNumberProcessing;
+            mResourcesManager->requestObservingBlockNumber(
+                mTransactionUUID);
+            return resultWaitForResourceTypes(
+                {BaseResource::ObservingBlockNumber},
+                maxNetworkDelay(1));
         }
         return tryProcessNextPath();
     }
@@ -1248,6 +1240,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
 {
     debug() << "sendFinalAmountsConfigurationToAllParticipants";
 
+    if (!resourceIsValid(BaseResource::ObservingBlockNumber)) {
+        return resultUnexpectedError();
+    }
+    auto blockNumberResource = popNextResource<BlockNumberRecourse>();
+    mMaximalClaimingBlockNumber = blockNumberResource->actualObservingBlockNumber() + kCountBlocksForClaiming;
+
     // check if reservation to contractor present
     auto receiverID = mContractorsManager->contractorIDByAddress(mContractor->mainAddress());
     const auto contractorNodeReservations = mReservations.find(receiverID);
@@ -1262,6 +1260,15 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
 #endif
 
     mParticipantsPublicKeys.clear();
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    mPublicKey = mKeysStore->generateAndSaveKeyPairForPaymentTransaction(
+        ioTransaction,
+        currentTransactionUUID());
+    mParticipantsPublicKeys.insert(
+        make_pair(
+            kCoordinatorPaymentNodeID,
+            mPublicKey));
+
     for (auto const &paymentNodeIdAndContractor : mPaymentParticipants) {
         if (paymentNodeIdAndContractor.first == kCoordinatorPaymentNodeID) {
             continue;
@@ -1280,9 +1287,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
             auto serializedOutgoingReceiptData = getSerializedReceipt(
                 mContractorsManager->idOnContractorSide(participantID),
                 participantID,
+                mPublicKey->hash(),
                 outgoingReservedAmount,
                 true);
-            auto ioTransaction = mStorageHandler->beginTransaction();
             auto signatureAndKeyNumber = keyChain.sign(
                 ioTransaction,
                 serializedOutgoingReceiptData.first,
@@ -1298,9 +1305,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
             }
             info() << "send final amount configuration to " << paymentNodeIdAndContractor.second->mainAddress()->fullAddress()
                    << " with receipt " << outgoingReservedAmount;
-            info() << "mNodesFinalAmountsConfiguration size " << mNodesFinalAmountsConfiguration.size();
-            info() << "FinalAmountsConfiguration size "
-                   << mNodesFinalAmountsConfiguration[paymentNodeIdAndContractor.second->mainAddress()->fullAddress()].size();
             sendMessage<FinalAmountsConfigurationMessage>(
                 paymentNodeIdAndContractor.second->mainAddress(),
                 mEquivalent,
@@ -1308,9 +1312,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
                 currentTransactionUUID(),
                 mNodesFinalAmountsConfiguration[paymentNodeIdAndContractor.second->mainAddress()->fullAddress()],
                 mPaymentParticipants,
+                mMaximalClaimingBlockNumber,
                 signatureAndKeyNumber.second,
-                signatureAndKeyNumber.first);
-            info() << "Message sent";
+                signatureAndKeyNumber.first,
+                mPublicKey->hash());
         } else {
             info() << "send final amount configuration to " << paymentNodeIdAndContractor.second->mainAddress()->fullAddress();
             sendMessage<FinalAmountsConfigurationMessage>(
@@ -1319,7 +1324,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 mNodesFinalAmountsConfiguration[paymentNodeIdAndContractor.second->mainAddress()->fullAddress()],
-                mPaymentParticipants);
+                mPaymentParticipants,
+                mMaximalClaimingBlockNumber);
         }
     }
 
@@ -1339,7 +1345,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsCon
         return runTTLTransactionResponse();
     }
 
-    if (!contextIsValid(Message::MessageType::Payments_FinalAmountsConfigurationResponse, false)) {
+    if (!contextIsValid(Message::Payments_FinalAmountsConfigurationResponse, false)) {
         return reject("Some nodes didn't confirm final amount configuration. Transaction rejected.");
     }
 
@@ -1355,7 +1361,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsCon
     }
     debug() << "Sender confirmed final amounts";
     mParticipantsPublicKeys[mPaymentNodesIds[senderAddress->fullAddress()]] = kMessage->publicKey();
-    if (mParticipantsPublicKeys.size() + 1 < mPaymentNodesIds.size()) {
+    if (mParticipantsPublicKeys.size() < mPaymentNodesIds.size()) {
         debug() << "Some nodes are still not confirmed final amounts. Waiting.";
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfigurationResponse,
@@ -1608,8 +1614,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
         debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
         debug() << "Begin processing participants votes.";
 
-        mStep = Coordinator_FinalAmountsConfigurationConfirmation;
-        return sendFinalAmountsConfigurationToAllParticipants();
+        mStep = Common_ObservingBlockNumberProcessing;
+        mResourcesManager->requestObservingBlockNumber(
+            mTransactionUUID);
+        return resultWaitForResourceTypes(
+            {BaseResource::ObservingBlockNumber},
+            maxNetworkDelay(1));
     }
     mStep = Stages::Coordinator_AmountReservation;
     return tryProcessNextPath();
@@ -1674,6 +1684,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
                 make_pair(
                     kCoordinatorPaymentNodeID,
                     ownSign));
+
+            ioTransaction->paymentTransactionsHandler()->saveRecord(
+                mTransactionUUID,
+                mMaximalClaimingBlockNumber);
         }
         debug() << "Voted +";
         const auto ownAddresses = mContractorsManager->ownAddresses();
@@ -1745,10 +1759,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
                 mContractorsManager->ownAddresses(),
                 currentTransactionUUID(),
                 TTLProlongationResponseMessage::Finish);
+            info() << "Sender is not a member of this transaction. Continue previous state";
             debug() << "Send transaction finishing message";
         }
     }
-    info() << "Sender is not a member of this transaction. Continue previous state";
     return resultContinuePreviousState();
 }
 

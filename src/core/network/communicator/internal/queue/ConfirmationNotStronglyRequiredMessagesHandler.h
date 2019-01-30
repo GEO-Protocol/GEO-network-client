@@ -88,7 +88,7 @@ protected:
      * Current GCC realisation of the "map" and "unordered_map"
      * makes simple "map" faster up to several thousand of items.
      */
-    map<pair<SerializedEquivalent, string>, ConfirmationNotStronglyRequiredMessagesQueue::Shared> mQueues;
+    map<pair<SerializedEquivalent, BaseAddress::Shared>, ConfirmationNotStronglyRequiredMessagesQueue::Shared> mQueues;
 
     IOService &mIOService;
 

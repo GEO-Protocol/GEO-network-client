@@ -15,7 +15,7 @@
 #include "equivalents/EquivalentsSubsystemsRouter.h"
 #include "crypto/keychain.h"
 #include "contractors/ContractorsManager.h"
-#include "network/communicator_observing/ObservingCommunicator.h"
+#include "observing/ObservingHandler.h"
 
 #include "logger/Logger.h"
 
@@ -56,7 +56,7 @@ private:
 
     int initCommunicator();
 
-    int initObservingCommunicator(
+    int initObservingHandler(
         const json &conf);
 
     int initCommandsInterface();
@@ -82,6 +82,8 @@ private:
     int initKeysStore();
 
     void connectCommunicatorSignals();
+
+    void connectObservingSignals();
 
     void connectCommandsInterfaceSignals();
 
@@ -114,7 +116,20 @@ private:
         uint32_t cacheTimeLiving);
 
     void onMessageSendToObserverSlot(
-        Message::Shared message);
+        ObservingClaimAppendRequestMessage::Shared message);
+
+    void onAddTransactionToObservingCheckingSlot(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maxBlockNumberForClaiming);
+
+    void onObservingParticipantsVotesSlot(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber,
+        map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures);
+
+    void onObservingTransactionRejectSlot(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
 
     void onProcessConfirmationMessageSlot(
         ConfirmationMessage::Shared confirmationMessage);
@@ -126,6 +141,9 @@ private:
         const TransactionUUID &transactionUUID,
         BaseAddress::Shared destinationNodeAddress,
         const SerializedEquivalent equivalent);
+
+    void onObservingBlockNumberRequestSlot(
+        const TransactionUUID &transactionUUID);
 
     void onResourceCollectedSlot(
         BaseResource::Shared resource);
@@ -170,7 +188,7 @@ protected:
     unique_ptr<EquivalentsSubsystemsRouter> mEquivalentsSubsystemsRouter;
     unique_ptr<Keystore> mKeysStore;
     unique_ptr<ContractorsManager> mContractorsManager;
-    unique_ptr<ObservingCommunicator> mObservingCommunicator;
+    unique_ptr<ObservingHandler> mObservingHandler;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

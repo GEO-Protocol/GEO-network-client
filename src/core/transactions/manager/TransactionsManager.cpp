@@ -79,99 +79,21 @@ void TransactionsManager::loadTransactionsFromStorage()
                      + sizeof(BaseTransaction::SerializedTransactionType)) SerializedEquivalent;
 
         switch (transactionTypeId) {
-            case BaseTransaction::IntermediateNodePaymentTransaction: {
-                try {
-                    auto transaction = make_shared<IntermediateNodePaymentTransaction>(
-                        kTABuffer,
-                        mEquivalentsSubsystemsRouter->iAmGateway(*equivalent),
-                        mContractorsManager,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
-                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
-                        mKeysStore,
-                        mLog,
-                        mSubsystemsController);
-                    subscribeForBuildCyclesThreeNodesTransaction(
-                        transaction->mBuildCycleThreeNodesSignal);
-                    subscribeForBuildCyclesFourNodesTransaction(
-                        transaction->mBuildCycleFourNodesSignal);
-                    subscribeForTrustLineActionSignal(
-                        transaction->trustLineActionSignal);
-                    subscribeForOutgoingObservingMessage(
-                        transaction->sendObservingMessageSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        false,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized IntermediateNodePaymentTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
-            case BaseTransaction::ReceiverPaymentTransaction: {
-                try {
-                    auto transaction = make_shared<ReceiverPaymentTransaction>(
-                        kTABuffer,
-                        mEquivalentsSubsystemsRouter->iAmGateway(*equivalent),
-                        mContractorsManager,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mStorageHandler,
-                        mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
-                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
-                        mKeysStore,
-                        mLog,
-                        mSubsystemsController);
-                    subscribeForBuildCyclesThreeNodesTransaction(
-                        transaction->mBuildCycleThreeNodesSignal);
-                    subscribeForBuildCyclesFourNodesTransaction(
-                        transaction->mBuildCycleFourNodesSignal);
-                    subscribeForTrustLineActionSignal(
-                        transaction->trustLineActionSignal);
-                    subscribeForOutgoingObservingMessage(
-                        transaction->sendObservingMessageSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        false,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized ReceiverPaymentTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
-                    continue;
-                }
-                break;
-            }
+            case BaseTransaction::IntermediateNodePaymentTransaction:
+            case BaseTransaction::ReceiverPaymentTransaction:
             case BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction: {
-                try {
-                    auto transaction = make_shared<CycleCloserIntermediateNodeTransaction>(
-                        kTABuffer,
-                        mContractorsManager,
-                        mEquivalentsSubsystemsRouter->trustLinesManager(*equivalent),
-                        mEquivalentsCyclesSubsystemsRouter->cyclesManager(*equivalent),
-                        mStorageHandler,
-                        mEquivalentsSubsystemsRouter->topologyCacheManager(*equivalent),
-                        mEquivalentsSubsystemsRouter->maxFlowCacheManager(*equivalent),
-                        mKeysStore,
-                        mLog,
-                        mSubsystemsController);
-                    subscribeForTrustLineActionSignal(
-                        transaction->trustLineActionSignal);
-                    subscribeForOutgoingObservingMessage(
-                        transaction->sendObservingMessageSignal);
-                    prepareAndSchedule(
-                        transaction,
-                        false,
-                        false,
-                        true);
-                } catch (NotFoundError &e) {
-                    error() << "There are no subsystems for serialized CycleCloserIntermediateNodeTransaction "
-                            "with equivalent " << *equivalent << " Details are: " << e.what();
+                auto paymentTransaction = deserializePaymentTransaction(
+                    kTABuffer,
+                    transactionTypeId,
+                    *equivalent);
+                if (paymentTransaction == nullptr) {
                     continue;
                 }
+                prepareAndSchedule(
+                    paymentTransaction,
+                    false,
+                    false,
+                    true);
                 break;
             }
             case BaseTransaction::ConflictResolverInitiatorTransactionType: {
@@ -204,7 +126,103 @@ void TransactionsManager::loadTransactionsFromStorage()
                         "Unexpected transaction type identifier " + to_string(transactionTypeId));
             }
         }
+    }
+}
 
+BasePaymentTransaction::Shared TransactionsManager::deserializePaymentTransaction(
+    BytesShared buffer,
+    BaseTransaction::SerializedTransactionType transactionType,
+    SerializedEquivalent equivalent)
+{
+    switch (transactionType) {
+        case BaseTransaction::IntermediateNodePaymentTransaction: {
+            try {
+                auto transaction = make_shared<IntermediateNodePaymentTransaction>(
+                    buffer,
+                    mEquivalentsSubsystemsRouter->iAmGateway(equivalent),
+                    mContractorsManager,
+                    mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                    mStorageHandler,
+                    mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
+                    mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                    mResourcesManager,
+                    mKeysStore,
+                    mLog,
+                    mSubsystemsController);
+                subscribeForBuildCyclesThreeNodesTransaction(
+                    transaction->mBuildCycleThreeNodesSignal);
+                subscribeForBuildCyclesFourNodesTransaction(
+                    transaction->mBuildCycleFourNodesSignal);
+                subscribeForTrustLineActionSignal(
+                    transaction->trustLineActionSignal);
+                subscribeForObserving(
+                    transaction);
+                return transaction;
+            } catch (NotFoundError &e) {
+                error() << "There are no subsystems for serialized IntermediateNodePaymentTransaction "
+                        "with equivalent " << equivalent << " Details are: " << e.what();
+                return nullptr;
+            }
+        }
+        case BaseTransaction::ReceiverPaymentTransaction: {
+            try {
+                auto transaction = make_shared<ReceiverPaymentTransaction>(
+                    buffer,
+                    mEquivalentsSubsystemsRouter->iAmGateway(equivalent),
+                    mContractorsManager,
+                    mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                    mStorageHandler,
+                    mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
+                    mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                    mResourcesManager,
+                    mKeysStore,
+                    mLog,
+                    mSubsystemsController);
+                subscribeForBuildCyclesThreeNodesTransaction(
+                    transaction->mBuildCycleThreeNodesSignal);
+                subscribeForBuildCyclesFourNodesTransaction(
+                    transaction->mBuildCycleFourNodesSignal);
+                subscribeForTrustLineActionSignal(
+                    transaction->trustLineActionSignal);
+                subscribeForObserving(
+                    transaction);
+                return transaction;
+            } catch (NotFoundError &e) {
+                error() << "There are no subsystems for serialized ReceiverPaymentTransaction "
+                        "with equivalent " << equivalent << " Details are: " << e.what();
+                return nullptr;
+            }
+        }
+        case BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction: {
+            try {
+                auto transaction = make_shared<CycleCloserIntermediateNodeTransaction>(
+                    buffer,
+                    mContractorsManager,
+                    mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
+                    mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
+                    mStorageHandler,
+                    mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
+                    mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+                    mResourcesManager,
+                    mKeysStore,
+                    mLog,
+                    mSubsystemsController);
+                subscribeForTrustLineActionSignal(
+                    transaction->trustLineActionSignal);
+                subscribeForObserving(
+                    transaction);
+                return transaction;
+            } catch (NotFoundError &e) {
+                error() << "There are no subsystems for serialized CycleCloserIntermediateNodeTransaction "
+                        "with equivalent " << equivalent << " Details are: " << e.what();
+                return nullptr;
+            }
+        }
+        default: {
+            throw RuntimeError(
+                    "TrustLinesManager::deserializePaymentTransaction. "
+                        "Unexpected transaction type identifier " + to_string(transactionType));
+        }
     }
 }
 
@@ -986,6 +1004,8 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             transaction->mBuildCycleFourNodesSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
+        subscribeForObserving(
+            transaction);
         prepareAndSchedule(transaction, true, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for CoordinatorPaymentTransaction "
@@ -1012,6 +1032,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
+            mResourcesManager,
             mKeysStore,
             mLog,
             mSubsystemsController);
@@ -1021,8 +1042,8 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             transaction->mBuildCycleFourNodesSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
-        subscribeForOutgoingObservingMessage(
-            transaction->sendObservingMessageSignal);
+        subscribeForObserving(
+            transaction);
         prepareAndSchedule(transaction, false, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for ReceiverPaymentTransaction "
@@ -1049,6 +1070,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
+            mResourcesManager,
             mKeysStore,
             mLog,
             mSubsystemsController);
@@ -1058,8 +1080,8 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
             transaction->mBuildCycleFourNodesSignal);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
-        subscribeForOutgoingObservingMessage(
-            transaction->sendObservingMessageSignal);
+        subscribeForObserving(
+            transaction);
         prepareAndSchedule(transaction, false, false, true);
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for IntermediateNodePaymentTransaction "
@@ -1094,6 +1116,91 @@ void TransactionsManager::launchVotesResponsePaymentsTransaction(
     }
 }
 
+void TransactionsManager::launchPaymentTransactionAfterGettingObservingSignatures(
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber,
+    map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures)
+{
+    info() << "launchPaymentTransactionAfterGettingObservingSignatures";
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    try {
+        auto serializedPaymentTransaction = ioTransaction->transactionHandler()->getTransaction(
+            transactionUUID);
+        auto *transactionType =
+                new (serializedPaymentTransaction.get()) BaseTransaction::SerializedTransactionType;
+        auto transactionTypeId = *transactionType;
+        if (transactionTypeId != BaseTransaction::IntermediateNodePaymentTransaction or
+                transactionTypeId != BaseTransaction::ReceiverPaymentTransaction or
+                transactionTypeId != BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
+            error() << "Transaction " << transactionUUID << " is not payment transaction";
+            return;
+        }
+        auto *equivalent =
+                new (serializedPaymentTransaction.get()
+                     + sizeof(BaseTransaction::SerializedTransactionType)) SerializedEquivalent;
+        auto paymentTransaction = deserializePaymentTransaction(
+            serializedPaymentTransaction,
+            transactionTypeId,
+            *equivalent);
+        if (paymentTransaction == nullptr) {
+            error() << "Can't find deserialize payment TA: " << transactionUUID;
+            return;
+        }
+        paymentTransaction->setObservingParticipantsSignatures(
+            participantsSignatures);
+        prepareAndSchedule(
+            paymentTransaction,
+            false,
+            false,
+            true);
+    } catch (NotFoundError &e) {
+        error() << "Can't find serialized TA: " << transactionUUID;
+        return;
+    }
+}
+
+void TransactionsManager::launchPaymentTransactionForObservingRejecting(
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber)
+{
+    info() << "launchPaymentTransactionAfterGettingObservingSignatures";
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    try {
+        auto serializedPaymentTransaction = ioTransaction->transactionHandler()->getTransaction(
+            transactionUUID);
+        auto *transactionType =
+            new (serializedPaymentTransaction.get()) BaseTransaction::SerializedTransactionType;
+        auto transactionTypeId = *transactionType;
+        if (transactionTypeId != BaseTransaction::IntermediateNodePaymentTransaction or
+            transactionTypeId != BaseTransaction::ReceiverPaymentTransaction or
+            transactionTypeId != BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
+            error() << "Transaction " << transactionUUID << " is not payment transaction";
+            return;
+        }
+        auto *equivalent =
+            new (serializedPaymentTransaction.get()
+                     + sizeof(BaseTransaction::SerializedTransactionType)) SerializedEquivalent;
+        auto paymentTransaction = deserializePaymentTransaction(
+            serializedPaymentTransaction,
+            transactionTypeId,
+            *equivalent);
+        if (paymentTransaction == nullptr) {
+            error() << "Can't find deserialize payment TA: " << transactionUUID;
+            return;
+        }
+        paymentTransaction->setTransactionState(
+            BasePaymentTransaction::Common_ObservingReject);
+        prepareAndSchedule(
+            paymentTransaction,
+            false,
+            false,
+            true);
+    } catch (NotFoundError &e) {
+        error() << "Can't find serialized TA: " << transactionUUID;
+        return;
+    }
+}
+
 void TransactionsManager::onCloseCycleTransaction(
     const SerializedEquivalent equivalent,
     Path::Shared cycle)
@@ -1108,11 +1215,14 @@ void TransactionsManager::onCloseCycleTransaction(
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent),
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
+            mResourcesManager,
             mKeysStore,
             mLog,
             mSubsystemsController);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
+        subscribeForObserving(
+            transaction);
         prepareAndSchedule(
             transaction,
             true,
@@ -1138,13 +1248,14 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
             mStorageHandler,
             mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
+            mResourcesManager,
             mKeysStore,
             mLog,
             mSubsystemsController);
         subscribeForTrustLineActionSignal(
             transaction->trustLineActionSignal);
-        subscribeForOutgoingObservingMessage(
-            transaction->sendObservingMessageSignal);
+        subscribeForObserving(
+            transaction);
         prepareAndSchedule(
             transaction,
             false,
@@ -1806,14 +1917,22 @@ void TransactionsManager::subscribeForOutgoingMessagesWithCaching(
             _4));
 }
 
-void TransactionsManager::subscribeForOutgoingObservingMessage(
-    BaseTransaction::SendObservingMessageSignal &signal)
+void TransactionsManager::subscribeForObserving(
+    BasePaymentTransaction::Shared transaction)
 {
-    signal.connect(
+    transaction->observingClaimSignal.connect(
         boost::bind(
-            &TransactionsManager::onObservingOutgoingMessageReady,
+            &TransactionsManager::onObservingClaimReady,
             this,
             _1));
+
+
+    transaction->mTransactionCommittedObservingSignal.connect(
+        boost::bind(
+            &TransactionsManager::onObservingTransactionCommitted,
+            this,
+            _1,
+            _2));
 }
 
 void TransactionsManager::subscribeForSerializeTransaction(
@@ -1993,10 +2112,19 @@ void TransactionsManager::onTransactionOutgoingMessageWithCachingReady(
         cacheLivingTime);
 }
 
-void TransactionsManager::onObservingOutgoingMessageReady(
-    Message::Shared message)
+void TransactionsManager::onObservingClaimReady(
+    ObservingClaimAppendRequestMessage::Shared message)
 {
-    observingMessageReadySignal(message);
+    observingClaimSignal(message);
+}
+
+void TransactionsManager::onObservingTransactionCommitted(
+    const TransactionUUID& transactionUUID,
+    BlockNumber maxBlockNumberForClaiming)
+{
+    observingTransactionCommittedSignal(
+        transactionUUID,
+        maxBlockNumberForClaiming);
 }
 
 /*!
@@ -2108,14 +2236,14 @@ void TransactionsManager::onTryCloseNextCycleSlot(
 void TransactionsManager::onProcessConfirmationMessageSlot(
     ConfirmationMessage::Shared confirmationMessage)
 {
-    ProcessConfirmationMessageSignal(
+    processConfirmationMessageSignal(
         confirmationMessage);
 }
 
 void TransactionsManager::onProcessPongMessageSlot(
     ContractorID contractorID)
 {
-    ProcessPongMessageSignal(
+    processPongMessageSignal(
         contractorID);
 }
 
@@ -2376,7 +2504,7 @@ void TransactionsManager::onSerializeTransaction(
     const auto kTransactionTypeId = transaction->transactionType();
     const auto ioTransaction = mStorageHandler->beginTransaction();
     switch (kTransactionTypeId) {
-        case BaseTransaction::TransactionType::CoordinatorPaymentTransaction: {
+        case BaseTransaction::CoordinatorPaymentTransaction: {
             const auto kChildTransaction = static_pointer_cast<CoordinatorPaymentTransaction>(transaction);
             const auto transactionBytesAndCount = kChildTransaction->serializeToBytes();
             ioTransaction->transactionHandler()->saveRecord(
@@ -2385,7 +2513,7 @@ void TransactionsManager::onSerializeTransaction(
                 transactionBytesAndCount.second);
             break;
         }
-        case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
+        case BaseTransaction::IntermediateNodePaymentTransaction: {
             const auto kChildTransaction = static_pointer_cast<IntermediateNodePaymentTransaction>(transaction);
             const auto transactionBytesAndCount = kChildTransaction->serializeToBytes();
             ioTransaction->transactionHandler()->saveRecord(
@@ -2394,7 +2522,7 @@ void TransactionsManager::onSerializeTransaction(
                 transactionBytesAndCount.second);
             break;
         }
-        case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
+        case BaseTransaction::ReceiverPaymentTransaction: {
             const auto kChildTransaction = static_pointer_cast<ReceiverPaymentTransaction>(transaction);
             const auto transactionBytesAndCount = kChildTransaction->serializeToBytes();
             ioTransaction->transactionHandler()->saveRecord(
@@ -2403,7 +2531,7 @@ void TransactionsManager::onSerializeTransaction(
                 transactionBytesAndCount.second);
             break;
         }
-        case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
+        case BaseTransaction::Payments_CycleCloserInitiatorTransaction: {
             const auto kChildTransaction = static_pointer_cast<CycleCloserInitiatorTransaction>(transaction);
             const auto transactionBytesAndCount = kChildTransaction->serializeToBytes();
             ioTransaction->transactionHandler()->saveRecord(
@@ -2412,7 +2540,7 @@ void TransactionsManager::onSerializeTransaction(
                 transactionBytesAndCount.second);
             break;
         }
-        case BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction: {
+        case BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction: {
             const auto kChildTransaction = static_pointer_cast<CycleCloserIntermediateNodeTransaction>(transaction);
             const auto transactionBytesAndCount = kChildTransaction->serializeToBytes();
             ioTransaction->transactionHandler()->saveRecord(

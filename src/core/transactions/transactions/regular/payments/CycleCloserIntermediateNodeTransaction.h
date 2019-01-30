@@ -19,6 +19,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
@@ -31,6 +32,7 @@ public:
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
@@ -78,6 +80,8 @@ protected:
     TransactionResult::SharedConst runFinalPathConfigurationCoordinatorConfirmation();
 
     TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
+
+    TransactionResult::SharedConst runCheckObservingBlockNumber();
 
     /**
      * continue reaction on coordinator further reservation request message

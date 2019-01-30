@@ -46,6 +46,8 @@ set(SOURCE_FILES
         IncomingPaymentReceiptHandler.cpp
         OutgoingPaymentReceiptHandler.h
         OutgoingPaymentReceiptHandler.cpp
+        PaymentTransactionsHandler.h
+        PaymentTransactionsHandler.cpp
         PaymentParticipantsVotesHandler.h
         PaymentParticipantsVotesHandler.cpp
         AuditRulesHandler.h

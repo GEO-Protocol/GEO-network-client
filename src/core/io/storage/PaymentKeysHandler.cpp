@@ -14,7 +14,7 @@ PaymentKeysHandler::PaymentKeysHandler(
                    " (transaction_uuid BLOB NOT NULL, "
                    "public_key BLOB NOT NULL, "
                    "private_key BLOB NOT NULL);";
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -28,7 +28,7 @@ PaymentKeysHandler::PaymentKeysHandler(
 
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
             + "_transaction_uuid_idx on " + mTableName + "(transaction_uuid);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::creating  index for TransactionUUID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -53,7 +53,7 @@ void PaymentKeysHandler::saveOwnKey(
                    "(transaction_uuid, public_key, private_key) "
                    "VALUES (?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::saveOwnKey: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -107,7 +107,7 @@ PrivateKey* PaymentKeysHandler::getOwnPrivateKey(
     string query = "SELECT private_key FROM " + mTableName
                    + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::getOwnPrivateKey: "
                           "Bad query; sqlite error: " + to_string(rc));

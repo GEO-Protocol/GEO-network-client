@@ -38,7 +38,6 @@ public:
             ContractorID,
             Message::MessageType,
             uint32_t)> SendMessageWithCachingSignal;
-    typedef signals::signal<void(Message::Shared)> SendObservingMessageSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
     typedef signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
     typedef signals::signal<void(ContractorID, const SerializedEquivalent, bool)> TrustLineActionSignal;
@@ -190,8 +189,8 @@ protected:
     }
 
     template<typename ResourceType>
-    inline shared_ptr<ResourceType> popNextResource() {
-
+    inline shared_ptr<ResourceType> popNextResource()
+    {
         const auto resource = static_pointer_cast<ResourceType>(mResources.front());
         mResources.pop_front();
         return resource;
@@ -253,15 +252,6 @@ protected:
             cacheLivingSecondsTime);
     }
 
-    template <typename MessageType, typename... Args>
-    inline void sendObservingMessage(
-        Args&&... args) const
-    {
-        const auto message = make_shared<MessageType>(args...);
-        sendObservingMessageSignal(
-            message);
-    }
-
     void processConfirmationMessage(
         const ConfirmationMessage::Shared confirmationMessage)
     {
@@ -292,6 +282,11 @@ protected:
 
     TransactionResult::Shared resultWaitForResourceTypes(
         vector<BaseResource::ResourceType> &&requiredResourcesType,
+        uint32_t noLongerThanMilliseconds) const;
+
+    TransactionResult::Shared resultWaitForResourceAndMessagesTypes(
+        vector<BaseResource::ResourceType> &&requiredResourcesType,
+        vector<Message::MessageType> &&requiredMessagesTypes,
         uint32_t noLongerThanMilliseconds) const;
 
     TransactionResult::Shared resultAwakeAfterMilliseconds(
@@ -327,7 +322,6 @@ public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
     mutable SendMessageToAddressSignal outgoingMessageToAddressReadySignal;
     mutable SendMessageWithCachingSignal sendMessageWithCachingSignal;
-    mutable SendObservingMessageSignal sendObservingMessageSignal;
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
     mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;
     mutable ProcessPongMessageSignal processPongMessageSignal;

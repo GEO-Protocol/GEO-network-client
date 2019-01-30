@@ -45,7 +45,9 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
     if (mSenderIsGateway) {
         mTopologyTrustLineManager->addGateway(senderID);
     }
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "receivedTrustLinesOut: " << mMessage->outgoingFlows().size();
+#endif
     for (auto const &outgoingFlow : mMessage->outgoingFlows()) {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
         info() << "\t" << outgoingFlow.first->fullAddress() << " " << *outgoingFlow.second.get();

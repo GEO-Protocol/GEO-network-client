@@ -42,7 +42,14 @@ public:
         vector<BaseResource::ResourceType> &&requiredResourcesType,
         uint32_t noLongerThanMilliseconds = 0);
 
+    static TransactionState::SharedConst waitForResourcesAndMessagesTypes(
+        vector<BaseResource::ResourceType> &&requiredResourcesType,
+        vector<Message::MessageType> &&requiredMessageType,
+        uint32_t noLongerThanMilliseconds = 0);
+
     static TransactionState::SharedConst continueWithPreviousState();
+
+    static TransactionState::SharedConst wait();
 
 public:
     TransactionState(

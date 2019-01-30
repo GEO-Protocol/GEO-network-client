@@ -6,7 +6,6 @@
 #include "base/PathStats.h"
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 
-#include "../../../../resources/manager/ResourcesManager.h"
 #include "../../../../paths/PathsManager.h"
 #include "../../../../resources/resources/PathsResource.h"
 
@@ -338,7 +337,6 @@ protected:
     // Contains all nodes final amount configuration on all transaction paths
     map<string, vector<pair<PathID, ConstSharedTrustLineAmount>>> mNodesFinalAmountsConfiguration;
 
-    ResourcesManager *mResourcesManager;
     PathsManager *mPathsManager;
     vector<BaseAddress::Shared> mInaccessibleNodes;
     size_t mPreviousInaccessibleNodesCount;

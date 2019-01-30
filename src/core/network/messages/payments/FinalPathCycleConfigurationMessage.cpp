@@ -5,7 +5,8 @@ FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
     vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount,
-    const map<PaymentNodeID, Contractor::Shared> &paymentParticipants) :
+    const map<PaymentNodeID, Contractor::Shared> &paymentParticipants,
+    const BlockNumber maximalClaimingBlockNumber) :
 
     RequestCycleMessage(
         equivalent,
@@ -13,6 +14,7 @@ FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
         transactionUUID,
         amount),
     mPaymentParticipants(paymentParticipants),
+    mMaximalClaimingBlockNumber(maximalClaimingBlockNumber),
     mIsReceiptContains(false)
 {}
 
@@ -22,8 +24,10 @@ FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount,
     const map<PaymentNodeID, Contractor::Shared> &paymentParticipants,
+    const BlockNumber maximalClaimingBlockNumber,
     const KeyNumber publicKeyNumber,
-    const lamport::Signature::Shared signature) :
+    const lamport::Signature::Shared signature,
+    const lamport::KeyHash::Shared transactionPublicKeyHash) :
 
     RequestCycleMessage(
         equivalent,
@@ -31,9 +35,11 @@ FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
         transactionUUID,
         amount),
     mPaymentParticipants(paymentParticipants),
+    mMaximalClaimingBlockNumber(maximalClaimingBlockNumber),
     mIsReceiptContains(true),
     mPublicKeyNumber(publicKeyNumber),
-    mSignature(signature)
+    mSignature(signature),
+    mTransactionPublicKeyHash(transactionPublicKeyHash)
 {}
 
 FinalPathCycleConfigurationMessage::FinalPathCycleConfigurationMessage(
@@ -61,6 +67,12 @@ RequestCycleMessage(buffer)
     }
     //----------------------------------------------------
     memcpy(
+        &mMaximalClaimingBlockNumber,
+        bytesBufferOffset,
+        sizeof(BlockNumber));
+    bytesBufferOffset += sizeof(BlockNumber);
+    //----------------------------------------------------
+    memcpy(
         &mIsReceiptContains,
         bytesBufferOffset,
         sizeof(byte));
@@ -76,6 +88,10 @@ RequestCycleMessage(buffer)
         auto signature = make_shared<lamport::Signature>(
             bytesBufferOffset);
         mSignature = signature;
+        bytesBufferOffset += lamport::Signature::signatureSize();
+
+        mTransactionPublicKeyHash = make_shared<lamport::KeyHash>(
+            bytesBufferOffset);
     }
 }
 
@@ -87,6 +103,11 @@ const Message::MessageType FinalPathCycleConfigurationMessage::typeID() const
 const map<PaymentNodeID, Contractor::Shared>& FinalPathCycleConfigurationMessage::paymentParticipants() const
 {
     return mPaymentParticipants;
+}
+
+const BlockNumber FinalPathCycleConfigurationMessage::maximalClaimingBlockNumber() const
+{
+    return mMaximalClaimingBlockNumber;
 }
 
 bool FinalPathCycleConfigurationMessage::isReceiptContains() const
@@ -104,6 +125,11 @@ const lamport::Signature::Shared FinalPathCycleConfigurationMessage::signature()
     return mSignature;
 }
 
+const lamport::KeyHash::Shared FinalPathCycleConfigurationMessage::transactionPublicKeyHash() const
+{
+    return mTransactionPublicKeyHash;
+}
+
 /*!
  *
  * Throws bad_alloc;
@@ -114,13 +140,15 @@ pair<BytesShared, size_t> FinalPathCycleConfigurationMessage::serializeToBytes()
     auto parentBytesAndCount = RequestCycleMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
             + sizeof(SerializedRecordsCount)
+            + sizeof(BlockNumber)
             + sizeof(byte);
     for (const auto &participant : mPaymentParticipants) {
         bytesCount += sizeof(PaymentNodeID) + participant.second->serializedSize();
     }
     if (mIsReceiptContains) {
         bytesCount += sizeof(KeyNumber)
-                + lamport::Signature::signatureSize();
+                + lamport::Signature::signatureSize()
+                + lamport::KeyHash::kBytesSize;
     }
 
     BytesShared buffer = tryMalloc(bytesCount);
@@ -156,6 +184,12 @@ pair<BytesShared, size_t> FinalPathCycleConfigurationMessage::serializeToBytes()
     //----------------------------------------------------
     memcpy(
         bytesBufferOffset,
+        &mMaximalClaimingBlockNumber,
+        sizeof(BlockNumber));
+    bytesBufferOffset += sizeof(BlockNumber);
+    //----------------------------------------------------
+    memcpy(
+        bytesBufferOffset,
         &mIsReceiptContains,
         sizeof(byte));
     //----------------------------------------------------
@@ -171,6 +205,12 @@ pair<BytesShared, size_t> FinalPathCycleConfigurationMessage::serializeToBytes()
             bytesBufferOffset,
             mSignature->data(),
             mSignature->signatureSize());
+        bytesBufferOffset += lamport::Signature::signatureSize();
+
+        memcpy(
+            bytesBufferOffset,
+            mTransactionPublicKeyHash->data(),
+            lamport::KeyHash::kBytesSize);
     }
     //----------------------------------------------------
     return make_pair(
