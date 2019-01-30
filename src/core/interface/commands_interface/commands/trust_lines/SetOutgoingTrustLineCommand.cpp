@@ -9,20 +9,32 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
         commandUUID,
         identifier())
 {
+    std::string amount;
+    uint32_t flag_amount=0;
     auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("SetOutgoingTrustLineCommand: there is no input ");}};
     auto contractorID_add = [&](auto &ctx) { mContractorID = _attr(ctx); };
-    auto amount_add = [&](auto &ctx) { mAmount = _attr(ctx); };
+    auto amount_add = [&](auto &ctx)
+    {
+        amount += _attr(ctx);
+        flag_amount++;
+        if (flag_amount > 39) { throw ValueError("Amount is too big"); }
+        else if (flag_amount == 1 && _attr(ctx) <= 0)
+        {
+            throw ValueError("Amount can't be zero or low");
+        }
+    };
     auto equivalent_add = [&](auto &ctx) { mEquivalent = _attr(ctx); };
 
     try
     {
         parse(command.begin(), command.end(), char_[check]);
-        parse(command.begin(), command.end(), *(int_[contractorID_add]) > char_('\t')  > *(int_[amount_add]) > char_('\t')  > int_[equivalent_add] > eol );
+        parse(command.begin(), command.end(), *(int_[contractorID_add]) > char_('\t')  > *(digit [amount_add] > !alpha > !punct) > char_('\t')  > int_[equivalent_add] > eol );
     }
     catch(...)
     {
         throw ValueError("SetOutgoingTrustLineCommand : can't parse command");
     }
+    mAmount = TrustLineAmount(amount);
 }
 
 const string &SetOutgoingTrustLineCommand::identifier()

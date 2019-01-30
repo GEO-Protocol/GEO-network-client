@@ -9,18 +9,20 @@ CreditUsageCommand::CreditUsageCommand(
         uuid,
         identifier())
 {
-    std::string address;
+    std::string address,amount;
     uint32_t addressType, equivalentID, flag_amount = 0;
     auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("CreditUsageCommand: there is no input ");}};
     auto parserType = [&](auto &ctx) { addressType = _attr(ctx); };
     auto address_add = [&](auto &ctx) { address += _attr(ctx); };
     auto address_number_add = [&](auto &ctx) { address += std::to_string(_attr(ctx)); };
     auto address_Count = [&](auto &ctx) { mContractorAddressesCount = _attr(ctx); };
-    auto addamount = [&](auto &ctx) {
-        mAmount = TrustLineAmount(_attr(ctx));
+    auto addamount = [&](auto &ctx)
+     {
+        amount += _attr(ctx);
         flag_amount++;
         if (flag_amount > 39) { throw ValueError("Amount is too big"); }
-        else if (flag_amount == 1 && _attr(ctx) <= 0) {
+        else if (flag_amount == 1 && _attr(ctx) <= 0)
+        {
             throw ValueError("Amount can't be zero or low");
         }
     };
@@ -69,6 +71,7 @@ CreditUsageCommand::CreditUsageCommand(
     {
         throw ValueError("CreditUsageCommand: can't parse command.");
     }
+    mAmount = TrustLineAmount(amount);
     mEquivalent = equivalentID;
 }
 
