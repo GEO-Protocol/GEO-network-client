@@ -3,8 +3,8 @@
 ObservingParticipantsVotesAppendResponseMessage::ObservingParticipantsVotesAppendResponseMessage(
     BytesShared buffer)
 {
-    auto *state = new (buffer.get()) ObservingTransaction::ObservingResponseType;
-    mObservingResponse = *state;
+    auto *state = new (buffer.get()) ObservingTransaction::SerializedObservingResponseType;
+    mObservingResponse = (ObservingTransaction::ObservingResponseType)*state;
 }
 
 const ObservingMessage::MessageType ObservingParticipantsVotesAppendResponseMessage::typeID() const

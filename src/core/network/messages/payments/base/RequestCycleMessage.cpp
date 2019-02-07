@@ -33,12 +33,7 @@ const TrustLineAmount &RequestCycleMessage::amount() const
     return mAmount;
 }
 
-/*!
- *
- * Throws bad_alloc;
- */
 pair<BytesShared, size_t> RequestCycleMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto serializedAmount = trustLineAmountToBytes(mAmount); // TODO: serialize only non-zero
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
@@ -66,7 +61,6 @@ pair<BytesShared, size_t> RequestCycleMessage::serializeToBytes() const
 }
 
 const size_t RequestCycleMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
     const size_t offset =
         TransactionMessage::kOffsetToInheritedBytes()

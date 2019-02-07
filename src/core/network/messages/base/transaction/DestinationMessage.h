@@ -31,14 +31,12 @@ public:
 
     pair<BytesShared, size_t> serializeToBytes() const override;
 
-    const ContractorID destinationID() const
-    noexcept;
+    const ContractorID destinationID() const;
 
     const bool isDestinationMessage() const override;
 
 protected:
-    const size_t kOffsetToInheritedBytes() const
-    noexcept;
+    const size_t kOffsetToInheritedBytes() const override;
 
 protected:
     ContractorID mDestinationID;

@@ -66,7 +66,6 @@ pair<BytesShared, size_t> MaxFlowCalculationConfirmationMessage::serializeToByte
 }
 
 const size_t MaxFlowCalculationConfirmationMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
     const auto kOffset =
         SenderMessage::kOffsetToInheritedBytes()

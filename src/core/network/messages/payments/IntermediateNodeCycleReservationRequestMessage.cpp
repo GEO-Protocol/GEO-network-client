@@ -47,11 +47,7 @@ BaseAddress::Shared IntermediateNodeCycleReservationRequestMessage::coordinatorA
     return mCoordinatorAddress;
 }
 
-/**
- * @throws bad_alloc;
- */
 pair<BytesShared, size_t> IntermediateNodeCycleReservationRequestMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = RequestCycleMessage::serializeToBytes();
     size_t totalBytesCount =

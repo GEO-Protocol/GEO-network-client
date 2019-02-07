@@ -4,11 +4,11 @@ TopologyCache::TopologyCache(
     const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &outgoingFlows,
     const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &incomingFlows)
 {
-    for (auto &nodeUUIDAndFlow : outgoingFlows) {
-        mOutgoingFlows.push_back(nodeUUIDAndFlow);
+    for (auto &nodeAddressAndFlow : outgoingFlows) {
+        mOutgoingFlows.push_back(nodeAddressAndFlow);
     }
-    for (auto &nodeUUIDAndFlow : incomingFlows) {
-        mIncomingFlows.push_back(nodeUUIDAndFlow);
+    for (auto &nodeAddressAndFlow : incomingFlows) {
+        mIncomingFlows.push_back(nodeAddressAndFlow);
     }
 }
 

@@ -22,8 +22,7 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
-    virtual const size_t kOffsetToInheritedBytes() const
-        noexcept;
+    virtual const size_t kOffsetToInheritedBytes() const override;
 
 private:
     SerializedEquivalent mEquivalent;

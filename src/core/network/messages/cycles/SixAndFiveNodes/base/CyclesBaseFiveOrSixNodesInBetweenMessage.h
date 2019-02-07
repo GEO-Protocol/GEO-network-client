@@ -7,10 +7,9 @@
 #include "../../../../../common/memory/MemoryUtils.h"
 #include "../../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../../../../contractors/addresses/BaseAddress.h"
-#include "../../../../../common/NodeUUID.h"
 
-class CycleBaseFiveOrSixNodesInBetweenMessage:
-        public SenderMessage {
+class CycleBaseFiveOrSixNodesInBetweenMessage: public SenderMessage {
+
 public:
     typedef shared_ptr<CycleBaseFiveOrSixNodesInBetweenMessage> Shared;
 public:
@@ -22,8 +21,7 @@ public:
     CycleBaseFiveOrSixNodesInBetweenMessage(
         BytesShared buffer);
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
     vector<BaseAddress::Shared> path() const;
 
@@ -31,7 +29,7 @@ public:
         BaseAddress::Shared inBetweenNode);
 
 protected:
-    const size_t kOffsetToInheritedBytes();
+    const size_t kOffsetToInheritedBytes() const override;
 
 protected:
     vector<BaseAddress::Shared> mPath;

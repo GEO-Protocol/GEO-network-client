@@ -42,19 +42,13 @@ const PathID ResponseMessage::pathID() const
 }
 
 const size_t ResponseMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
     return TransactionMessage::kOffsetToInheritedBytes()
            + sizeof(PathID)
            + sizeof(SerializedOperationState);
 }
 
-/**
- *
- * @throws bad_alloc;
- */
 pair<BytesShared, size_t> ResponseMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 

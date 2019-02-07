@@ -84,7 +84,6 @@ const bool ConflictResolverMessage::isCheckCachedResponse() const
 }
 
 pair<BytesShared, size_t> ConflictResolverMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     auto kBufferSize = parentBytesAndCount.second

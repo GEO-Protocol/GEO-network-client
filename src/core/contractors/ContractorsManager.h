@@ -68,6 +68,9 @@ protected: // log shortcuts
     LoggerStream info() const
     noexcept;
 
+    LoggerStream debug() const
+    noexcept;
+
     LoggerStream warning() const
     noexcept;
 

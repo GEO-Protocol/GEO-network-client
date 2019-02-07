@@ -44,12 +44,10 @@ public:
 
     const OperationState state() const;
 
-    pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc);
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
-    const size_t kOffsetToInheritedBytes() const
-        noexcept;
+    const size_t kOffsetToInheritedBytes() const override;
 
 private:
     typedef byte SerializedOperationState;

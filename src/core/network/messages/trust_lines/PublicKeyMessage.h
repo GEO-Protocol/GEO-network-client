@@ -36,11 +36,10 @@ public:
 
     const bool isCheckCachedResponse() const override;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
-    const size_t kOffsetToInheritedBytes() const
-    noexcept;
+    const size_t kOffsetToInheritedBytes() const override;
 
 private:
     KeyNumber mNumber;

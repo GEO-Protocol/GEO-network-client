@@ -34,6 +34,9 @@ public:
         const TrustLineID trustLineID,
         const AuditNumber auditNumber);
 
+    void deleteRecords(
+        const TransactionUUID &transactionUUID);
+
 private:
     LoggerStream info() const;
 

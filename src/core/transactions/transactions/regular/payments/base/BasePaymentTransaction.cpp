@@ -83,6 +83,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         buffer,
         log),
     mIAmGateway(iAmGateway),
+    mTransactionIsVoted(true),
     mContractorsManager(contractorsManager),
     mTrustLinesManager(trustLines),
     mStorageHandler(storageHandler),
@@ -90,14 +91,10 @@ BasePaymentTransaction::BasePaymentTransaction(
     mMaxFlowCacheManager(maxFlowCacheManager),
     mResourcesManager(resourcesManager),
     mKeysStore(keystore),
-    mSubsystemsController(subsystemsController)
+    mSubsystemsController(subsystemsController),
+    mCountRecoveryAttempts(0)
 {
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
-    if (mStep != Stages::Common_Observing) {
-        mStep = Stages::Common_Recovery;
-        mCountRecoveryAttempts = 0;
-    }
-
     // mReservations count
     SerializedRecordsCount reservationsCount;
     memcpy(
@@ -105,6 +102,9 @@ BasePaymentTransaction::BasePaymentTransaction(
         buffer.get() + bytesBufferOffset,
         sizeof(SerializedRecordsCount));
     bytesBufferOffset += sizeof(SerializedRecordsCount);
+
+    bool isReserveAmounts = !mTrustLinesManager->isReservationsPresentConsiderTransaction(
+        mTransactionUUID);
 
     // Map values
     for(auto idx = 0; idx < reservationsCount; idx++){
@@ -143,10 +143,6 @@ BasePaymentTransaction::BasePaymentTransaction(
             stepAmount = bytesToTrustLineAmount(amountBytes);
             bytesBufferOffset += kTrustLineAmountBytesCount;
 
-            // TransactionUUID
-            TransactionUUID stepTransactionUUID(buffer.get() + bytesBufferOffset);
-            bytesBufferOffset += TransactionUUID::kBytesSize;
-
             // Direction
             AmountReservation::SerializedReservationDirectionSize stepDirection;
             memcpy(
@@ -157,14 +153,14 @@ BasePaymentTransaction::BasePaymentTransaction(
             auto stepEnumDirection = static_cast<AmountReservation::ReservationDirection>(stepDirection);
 
             auto stepAmountReservation = make_shared<AmountReservation>(
-                stepTransactionUUID,
+                mTransactionUUID,
                 stepAmount,
                 stepEnumDirection);
             stepVector.emplace_back(
                 stepPathID,
                 stepAmountReservation);
 
-            if (stepDirection == AmountReservation::ReservationDirection::Incoming) {
+            if (isReserveAmounts and stepDirection == AmountReservation::ReservationDirection::Incoming) {
                 if (!reserveIncomingAmount(
                     stepContractorID,
                     stepAmount,
@@ -175,7 +171,7 @@ BasePaymentTransaction::BasePaymentTransaction(
                 }
             }
 
-            if (stepDirection == AmountReservation::ReservationDirection::Outgoing) {
+            if (isReserveAmounts and stepDirection == AmountReservation::ReservationDirection::Outgoing) {
                 if (!reserveOutgoingAmount(
                     stepContractorID,
                     stepAmount,
@@ -186,10 +182,12 @@ BasePaymentTransaction::BasePaymentTransaction(
                 }
             }
         }
-        mReservations.insert(
-            make_pair(
-                stepContractorID,
-                stepVector));
+        if (!isReserveAmounts) {
+            mReservations.insert(
+                make_pair(
+                    stepContractorID,
+                    stepVector));
+        }
     }
 
     // Participants paymentIDs and public keys Part
@@ -237,6 +235,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     }
 
     if (! contextIsValid(Message::Payments_ParticipantsPublicKeys)) {
+        removeAllDataFromStorageConcerningTransaction();
         return reject("No participants public keys received. Canceling.");
     }
 
@@ -253,6 +252,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     // todo : check if received own public key is the same as local
 
     if (!checkPublicKeysAppropriate()) {
+        removeAllDataFromStorageConcerningTransaction();
         return reject("Public keys are not appropriate. Reject.");
     }
 
@@ -296,6 +296,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     auto serializedOwnVotesData = getSerializedParticipantsVotesData(
         make_shared<Contractor>(
             mContractorsManager->ownAddresses()));
+    // todo : try catch IOError
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto signedTransaction = mKeysStore->signPaymentTransaction(
         ioTransaction,
@@ -363,8 +364,7 @@ TransactionResult::SharedConst BasePaymentTransaction::processParticipantsVotesM
 {
     debug() << "processParticipantsVotesMessage";
     if (!checkSignaturesAppropriate()) {
-        // todo : reject on this stage is incorrect. need discuss
-        return reject("Participants signatures map is incorrect. Rolling back.");
+        return recover("Participants signatures map is incorrect. Rolling back.");
     }
     info() << "All signatures are appropriate";
     auto coordinatorSignature = mParticipantsSignatures[kCoordinatorPaymentNodeID];
@@ -375,8 +375,7 @@ TransactionResult::SharedConst BasePaymentTransaction::processParticipantsVotesM
             coordinatorSerializedVotesData.first.get(),
             coordinatorSerializedVotesData.second,
             coordinatorPublicKey)) {
-        // todo : reject on this stage is incorrect. need discuss
-        reject("Final coordinator signature is wrong");
+        recover("Final coordinator signature is wrong");
     }
     for (const auto &paymentNodeIdAndContractor : mPaymentParticipants) {
         if (paymentNodeIdAndContractor.second == mContractorsManager->selfContractor()) {
@@ -559,15 +558,17 @@ void BasePaymentTransaction::commit(
             mTrustLinesManager->useReservation(kNodeIDAndReservations.first, kPathIDAndReservation.second);
             if (kPathIDAndReservation.second->direction() == AmountReservation::Outgoing) {
                 debug() << "Committed reservation: [ => ] " << kPathIDAndReservation.second->amount()
-                        << " for (" << kNodeIDAndReservations.first << ") [" << kPathIDAndReservation.first
-                        << "]";
+                        << " for (" << kNodeIDAndReservations.first << ", "
+                        << mContractorsManager->contractorMainAddress(kNodeIDAndReservations.first)->fullAddress()
+                        << ") [" << kPathIDAndReservation.first << "]";
                 mContractorsForCycles.insert(
                     kNodeIDAndReservations.first);
             }
             else if (kPathIDAndReservation.second->direction() == AmountReservation::Incoming) {
                 debug() << "Committed reservation: [ <= ] " << kPathIDAndReservation.second->amount()
-                        << " for (" << kNodeIDAndReservations.first << ") [" << kPathIDAndReservation.first
-                        << "]";
+                        << " for (" << kNodeIDAndReservations.first << ", "
+                        << mContractorsManager->contractorMainAddress(kNodeIDAndReservations.first)->fullAddress()
+                        << ") [" << kPathIDAndReservation.first << "]";
                 if (mIAmGateway) {
                     // gateway try build cycles on both directions, because it don't shared by own routing tables
                     mContractorsForCycles.insert(
@@ -577,8 +578,8 @@ void BasePaymentTransaction::commit(
 
             reservationDirection = kPathIDAndReservation.second->direction();
             mTrustLinesManager->dropAmountReservation(
-                    kNodeIDAndReservations.first,
-                    kPathIDAndReservation.second);
+                kNodeIDAndReservations.first,
+                kPathIDAndReservation.second);
         }
         trustLineActionSignal(
             kNodeIDAndReservations.first,
@@ -620,11 +621,9 @@ void BasePaymentTransaction::saveVotes(
     }
 }
 
-void BasePaymentTransaction::rollBack ()
+void BasePaymentTransaction::rollBack()
 {
     debug() << "rollback";
-    const auto ioTransaction = mStorageHandler->beginTransaction();
-
     // drop reservations in AmountReservationHandler
     for (const auto &kNodeIDAndReservations : mReservations) {
         for (const auto &kPathIDAndReservation : kNodeIDAndReservations.second) {
@@ -644,8 +643,6 @@ void BasePaymentTransaction::rollBack ()
 
     // delete transaction references on dropped reservations
     mReservations.clear();
-
-    ioTransaction->transactionHandler()->deleteRecord(currentTransactionUUID());
 }
 
 void BasePaymentTransaction::rollBack (
@@ -686,6 +683,22 @@ void BasePaymentTransaction::rollBack (
     }
 }
 
+void BasePaymentTransaction::removeAllDataFromStorageConcerningTransaction(
+    IOTransaction::Shared ioTransaction)
+{
+    if (ioTransaction == nullptr) {
+        ioTransaction = mStorageHandler->beginTransaction();
+    }
+    ioTransaction->outgoingPaymentReceiptHandler()->deleteRecords(
+        mTransactionUUID);
+    ioTransaction->incomingPaymentReceiptHandler()->deleteRecords(
+        mTransactionUUID);
+    ioTransaction->paymentParticipantsVotesHandler()->deleteRecords(
+        mTransactionUUID);
+    ioTransaction->transactionHandler()->deleteRecord(
+        mTransactionUUID);
+}
+
 TransactionResult::SharedConst BasePaymentTransaction::recover(
     const char *message)
 {
@@ -694,6 +707,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover(
         warning() << message;
     }
 
+    // todo: expand this condition including observing stage
     if(mTransactionIsVoted){
         mStep = Stages::Common_Recovery;
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
@@ -1032,9 +1046,9 @@ TransactionResult::SharedConst BasePaymentTransaction::runObservingStage()
     return resultDone();
 }
 
-TransactionResult::SharedConst BasePaymentTransaction::runObservingStageAfterRestoring()
+TransactionResult::SharedConst BasePaymentTransaction::runObservingResultStage()
 {
-    info() << "runObservingStageAfterRestoring";
+    info() << "runObservingResultStage";
     if (mParticipantsSignatures.empty()) {
         info() << "Close and wait for claiming result";
         observingClaimSignal(
@@ -1052,10 +1066,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runObservingRejectTransac
 {
     info() << "runObservingRejectTransaction";
     auto ioTransaction = mStorageHandler->beginTransaction();
-    // todo : remove receipts that belong this transaction
-    ioTransaction->transactionHandler()->deleteRecord(
-        mTransactionUUID);
-    return reject("Reject by expiring claiming time");
+    removeAllDataFromStorageConcerningTransaction(ioTransaction);
+    // todo : change transaction history status
+    info() << "Reject by expiring claiming time";
+    rollBack();
+    return resultDone();
 }
 
 pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
@@ -1327,13 +1342,6 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
                 buffer.size());
             dataBytesOffset += buffer.size();
 
-            // TransactionUUID
-            memcpy(
-                dataBytesShared.get() + dataBytesOffset,
-                mTransactionUUID.data,
-                TransactionUUID::kBytesSize);
-            dataBytesOffset += TransactionUUID::kBytesSize;
-
             // Direction
             const auto kDirection = kReservationValues.second->direction();
             memcpy(
@@ -1392,7 +1400,6 @@ size_t BasePaymentTransaction::reservationsSizeInBytes() const {
                                   + nodeAndReservations.second.size() * (
                                     sizeof(PathID) + // PathID
                                     kTrustLineAmountBytesCount +  // Reservation Amount
-                                    TransactionUUID::kBytesSize + // Reservation TransactionUUID
                                                                   // Reservation Direction
                                     sizeof(AmountReservation::SerializedReservationDirectionSize))
                                   + sizeof(SerializedRecordsCount); // Vector Size
@@ -1418,9 +1425,9 @@ bool BasePaymentTransaction::isCommonVotesCheckingStage() const
 }
 
 void BasePaymentTransaction::setTransactionState(
-    BaseTransaction::SerializedStep transactionState)
+    BasePaymentTransaction::SerializedStep transactionStage)
 {
-    mStep = transactionState;
+    mStep = transactionStage;
 }
 
 void BasePaymentTransaction::setObservingParticipantsSignatures(

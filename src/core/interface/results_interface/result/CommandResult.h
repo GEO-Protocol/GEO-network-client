@@ -1,7 +1,7 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_BASECOMMANDRESULT_H
 #define GEO_NETWORK_CLIENT_BASECOMMANDRESULT_H
 
-#include "../../../common/Types.h"
+#include "../../../common/Constraints.h"
 #include "../../../common/time/TimeUtils.h"
 
 #include "../../commands_interface/CommandUUID.h"

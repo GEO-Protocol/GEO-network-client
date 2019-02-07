@@ -51,7 +51,6 @@ const bool TrustLineConfirmationMessage::isContractorGateway() const
 }
 
 pair<BytesShared, size_t> TrustLineConfirmationMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = ConfirmationMessage::serializeToBytes();
 

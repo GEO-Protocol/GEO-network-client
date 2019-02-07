@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_IPV4WITHPORTADDRESS_H
 
 #include "BaseAddress.h"
-#include "../../common/Types.h"
+#include "../../common/Constraints.h"
 #include "../../network/communicator/internal/common/Types.h"
 #include "../../common/exceptions/ValueError.h"
 

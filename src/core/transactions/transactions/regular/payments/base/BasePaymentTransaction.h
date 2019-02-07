@@ -126,7 +126,7 @@ public:
     bool isCommonVotesCheckingStage() const;
 
     void setTransactionState(
-        BaseTransaction::SerializedStep transactionState);
+        BasePaymentTransaction::SerializedStep transactionStage);
 
     void setObservingParticipantsSignatures(
         map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures);
@@ -162,7 +162,8 @@ public:
         Common_Observing,
         Common_ObservingReject,
 
-        Common_RollbackByOtherTransaction
+        Common_RollbackByOtherTransaction,
+        Common_Uncertain
     };
 
     enum VotesRecoveryStages {
@@ -231,7 +232,7 @@ protected:
 
     TransactionResult::SharedConst runObservingStage();
 
-    TransactionResult::SharedConst runObservingStageAfterRestoring();
+    TransactionResult::SharedConst runObservingResultStage();
 
     TransactionResult::SharedConst runObservingRejectTransaction();
 
@@ -299,6 +300,9 @@ protected:
      */
     void rollBack(
         const PathID &pathID);
+
+    void removeAllDataFromStorageConcerningTransaction(
+        IOTransaction::Shared ioTransaction = nullptr);
 
     /**
      * @param totalHopsCount count of sending messages
@@ -423,7 +427,7 @@ protected:
 
     static const uint32_t kWaitMillisecondsToTryRecoverAgain = 30000;
 
-    static const uint8_t kMaxRecoveryAttempts = 3;
+    static const uint8_t kMaxRecoveryAttempts = 1;
 
     // todo : make static
     const PaymentNodeID kCoordinatorPaymentNodeID = 0;
@@ -450,6 +454,7 @@ protected:
     MaxFlowCacheManager *mMaxFlowCacheManager;
     ResourcesManager *mResourcesManager;
     Keystore *mKeysStore;
+    SubsystemsController *mSubsystemsController;
 
     // If true - votes check stage has been processed and transaction has been approved.
     // In this case transaction can't be simply rolled back.
@@ -492,9 +497,6 @@ protected:
 
     BlockNumber mMaximalClaimingBlockNumber;
     bool mBlockNumberObtainingInProcess;
-
-protected:
-    SubsystemsController *mSubsystemsController;
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

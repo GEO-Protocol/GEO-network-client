@@ -96,10 +96,15 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::run()
                 return runRollbackByOtherTransactionStage();
 
             case Stages::Common_Observing:
-                return runObservingStageAfterRestoring();
+                return runObservingResultStage();
 
             case Stages::Common_ObservingReject:
                 return runObservingRejectTransaction();
+
+            case Stages::Common_Uncertain: {
+                info() << "Uncertain stage";
+                return resultDone();
+            }
 
             default:
                 throw RuntimeError(
@@ -524,6 +529,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         debug() << "Receive TTL Finish message. Rolled back.";
         clearContext();
         rollBack();
+        removeAllDataFromStorageConcerningTransaction();
         return resultDone();
     }
 
@@ -536,6 +542,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         return runFinalReservationsNeighborConfirmation();
     }
 
+    removeAllDataFromStorageConcerningTransaction();
     return reject("No final paths configuration was received from the coordinator. Rejected.");
 }
 
@@ -553,6 +560,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     if (kMessage->amount() == 0) {
         debug() << "Final payment equals 0, transaction cancelled.";
         rollBack();
+        removeAllDataFromStorageConcerningTransaction();
         return resultDone();
     }
 
@@ -576,6 +584,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
 
     debug() << "All reservations were updated";
     if (!checkReservationsDirections()) {
+        removeAllDataFromStorageConcerningTransaction();
         sendErrorMessageOnFinalAmountsConfiguration();
         return reject("Reservations on node are invalid");
     }
@@ -590,6 +599,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
                 paymentParticipant.first));
     }
     if (!checkAllNeighborsWithReservationsAreInFinalParticipantsList()) {
+        removeAllDataFromStorageConcerningTransaction();
         sendErrorMessageOnFinalAmountsConfiguration();
         return reject("Node has reservation with participant, which not included in mPaymentNodesIds. Rejected");
     }
@@ -599,6 +609,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         info() << "Coordinator also send receipt";
         auto coordinatorID = mContractorsManager->contractorIDByAddress(mCoordinator);
         if (coordinatorID == ContractorsManager::kNotFoundContractorID) {
+            removeAllDataFromStorageConcerningTransaction(ioTransaction);
             sendErrorMessageOnFinalAmountsConfiguration();
             return reject("Coordinator is not a neighbor. Rejected");
         }
@@ -607,8 +618,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         auto coordinatorTotalIncomingReservationAmount = totalReservedIncomingAmountToNode(
             coordinatorID);
         auto serializedIncomingReceiptData = getSerializedReceipt(
-            mContractorsManager->idOnContractorSide(coordinatorID),
             coordinatorID,
+            mContractorsManager->idOnContractorSide(coordinatorID),
             kMessage->transactionPublicKeyHash(),
             coordinatorTotalIncomingReservationAmount,
             false);
@@ -618,6 +629,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
             serializedIncomingReceiptData.second,
             kMessage->signature(),
             kMessage->publicKeyNumber())) {
+            removeAllDataFromStorageConcerningTransaction(ioTransaction);
             sendErrorMessageOnFinalAmountsConfiguration();
             return reject("Coordinator send invalid receipt signature. Rejected");
         }
@@ -628,6 +640,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
             kMessage->publicKeyNumber(),
             coordinatorTotalIncomingReservationAmount,
             kMessage->signature())) {
+            removeAllDataFromStorageConcerningTransaction(ioTransaction);
             sendErrorMessageOnFinalAmountsConfiguration();
             return reject("Can't save coordinator receipt. Rejected.");
         }
@@ -638,6 +651,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
             auto coordinatorTotalIncomingReservationAmount = totalReservedIncomingAmountToNode(
                 coordinatorID);
             if (coordinatorTotalIncomingReservationAmount != TrustLine::kZeroAmount()) {
+                removeAllDataFromStorageConcerningTransaction(ioTransaction);
                 sendErrorMessageOnFinalAmountsConfiguration();
                 warning() << "Receipt amount: 0. Local reserved incoming amount: "
                           << coordinatorTotalIncomingReservationAmount;
@@ -665,6 +679,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCheckO
     }
 
     if (!resourceIsValid(BaseResource::ObservingBlockNumber)) {
+        removeAllDataFromStorageConcerningTransaction();
         sendErrorMessageOnFinalAmountsConfiguration();
         return reject("Can't check observing actual block number. Rejected.");
     }
@@ -672,6 +687,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCheckO
     auto maximalClaimingBlockNumber = blockNumberResource->actualObservingBlockNumber() + kCountBlocksForClaiming;
     debug() << "maximal claiming block number on own side: " << maximalClaimingBlockNumber;
     if (!checkMaxClaimingBlockNumber(maximalClaimingBlockNumber)) {
+        removeAllDataFromStorageConcerningTransaction();
         sendErrorMessageOnFinalAmountsConfiguration();
         return reject("Max claiming block number sending by coordinator is invalid . Rejected.");
     }
@@ -717,8 +733,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCheckO
             auto keyChain = mKeysStore->keychain(
                 mTrustLinesManager->trustLineID(participantID));
             auto serializedOutgoingReceiptData = getSerializedReceipt(
-                participantID,
                 mContractorsManager->idOnContractorSide(participantID),
+                participantID,
                 mPublicKey->hash(),
                 outgoingReservedAmount,
                 true);
@@ -733,6 +749,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCheckO
                 signatureAndKeyNumber.second,
                 outgoingReservedAmount,
                 signatureAndKeyNumber.first)) {
+                removeAllDataFromStorageConcerningTransaction(ioTransaction);
                 sendErrorMessageOnFinalAmountsConfiguration();
                 return reject("Can't save outgoing receipt. Rejected.");
             }
@@ -763,6 +780,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCheckO
     if (mPaymentParticipants.size() == mParticipantsPublicKeysHashes.size() + 1) {
         // all neighbors sent theirs reservations
         if (!checkAllPublicKeyHashesProperly()) {
+            removeAllDataFromStorageConcerningTransaction(ioTransaction);
             sendErrorMessageOnFinalAmountsConfiguration();
             return reject("Public key hashes are not properly. Rejected");
         }
@@ -808,6 +826,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
         // todo : add try catch IOError
         auto senderID = mContractorsManager->contractorIDByAddress(senderAddress);
         if (senderID == ContractorsManager::kNotFoundContractorID) {
+            removeAllDataFromStorageConcerningTransaction(ioTransaction);
             sendErrorMessageOnFinalAmountsConfiguration();
             return reject("Sender is not a neighbor. Rejected");
         }
@@ -816,8 +835,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
         auto keyChain = mKeysStore->keychain(
             mTrustLinesManager->trustLineID(senderID));
         auto serializedIncomingReceiptData = getSerializedReceipt(
-            mContractorsManager->idOnContractorSide(senderID),
             senderID,
+            mContractorsManager->idOnContractorSide(senderID),
             kMessage->transactionPublicKeyHash(),
             participantTotalIncomingReservationAmount,
             false);
@@ -827,6 +846,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
             serializedIncomingReceiptData.second,
             kMessage->signature(),
             kMessage->publicKeyNumber())) {
+            removeAllDataFromStorageConcerningTransaction(ioTransaction);
             sendErrorMessageOnFinalAmountsConfiguration();
             return reject("Sender send invalid receipt signature. Rejected");
         }
@@ -837,6 +857,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
             kMessage->publicKeyNumber(),
             participantTotalIncomingReservationAmount,
             kMessage->signature())) {
+            removeAllDataFromStorageConcerningTransaction(ioTransaction);
             sendErrorMessageOnFinalAmountsConfiguration();
             return reject("Can't save participant receipt. Rejected.");
         }
@@ -847,6 +868,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
             auto participantTotalIncomingReservationAmount = totalReservedIncomingAmountToNode(
                 senderID);
             if (participantTotalIncomingReservationAmount != TrustLine::kZeroAmount()) {
+                removeAllDataFromStorageConcerningTransaction();
                 sendErrorMessageOnFinalAmountsConfiguration();
                 warning() << "Receipt amount: 0. Local reserved incoming amount: "
                           << participantTotalIncomingReservationAmount;
@@ -876,6 +898,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
     if (mPaymentParticipants.size() == mParticipantsPublicKeysHashes.size() + 1) {
         // all neighbors sent theirs reservations
         if (!checkAllPublicKeyHashesProperly()) {
+            removeAllDataFromStorageConcerningTransaction();
             sendErrorMessageOnFinalAmountsConfiguration();
             return reject("Public key hashes are not properly. Rejected");
         }
@@ -914,6 +937,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runVotesC
         debug() << "Receive TTL Finish message. Rolled back.";
         clearContext();
         rollBack();
+        removeAllDataFromStorageConcerningTransaction();
         return resultDone();
     }
 
@@ -922,6 +946,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runVotesC
         if (mTransactionIsVoted) {
             return recover("No participants votes message with all votes received.");
         } else {
+            removeAllDataFromStorageConcerningTransaction();
             return reject("No participants votes message received. Transaction was closed. Rolling Back");
         }
     }

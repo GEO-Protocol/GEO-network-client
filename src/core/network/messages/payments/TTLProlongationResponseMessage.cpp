@@ -29,12 +29,7 @@ const TTLProlongationResponseMessage::OperationState TTLProlongationResponseMess
     return mState;
 }
 
-/**
- *
- * @throws bad_alloc;
- */
 pair<BytesShared, size_t> TTLProlongationResponseMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 

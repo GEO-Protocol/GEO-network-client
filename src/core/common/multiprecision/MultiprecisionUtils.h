@@ -1,7 +1,7 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_MULTIPRECISIONUTILS_H
 #define GEO_NETWORK_CLIENT_MULTIPRECISIONUTILS_H
 
-#include "../Types.h"
+#include "../Constraints.h"
 #include "../../contractors/addresses/IPv4WithPortAddress.h"
 
 #include <boost/endian/arithmetic.hpp>

@@ -24,8 +24,7 @@ public:
     CyclesFourNodesNegativeBalanceRequestMessage(
         BytesShared buffer);
 
-    virtual pair<BytesShared, size_t> serializeToBytes()const
-        throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes()const override;
 
     const MessageType typeID() const;
 

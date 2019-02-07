@@ -216,8 +216,8 @@ bool TopologyTrustLinesManager::deleteLegacyTrustLines()
 size_t TopologyTrustLinesManager::trustLinesCounts() const
 {
     size_t countTrustLines = 0;
-    for (const auto &nodeUUIDAndTrustLines : msTrustLines) {
-        countTrustLines += (nodeUUIDAndTrustLines.second)->size();
+    for (const auto &contractoIDAndTrustLines : msTrustLines) {
+        countTrustLines += (contractoIDAndTrustLines.second)->size();
     }
     return countTrustLines;
 }

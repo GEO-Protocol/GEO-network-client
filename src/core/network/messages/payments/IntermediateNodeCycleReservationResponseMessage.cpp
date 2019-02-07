@@ -37,7 +37,6 @@ const TrustLineAmount& IntermediateNodeCycleReservationResponseMessage::amountRe
 }
 
 pair<BytesShared, size_t> IntermediateNodeCycleReservationResponseMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = ResponseCycleMessage::serializeToBytes();
     auto serializedAmount = trustLineAmountToBytes(mAmountReserved);

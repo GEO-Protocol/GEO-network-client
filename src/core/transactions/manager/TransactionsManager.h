@@ -3,7 +3,6 @@
 
 #include "../scheduler/TransactionsScheduler.h"
 
-#include "../../common/NodeUUID.h"
 #include "../../common/memory/MemoryUtils.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../equivalents/EquivalentsSubsystemsRouter.h"
@@ -157,6 +156,9 @@ public:
     void attachResourceToTransaction(
         BaseResource::Shared resource);
 
+    void allowPaymentTransactionsDueToObserving(
+        bool allowPaymentTransactions);
+
     /*
      * Find paths transactions
      */
@@ -171,6 +173,14 @@ public:
         map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures);
 
     void launchPaymentTransactionForObservingRejecting(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
+
+    void launchPaymentTransactionForObservingUncertainStage(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
+
+    void launchCancelingPaymentTransaction(
         const TransactionUUID& transactionUUID,
         BlockNumber maximalClaimingBlockNumber);
 
@@ -530,6 +540,7 @@ private:
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
     Logger &mLog;
+    bool isPaymentTransactionsAllowedDueToObserving;
 
     SubsystemsController *mSubsystemsController;
     TrustLinesInfluenceController *mTrustLinesInfluenceController;

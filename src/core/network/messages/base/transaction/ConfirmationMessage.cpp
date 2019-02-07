@@ -46,7 +46,6 @@ const ConfirmationMessage::OperationState ConfirmationMessage::state() const
 }
 
 pair<BytesShared, size_t> ConfirmationMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
@@ -74,7 +73,6 @@ pair<BytesShared, size_t> ConfirmationMessage::serializeToBytes() const
 }
 
 const size_t ConfirmationMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
     const auto kOffset =
         TransactionMessage::kOffsetToInheritedBytes()

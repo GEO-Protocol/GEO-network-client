@@ -43,7 +43,7 @@ public:
 
     const lamport::Signature::Shared signature() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     PaymentNodeID mPaymentNodeID;

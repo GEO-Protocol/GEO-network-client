@@ -48,7 +48,6 @@ const Message::MessageType RoutingTableResponseMessage::typeID() const
 }
 
 pair<BytesShared, size_t> RoutingTableResponseMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = ConfirmationMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second

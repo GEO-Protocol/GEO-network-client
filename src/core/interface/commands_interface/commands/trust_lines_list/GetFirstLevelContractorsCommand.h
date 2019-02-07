@@ -4,8 +4,7 @@
 #include "../BaseUserCommand.h"
 #include "../../../../common/exceptions/ValueError.h"
 
-class GetFirstLevelContractorsCommand :
-    public BaseUserCommand {
+class GetFirstLevelContractorsCommand : public BaseUserCommand {
 
 public:
     typedef shared_ptr<GetFirstLevelContractorsCommand> Shared;
@@ -25,6 +24,5 @@ public:
 
 private:
     SerializedEquivalent mEquivalent;
-
 };
 #endif //GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORSCOMMAND_H

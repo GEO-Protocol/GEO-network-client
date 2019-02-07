@@ -55,7 +55,6 @@ const map<PaymentNodeID, lamport::PublicKey::Shared>& ParticipantsPublicKeysMess
 }
 
 pair<BytesShared, size_t> ParticipantsPublicKeysMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 

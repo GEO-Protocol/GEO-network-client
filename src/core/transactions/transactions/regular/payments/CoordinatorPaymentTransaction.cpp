@@ -103,8 +103,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
         debug() << "It is forbidden run payment transactions";
         return resultForbiddenRun();
     }
-    debug() << "Operation initialised to the node " << mContractor->toString();
-    debug() << "Command NodeUUID: " << mCommand->UUID();
+    debug() << "Operation initialised to the node " << mContractor->mainAddress()->fullAddress();
+    debug() << "CommandUUID: " << mCommand->UUID();
     debug() << "Operation amount: " << mCommand->amount();
 
     if (mContractor == mContractorsManager->selfContractor()) {
@@ -1346,6 +1346,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsCon
     }
 
     if (!contextIsValid(Message::Payments_FinalAmountsConfigurationResponse, false)) {
+        removeAllDataFromStorageConcerningTransaction();
         return reject("Some nodes didn't confirm final amount configuration. Transaction rejected.");
     }
 
@@ -1357,6 +1358,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsCon
         return resultContinuePreviousState();
     }
     if (kMessage->state() == FinalAmountsConfigurationResponseMessage::Rejected) {
+        removeAllDataFromStorageConcerningTransaction();
         return reject("Haven't reach consensus on reservation. Transaction rejected.");
     }
     debug() << "Sender confirmed final amounts";
@@ -1489,11 +1491,6 @@ const string CoordinatorPaymentTransaction::logHeader() const
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 {
-    mCommittedAmount = totalReservedAmount(
-        AmountReservation::Outgoing);
-    BasePaymentTransaction::approve();
-    BasePaymentTransaction::runThreeNodesCyclesTransactions();
-    BasePaymentTransaction::runFourNodesCyclesTransactions();
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
         mPaymentParticipants.size() - 1);
@@ -1512,6 +1509,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
             paymentNodeIdAndContractor.second->mainAddress(),
             mParticipantsVotesMessage);
     }
+
+    mCommittedAmount = totalReservedAmount(
+        AmountReservation::Outgoing);
+    BasePaymentTransaction::approve();
+    BasePaymentTransaction::runThreeNodesCyclesTransactions();
+    BasePaymentTransaction::runFourNodesCyclesTransactions();
+
     return resultOK();
 }
 
@@ -1639,6 +1643,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
 #endif
 
     if (! contextIsValid(Message::Payments_ParticipantVote)) {
+        removeAllDataFromStorageConcerningTransaction();
+        // todo : inform all participants about transaction finishing
         return reject("Coordinator didn't receive all messages with votes");
     }
 
@@ -1660,6 +1666,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
             participantSerializedVotesData.first.get(),
             participantSerializedVotesData.second,
             participantPublicKey)) {
+        removeAllDataFromStorageConcerningTransaction();
+        // todo : inform all participants about transaction finishing
         return reject("Participant signature is incorrect. Rolling back");
     }
     info() << "Participant signature is correct";

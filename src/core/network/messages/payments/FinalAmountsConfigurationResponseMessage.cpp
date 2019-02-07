@@ -55,12 +55,7 @@ const lamport::PublicKey::Shared FinalAmountsConfigurationResponseMessage::publi
     return mPublicKey;
 }
 
-/**
- *
- * @throws bad_alloc;
- */
 pair<BytesShared, size_t> FinalAmountsConfigurationResponseMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 

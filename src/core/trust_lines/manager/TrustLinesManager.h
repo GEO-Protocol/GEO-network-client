@@ -290,6 +290,9 @@ public:
     bool isReservationsPresentOnTrustLine(
         ContractorID contractorID) const;
 
+    bool isReservationsPresentConsiderTransaction(
+        const TransactionUUID& transactionUUID) const;
+
     const bool trustLineIsPresent (
         ContractorID contractorID) const;
 

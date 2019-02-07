@@ -35,10 +35,12 @@ ContractorsManager::ContractorsManager(
                 contractor->getID(),
                 contractor));
     }
+#ifdef DEBUG_LOG_TRUST_LINES_PROCESSING
     for (const auto &contractor : mContractors) {
-        info() << contractor.second->toString();
+        debug() << contractor.second->toString();
     }
-    info() << "Own ip " << mSelf->mainAddress()->fullAddress();
+    debug() << "Own address " << mSelf->mainAddress()->fullAddress();
+#endif
 }
 
 ContractorID ContractorsManager::getContractorID(
@@ -233,6 +235,12 @@ LoggerStream ContractorsManager::info() const
     noexcept
 {
     return mLogger.info(logHeader());
+}
+
+LoggerStream ContractorsManager::debug() const
+    noexcept
+{
+    return mLogger.debug(logHeader());
 }
 
 LoggerStream ContractorsManager::warning() const

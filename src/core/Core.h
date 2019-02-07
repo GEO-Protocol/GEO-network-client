@@ -3,7 +3,6 @@
 #define GEO_NETWORK_CLIENT_CORE_H
 
 #include "common/Types.h"
-#include "common/NodeUUID.h"
 
 #include "settings/Settings.h"
 #include "network/communicator/Communicator.h"
@@ -115,7 +114,7 @@ private:
         Message::MessageType incomingMessageTypeFilter,
         uint32_t cacheTimeLiving);
 
-    void onMessageSendToObserverSlot(
+    void onClaimSendToObserverSlot(
         ObservingClaimAppendRequestMessage::Shared message);
 
     void onAddTransactionToObservingCheckingSlot(
@@ -130,6 +129,17 @@ private:
     void onObservingTransactionRejectSlot(
         const TransactionUUID& transactionUUID,
         BlockNumber maximalClaimingBlockNumber);
+
+    void onObservingTransactionUncertainSlot(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
+
+    void onObservingTransactionCancelingSlot(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
+
+    void onObservingAllowPaymentTransactionsSlot(
+        bool allowPaymentTransactions);
 
     void onProcessConfirmationMessageSlot(
         ConfirmationMessage::Shared confirmationMessage);

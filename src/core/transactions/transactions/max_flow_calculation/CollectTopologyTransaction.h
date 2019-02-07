@@ -49,7 +49,6 @@ private:
     MaxFlowCacheManager *mMaxFlowCacheManager;
     bool mIamGateway;
 
-    vector<NodeUUID> mContractors;
     vector<BaseAddress::Shared> mContractorAddresses;
 };
 

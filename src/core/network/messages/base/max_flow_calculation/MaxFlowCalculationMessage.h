@@ -4,7 +4,6 @@
 #include "../../SenderMessage.h"
 
 #include "../../../../common/Types.h"
-#include "../../../../common/NodeUUID.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../transactions/transactions/base/TransactionUUID.h"
@@ -30,11 +29,9 @@ public:
 
     vector<BaseAddress::Shared> targetAddresses() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
-    const size_t kOffsetToInheritedBytes() const
-        noexcept;
+    const size_t kOffsetToInheritedBytes() const override;
 
 protected:
     vector<BaseAddress::Shared> mTargetAddresses;

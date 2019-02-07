@@ -52,8 +52,7 @@ public:
     const lamport::KeyHash::Shared transactionPublicKeyHash() const;
 
 protected:
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-    throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     map<PaymentNodeID, Contractor::Shared> mPaymentParticipants;

@@ -190,6 +190,9 @@ void Communicator::enqueueContractorWithPostponedSending(
 void Communicator::onMessageReceived(
     Message::Shared message)
 {
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+    debug() << "onMessageReceived " << message->typeID();
+#endif
     // these messages contain parts of topology and after theirs receiving we should send confirmation
     if (message->typeID() == Message::MaxFlow_ResultMaxFlowCalculation ||
             message->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
@@ -234,14 +237,18 @@ void Communicator::onMessageReceived(
     if (message->typeID() == Message::General_Ping) {
         const auto pingMessage =
             static_pointer_cast<PingMessage>(message);
+        if (pingMessage->senderAddresses.empty()) {
+            error() << "Ping message from " << pingMessage->senderIncomingIP()
+                      << " doesn't contain sender addresses and will be ignored";
+            return;
+        }
         sendMessage(
             make_shared<PongMessage>(
                 0,
                 // PingMessage contains our id on contractor side instead of his id on our side
                 // and we should include it to PongMessage
-                // todo : separate logic into InitTLMessage and others and check if contractor exists
                 pingMessage->idOnReceiverSide),
-            pingMessage->idOnReceiverSide);
+            pingMessage->senderAddresses.at(0));
         return;
     }
 

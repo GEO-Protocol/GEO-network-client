@@ -34,6 +34,9 @@ public:
             BlockNumber,
             map<PaymentNodeID, lamport::Signature::Shared>)> ParticipantsVotesSignal;
     typedef signals::signal<void(const TransactionUUID&, BlockNumber)> RejectTransactionSignal;
+    typedef signals::signal<void(const TransactionUUID&, BlockNumber)> UncertainTransactionSignal;
+    typedef signals::signal<void(const TransactionUUID&, BlockNumber)> CancelTransactionSignal;
+    typedef signals::signal<void(bool)> AllowPaymentTransactionsSignal;
 
 public:
     ObservingHandler(
@@ -86,22 +89,39 @@ protected:
     bool performOneClaim(
         ObservingTransaction::Shared observingTransaction);
 
+    void sendClaimAgain(
+        ObservingTransaction::Shared observingTransaction);
+
+    bool getParticipantsVotes(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
+
     void runTransactionsChecking(
         const boost::system::error_code &errorCode);
 
     void responseActualBlockNumber(
         const TransactionUUID& transactionUUID);
 
+    void getActualBlockNumber();
+
+    bool sendParticipantsVoteMessageToObservers(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
+
 public:
     mutable ParticipantsVotesSignal mParticipantsVotesSignal;
-
     mutable RejectTransactionSignal mRejectTransactionSignal;
+    mutable UncertainTransactionSignal mUncertainTransactionSignal;
+    mutable CancelTransactionSignal mCancelTransactionSignal;
+    mutable AllowPaymentTransactionsSignal mAllowPaymentTransactionsSignal;
 
 private:
     static const uint32_t kInitialObservingRequestShiftSeconds = 5;
+    static const uint32_t kInitialObservingRequestNextSeconds = 30;
 
     // 6 min
-    static const uint32_t kTransactionCheckingSignalRepeatTimeSeconds = 30;
+    static const uint32_t kTransactionCheckingSignalRepeatTimeSeconds = 30;//360;
+    static const uint32_t kTransactionCheckingSignalSmallRepeatTimeSeconds = 10;//60;
 
     // block number updating period
     static const byte kBlockNumberUpdateHours = 0;
@@ -128,7 +148,7 @@ private:
     pair<BlockNumber, DateTime> mLastUpdatedBlockNumber;
 
     IOService &mIOService;
-    as::steady_timer mInitialRequestTimer;
+    as::steady_timer mBlockNumberRequestTimer;
     as::steady_timer mClaimsTimer;
     as::steady_timer mTransactionsTimer;
     as::steady_timer mRequestsTimer;

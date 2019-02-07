@@ -634,8 +634,15 @@ const bool TrustLinesManager::trustLineIsActive(
 bool TrustLinesManager::isReservationsPresentOnTrustLine(
     ContractorID contractorID) const
 {
-    return mAmountReservationsHandler->isReservationsPresent(
+    return mAmountReservationsHandler->isReservationsPresentWithContractor(
         contractorID);
+}
+
+bool TrustLinesManager::isReservationsPresentConsiderTransaction(
+    const TransactionUUID &transactionUUID) const
+{
+    return mAmountReservationsHandler->isTransactionReservationsPresent(
+        transactionUUID);
 }
 
 /**

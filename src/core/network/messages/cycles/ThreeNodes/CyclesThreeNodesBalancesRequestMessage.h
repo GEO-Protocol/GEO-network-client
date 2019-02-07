@@ -25,8 +25,7 @@ public:
 
     vector<BaseAddress::Shared> neighbors();
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
     vector<BaseAddress::Shared> mNeighbors;

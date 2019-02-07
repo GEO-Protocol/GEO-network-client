@@ -5,11 +5,11 @@ ObservingTransactionsResponseMessage::ObservingTransactionsResponseMessage(
 {
     size_t bytesBufferOffset = 0;
 
-//    memcpy(
-//        &mActualBlockNumber,
-//        buffer.get() + bytesBufferOffset,
-//        sizeof(BlockNumber));
-//    bytesBufferOffset += sizeof(BlockNumber);
+    memcpy(
+        &mActualBlockNumber,
+        buffer.get() + bytesBufferOffset,
+        sizeof(BlockNumber));
+    bytesBufferOffset += sizeof(BlockNumber);
 
     SerializedRecordsCount kRecordsCount;
     memcpy(
@@ -19,15 +19,10 @@ ObservingTransactionsResponseMessage::ObservingTransactionsResponseMessage(
     bytesBufferOffset += sizeof(SerializedRecordsCount);
 
     for (SerializedRecordNumber i = 0; i < kRecordsCount; ++i) {
-//        TransactionUUID transactionUUID(buffer.get() + bytesBufferOffset);
-//        bytesBufferOffset += TransactionUUID::kBytesSize;
-        auto transactionUUID = TransactionUUID::empty();
-
         auto *state = new (buffer.get() + bytesBufferOffset) ObservingTransaction::SerializedObservingResponseType;
         bytesBufferOffset += sizeof(ObservingTransaction::SerializedObservingResponseType);
 
-        mTransactionsAndResponses.emplace_back(
-            transactionUUID,
+        mTransactionsAndResponses.push_back(
             (ObservingTransaction::ObservingResponseType)(*state));
     }
 }
@@ -42,7 +37,7 @@ BlockNumber ObservingTransactionsResponseMessage::actualBlockNumber() const
     return mActualBlockNumber;
 }
 
-vector<pair<TransactionUUID, ObservingTransaction::ObservingResponseType>> ObservingTransactionsResponseMessage::transactionsAndResponses() const
+vector<ObservingTransaction::ObservingResponseType> ObservingTransactionsResponseMessage::transactionsResponses() const
 {
     return mTransactionsAndResponses;
 }

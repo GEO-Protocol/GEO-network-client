@@ -40,7 +40,6 @@ vector<BaseAddress::Shared> MaxFlowCalculationMessage::targetAddresses() const
 }
 
 pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = SenderMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
@@ -80,7 +79,6 @@ pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() const
 }
 
 const size_t MaxFlowCalculationMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
     auto kOffset = SenderMessage::kOffsetToInheritedBytes()
            + sizeof(byte);

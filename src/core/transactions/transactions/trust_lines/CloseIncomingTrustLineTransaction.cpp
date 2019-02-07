@@ -207,7 +207,8 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
         sendMessage<PingMessage>(
             mContractorID,
             0,
-            mContractorsManager->idOnContractorSide(mContractorID));
+            mContractorID,
+            mContractorsManager->selfContractor()->addresses());
         info() << "Transaction will be closed and send ping";
         return resultDone();
     }

@@ -45,7 +45,7 @@ void TransactionsScheduler::scheduleTransaction(
             warning() << "scheduleTransaction: Duplicate TransactionUUID. Already exists. "
                       << "Current TA type: " << transaction->transactionType()
                       << ". Conflicted TA type:" << transactionAndState.first->transactionType();
-            throw ConflictError("Duplicate Transaction NodeUUID");
+            throw ConflictError("Duplicate TransactionUUID");
         }
     }
     (*mTransactions)[transaction] = TransactionState::awakeAsFastAsPossible();
@@ -62,7 +62,7 @@ void TransactionsScheduler::postponeTransaction(
             warning() << "scheduleTransaction: Duplicate TransactionUUID. Already exists. "
                       << "Current TA type: " << transaction->transactionType()
                       << ". Conflicted TA type:" << transactionAndState.first->transactionType();
-            throw ConflictError("Duplicate Transaction NodeUUID");
+            throw ConflictError("Duplicate TransactionUUID");
         }
     }
     (*mTransactions)[transaction] = TransactionState::awakeAfterMilliseconds(millisecondsDelay);
@@ -181,7 +181,7 @@ void TransactionsScheduler::launchTransaction(
 
     } catch (exception &e) {
         error() << "TA error occurred:"
-            << " NodeUUID: " << transaction->currentTransactionUUID()
+            << " TransactionUUID: " << transaction->currentTransactionUUID()
             << " Type: " << transaction->transactionType()
             << " Step: " << transaction->currentStep()
             << " Error message: " << e.what()
@@ -273,7 +273,7 @@ void TransactionsScheduler::forgetTransaction(
         && kTAType <= BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
 
         info() << "Payment or cycle closing TA has been forgotten:"
-                << " NodeUUID: " << transaction->currentTransactionUUID()
+                << " TransactionUUID: " << transaction->currentTransactionUUID()
                 << " Type: " << transaction->transactionType()
                 << " Step: " << transaction->currentStep();
     }
@@ -468,7 +468,7 @@ const BaseTransaction::Shared TransactionsScheduler::cycleClosingTransactionByUU
         }
     }
     throw NotFoundError("TransactionsScheduler::cycleClosingTransactionByUUID: "
-                         "there is no transaction with requested NodeUUID");
+                         "there is no transaction with requested UUID");
 }
 
 bool TransactionsScheduler::isTransactionInProcess(

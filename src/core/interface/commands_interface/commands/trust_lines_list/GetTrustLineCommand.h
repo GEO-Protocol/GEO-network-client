@@ -5,9 +5,7 @@
 #include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/exceptions/ValueError.h"
 
-
-class GetTrustLineCommand :
-    public BaseUserCommand {
+class GetTrustLineCommand : public BaseUserCommand {
 
 public:
     typedef shared_ptr<GetTrustLineCommand> Shared;

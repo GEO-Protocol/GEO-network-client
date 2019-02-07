@@ -26,8 +26,7 @@ public:
 protected:
     virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
-    const size_t kOffsetToInheritedBytes() const
-    noexcept;
+    const size_t kOffsetToInheritedBytes() const override;
 
 private:
     vector<pair<PathID, ConstSharedTrustLineAmount>> mFinalAmountsConfiguration;

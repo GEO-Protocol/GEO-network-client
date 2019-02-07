@@ -44,8 +44,7 @@ public:
     pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
-    const size_t kOffsetToInheritedBytes() const
-    noexcept;
+    const size_t kOffsetToInheritedBytes() const override;
 
 private:
     AuditNumber mAuditNumber;

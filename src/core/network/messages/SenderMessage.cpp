@@ -65,7 +65,6 @@ pair<BytesShared, size_t> SenderMessage::serializeToBytes() const
 }
 
 const size_t SenderMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
     auto kOffset =
         EquivalentMessage::kOffsetToInheritedBytes()

@@ -25,8 +25,7 @@ public:
 
     const lamport::Signature::Shared signature() const;
 
-    pair<BytesShared, size_t> serializeToBytes() const
-        throw(bad_alloc);
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     lamport::Signature::Shared mSignature;

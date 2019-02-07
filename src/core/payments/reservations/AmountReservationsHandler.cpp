@@ -197,7 +197,7 @@ vector<AmountReservation::ConstShared> AmountReservationsHandler::reservations(
     }
 }
 
-bool AmountReservationsHandler::isReservationsPresent(
+bool AmountReservationsHandler::isReservationsPresentWithContractor(
     ContractorID trustLineContractorID) const
 {
     return mReservations.find(trustLineContractorID) != mReservations.end();
@@ -216,4 +216,17 @@ const vector<AmountReservation::ConstShared> AmountReservationsHandler::contract
             result.push_back(lock);
     }
     return result;
+}
+
+bool AmountReservationsHandler::isTransactionReservationsPresent(
+    const TransactionUUID &transactionUUID) const
+{
+    for (const auto &contractorAndReservations : mReservations) {
+        for (const auto &reservation : *contractorAndReservations.second) {
+            if (reservation->transactionUUID() == transactionUUID) {
+                return true;
+            }
+        }
+    }
+    return false;
 }

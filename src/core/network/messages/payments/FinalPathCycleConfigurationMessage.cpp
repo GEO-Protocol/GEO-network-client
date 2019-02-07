@@ -130,12 +130,7 @@ const lamport::KeyHash::Shared FinalPathCycleConfigurationMessage::transactionPu
     return mTransactionPublicKeyHash;
 }
 
-/*!
- *
- * Throws bad_alloc;
- */
 pair<BytesShared, size_t> FinalPathCycleConfigurationMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = RequestCycleMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second

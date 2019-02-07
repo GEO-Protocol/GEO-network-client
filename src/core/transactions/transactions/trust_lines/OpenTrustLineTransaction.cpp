@@ -229,12 +229,13 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
                 kWaitMillisecondsForResponse);
         }
         info() << "Transaction will be closed and send ping";
+        // contractor don't have info about current node yet, that's why we send contractorID on our side
+        // and contractor will return this id for pong identifying on address included in message
         sendMessage<PingMessage>(
             mContractorID,
             0,
-            // todo : contractor don't have info about current node yet, that's why we send contractorID on our side
-            // and contractor will return this id for pong identifying
-            mContractorID);
+            mContractorID,
+            mContractorsManager->selfContractor()->addresses());
         return resultDone();
     }
     auto message = popNextMessage<TrustLineConfirmationMessage>();

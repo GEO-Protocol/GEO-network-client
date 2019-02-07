@@ -61,7 +61,6 @@ const lamport::Signature::Shared AuditResponseMessage::signature() const
 }
 
 pair<BytesShared, size_t> AuditResponseMessage::serializeToBytes() const
-throw (bad_alloc)
 {
     const auto parentBytesAndCount = ConfirmationMessage::serializeToBytes();
     auto kBufferSize = parentBytesAndCount.second;

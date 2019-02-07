@@ -18,8 +18,7 @@ public:
         BytesShared buffer);
 
 public:
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-    throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
     vector<BaseAddress::Shared> BoundaryNodes() const;
 

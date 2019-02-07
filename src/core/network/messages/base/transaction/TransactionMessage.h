@@ -48,8 +48,7 @@ public:
         noexcept;
 
 protected:
-    const size_t kOffsetToInheritedBytes() const
-        noexcept;
+    const size_t kOffsetToInheritedBytes() const override;
 
     const bool isTransactionMessage() const
         noexcept;

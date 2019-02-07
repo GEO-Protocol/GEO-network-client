@@ -34,7 +34,6 @@ const lamport::Signature::Shared ParticipantVoteMessage::signature() const
 }
 
 pair<BytesShared, size_t> ParticipantVoteMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 

@@ -147,7 +147,6 @@ pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
 }
 
 const size_t AuditMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
     const auto kOffset =
             DestinationMessage::kOffsetToInheritedBytes()

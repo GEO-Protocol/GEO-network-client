@@ -32,6 +32,9 @@ public:
     map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures(
         const TransactionUUID &transactionUUID);
 
+    void deleteRecords(
+        const TransactionUUID &transactionUUID);
+
 private:
     LoggerStream info() const;
 

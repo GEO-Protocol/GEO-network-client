@@ -14,7 +14,6 @@ BaseUserCommand::BaseUserCommand(
     mCommandIdentifier(identifier)
 {}
 
-
 const CommandUUID &BaseUserCommand::UUID() const
 {
     return mCommandUUID;

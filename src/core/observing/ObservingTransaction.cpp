@@ -1,16 +1,18 @@
 #include "ObservingTransaction.h"
 
 ObservingTransaction::ObservingTransaction(
-    ObservingClaimAppendRequestMessage::Shared observingRequestMessage,
-    IPv4WithPortAddress::Shared requestedObserver,
-    ObservingResponseType initialObservingResponse) :
+    ObservingClaimAppendRequestMessage::Shared observingRequestMessage) :
     mRequest(observingRequestMessage),
-    mResponse(initialObservingResponse)
+    mResponse(NoInfo)
+{
+    mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestPeriodSeconds);
+}
+
+void ObservingTransaction::addRequestedObserver(
+    IPv4WithPortAddress::Shared requestedObserver)
 {
     mRequestedObservers.push_back(
         requestedObserver);
-
-    mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestPeriodSeconds);
 }
 
 ObservingClaimAppendRequestMessage::Shared ObservingTransaction::observingRequestMessage() const
@@ -34,6 +36,11 @@ const TransactionUUID & ObservingTransaction::transactionUUID() const
     return mRequest->transactionUUID();
 }
 
+IPv4WithPortAddress::Shared ObservingTransaction::requestedObserver() const
+{
+    return mRequestedObservers.front();
+}
+
 const DateTime &ObservingTransaction::nextActionDateTime()
 {
     return mNextActionDateTime;
@@ -42,4 +49,9 @@ const DateTime &ObservingTransaction::nextActionDateTime()
 void ObservingTransaction::rescheduleNextActionTime()
 {
     mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestPeriodSeconds);
+}
+
+void ObservingTransaction::rescheduleNextActionSmallTime()
+{
+    mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestSmallPeriodSeconds);
 }

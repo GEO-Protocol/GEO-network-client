@@ -4,9 +4,7 @@
 #include "../BaseUserCommand.h"
 #include "../../../../common/exceptions/ValueError.h"
 
-
-class GetTrustLinesCommand :
-    public BaseUserCommand {
+class GetTrustLinesCommand : public BaseUserCommand {
 
 public:
     typedef shared_ptr<GetTrustLinesCommand> Shared;

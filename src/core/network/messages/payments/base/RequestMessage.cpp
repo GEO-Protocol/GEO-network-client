@@ -44,14 +44,8 @@ const PathID &RequestMessage::pathID() const
     return mPathID;
 }
 
-/*!
- *
- * Throws bad_alloc;
- */
 pair<BytesShared, size_t> RequestMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
-
     auto serializedAmount = trustLineAmountToBytes(mAmount); // TODO: serialize only non-zero
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount =
@@ -85,7 +79,6 @@ pair<BytesShared, size_t> RequestMessage::serializeToBytes() const
 }
 
 const size_t RequestMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
     const size_t offset =
         TransactionMessage::kOffsetToInheritedBytes()

@@ -26,8 +26,7 @@ public:
 
     const bool isAddToConfirmationNotStronglyRequiredMessagesHandler() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
     const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlows() const;
 

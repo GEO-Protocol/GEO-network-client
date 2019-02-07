@@ -37,7 +37,6 @@ const Message::MessageType MaxFlowCalculationTargetSndLevelMessage::typeID() con
 }
 
 pair<BytesShared, size_t> MaxFlowCalculationTargetSndLevelMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = MaxFlowCalculationMessage::serializeToBytes();
     size_t bytesCount =

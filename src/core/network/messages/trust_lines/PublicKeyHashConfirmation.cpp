@@ -62,7 +62,6 @@ const lamport::KeyHash::Shared PublicKeyHashConfirmation::hashConfirmation() con
 }
 
 pair<BytesShared, size_t> PublicKeyHashConfirmation::serializeToBytes() const
-    throw (bad_alloc)
 {
     const auto parentBytesAndCount = ConfirmationMessage::serializeToBytes();
     auto kBufferSize = parentBytesAndCount.second;

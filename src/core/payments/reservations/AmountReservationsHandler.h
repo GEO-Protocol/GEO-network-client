@@ -31,12 +31,15 @@ public:
         const AmountReservation::ReservationDirection direction,
         const TransactionUUID *transactionUUID = nullptr) const;
 
-    bool isReservationsPresent(
+    bool isReservationsPresentWithContractor(
         ContractorID trustLineContractorID) const;
 
     const vector<AmountReservation::ConstShared> contractorReservations(
         ContractorID contractorID,
         const AmountReservation::ReservationDirection direction) const;
+
+    bool isTransactionReservationsPresent(
+        const TransactionUUID& transactionUUID) const;
 
 protected:
     // One trust line may hold several amount reservations,

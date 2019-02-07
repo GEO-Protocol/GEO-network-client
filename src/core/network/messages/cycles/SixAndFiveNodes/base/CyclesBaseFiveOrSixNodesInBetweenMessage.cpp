@@ -33,7 +33,6 @@ CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage
 }
 
 pair<BytesShared, size_t> CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = SenderMessage::serializeToBytes();
     auto kNodesInPath = (SerializedPathLengthSize)mPath.size();
@@ -72,7 +71,7 @@ pair<BytesShared, size_t> CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBy
         bytesCount);
 }
 
-const size_t CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes()
+const size_t CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes() const
 {
     auto kNodesInPath = (SerializedPathLengthSize)mPath.size();
     size_t offset = SenderMessage::kOffsetToInheritedBytes()

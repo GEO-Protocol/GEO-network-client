@@ -75,7 +75,6 @@ const bool ResultMaxFlowCalculationMessage::isAddToConfirmationNotStronglyRequir
 }
 
 pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = MaxFlowCalculationConfirmationMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second

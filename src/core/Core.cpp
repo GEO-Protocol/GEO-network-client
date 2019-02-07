@@ -426,7 +426,7 @@ void Core::connectObservingSignals()
 {
     mTransactionsManager->observingClaimSignal.connect(
         boost::bind(
-            &Core::onMessageSendToObserverSlot,
+            &Core::onClaimSendToObserverSlot,
             this,
             _1));
 
@@ -451,6 +451,26 @@ void Core::connectObservingSignals()
             this,
             _1,
             _2));
+
+    mObservingHandler->mUncertainTransactionSignal.connect(
+        boost::bind(
+            &Core::onObservingTransactionUncertainSlot,
+            this,
+            _1,
+            _2));
+
+    mObservingHandler->mCancelTransactionSignal.connect(
+        boost::bind(
+            &Core::onObservingTransactionCancelingSlot,
+            this,
+            _1,
+            _2));
+
+    mObservingHandler->mAllowPaymentTransactionsSignal.connect(
+        boost::bind(
+            &Core::onObservingAllowPaymentTransactionsSlot,
+            this,
+            _1));
 }
 
 void Core::connectResourcesManagerSignals()
@@ -640,7 +660,7 @@ void Core::onMessageSendWithCachingSlot(
     }
 }
 
-void Core::onMessageSendToObserverSlot(
+void Core::onClaimSendToObserverSlot(
     ObservingClaimAppendRequestMessage::Shared message)
 {
     mObservingHandler->sendClaimRequestToObservers(message);
@@ -673,6 +693,31 @@ void Core::onObservingTransactionRejectSlot(
     mTransactionsManager->launchPaymentTransactionForObservingRejecting(
         transactionUUID,
         maximalClaimingBlockNumber);
+}
+
+void Core::onObservingTransactionUncertainSlot(
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber)
+{
+    mTransactionsManager->launchPaymentTransactionForObservingUncertainStage(
+        transactionUUID,
+        maximalClaimingBlockNumber);
+}
+
+void Core::onObservingTransactionCancelingSlot(
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber)
+{
+    mTransactionsManager->launchCancelingPaymentTransaction(
+        transactionUUID,
+        maximalClaimingBlockNumber);
+}
+
+void Core::onObservingAllowPaymentTransactionsSlot(
+    bool allowPaymentTransactions)
+{
+    mTransactionsManager->allowPaymentTransactionsDueToObserving(
+        allowPaymentTransactions);
 }
 
 void Core::onPathsResourceRequestedSlot(

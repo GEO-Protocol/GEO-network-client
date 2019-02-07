@@ -44,7 +44,6 @@ DestinationMessage::DestinationMessage(
 }
 
 const ContractorID DestinationMessage::destinationID() const
-    noexcept
 {
     return mDestinationID;
 }
@@ -84,7 +83,6 @@ pair<BytesShared, size_t> DestinationMessage::serializeToBytes() const
 }
 
 const size_t DestinationMessage::kOffsetToInheritedBytes() const
-noexcept
 {
     const auto kOffset =
         TransactionMessage::kOffsetToInheritedBytes()

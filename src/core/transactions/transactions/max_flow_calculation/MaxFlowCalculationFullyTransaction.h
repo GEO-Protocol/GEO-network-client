@@ -38,7 +38,7 @@ private:
     void calculateMaxFlowOnOneLevel();
 
     TrustLineAmount calculateOneNode(
-        ContractorID nodeUUID,
+        ContractorID nodeID,
         const TrustLineAmount &currentFlow,
         byte level);
 

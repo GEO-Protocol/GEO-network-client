@@ -35,11 +35,7 @@ const Message::MessageType CoordinatorCycleReservationRequestMessage::typeID() c
     return Message::Payments_CoordinatorCycleReservationRequest;
 }
 
-/**
- * @throws bad_alloc;
- */
 pair<BytesShared, size_t> CoordinatorCycleReservationRequestMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = RequestCycleMessage::serializeToBytes();
     size_t totalBytesCount =

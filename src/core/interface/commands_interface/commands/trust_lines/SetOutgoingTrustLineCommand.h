@@ -6,7 +6,6 @@
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../../../common/exceptions/ValueError.h"
 
-
 using namespace std;
 
 /**

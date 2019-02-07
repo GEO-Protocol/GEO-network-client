@@ -285,7 +285,8 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         sendMessage<PingMessage>(
             mContractorID,
             0,
-            mContractorsManager->idOnContractorSide(mContractorID));
+            mContractorID,
+            mContractorsManager->selfContractor()->addresses());
         return resultDone();
     }
 

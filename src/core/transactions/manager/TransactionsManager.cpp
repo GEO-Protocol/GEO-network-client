@@ -26,6 +26,7 @@ TransactionsManager::TransactionsManager(
     mLog(logger),
     mSubsystemsController(subsystemsController),
     mTrustLinesInfluenceController(trustLinesInfluenceController),
+    isPaymentTransactionsAllowedDueToObserving(false),
 
     mScheduler(
         new TransactionsScheduler(
@@ -984,6 +985,11 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
 void TransactionsManager::launchCoordinatorPaymentTransaction(
     CreditUsageCommand::Shared command)
 {
+    if (!isPaymentTransactionsAllowedDueToObserving) {
+        warning() << "It is forbid to run payment transactions due to observing";
+        // todo : inform about fail as result
+        return;
+    }
     try {
         auto transaction = make_shared<CoordinatorPaymentTransaction>(
             command,
@@ -1023,6 +1029,11 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
 void TransactionsManager::launchReceiverPaymentTransaction(
     ReceiverInitPaymentRequestMessage::Shared message)
 {
+    if (!isPaymentTransactionsAllowedDueToObserving) {
+        warning() << "It is forbid to run payment transactions due to observing";
+        // todo : inform about fail by message
+        return;
+    }
     try {
         auto transaction = make_shared<ReceiverPaymentTransaction>(
             message,
@@ -1061,6 +1072,11 @@ void TransactionsManager::launchReceiverPaymentTransaction(
 void TransactionsManager::launchIntermediateNodePaymentTransaction(
     IntermediateNodeReservationRequestMessage::Shared message)
 {
+    if (!isPaymentTransactionsAllowedDueToObserving) {
+        warning() << "It is forbid to run payment transactions due to observing";
+        // todo : inform about fail by message
+        return;
+    }
     try {
         auto transaction = make_shared<IntermediateNodePaymentTransaction>(
             message,
@@ -1185,7 +1201,7 @@ void TransactionsManager::launchPaymentTransactionForObservingRejecting(
             transactionTypeId,
             *equivalent);
         if (paymentTransaction == nullptr) {
-            error() << "Can't find deserialize payment TA: " << transactionUUID;
+            error() << "Can't deserialize payment TA: " << transactionUUID;
             return;
         }
         paymentTransaction->setTransactionState(
@@ -1201,10 +1217,66 @@ void TransactionsManager::launchPaymentTransactionForObservingRejecting(
     }
 }
 
+void TransactionsManager::launchPaymentTransactionForObservingUncertainStage(
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber)
+{
+    info() << "launchPaymentTransactionForObservingUncertainStage";
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    try {
+        auto serializedPaymentTransaction = ioTransaction->transactionHandler()->getTransaction(
+            transactionUUID);
+        auto *transactionType =
+            new (serializedPaymentTransaction.get()) BaseTransaction::SerializedTransactionType;
+        auto transactionTypeId = *transactionType;
+        if (transactionTypeId != BaseTransaction::IntermediateNodePaymentTransaction and
+            transactionTypeId != BaseTransaction::ReceiverPaymentTransaction and
+            transactionTypeId != BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
+            error() << "Transaction " << transactionUUID << " is not payment transaction";
+            return;
+        }
+        auto *equivalent =
+            new (serializedPaymentTransaction.get()
+                 + sizeof(BaseTransaction::SerializedTransactionType)) SerializedEquivalent;
+        auto paymentTransaction = deserializePaymentTransaction(
+            serializedPaymentTransaction,
+            transactionTypeId,
+            *equivalent);
+        if (paymentTransaction == nullptr) {
+            error() << "Can't deserialize payment TA: " << transactionUUID;
+            return;
+        }
+        paymentTransaction->setTransactionState(
+            BasePaymentTransaction::Common_Uncertain);
+        auto bytesAndCount = paymentTransaction->serializeToBytes();
+        info() << "Transaction serialized";
+        ioTransaction->transactionHandler()->saveRecord(
+            transactionUUID,
+            bytesAndCount.first,
+            bytesAndCount.second);
+        info() << "Transaction saved";
+    } catch (NotFoundError &e) {
+        error() << "Can't find serialized TA: " << transactionUUID;
+        return;
+    }
+}
+
+void TransactionsManager::launchCancelingPaymentTransaction(
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber)
+{
+    info() << "launchCancelingPaymentTransaction";
+    // todo : develop transaction which will revert all changes which were made on during transaction transactionUUID
+}
+
 void TransactionsManager::onCloseCycleTransaction(
     const SerializedEquivalent equivalent,
     Path::Shared cycle)
 {
+    if (!isPaymentTransactionsAllowedDueToObserving) {
+        warning() << "It is forbid to run payment transactions due to observing";
+        return;
+    }
     try {
         auto transaction = make_shared<CycleCloserInitiatorTransaction>(
             cycle,
@@ -1239,6 +1311,10 @@ void TransactionsManager::onCloseCycleTransaction(
 void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
     IntermediateNodeCycleReservationRequestMessage::Shared message)
 {
+    if (!isPaymentTransactionsAllowedDueToObserving) {
+        warning() << "It is forbid to run payment transactions due to observing";
+        return;
+    }
     try{
         auto transaction = make_shared<CycleCloserIntermediateNodeTransaction>(
             message,
@@ -1868,6 +1944,12 @@ void TransactionsManager::attachResourceToTransaction(
 {
     mScheduler->tryAttachResourceToTransaction(
         resource);
+}
+
+void TransactionsManager::allowPaymentTransactionsDueToObserving(
+    bool allowPaymentTransactions)
+{
+    isPaymentTransactionsAllowedDueToObserving = allowPaymentTransactions;
 }
 
 void TransactionsManager::subscribeForSubsidiaryTransactions(

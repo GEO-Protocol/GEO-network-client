@@ -237,8 +237,8 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
         sendMessage<PingMessage>(
             mContractorID,
             0,
-            mContractorsManager->idOnContractorSide(
-                mContractorID));
+            mContractorID,
+            mContractorsManager->selfContractor()->addresses());
         return resultDone();
     }
 

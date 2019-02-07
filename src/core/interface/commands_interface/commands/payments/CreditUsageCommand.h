@@ -9,7 +9,6 @@
 #include "../../../../common/exceptions/ValueError.h"
 #include "../../../../common/exceptions/MemoryError.h"
 
-
 class CreditUsageCommand:
     public BaseUserCommand {
 

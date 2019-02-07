@@ -62,7 +62,7 @@ void CommunicatorMessagesQueueHandler::saveRecord(
         throw IOError("CommunicatorMessagesQueueHandler::insert: "
                           "Bad binding of Equivalent; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 3, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 3, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::insert: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
@@ -162,7 +162,7 @@ void CommunicatorMessagesQueueHandler::deleteRecord(
         throw IOError("CommunicatorMessagesQueueHandler::delete: "
                           "Bad binding of ContractorID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 2, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 2, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::delete: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));

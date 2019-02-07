@@ -21,12 +21,11 @@ public:
         const map<PaymentNodeID, lamport::PublicKey::Shared>& publicKeys);
 
     ParticipantsPublicKeysMessage(
-            BytesShared buffer);
+        BytesShared buffer);
 
     const MessageType typeID() const;
 
-    pair<BytesShared, size_t> serializeToBytes() const
-        throw(bad_alloc);
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
     const map<PaymentNodeID, lamport::PublicKey::Shared>& publicKeys() const;
 

@@ -44,7 +44,6 @@ CyclesFourNodesNegativeBalanceRequestMessage::CyclesFourNodesNegativeBalanceRequ
 }
 
 pair<BytesShared, size_t> CyclesFourNodesNegativeBalanceRequestMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 

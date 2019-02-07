@@ -18,11 +18,11 @@ public:
 
     BlockNumber actualBlockNumber() const;
 
-    vector<pair<TransactionUUID, ObservingTransaction::ObservingResponseType>> transactionsAndResponses() const;
+    vector<ObservingTransaction::ObservingResponseType> transactionsResponses() const;
 
 private:
     BlockNumber mActualBlockNumber;
-    vector<pair<TransactionUUID, ObservingTransaction::ObservingResponseType>> mTransactionsAndResponses;
+    vector<ObservingTransaction::ObservingResponseType> mTransactionsAndResponses;
 };
 
 

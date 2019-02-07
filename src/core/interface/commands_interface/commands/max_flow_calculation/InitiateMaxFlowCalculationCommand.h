@@ -1,7 +1,6 @@
 #ifndef GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONCOMMAND_H
 #define GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONCOMMAND_H
 
-
 #include "../BaseUserCommand.h"
 #include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/exceptions/ValueError.h"

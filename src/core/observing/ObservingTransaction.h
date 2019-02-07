@@ -23,9 +23,10 @@ public:
     typedef byte SerializedObservingResponseType;
 
     ObservingTransaction(
-        ObservingClaimAppendRequestMessage::Shared observingRequestMessage,
-        IPv4WithPortAddress::Shared requestedObserver,
-        ObservingResponseType initialObservingResponse);
+        ObservingClaimAppendRequestMessage::Shared observingRequestMessage);
+
+    void addRequestedObserver(
+        IPv4WithPortAddress::Shared requestedObserver);
 
     ObservingClaimAppendRequestMessage::Shared observingRequestMessage() const;
 
@@ -36,6 +37,8 @@ public:
 
     const TransactionUUID& transactionUUID() const;
 
+    IPv4WithPortAddress::Shared requestedObserver() const;
+
     /**
      * @returns date time when next action must be scheduled.
      */
@@ -43,8 +46,12 @@ public:
 
     void rescheduleNextActionTime();
 
+    void rescheduleNextActionSmallTime();
+
 private:
-    static const uint16_t kClaimRequestPeriodSeconds = 60;
+    static const uint16_t kClaimRequestPeriodSeconds = 30;//60;
+
+    static const uint16_t kClaimRequestSmallPeriodSeconds = 10;//30;
 
 private:
     ObservingClaimAppendRequestMessage::Shared mRequest;

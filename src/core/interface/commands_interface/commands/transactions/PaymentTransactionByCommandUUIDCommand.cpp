@@ -23,7 +23,7 @@ PaymentTransactionByCommandUUIDCommand::PaymentTransactionByCommandUUIDCommand(
     } catch (...) {
         throw ValueError(
             "PaymentTransactionByCommandUUIDCommand: can't parse command. "
-                    "Error occurred while parsing 'Payment transaction command NodeUUID' token.");
+                    "Error occurred while parsing 'Payment transaction commandUUID' token.");
     }
 }
 

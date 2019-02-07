@@ -112,8 +112,8 @@ vector<BaseAddress::Shared> CyclesThreeNodesInitTransaction::getNeighborsWithCon
         return commonNeighbors;
     }
 
-    for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()) {
-        const auto kTL = kNodeUUIDAndTrustLine.second;
+    for (const auto &kContractorIDAndTrustLine: mTrustLinesManager->trustLines()) {
+        const auto kTL = kContractorIDAndTrustLine.second;
         if (kTL->state() != TrustLine::Active) {
             continue;
         }
@@ -121,12 +121,12 @@ vector<BaseAddress::Shared> CyclesThreeNodesInitTransaction::getNeighborsWithCon
             if (kTL->balance() > TrustLine::kZeroBalance())
                 ownNeighbors.push_back(
                     mContractorsManager->contractorMainAddress(
-                        kNodeUUIDAndTrustLine.first));
+                        kContractorIDAndTrustLine.first));
         }
         else if (kTL->balance() < TrustLine::kZeroBalance())
             ownNeighbors.push_back(
                 mContractorsManager->contractorMainAddress(
-                    kNodeUUIDAndTrustLine.first));
+                    kContractorIDAndTrustLine.first));
     }
     const auto contractorNeighbors = mRougingTable->secondLevelContractorsForNode(
         mContractorID);
