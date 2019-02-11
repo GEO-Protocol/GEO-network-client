@@ -12,6 +12,7 @@ TransactionsManager::TransactionsManager(
     ResultsInterface *resultsInterface,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    EventsInterface *eventsInterface,
     Logger &logger,
     SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController) :
@@ -23,6 +24,7 @@ TransactionsManager::TransactionsManager(
     mResultsInterface(resultsInterface),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
+    mEventsInterface(eventsInterface),
     mLog(logger),
     mSubsystemsController(subsystemsController),
     mTrustLinesInfluenceController(trustLinesInfluenceController),
@@ -1002,6 +1004,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mResourcesManager,
             mEquivalentsSubsystemsRouter->pathsManager(command->equivalent()),
             mKeysStore,
+            mEventsInterface,
             mLog,
             mSubsystemsController);
         subscribeForBuildCyclesThreeNodesTransaction(

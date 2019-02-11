@@ -75,12 +75,27 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initContractorsManager(conf);
+    initCode = initResourcesManager();
     if (initCode != 0) {
         return initCode;
     }
 
-    initCode = initResourcesManager();
+    initCode = initCommandsInterface();
+    if (initCode != 0) {
+        return initCode;
+    }
+
+    initCode = initResultsInterface();
+    if (initCode != 0) {
+        return initCode;
+    }
+
+    initCode = initEventsInterface();
+    if (initCode != 0) {
+        return initCode;
+    }
+
+    initCode = initContractorsManager(conf);
     if (initCode != 0) {
         return initCode;
     }
@@ -91,11 +106,6 @@ int Core::initSubsystems()
     }
 
     initCode = initObservingHandler(conf);
-    if (initCode != 0) {
-        return initCode;
-    }
-
-    initCode = initResultsInterface();
     if (initCode != 0) {
         return initCode;
     }
@@ -126,7 +136,7 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initCommandsInterface();
+    initCode = initTopologyEventDelayedTask();
     if (initCode != 0) {
         return initCode;
     }
@@ -213,6 +223,20 @@ int Core::initResultsInterface()
     }
 }
 
+int Core::initEventsInterface()
+{
+    try {
+        mEventsInterface = make_unique<EventsInterface>(
+            *mLog);
+        info() << "Events interface is successfully initialised";
+        return 0;
+
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
 int Core::initEquivalentsSubsystemsRouter(
     vector<SerializedEquivalent> equivalentIAmGateway)
 {
@@ -221,6 +245,7 @@ int Core::initEquivalentsSubsystemsRouter(
             mStorageHandler.get(),
             mKeysStore.get(),
             mContractorsManager.get(),
+            mEventsInterface.get(),
             mIOService,
             equivalentIAmGateway,
             *mLog);
@@ -256,6 +281,7 @@ int Core::initTransactionsManager()
             mResultsInterface.get(),
             mStorageHandler.get(),
             mKeysStore.get(),
+            mEventsInterface.get(),
             *mLog,
             mSubsystemsController.get(),
             mTrustLinesInfluenceController.get());
@@ -347,6 +373,21 @@ int Core::initKeysStore()
             *mLog);
         mKeysStore->init();
         info() << "Keys store is successfully initialized";
+        return 0;
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initTopologyEventDelayedTask()
+{
+    try {
+        mTopologyEventDelayedTask = make_unique<TopologyEventDelayedTask>(
+            mIOService,
+            mEquivalentsSubsystemsRouter.get(),
+            *mLog);
+        info() << "Topology Event Delayed Task is successfully initialized";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);

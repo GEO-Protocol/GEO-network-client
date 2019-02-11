@@ -4,6 +4,7 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     StorageHandler *storageHandler,
     Keystore *keystore,
     ContractorsManager *contractorsManager,
+    EventsInterface *eventsInterface,
     as::io_service &ioService,
     vector<SerializedEquivalent> &equivalentsIAmGateway,
     Logger &logger):
@@ -11,6 +12,7 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
     mContractorsManager(contractorsManager),
+    mEventsInterface(eventsInterface),
     mIOService(ioService),
     mLogger(logger)
 {
@@ -257,6 +259,17 @@ set<ContractorID> EquivalentsSubsystemsRouter::contractorsShouldBePinged() const
 void EquivalentsSubsystemsRouter::clearContractorsShouldBePinged()
 {
     mContractorsShouldBePinged.clear();
+}
+
+void EquivalentsSubsystemsRouter::sendTopologyEvent() const
+{
+    try {
+        mEventsInterface->writeEvent(
+            Event::topologyEvent(
+                mContractorsManager->selfContractor()->mainAddress()));
+    } catch (std::exception &e) {
+        warning() << "Can't write topology event " << e.what();
+    }
 }
 
 void EquivalentsSubsystemsRouter::subscribeForGatewayNotification(
