@@ -25,11 +25,39 @@ const size_t Event::dataSize() const
 }
 
 Event::Shared Event::topologyEvent(
-    BaseAddress::Shared nodeAddress)
+    BaseAddress::Shared nodeAddress,
+    vector<BaseAddress::Shared>& nodeNeighbors)
 {
+    stringstream ss;
+    ss << nodeAddress->fullAddress() << kTokensSeparator << to_string(nodeNeighbors.size());
+    for (const auto &neighbor : nodeNeighbors) {
+        ss << kTokensSeparator << neighbor->fullAddress();
+    }
     return make_shared<Event>(
         EventType::Topology,
-        nodeAddress->fullAddress());
+        ss.str());
+}
+
+Event::Shared Event::initTrustLineEvent(
+    BaseAddress::Shared source,
+    BaseAddress::Shared destination)
+{
+    stringstream ss;
+    ss << source->fullAddress() << kTokensSeparator << destination->fullAddress();
+    return make_shared<Event>(
+        EventType::InitTrustLine,
+        ss.str());
+}
+
+Event::Shared Event::closeTrustLineEvent(
+    BaseAddress::Shared source,
+    BaseAddress::Shared destination)
+{
+    stringstream ss;
+    ss << source->fullAddress() << kTokensSeparator << destination->fullAddress();
+    return make_shared<Event>(
+        EventType::CloseTrustLine,
+        ss.str());
 }
 
 Event::Shared Event::paymentEvent(
@@ -38,8 +66,7 @@ Event::Shared Event::paymentEvent(
     vector<vector<BaseAddress::Shared>>& paymentPaths)
 {
     stringstream ss;
-    ss << coordinatorAddress->fullAddress() << kTokensSeparator
-       << receiverAddress->fullAddress() << kTokensSeparator << to_string(paymentPaths.size());
+    ss << coordinatorAddress->fullAddress() << kTokensSeparator << receiverAddress->fullAddress();
     for (const auto &path : paymentPaths) {
         for (const auto &nodeAddress : path) {
             ss << kTokensSeparator << nodeAddress->fullAddress();

@@ -5,6 +5,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    EventsInterface *eventsInterface,
     bool iAmGateway,
     SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -19,6 +20,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mContractorsManager(contractorsManager),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
+    mEventsInterface(eventsInterface),
     mSubsystemsController(subsystemsController),
     mTrustLinesInfluenceController(trustLinesInfluenceController),
     mIAmGateway(iAmGateway)
@@ -32,6 +34,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    EventsInterface *eventsInterface,
     bool iAmGateway,
     SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -46,6 +49,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mContractorsManager(contractorsManager),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
+    mEventsInterface(eventsInterface),
     mSubsystemsController(subsystemsController),
     mTrustLinesInfluenceController(trustLinesInfluenceController),
     mIAmGateway(iAmGateway)
@@ -191,7 +195,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
     sendMessage<TrustLineInitialMessage>(
         mContractorID,
         mEquivalent,
-        // todo : this field is unuseful, because we don't know our id on contractor side
+        // todo : this field is useless, because we don't know our id on contractor side
         // use different type of messages hierarchy
         0,
         mContractorsManager->ownAddresses(),
@@ -215,7 +219,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
             sendMessage<TrustLineInitialMessage>(
                 mContractorID,
                 mEquivalent,
-                // todo : this field is unuseful, because we don't know our id on contractor side
+                // todo : this field is useless, because we don't know our id on contractor side
                 // use different type of messages hierarchy
                 0,
                 mContractorsManager->ownAddresses(),
@@ -292,6 +296,15 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
         error() << "Attempt to process confirmation from contractor " << mContractorID << " failed. "
                 << "IO transaction can't be completed. Details are: " << e.what();
         throw e;
+    }
+
+    try {
+        mEventsInterface->writeEvent(
+            Event::initTrustLineEvent(
+                mContractorsManager->selfContractor()->mainAddress(),
+                mContractorsManager->contractorMainAddress(mContractorID)));
+    } catch (std::exception &e) {
+        warning() << "Can't write init TL event " << e.what();
     }
 
     publicKeysSharingSignal(mContractorID, mEquivalent);

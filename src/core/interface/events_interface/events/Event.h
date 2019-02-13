@@ -28,7 +28,16 @@ public:
     const size_t dataSize() const;
 
     static Event::Shared topologyEvent(
-        BaseAddress::Shared nodeAddress);
+        BaseAddress::Shared nodeAddress,
+        vector<BaseAddress::Shared>& nodeNeighbors);
+
+    static Event::Shared initTrustLineEvent(
+        BaseAddress::Shared source,
+        BaseAddress::Shared destination);
+
+    static Event::Shared closeTrustLineEvent(
+        BaseAddress::Shared source,
+        BaseAddress::Shared destination);
 
     static Event::Shared paymentEvent(
         BaseAddress::Shared coordinatorAddress,

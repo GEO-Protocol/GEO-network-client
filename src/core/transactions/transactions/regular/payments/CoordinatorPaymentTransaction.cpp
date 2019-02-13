@@ -1523,11 +1523,16 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
         const auto path = mPathsStats[identifier]->path();
         paymentEventPaths.push_back(path->intermediates());
     }
-    mEventsInterface->writeEvent(
-        Event::paymentEvent(
-            mContractorsManager->selfContractor()->mainAddress(),
-            mContractor->mainAddress(),
-            paymentEventPaths));
+
+    try {
+        mEventsInterface->writeEvent(
+            Event::paymentEvent(
+                mContractorsManager->selfContractor()->mainAddress(),
+                mContractor->mainAddress(),
+                paymentEventPaths));
+    } catch (std::exception &e) {
+        warning() << "Can't write payment event " << e.what();
+    }
 
     mCommittedAmount = totalReservedAmount(
         AmountReservation::Outgoing);

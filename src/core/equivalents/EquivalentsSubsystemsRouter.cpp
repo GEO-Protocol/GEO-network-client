@@ -263,12 +263,16 @@ void EquivalentsSubsystemsRouter::clearContractorsShouldBePinged()
 
 void EquivalentsSubsystemsRouter::sendTopologyEvent() const
 {
-    try {
-        mEventsInterface->writeEvent(
-            Event::topologyEvent(
-                mContractorsManager->selfContractor()->mainAddress()));
-    } catch (std::exception &e) {
-        warning() << "Can't write topology event " << e.what();
+    for (const auto &trustLineManager : mTrustLinesManagers) {
+        auto neighbors = trustLineManager.second->firstLevelNeighborsAddresses();
+        try {
+            mEventsInterface->writeEvent(
+                Event::topologyEvent(
+                    mContractorsManager->selfContractor()->mainAddress(),
+                    neighbors));
+        } catch (std::exception &e) {
+            warning() << "Can't write topology event " << e.what();
+        }
     }
 }
 

@@ -501,6 +501,7 @@ void TransactionsManager::launchInitTrustLineTransaction(
         mContractorsManager,
         mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
         mStorageHandler,
+        mEventsInterface,
         mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
         mSubsystemsController,
         mTrustLinesInfluenceController,
@@ -528,6 +529,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
             mSubsystemsController,
             mKeysStore,
+            mEventsInterface,
             mTrustLinesInfluenceController,
             mLog);
         subscribeForTrustLineActionSignal(
@@ -564,6 +566,7 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
             mSubsystemsController,
             mKeysStore,
+            mEventsInterface,
             mTrustLinesInfluenceController,
             mLog);
         subscribeForTrustLineActionSignal(
@@ -2445,6 +2448,7 @@ void TransactionsManager::onResumeTransactionSlot(
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mStorageHandler,
+                mEventsInterface,
                 mEquivalentsSubsystemsRouter->iAmGateway(equivalent),
                 mSubsystemsController,
                 mTrustLinesInfluenceController,
