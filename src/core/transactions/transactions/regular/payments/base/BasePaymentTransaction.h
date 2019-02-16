@@ -262,6 +262,18 @@ protected:
         const PathID &pathID);
 
     /**
+     * find reservation on AmountReservationsHandler and put it into transaction reservations copy
+     * used on transaction deserializing during observing
+     * @param neighborNode reservation
+     * @return true if reservation exists and was copied
+     */
+    const bool copyReservationFromGlobalReservations(
+        ContractorID neighborNode,
+        const TrustLineAmount& amount,
+        AmountReservation::ReservationDirection reservationDirection,
+        const PathID &pathID);
+
+    /**
      * reduction amount reservation to node on specified path
      * @param kContractor node with which incoming amount will be reduced
      * @param kReservation pointer to reservation which will be reduced
@@ -427,7 +439,7 @@ protected:
 
     static const uint32_t kWaitMillisecondsToTryRecoverAgain = 30000;
 
-    static const uint8_t kMaxRecoveryAttempts = 1;
+    static const uint8_t kMaxRecoveryAttempts = 3;
 
     // todo : make static
     const PaymentNodeID kCoordinatorPaymentNodeID = 0;

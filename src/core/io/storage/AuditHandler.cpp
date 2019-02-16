@@ -21,7 +21,7 @@ AuditHandler::AuditHandler(
                    "outgoing_amount BLOB NOT NULL, "
                    "incoming_amount BLOB NOT NULL, "
                    "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id) ON DELETE CASCADE ON UPDATE CASCADE);";
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -35,7 +35,7 @@ AuditHandler::AuditHandler(
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_number_trust_line_id_idx on " + mTableName + "(number, trust_line_id);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::creating index for Number and TrustLineID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -67,7 +67,7 @@ void AuditHandler::saveFullAudit(
                    "contractor_signature, incoming_amount, outgoing_amount, "
                    "balance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::saveFullAudit: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -151,7 +151,7 @@ void AuditHandler::saveOwnAuditPart(
                    "incoming_amount, outgoing_amount, balance) "
                    "VALUES (?, ?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::saveOwnAuditPart: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -217,7 +217,7 @@ void AuditHandler::saveContractorAuditPart(
                    " SET contractor_key_hash = ?, contractor_signature = ? "
                    "WHERE trust_line_id = ? AND number = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::saveContractorAuditPart: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -265,7 +265,7 @@ const AuditRecord::Shared AuditHandler::getActualAudit(
     string query = "SELECT number, incoming_amount, outgoing_amount, balance, contractor_signature FROM " + mTableName
                    + " WHERE trust_line_id = ? ORDER BY number DESC LIMIT 1;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::getActualAudit: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -329,7 +329,7 @@ const AuditRecord::Shared AuditHandler::getActualAuditFull(
                    "our_key_hash, our_signature, contractor_key_hash, contractor_signature FROM " + mTableName
                    + " WHERE trust_line_id = ? ORDER BY number DESC LIMIT 1;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::getActualAuditFull: "
                               "Bad query; sqlite error: " + to_string(rc));

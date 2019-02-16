@@ -13,7 +13,7 @@ ContractorsHandler::ContractorsHandler(
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    "(id INTEGER PRIMARY KEY, "
                    "id_on_contractor_side INTEGER);";
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -27,7 +27,7 @@ ContractorsHandler::ContractorsHandler(
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_id_idx on " + mTableName + " (id);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::creating index for ID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -49,7 +49,7 @@ void ContractorsHandler::saveContractor(
     string query = "INSERT INTO " + mTableName +
                    "(id) VALUES (?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::saveContractor: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -81,7 +81,7 @@ void ContractorsHandler::saveContractorFull(
                    "(id, id_on_contractor_side) "
                    "VALUES (?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::saveContractorFull: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -117,7 +117,7 @@ void ContractorsHandler::saveIdOnContractorSide(
     string query = "UPDATE " + mTableName +
                    " SET id_on_contractor_side = ? WHERE id = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::saveIdOnContractorSide: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -155,7 +155,7 @@ vector<Contractor::Shared> ContractorsHandler::allContractors()
 {
     string queryCount = "SELECT count(*) FROM " + mTableName;
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::allContractors: "
                           "Bad count query; sqlite error: " + to_string(rc));
@@ -168,7 +168,7 @@ vector<Contractor::Shared> ContractorsHandler::allContractors()
     result.reserve(rowCount);
 
     string query = "SELECT id, id_on_contractor_side FROM " + mTableName;
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::allContractors: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -195,7 +195,7 @@ vector<TrustLineID> ContractorsHandler::allIDs()
 {
     string queryCount = "SELECT count(*) FROM " + mTableName;
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::allIDs: "
                           "Bad count query; sqlite error: " + to_string(rc));
@@ -208,7 +208,7 @@ vector<TrustLineID> ContractorsHandler::allIDs()
     result.reserve(rowCount);
 
     string query = "SELECT id FROM " + mTableName;
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::allIDs: "
                           "Bad query; sqlite error: " + to_string(rc));

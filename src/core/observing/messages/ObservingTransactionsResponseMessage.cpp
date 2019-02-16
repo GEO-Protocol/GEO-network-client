@@ -1,9 +1,11 @@
 #include "ObservingTransactionsResponseMessage.h"
 
 ObservingTransactionsResponseMessage::ObservingTransactionsResponseMessage(
-    BytesShared buffer)
+    BytesShared buffer) :
+    ObservingResponseMessage(
+        buffer)
 {
-    size_t bytesBufferOffset = 0;
+    size_t bytesBufferOffset = ObservingResponseMessage::kOffsetToInheritedBytes();
 
     memcpy(
         &mActualBlockNumber,
@@ -25,11 +27,6 @@ ObservingTransactionsResponseMessage::ObservingTransactionsResponseMessage(
         mTransactionsAndResponses.push_back(
             (ObservingTransaction::ObservingResponseType)(*state));
     }
-}
-
-const ObservingMessage::MessageType ObservingTransactionsResponseMessage::typeID() const
-{
-    return ObservingMessage::Observing_TransactionsResponse;
 }
 
 BlockNumber ObservingTransactionsResponseMessage::actualBlockNumber() const

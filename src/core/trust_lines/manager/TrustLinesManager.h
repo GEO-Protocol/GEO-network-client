@@ -224,6 +224,12 @@ public:
         const AmountReservation::ConstShared reservation,
         const TrustLineAmount &newAmount);
 
+    AmountReservation::ConstShared getAmountReservation(
+        ContractorID contractor,
+        const TransactionUUID &transactionUUID,
+        const TrustLineAmount &amount,
+        AmountReservation::ReservationDirection direction);
+
     /**
      * Removes present reservation.
      * @throws NotFoundError in case if previous reservations was not found.

@@ -40,6 +40,10 @@ ObservingHandler::ObservingHandler(
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     for (const auto &uncertainTransaction : ioTransaction->paymentTransactionsHandler()->transactionsWithUncertainObservingState()) {
+        if (ioTransaction->transactionHandler()->isTransactionSerialized(uncertainTransaction.first)) {
+            warning() << "There is serialized transaction " << uncertainTransaction.first << " with uncertain state";
+            continue;
+        }
         mCheckedTransactions.insert(
             uncertainTransaction);
     }
@@ -78,6 +82,9 @@ void ObservingHandler::sendClaimRequestToObservers(
                 request);
         } catch (std::exception &e) {
             this->warning() << "Can't send request to observer " << e.what();
+            continue;
+        } catch (...) {
+            this->warning() << "Can't send request to observer";
             continue;
         }
         try {
@@ -159,6 +166,9 @@ void ObservingHandler::initialObservingRequest()
                 getActualBlockNumberMessage);
         } catch (std::exception &e) {
             this->warning() << "Can't send request to observer " << e.what();
+            continue;
+        } catch (...) {
+            this->warning() << "Can't send request to observer";
             continue;
         }
 
@@ -298,6 +308,9 @@ bool ObservingHandler::performOneClaim(
         } catch (std::exception &e) {
             this->warning() << "Can't send request to observer " << e.what();
             continue;
+        } catch (...) {
+            this->warning() << "Can't send request to observer";
+            continue;
         }
         ObservingTransaction::ObservingResponseType observingResponseType;
         try {
@@ -307,8 +320,8 @@ bool ObservingHandler::performOneClaim(
                 actualTransactionStateResponse->actualBlockNumber(),
                 utc_now());
 
-            debug() << "Observer response " << actualTransactionStateResponse->transactionsResponses().size()
-                    << " " << actualTransactionStateResponse->actualBlockNumber();
+            debug() << "Actual block number " << actualTransactionStateResponse->actualBlockNumber();
+            debug() << "Observer response " << actualTransactionStateResponse->transactionsResponses().size();
             if (actualTransactionStateResponse->transactionsResponses().size() > 1) {
                 warning() << "Size of responsed transactions is invalid";
                 continue;
@@ -323,8 +336,7 @@ bool ObservingHandler::performOneClaim(
         if (observingResponseType == ObservingTransaction::NoInfo) {
             debug() << "No Info";
             // todo : need correct reaction
-        }
-        if (observingResponseType == ObservingTransaction::ClaimInPool or
+        } else if (observingResponseType == ObservingTransaction::ClaimInPool or
                 observingResponseType == ObservingTransaction::ClaimInBlock) {
             debug() << "ClaimInBlock";
             observingTransaction->setObservingResponseType(observingResponseType);
@@ -374,6 +386,9 @@ void ObservingHandler::sendClaimAgain(
                 observingTransaction->observingRequestMessage());
         } catch (std::exception &e) {
             this->warning() << "Can't send request to observer " << e.what();
+            continue;
+        } catch (...) {
+            this->warning() << "Can't send request to observer";
             continue;
         }
         try {
@@ -427,10 +442,20 @@ bool ObservingHandler::getParticipantsVotes(
         } catch (std::exception &e) {
             this->warning() << "Can't send request to observer " << e.what();
             continue;
+        } catch (...) {
+            this->warning() << "Can't send request to observer";
+            continue;
         }
         try {
             auto participantsVotesMessage = make_shared<ObservingParticipantsVotesResponseMessage>(
                 observerResponse);
+            if (!participantsVotesMessage->isParticipantsVotesPresent()) {
+                warning() << "ParticipantsVotes are absent";
+                continue;
+            }
+            debug() << "Receiver participants votes " << participantsVotesMessage->transactionUUID() << " "
+                    << participantsVotesMessage->maximalClaimingBlockNumber() << " "
+                    << participantsVotesMessage->participantsSignatures().size();
             // todo : check if participantsVotesMessage is correct
             mParticipantsVotesSignal(
                 transactionUUID,
@@ -487,6 +512,9 @@ void ObservingHandler::runTransactionsChecking(
         } catch (std::exception &e) {
             this->warning() << "Can't send request to observers " << e.what();
             continue;
+        } catch (...) {
+            this->warning() << "Can't send request to observer";
+            continue;
         }
         ObservingTransactionsResponseMessage::Shared transactionsResponse;
         try {
@@ -496,13 +524,16 @@ void ObservingHandler::runTransactionsChecking(
             this->warning() << "Can't parse observer response " << e.what();
             continue;
         }
+        mLastUpdatedBlockNumber = make_pair(
+            transactionsResponse->actualBlockNumber(),
+            utc_now());
+        debug() << "Actual observing block number: " << transactionsResponse->actualBlockNumber();
         if (transactionsResponse->transactionsResponses().size() != checkedTransactions.size()) {
             warning() << "Responsed data contains wrong number of transaction "
                       << transactionsResponse->transactionsResponses().size();
             continue;
         }
-        debug() << "Observer response cnt " << transactionsResponse->transactionsResponses().size()
-                << " " << transactionsResponse->actualBlockNumber();
+        debug() << "Observer response cnt " << transactionsResponse->transactionsResponses().size();
 
         auto transactionCheckingSignalRepeatTimeSeconds = kTransactionCheckingSignalRepeatTimeSeconds;
         size_t idxProcessedTransaction = 0;
@@ -525,11 +556,30 @@ void ObservingHandler::runTransactionsChecking(
                     break;
                 }
                 case ObservingTransaction::ClaimInPool: {
-                    // todo: need correct reaction
+                    debug() << "Claim in pool";
+                    // todo: need correct reaction because observer get info about claim, when it on the blackchain
+                    if (!sendParticipantsVoteMessageToObservers(
+                        processedTransaction,
+                        mCheckedTransactions[processedTransaction])) {
+                        transactionCheckingSignalRepeatTimeSeconds = kTransactionCheckingSignalSmallRepeatTimeSeconds;
+                    }
                     break;
                 }
                 case ObservingTransaction::ClaimInBlock: {
                     debug() << "Claim in block";
+                    if (mCheckedTransactions[processedTransaction] < transactionsResponse->actualBlockNumber()) {
+                        debug() << "Transaction was rejected by observing. Cancelling.";
+                        mCancelTransactionSignal(
+                            processedTransaction,
+                            mCheckedTransactions[processedTransaction]);
+                        mCheckedTransactions.erase(
+                            processedTransaction);
+                        auto ioTransaction = mStorageHandler->beginTransaction();
+                        ioTransaction->paymentTransactionsHandler()->updateTransactionState(
+                            processedTransaction,
+                            ObservingTransaction::RejectedByObserving);
+                        break;
+                    }
                     if (!sendParticipantsVoteMessageToObservers(
                         processedTransaction,
                         mCheckedTransactions[processedTransaction])) {
@@ -556,11 +606,6 @@ void ObservingHandler::runTransactionsChecking(
                 }
             }
         }
-
-        mLastUpdatedBlockNumber = make_pair(
-            transactionsResponse->actualBlockNumber(),
-            utc_now());
-        debug() << "Actual observing block number: " << transactionsResponse->actualBlockNumber();
 
         mTransactionsTimer.expires_from_now(
             std::chrono::seconds(
@@ -593,6 +638,7 @@ bool ObservingHandler::sendParticipantsVoteMessageToObservers(
     auto participantsSignatures = ioTransaction->paymentParticipantsVotesHandler()->participantsSignatures(
         transactionUUID);
     if (participantsSignatures.empty()) {
+        warning() << "Empty participants signatures";
         // todo : need correct reaction
         return false;
     }
@@ -609,24 +655,34 @@ bool ObservingHandler::sendParticipantsVoteMessageToObservers(
         } catch (std::exception &e) {
             this->warning() << "Can't send request to observers " << e.what();
             continue;
+        } catch (...) {
+            this->warning() << "Can't send request to observer";
+            continue;
         }
         try {
             auto participantsVotesAppendResponse = make_shared<ObservingParticipantsVotesAppendResponseMessage>(
                 observerResponse);
             info() << "participantsVotesAppendResponse " << participantsVotesAppendResponse->observingResponse();
-            if (participantsVotesAppendResponse->observingResponse() == ObservingTransaction::NoInfo) {
+            if (participantsVotesAppendResponse->observingResponse() == ObservingTransaction::ClaimInPool or
+                    participantsVotesAppendResponse->observingResponse() == ObservingTransaction::ClaimInBlock) {
+                debug() << "ParticipantsVotes put into blockchain";
+                return true;
+            } else if (participantsVotesAppendResponse->observingResponse() == ObservingTransaction::NoInfo) {
+                debug() << "No Info";
                 continue;
-            }
-            if (participantsVotesAppendResponse->observingResponse() == ObservingTransaction::RejectedByObserving) {
+            } else if (participantsVotesAppendResponse->observingResponse() == ObservingTransaction::RejectedByObserving) {
+                debug() << "RejectedByObserving";
                 // if ParticipantsVotes sending period has expired,
                 // then node should check if transaction is not rejected
                 // and if yes reject transaction on it side
                 mCancelTransactionSignal(
                     transactionUUID,
                     maximalClaimingBlockNumber);
+                return true;
+            } else {
+                warning() << "Wrong observer response " << participantsVotesAppendResponse->observingResponse();
+                continue;
             }
-            // todo : check if this ParticipantsVotes got into the blockchain by asking other observer
-            return true;
         } catch (std::exception &e) {
             this->warning() << "Can't parse observer response " << e.what();
             continue;
@@ -653,6 +709,9 @@ void ObservingHandler::responseActualBlockNumber(
                     getActualBlockNumberMessage);
             } catch (std::exception &e) {
                 this->warning() << "Can't send request to observer " << e.what();
+                continue;
+            } catch (...) {
+                this->warning() << "Can't send request to observer";
                 continue;
             }
 
@@ -711,6 +770,9 @@ void ObservingHandler::getActualBlockNumber()
                 getActualBlockNumberMessage);
         } catch (std::exception &e) {
             this->warning() << "Can't send request to observer " << e.what();
+            continue;
+        } catch (...) {
+            this->warning() << "Can't send request to observer";
             continue;
         }
 

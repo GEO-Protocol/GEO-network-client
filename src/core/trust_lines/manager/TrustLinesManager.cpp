@@ -495,6 +495,19 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
             "Trust line has not enough free amount.");
 }
 
+AmountReservation::ConstShared TrustLinesManager::getAmountReservation(
+    ContractorID contractor,
+    const TransactionUUID &transactionUUID,
+    const TrustLineAmount &amount,
+    AmountReservation::ReservationDirection direction)
+{
+    return mAmountReservationsHandler->getReservation(
+        contractor,
+        transactionUUID,
+        amount,
+        direction);
+}
+
 void TrustLinesManager::dropAmountReservation(
     ContractorID contractor,
     const AmountReservation::ConstShared reservation)
@@ -1283,10 +1296,11 @@ void TrustLinesManager::printTLs()
     debug << "printTLs\t size: " << trustLines().size() << endl;
     for (const auto &itTrustLine : trustLines()) {
         debug << "printTLs\t" << itTrustLine.second->contractorID() << " "
-               << itTrustLine.second->incomingTrustAmount() << " "
-               << itTrustLine.second->outgoingTrustAmount() << " "
-               << itTrustLine.second->balance() << " "
-               << itTrustLine.second->isContractorGateway() << endl;
+              << itTrustLine.second->state() << " "
+              << itTrustLine.second->incomingTrustAmount() << " "
+              << itTrustLine.second->outgoingTrustAmount() << " "
+              << itTrustLine.second->balance() << " "
+              << itTrustLine.second->isContractorGateway() << endl;
     }
     debug << "print payment incoming flows size: " << incomingFlows().size() << endl;
     for (auto const &itIncomingFlow : incomingFlows()) {

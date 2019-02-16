@@ -1,10 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_OBSERVINGPARTICIPANTSVOTESAPPENDRESPONSEMESSAGE_H
 #define GEO_NETWORK_CLIENT_OBSERVINGPARTICIPANTSVOTESAPPENDRESPONSEMESSAGE_H
 
-#include "ObservingMessage.hpp"
-#include "../ObservingTransaction.h"
+#include "base/ObservingResponseMessage.h"
 
-class ObservingParticipantsVotesAppendResponseMessage : public ObservingMessage {
+class ObservingParticipantsVotesAppendResponseMessage : public ObservingResponseMessage {
 
 public:
     typedef shared_ptr<ObservingParticipantsVotesAppendResponseMessage> Shared;
@@ -13,13 +12,7 @@ public:
     ObservingParticipantsVotesAppendResponseMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const override;
-
     ObservingTransaction::ObservingResponseType observingResponse() const;
-
-private:
-    ObservingTransaction::ObservingResponseType mObservingResponse;
-
 };
 
 

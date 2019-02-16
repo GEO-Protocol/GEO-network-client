@@ -41,6 +41,12 @@ public:
     bool isTransactionReservationsPresent(
         const TransactionUUID& transactionUUID) const;
 
+    AmountReservation::ConstShared getReservation(
+        ContractorID trustLineContractor,
+        const TransactionUUID &transactionUUID,
+        const TrustLineAmount &amount,
+        const AmountReservation::ReservationDirection direction);
+
 protected:
     // One trust line may hold several amount reservations,
     // so the vector<AmountReservation::ConstShared> is used (reservations container).

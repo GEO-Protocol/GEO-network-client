@@ -17,7 +17,7 @@ ContractorKeysHandler::ContractorKeysHandler(
                    "number INTEGER NOT NULL, "
                    "is_valid INTEGER NOT NULL DEFAULT 1, "
                    "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id) ON DELETE CASCADE ON UPDATE CASCADE);";
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -31,7 +31,7 @@ ContractorKeysHandler::ContractorKeysHandler(
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_hash_idx on " + mTableName + "(hash);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::creating  index for Hash: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -45,7 +45,7 @@ ContractorKeysHandler::ContractorKeysHandler(
 
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
             + "_trust_line_id_idx on " + mTableName + "(trust_line_id);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::creating  index for Trust Line ID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -70,7 +70,7 @@ void ContractorKeysHandler::saveKey(
                    "(hash, trust_line_id, public_key, "
                    "number) VALUES (?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::saveKey: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -117,7 +117,7 @@ void ContractorKeysHandler::invalidKey(
 {
     string query = "UPDATE " + mTableName + " SET is_valid = 0 WHERE trust_line_id = ? AND number = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::invalidKey: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -152,7 +152,7 @@ void ContractorKeysHandler::invalidKeyByHash(
 {
     string query = "UPDATE " + mTableName + " SET is_valid = 0 WHERE trust_line_id = ? AND number = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::invalidKeyByHash: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -188,7 +188,7 @@ PublicKey::Shared ContractorKeysHandler::keyByNumber(
     string query = "SELECT public_key FROM " + mTableName
                    + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::keyByNumber: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -224,7 +224,7 @@ PublicKey::Shared ContractorKeysHandler::keyByHash(
     string query = "SELECT public_key FROM " + mTableName
                    + " WHERE trust_line_id = ? AND hash = ? AND is_valid = 1;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::keyByHash: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -260,7 +260,7 @@ const KeyHash::Shared ContractorKeysHandler::keyHashByNumber(
     string query = "SELECT hash FROM " + mTableName
                    + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::keyHashByNumber: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -295,7 +295,7 @@ KeysCount ContractorKeysHandler::availableKeysCnt(
 {
     string queryCount = "SELECT count(*) FROM " + mTableName + " WHERE trust_line_id = ? AND is_valid = 1";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::availableKeysCnt: "
                           "Bad count query; sqlite error: " + to_string(rc));
@@ -317,7 +317,7 @@ void ContractorKeysHandler::removeUnusedKeys(
 {
     string queryCount = "DELETE FROM " + mTableName + " WHERE trust_line_id = ? AND is_valid = 1";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::removeUnusedKeys: "
                           "Bad count query; sqlite error: " + to_string(rc));

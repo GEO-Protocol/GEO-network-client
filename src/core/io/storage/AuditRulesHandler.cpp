@@ -15,7 +15,7 @@ AuditRulesHandler::AuditRulesHandler(
                    "rule_id INTEGER NOT NULL, "
                    "parameters BLOB, "
                    "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id) ON DELETE CASCADE ON UPDATE CASCADE);";
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AuditRulesHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -29,7 +29,7 @@ AuditRulesHandler::AuditRulesHandler(
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_trust_line_id_idx on " + mTableName + "(trust_line_id);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AuditRulesHandler::creating index for TrustLineID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -52,7 +52,7 @@ void AuditRulesHandler::saveRule(
     string query = "INSERT INTO " + mTableName +
                    "(trust_line_id, rule_id) VALUES (?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AuditHandler::saveRule: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -88,7 +88,7 @@ const BaseAuditRule::AuditRuleType AuditRulesHandler::getRule(
     string query = "SELECT rule_id FROM " + mTableName
                    + " WHERE trust_line_id = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AuditRulesHandler::getRule: "
                           "Bad query; sqlite error: " + to_string(rc));

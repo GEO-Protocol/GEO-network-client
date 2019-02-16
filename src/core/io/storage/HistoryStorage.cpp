@@ -21,7 +21,7 @@ HistoryStorage::HistoryStorage(
                        "record_body_bytes_count INT NOT NULL, "
                        "equivalent INTEGER NOT NULL, "
                        "command_uuid BLOB);";
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::creating main table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -34,7 +34,7 @@ HistoryStorage::HistoryStorage(
     }
     query = "CREATE INDEX IF NOT EXISTS " + mMainTableName
             + "_operation_uuid_idx on " + mMainTableName + "(operation_uuid);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::main creating index for operation_uuid: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -47,7 +47,7 @@ HistoryStorage::HistoryStorage(
     }
     query = "CREATE INDEX IF NOT EXISTS " + mMainTableName
             + "_operation_timestamp_idx on " + mMainTableName + "(operation_timestamp);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::main creating index for operation_timestamp: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -60,7 +60,7 @@ HistoryStorage::HistoryStorage(
     }
     query = "CREATE INDEX IF NOT EXISTS " + mMainTableName
             + "_record_type_idx on " + mMainTableName + "(record_type);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::main creating index for record_type: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -74,7 +74,7 @@ HistoryStorage::HistoryStorage(
 
     query = "CREATE INDEX IF NOT EXISTS " + mMainTableName
             + "_command_uuid_idx on " + mMainTableName + "(command_uuid);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::main creating index for command_uuid: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -88,7 +88,7 @@ HistoryStorage::HistoryStorage(
 
     query = "CREATE INDEX IF NOT EXISTS " + mMainTableName
             + "_equivalent_idx on " + mMainTableName + "(equivalent);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage:: main creating index for Equivalent: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -108,7 +108,7 @@ HistoryStorage::HistoryStorage(
                        "record_body BLOB NOT NULL, "
                        "record_body_bytes_count INT NOT NULL, "
                        "equivalent INTEGER NOT NULL);";
-    rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::creating additional table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -121,7 +121,7 @@ HistoryStorage::HistoryStorage(
     }
     query = "CREATE INDEX IF NOT EXISTS " + mAdditionalTableName
             + "_operation_uuid_idx on " + mAdditionalTableName + "(operation_uuid);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::additional creating index for operation_uuid: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -134,7 +134,7 @@ HistoryStorage::HistoryStorage(
     }
     query = "CREATE INDEX IF NOT EXISTS " + mAdditionalTableName
             + "_operation_timestamp_idx on " + mAdditionalTableName + "(operation_timestamp);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::additional creating index for operation_timestamp: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -147,7 +147,7 @@ HistoryStorage::HistoryStorage(
     }
     query = "CREATE INDEX IF NOT EXISTS " + mAdditionalTableName
             + "_record_type_idx on " + mAdditionalTableName + "(record_type);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::additional creating index for record_type: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -160,7 +160,7 @@ HistoryStorage::HistoryStorage(
     }
     query = "CREATE INDEX IF NOT EXISTS " + mAdditionalTableName
             + "_equivalent_idx on " + mAdditionalTableName + "(equivalent);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::additional creating index for Equivalent: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -184,7 +184,7 @@ void HistoryStorage::saveTrustLineRecord(
                            "record_type, record_body, record_body_bytes_count) "
                            "VALUES(?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert trustline: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -266,7 +266,7 @@ void HistoryStorage::savePaymentMainOutgoingRecord(
                    + "(operation_uuid, operation_timestamp, equivalent, record_type, record_body, record_body_bytes_count, "
                        "command_uuid) VALUES(?, ?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert main payment: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -338,7 +338,7 @@ void HistoryStorage::savePaymentMainIncomingRecord(
                    + "(operation_uuid, operation_timestamp, equivalent, record_type, record_body, record_body_bytes_count) "
                        "VALUES(?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert main payment: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -404,7 +404,7 @@ void HistoryStorage::savePaymentAdditionalRecord(
                    + "(operation_uuid, operation_timestamp, equivalent, record_type, record_body, record_body_bytes_count) "
                            "VALUES(?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert additional payment: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -475,7 +475,7 @@ vector<TrustLineRecord::Shared> HistoryStorage::allTrustLineRecords(
     }
     query += " ORDER BY operation_timestamp DESC LIMIT ? OFFSET ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::allTrustLineRecords: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -549,7 +549,7 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentRecords(
     }
     query += " ORDER BY operation_timestamp DESC LIMIT ? OFFSET ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::allPaymentRecords: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -610,7 +610,7 @@ size_t HistoryStorage::countRecordsByType(
     string query = "SELECT count(*) FROM "
                    + mMainTableName + " WHERE equivalent = ? AND record_type = ? ";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::countRecordsByType: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -778,7 +778,7 @@ vector<PaymentAdditionalRecord::Shared> HistoryStorage::allPaymentAdditionalReco
     }
     query += " ORDER BY operation_timestamp DESC LIMIT ? OFFSET ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::allAdditionalPaymentRecords: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -843,7 +843,7 @@ vector<Record::Shared> HistoryStorage::recordsPortionWithContractor(
                    "ORDER BY operation_timestamp DESC LIMIT ? OFFSET ?;";
 
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::recordsPortionWithContractor: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -898,7 +898,7 @@ vector<Record::Shared> HistoryStorage::recordsWithContractor(
 
     string query = "SELECT count(*) FROM " + mMainTableName + " WHERE equivalent = ?";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::recordsWithContractor: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -944,7 +944,7 @@ vector<PaymentRecord::Shared> HistoryStorage::paymentRecordsByCommandUUID(
     string query = "SELECT operation_uuid, operation_timestamp, record_body, record_body_bytes_count FROM "
                    + mMainTableName + " WHERE record_type = ? AND command_uuid = ?";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::paymentRecordsByCommandUUID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -980,7 +980,7 @@ bool HistoryStorage::whetherOperationWasConducted(
     string query = "SELECT operation_uuid FROM "
                    + mMainTableName + " WHERE operation_uuid = ? LIMIT 1";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::whetherOperationWasConducted: "
                           "Bad query; sqlite error: " + to_string(rc));

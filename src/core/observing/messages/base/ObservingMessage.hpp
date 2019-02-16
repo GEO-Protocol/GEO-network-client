@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_OBSERVINGMESSAGE_H
 #define GEO_NETWORK_CLIENT_OBSERVINGMESSAGE_H
 
-#include "../../common/memory/MemoryUtils.h"
+#include "../../../common/memory/MemoryUtils.h"
 
 using namespace std;
 
@@ -19,15 +19,10 @@ public:
 
     enum MessageType {
         Observing_ClaimAppendRequest = 128,
-        Observing_ClaimAppendResponse = 129,
         Observing_ParticipantsVotesAppendRequest = 64,
-        Observing_ParticipantsVotesAppendResponse = 65,
         Observing_ParticipantsVotesRequest = 68,
-        Observing_ParticipantsVotesResponse = 69,
         Observing_TransactionsRequest = 192,
-        Observing_TransactionsResponse = 193,
         Observing_BlockNumberRequest = 32,
-        Observing_BlockNumberResponse = 33,
     };
 
     virtual const MessageType typeID() const = 0;

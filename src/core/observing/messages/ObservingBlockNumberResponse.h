@@ -1,9 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_OBSERVINGBLOCKNUMBERRESPONSE_H
 #define GEO_NETWORK_CLIENT_OBSERVINGBLOCKNUMBERRESPONSE_H
 
-#include "ObservingMessage.hpp"
+#include "base/ObservingResponseMessage.h"
 
-class ObservingBlockNumberResponse : public ObservingMessage {
+class ObservingBlockNumberResponse : public ObservingResponseMessage {
 
 public:
     typedef shared_ptr<ObservingBlockNumberResponse> Shared;
@@ -12,11 +12,10 @@ public:
     ObservingBlockNumberResponse(
         BytesShared buffer);
 
-    const MessageType typeID() const override;
-
     BlockNumber actualBlockNumber() const;
 
 private:
+    ObservingTransaction::SerializedObservingResponseType mObservingResponse;
     BlockNumber mActualBlockNumber;
 };
 

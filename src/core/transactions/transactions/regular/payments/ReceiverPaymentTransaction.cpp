@@ -892,7 +892,7 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::IncomingPaymentType,
-            mCoordinator,
+            mPaymentParticipants[kCoordinatorPaymentNodeID],
             mCommittedAmount,
             *mTrustLinesManager->totalBalance().get()),
         mEquivalent);

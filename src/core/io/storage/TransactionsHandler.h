@@ -28,6 +28,9 @@ public:
     BytesShared getTransaction(
         const TransactionUUID &transactionUUID);
 
+    bool isTransactionSerialized(
+        const TransactionUUID &transactionUUID);
+
     void deleteRecord(
         const TransactionUUID &transactionUUID);
 
