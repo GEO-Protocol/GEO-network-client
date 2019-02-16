@@ -17,7 +17,7 @@ TrustLineHandler::TrustLineHandler(
                    "equivalent INTEGER NOT NULL, "
                    "is_contractor_gateway INTEGER NOT NULL DEFAULT 0, "
                    "FOREIGN KEY(contractor_id) REFERENCES contractors(id) ON DELETE CASCADE ON UPDATE CASCADE);";
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -31,7 +31,7 @@ TrustLineHandler::TrustLineHandler(
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_id_idx on " + mTableName + "(id);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::creating index for ID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -45,7 +45,7 @@ TrustLineHandler::TrustLineHandler(
 
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
             + "_equivalent_idx on " + mTableName + "(equivalent);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::creating index for Equivalent: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -59,7 +59,7 @@ TrustLineHandler::TrustLineHandler(
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_contractor_id_equivalent_idx on " + mTableName + "(contractor_id, equivalent);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::creating unique index for ContractorID and Equivalent: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -80,7 +80,7 @@ vector<TrustLine::Shared> TrustLineHandler::allTrustLinesByEquivalent(
 {
     string queryCount = "SELECT count(*) FROM " + mTableName + " WHERE equivalent = ?";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::allTrustLinesByEquivalent: "
                           "Bad count query; sqlite error: " + to_string(rc));
@@ -99,7 +99,7 @@ vector<TrustLine::Shared> TrustLineHandler::allTrustLinesByEquivalent(
 
     string query = "SELECT id, state, contractor_id, is_contractor_gateway FROM "
                    + mTableName + " WHERE equivalent = ?";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::allTrustLinesByEquivalent: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -141,7 +141,7 @@ void TrustLineHandler::deleteTrustLine(
 {
     string query = "DELETE FROM " + mTableName + " WHERE id = ? AND equivalent = ?";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::deleteTrustLine: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -177,7 +177,7 @@ void TrustLineHandler::saveTrustLine(
                    "(id, state, contractor_id, equivalent, is_contractor_gateway) "
                    "VALUES (?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::saveTrustLine: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -231,7 +231,7 @@ void TrustLineHandler::updateTrustLineState(
                    " SET state = ? "
                    "WHERE id = ? AND equivalent = ? AND contractor_id = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::updateTrustLineState: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -283,7 +283,7 @@ void TrustLineHandler::updateTrustLineIsContractorGateway(
                    " SET is_contractor_gateway = ? "
                    "WHERE id = ? AND equivalent = ? AND contractor_id = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::updateTrustLineIsContractorGateway: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -332,7 +332,7 @@ vector<SerializedEquivalent> TrustLineHandler::equivalents()
 {
     string query = "SELECT DISTINCT equivalent FROM " + mTableName;
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::equivalents: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -352,7 +352,7 @@ vector<TrustLineID> TrustLineHandler::allIDs()
 {
     string queryCount = "SELECT count(*) FROM " + mTableName;
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::allIDs: "
                           "Bad count query; sqlite error: " + to_string(rc));
@@ -365,7 +365,7 @@ vector<TrustLineID> TrustLineHandler::allIDs()
     result.reserve(rowCount);
 
     string query = "SELECT id FROM " + mTableName;
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::allIDs: "
                           "Bad query; sqlite error: " + to_string(rc));

@@ -14,7 +14,7 @@ TransactionsHandler::TransactionsHandler(
                        "transaction_body BLOB NOT NULL, "
                        "transaction_bytes_count INT NOT NULL);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -26,7 +26,7 @@ TransactionsHandler::TransactionsHandler(
     }
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_transaction_uuid_idx on " + mTableName + " (transaction_uuid);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::creating index for TransactionUUID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -49,7 +49,7 @@ void TransactionsHandler::saveRecord(
     string query = "INSERT OR REPLACE INTO " + mTableName +
                    " (transaction_uuid, transaction_body, transaction_bytes_count) VALUES(?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::insert or replace: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -87,7 +87,7 @@ void TransactionsHandler::deleteRecord(
 {
     string query = "DELETE FROM " + mTableName + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::delete: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -116,7 +116,7 @@ BytesShared TransactionsHandler::getTransaction(
     string query = "SELECT transaction_body, transaction_bytes_count FROM "
                    + mTableName + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::getTransaction: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -145,11 +145,35 @@ BytesShared TransactionsHandler::getTransaction(
     }
 }
 
+bool TransactionsHandler::isTransactionSerialized(
+    const TransactionUUID &transactionUUID)
+{
+    string query = "SELECT 1 FROM " + mTableName + " WHERE transaction_uuid = ? LIMIT 1";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("TransactionsHandler::isTransactionSerialized: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("TransactionsHandler::isTransactionSerialized: "
+                          "Bad binding of transactionUUID; sqlite error: " + to_string(rc));
+    }
+
+    bool result = (sqlite3_step(stmt) == SQLITE_ROW);
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
 vector<BytesShared> TransactionsHandler::allTransactions()
 {
     string queryCount = "SELECT count(*) FROM " + mTableName;
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, queryCount.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::allTransactions: "
                           "Bad count query; sqlite error: " + to_string(rc));

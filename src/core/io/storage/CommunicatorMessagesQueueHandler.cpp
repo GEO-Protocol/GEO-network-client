@@ -19,7 +19,7 @@ CommunicatorMessagesQueueHandler::CommunicatorMessagesQueueHandler(
                    "recording_time INT NOT NULL, "
                    "FOREIGN KEY(contractor_id) REFERENCES contractors(id) ON DELETE CASCADE ON UPDATE CASCADE);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -47,7 +47,7 @@ void CommunicatorMessagesQueueHandler::saveRecord(
                    "message, message_bytes_count, recording_time) "
                    "VALUES(?, ?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::insert: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -113,7 +113,7 @@ void CommunicatorMessagesQueueHandler::deleteRecord(
     string query = "DELETE FROM " + mTableName
                    + " WHERE contractor_id = ? AND equivalent = ? AND message_type = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::delete: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -152,7 +152,7 @@ void CommunicatorMessagesQueueHandler::deleteRecord(
 {
     string query = "DELETE FROM " + mTableName + " WHERE contractor_id = ? AND transaction_uuid = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::delete: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -184,7 +184,7 @@ vector<tuple<ContractorID, BytesShared, Message::SerializedType>> CommunicatorMe
 {
     string queryCount = "SELECT count(*) FROM " + mTableName;
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, queryCount.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("CommunicatorMessagesQueueHandler::allMessages: "
                           "Bad count query; sqlite error: " + to_string(rc));

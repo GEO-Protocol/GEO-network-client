@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_OBSERVINGCOMMUNICATOR_H
 
 #include "../contractors/addresses/IPv4WithPortAddress.h"
-#include "messages/ObservingMessage.hpp"
+#include "messages/base/ObservingMessage.hpp"
 #include "../logger/Logger.h"
 
 #include <boost/asio.hpp>

@@ -15,7 +15,7 @@ PaymentTransactionsHandler::PaymentTransactionsHandler(
                    "observing_state INTEGER NOT NULL, "
                    "recording_time INTEGER NOT NULL);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentTransactionsHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -28,7 +28,7 @@ PaymentTransactionsHandler::PaymentTransactionsHandler(
     }
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
             + "_uuid_idx on " + mTableName + " (uuid);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentTransactionsHandler::creating index for TransactionUUID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -50,7 +50,7 @@ void PaymentTransactionsHandler::saveRecord(
     string query = "INSERT INTO " + mTableName + " (uuid, maximal_claiming_block_number, "
             "observing_state, recording_time) VALUES(?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentTransactionsHandler::saveRecord: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -98,7 +98,7 @@ void PaymentTransactionsHandler::updateTransactionState(
     string query = "UPDATE " + mTableName +
                    " SET observing_state = ? WHERE uuid = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentTransactionsHandler::updateTransactionState: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -140,7 +140,7 @@ vector<pair<TransactionUUID, BlockNumber>> PaymentTransactionsHandler::transacti
     // todo : use constant instead 0 in query
     string query = "SELECT uuid, maximal_claiming_block_number FROM "
                    + mTableName + " WHERE observing_state == 0";
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::allTrustLinesByEquivalent: "
                               "Bad query; sqlite error: " + to_string(rc));
@@ -167,10 +167,13 @@ vector<pair<TransactionUUID, BlockNumber>> PaymentTransactionsHandler::transacti
 bool PaymentTransactionsHandler::isTransactionCommitted(
     const TransactionUUID &transactionUUID)
 {
-    string query = "SELECT uuid FROM "
-                   + mTableName + " WHERE uuid = ? LIMIT 1";
+    // todo : use constant instead 3 in query
+    // 3 means that transaction have state equal or great than
+    // ObservingResponseType::ParticipantsVotesPresent (ObservingTransaction)
+    string query = "SELECT 1 FROM "
+                   + mTableName + " WHERE uuid = ? AND observing_state >= 3 LIMIT 1";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentTransactionsHandler::isTransactionCommitted: "
                           "Bad query; sqlite error: " + to_string(rc));

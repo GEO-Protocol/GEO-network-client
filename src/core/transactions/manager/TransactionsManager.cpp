@@ -1151,8 +1151,8 @@ void TransactionsManager::launchPaymentTransactionAfterGettingObservingSignature
         auto *transactionType =
                 new (serializedPaymentTransaction.get()) BaseTransaction::SerializedTransactionType;
         auto transactionTypeId = *transactionType;
-        if (transactionTypeId != BaseTransaction::IntermediateNodePaymentTransaction or
-                transactionTypeId != BaseTransaction::ReceiverPaymentTransaction or
+        if (transactionTypeId != BaseTransaction::IntermediateNodePaymentTransaction and
+                transactionTypeId != BaseTransaction::ReceiverPaymentTransaction and
                 transactionTypeId != BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
             error() << "Transaction " << transactionUUID << " is not payment transaction";
             return;
@@ -1193,8 +1193,8 @@ void TransactionsManager::launchPaymentTransactionForObservingRejecting(
         auto *transactionType =
             new (serializedPaymentTransaction.get()) BaseTransaction::SerializedTransactionType;
         auto transactionTypeId = *transactionType;
-        if (transactionTypeId != BaseTransaction::IntermediateNodePaymentTransaction or
-            transactionTypeId != BaseTransaction::ReceiverPaymentTransaction or
+        if (transactionTypeId != BaseTransaction::IntermediateNodePaymentTransaction and
+            transactionTypeId != BaseTransaction::ReceiverPaymentTransaction and
             transactionTypeId != BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
             error() << "Transaction " << transactionUUID << " is not payment transaction";
             return;

@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_OBSERVINGBLOCKNUMBERREQUEST_H
 #define GEO_NETWORK_CLIENT_OBSERVINGBLOCKNUMBERREQUEST_H
 
-#include "ObservingMessage.hpp"
+#include "base/ObservingMessage.hpp"
 
 class ObservingBlockNumberRequest : public ObservingMessage {
 

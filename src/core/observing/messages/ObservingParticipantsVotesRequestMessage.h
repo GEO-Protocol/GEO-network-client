@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_OBSERVINGPARTICIPANTSVOTESREQUESTMESSAGE_H
 #define GEO_NETWORK_CLIENT_OBSERVINGPARTICIPANTSVOTESREQUESTMESSAGE_H
 
-#include "ObservingMessage.hpp"
+#include "base/ObservingMessage.hpp"
 #include "../../transactions/transactions/base/TransactionUUID.h"
 
 class ObservingParticipantsVotesRequestMessage : public ObservingMessage {

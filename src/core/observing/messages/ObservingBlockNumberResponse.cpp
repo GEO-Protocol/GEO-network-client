@@ -1,17 +1,14 @@
 #include "ObservingBlockNumberResponse.h"
 
 ObservingBlockNumberResponse::ObservingBlockNumberResponse(
-    BytesShared buffer)
+    BytesShared buffer) :
+    ObservingResponseMessage(
+        buffer)
 {
-    memcpy(
+   memcpy(
         &mActualBlockNumber,
-        buffer.get(),
+        buffer.get() + ObservingResponseMessage::kOffsetToInheritedBytes(),
         sizeof(BlockNumber));
-}
-
-const ObservingMessage::MessageType ObservingBlockNumberResponse::typeID() const
-{
-    return ObservingMessage::Observing_BlockNumberResponse;
 }
 
 BlockNumber ObservingBlockNumberResponse::actualBlockNumber() const

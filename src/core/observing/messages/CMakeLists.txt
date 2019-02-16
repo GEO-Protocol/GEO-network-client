@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
-        ObservingMessage.hpp
+        base/ObservingMessage.hpp
+        base/ObservingResponseMessage.h
+        base/ObservingResponseMessage.cpp
 
         ObservingClaimAppendRequestMessage.h
         ObservingClaimAppendRequestMessage.cpp

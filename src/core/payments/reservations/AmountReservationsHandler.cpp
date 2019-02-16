@@ -143,7 +143,7 @@ ConstSharedTrustLineAmount AmountReservationsHandler::totalReserved(
     SharedTrustLineAmount amount(new TrustLineAmount(0));
 
     auto reservationsVector = reservations(trustLineContractor, transactionUUID);
-    for (auto lock : reservationsVector){
+    for (auto &lock : reservationsVector) {
         if (lock->direction() == direction)
             (*amount) += (*lock).amount();
     }
@@ -229,4 +229,24 @@ bool AmountReservationsHandler::isTransactionReservationsPresent(
         }
     }
     return false;
+}
+
+AmountReservation::ConstShared AmountReservationsHandler::getReservation(
+    ContractorID trustLineContractor,
+    const TransactionUUID &transactionUUID,
+    const TrustLineAmount &amount,
+    const AmountReservation::ReservationDirection direction)
+{
+    auto iterator = mReservations.find(trustLineContractor);
+    if (iterator == mReservations.end()) {
+        throw NotFoundError("Resrvations with requested contractor are absent");
+    }
+    for (const auto &reservation : *iterator->second) {
+        if (reservation->transactionUUID() == transactionUUID and
+                reservation->amount() == amount and
+                reservation->direction() == direction) {
+            return reservation;
+        }
+    }
+    throw NotFoundError("There no reservation with requested parameters");
 }

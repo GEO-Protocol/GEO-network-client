@@ -1,10 +1,10 @@
 #include "ObservingParticipantsVotesRequestMessage.h"
 
 ObservingParticipantsVotesRequestMessage::ObservingParticipantsVotesRequestMessage(
-        const TransactionUUID &transactionUUID,
-        BlockNumber maximalClaimingBlockNumber):
-        mTransactionUUID(transactionUUID),
-        mMaximalClaimingBlockNumber(maximalClaimingBlockNumber)
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber):
+    mTransactionUUID(transactionUUID),
+    mMaximalClaimingBlockNumber(maximalClaimingBlockNumber)
 {}
 
 const ObservingMessage::MessageType ObservingParticipantsVotesRequestMessage::typeID() const
@@ -28,14 +28,14 @@ BytesShared ObservingParticipantsVotesRequestMessage::serializeToBytes() const
 
     memcpy(
         buffer.get() + dataBytesOffset,
+        &mMaximalClaimingBlockNumber,
+        sizeof(BlockNumber));
+    dataBytesOffset += sizeof(BlockNumber);
+
+    memcpy(
+        buffer.get() + dataBytesOffset,
         mTransactionUUID.data,
         TransactionUUID::kBytesSize);
-    dataBytesOffset += TransactionUUID::kBytesSize;
-
-   memcpy(
-       buffer.get() + dataBytesOffset,
-       &mMaximalClaimingBlockNumber,
-       sizeof(BlockNumber));
 
     return buffer;
 }

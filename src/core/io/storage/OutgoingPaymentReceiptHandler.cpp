@@ -18,7 +18,7 @@ OutgoingPaymentReceiptHandler::OutgoingPaymentReceiptHandler(
                    "amount BLOB NOT NULL, "
                    "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id) ON DELETE CASCADE ON UPDATE CASCADE, "
                    "FOREIGN KEY(own_public_key_hash) REFERENCES own_keys(hash) ON DELETE CASCADE ON UPDATE CASCADE);";
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -32,7 +32,7 @@ OutgoingPaymentReceiptHandler::OutgoingPaymentReceiptHandler(
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_trust_line_id_audit_number_key_hash_idx on " + mTableName + "(trust_line_id, audit_number, own_public_key_hash);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::creating  index for TrustLineID and AuditNumber: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -46,7 +46,7 @@ OutgoingPaymentReceiptHandler::OutgoingPaymentReceiptHandler(
 
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
             + "_transaction_uuid_idx on " + mTableName + "(transaction_uuid);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::creating  index for TransactionUUID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -73,7 +73,7 @@ void OutgoingPaymentReceiptHandler::saveRecord(
                    "(trust_line_id, audit_number, transaction_uuid, own_public_key_hash, "
                    "amount) VALUES (?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::saveRecord: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -127,7 +127,7 @@ vector<pair<TransactionUUID, TrustLineAmount>> OutgoingPaymentReceiptHandler::au
     vector<pair<TransactionUUID, TrustLineAmount>> result;
     sqlite3_stmt *stmt;
     string query = "SELECT transaction_uuid, amount FROM " + mTableName + " WHERE trust_line_id = ? AND audit_number = ?";
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::auditAmounts: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -171,7 +171,7 @@ vector<ReceiptRecord::Shared> OutgoingPaymentReceiptHandler::receiptsByAuditNumb
     sqlite3_stmt *stmt;
     string query = "SELECT amount, transaction_uuid, own_public_key_hash FROM " + mTableName
                    + " WHERE trust_line_id = ? AND audit_number = ?";
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::receiptsByAuditNumber: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -216,12 +216,12 @@ void OutgoingPaymentReceiptHandler::deleteRecords(
 {
     string query = "DELETE FROM " + mTableName + " WHERE transaction_uuid = ?";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::deleteRecords: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, nullptr);
+    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("OutgoingPaymentReceiptHandler::deleteRecords: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));

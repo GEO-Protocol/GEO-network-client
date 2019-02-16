@@ -124,7 +124,6 @@ BasePaymentTransaction::BasePaymentTransaction(
             sizeof(SerializedRecordsCount));
         bytesBufferOffset += sizeof(SerializedRecordsCount);
 
-        vector<pair<PathID, AmountReservation::ConstShared>> stepVector;
         for(auto jdx = 0; jdx < stepReservationVectorSize; jdx++) {
 
             // PathID
@@ -152,41 +151,39 @@ BasePaymentTransaction::BasePaymentTransaction(
             bytesBufferOffset += sizeof(AmountReservation::SerializedReservationDirectionSize);
             auto stepEnumDirection = static_cast<AmountReservation::ReservationDirection>(stepDirection);
 
-            auto stepAmountReservation = make_shared<AmountReservation>(
-                mTransactionUUID,
-                stepAmount,
-                stepEnumDirection);
-            stepVector.emplace_back(
-                stepPathID,
-                stepAmountReservation);
+            if (isReserveAmounts) {
+                if (stepEnumDirection == AmountReservation::ReservationDirection::Incoming) {
+                    if (!reserveIncomingAmount(
+                            stepContractorID,
+                            stepAmount,
+                            stepPathID)) {
+                        // can't create reserve, but this reserve was serialized before node dropping
+                        // we must stop this node and find out the reason
+                        exit(1);
+                    }
+                }
 
-            if (isReserveAmounts and stepDirection == AmountReservation::ReservationDirection::Incoming) {
-                if (!reserveIncomingAmount(
-                    stepContractorID,
-                    stepAmount,
-                    stepPathID)) {
-                    // can't create reserve, but this reserve was serialized before node dropping
+                if (stepEnumDirection == AmountReservation::ReservationDirection::Outgoing) {
+                    if (!reserveOutgoingAmount(
+                            stepContractorID,
+                            stepAmount,
+                            stepPathID)) {
+                        // can't create reserve, but this reserve was serialized before node dropping
+                        // we must stop this node and find out the reason
+                        exit(1);
+                    }
+                }
+            } else {
+                if (!copyReservationFromGlobalReservations(
+                        stepContractorID,
+                        stepAmount,
+                        stepEnumDirection,
+                        stepPathID)) {
+                    // can't get reserve from AmountReseravtionsHandler, but this reserve must be
                     // we must stop this node and find out the reason
                     exit(1);
                 }
             }
-
-            if (isReserveAmounts and stepDirection == AmountReservation::ReservationDirection::Outgoing) {
-                if (!reserveOutgoingAmount(
-                    stepContractorID,
-                    stepAmount,
-                    stepPathID)) {
-                    // can't create reserve, but this reserve was serialized before node dropping
-                    // we must stop this node and find out the reason
-                    exit(1);
-                }
-            }
-        }
-        if (!isReserveAmounts) {
-            mReservations.insert(
-                make_pair(
-                    stepContractorID,
-                    stepVector));
         }
     }
 
@@ -224,6 +221,10 @@ BasePaymentTransaction::BasePaymentTransaction(
         &mMaximalClaimingBlockNumber,
         buffer.get() + bytesBufferOffset,
         sizeof(BlockNumber));
+
+    if (mStep != Stages::Common_Observing) {
+        mStep = Stages::Common_Recovery;
+    }
 }
 
 TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
@@ -456,6 +457,28 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
     return false;
 }
 
+const bool BasePaymentTransaction::copyReservationFromGlobalReservations(
+    ContractorID neighborNode,
+    const TrustLineAmount &amount,
+    AmountReservation::ReservationDirection reservationDirection,
+    const PathID &pathID)
+{
+    try {
+        auto reservation = mTrustLinesManager->getAmountReservation(
+            neighborNode,
+            mTransactionUUID,
+            amount,
+            reservationDirection);
+        mReservations[neighborNode].emplace_back(
+            pathID,
+            reservation);
+        return true;
+    } catch (NotFoundError &e) {
+        warning() << "copyReservationFromGlobalReservations " << e.what();
+        return false;
+    }
+}
+
 const bool BasePaymentTransaction::contextIsValid(
     Message::MessageType messageType,
     bool showErrorMessage) const
@@ -602,6 +625,7 @@ void BasePaymentTransaction::commit(
     ioTransaction->transactionHandler()->deleteRecord(
         currentTransactionUUID());
 
+    // todo : don't send signal if transaction committed after observing
     mTransactionCommittedObservingSignal(
         mTransactionUUID,
         mMaximalClaimingBlockNumber);

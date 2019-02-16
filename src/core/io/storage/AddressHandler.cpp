@@ -16,7 +16,7 @@ AddressHandler::AddressHandler(
                    "address_size INTEGER NOT NULL, "
                    "address BLOB NOT NULL, "
                    "FOREIGN KEY(contractor_id) REFERENCES contractors(id) ON DELETE CASCADE ON UPDATE CASCADE);";
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AddressHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -30,7 +30,7 @@ AddressHandler::AddressHandler(
 
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
             + "_contractor_id on " + mTableName + "(contractor_id);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AddressHandler::creating index for ContractorID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -54,7 +54,7 @@ void AddressHandler::saveAddress(
                    "(type, contractor_id, address_size, address) "
                    "VALUES (?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AddressHandler::saveAddress: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -102,7 +102,7 @@ vector<BaseAddress::Shared> AddressHandler::contractorAddresses(
     sqlite3_stmt *stmt;
     string query = "SELECT type, address_size, address FROM "
                    + mTableName + " WHERE contractor_id = ?";
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("AddressHandler::contractorAddresses: "
                           "Bad query; sqlite error: " + to_string(rc));

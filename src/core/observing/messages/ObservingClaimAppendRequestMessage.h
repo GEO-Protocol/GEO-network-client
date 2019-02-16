@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_OBSERVINGREQUESTMESSAGE_H
 #define GEO_NETWORK_CLIENT_OBSERVINGREQUESTMESSAGE_H
 
-#include "ObservingMessage.hpp"
+#include "base/ObservingMessage.hpp"
 #include "../../transactions/transactions/base/TransactionUUID.h"
 #include "../../crypto/lamportkeys.h"
 
