@@ -68,12 +68,12 @@ TransactionResult::SharedConst HistoryTrustLinesTransaction::resultOk(
         } else {
             throw RuntimeError(
                 "HistoryTrustLinesTransaction::resultOk: "
-                "unexpected operation type occured.");
+                "unexpected operation type occurred.");
         }
 
         stream << kTokensSeparator << kRecord->operationUUID() << kTokensSeparator;
         stream << kUnixTimestampMicrosec << kTokensSeparator;
-        // todo : add contractor info
+        stream << kRecord->contractor()->historyString();
         stream << formattedOperationType << kTokensSeparator;
         stream << kRecord->amount();
     }

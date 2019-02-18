@@ -16,10 +16,9 @@ HistoryWithContractorTransaction::HistoryWithContractorTransaction(
 TransactionResult::SharedConst HistoryWithContractorTransaction::run()
 {
     auto ioTransaction = mStorageHandler->beginTransaction();
-    auto contractor = make_shared<Contractor>(
-        mCommand->contractorAddresses());
+    auto contractorAddresses = mCommand->contractorAddresses();
     auto const resultRecords = ioTransaction->historyStorage()->recordsWithContractor(
-        contractor,
+        contractorAddresses,
         mCommand->equivalent(),
         mCommand->historyCount(),
         mCommand->historyFrom());
@@ -43,7 +42,7 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
             auto paymentRecord = static_pointer_cast<PaymentRecord>(kRecord);
             // Formatting operation type
             const auto kOperationType = paymentRecord->paymentOperationType();
-            string formattedOperationType = "";
+            string formattedOperationType;
             if (kOperationType == PaymentRecord::IncomingPaymentType) {
                 formattedOperationType = "incoming";
 
@@ -53,7 +52,7 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
             } else {
                 throw RuntimeError(
                         "HistoryWithContractorTransaction::resultOk: "
-                                "unexpected payment operation type occured.");
+                                "unexpected payment operation type occurred.");
             }
 
             stream << kTokensSeparator << formattedRecordType << kTokensSeparator;
@@ -69,7 +68,7 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
 
             // Formatting operation type
             const auto kOperationType = trustLineRecord->trustLineOperationType();
-            string formattedOperationType = "";
+            string formattedOperationType;
             if (kOperationType == TrustLineRecord::Opening) {
                 formattedOperationType = "opening";
 
@@ -97,7 +96,7 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
             } else {
                 throw RuntimeError(
                         "HistoryWithContractorTransaction::resultOk: "
-                            "unexpected trust line operation type occured.");
+                            "unexpected trust line operation type occurred.");
             }
 
             stream << kTokensSeparator << formattedRecordType << kTokensSeparator;
@@ -107,7 +106,7 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
             stream << trustLineRecord->amount();
         } else {
             throw ValueError("HistoryWithContractorTransaction::resultOk: "
-                                 "unexpected record type occured.");
+                                 "unexpected record type occurred.");
         }
     }
 

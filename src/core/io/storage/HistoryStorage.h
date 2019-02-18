@@ -77,7 +77,7 @@ public:
         bool isHighBoundaryAmountPresent);
 
     vector<Record::Shared> recordsWithContractor(
-        Contractor::Shared contractor,
+        vector<BaseAddress::Shared> contractorAddresses,
         const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord);

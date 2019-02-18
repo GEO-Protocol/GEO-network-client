@@ -40,6 +40,9 @@ public:
 
     BaseAddress::Shared mainAddress() const;
 
+    bool containsAddresses(
+        vector<BaseAddress::Shared>& addresses) const;
+
     BytesShared serializeToBytes() const;
 
     size_t serializedSize() const;
@@ -53,6 +56,8 @@ public:
         Contractor::Shared contractor2);
 
     string toString() const;
+
+    string historyString() const;
 
 private:
     ContractorID mID;

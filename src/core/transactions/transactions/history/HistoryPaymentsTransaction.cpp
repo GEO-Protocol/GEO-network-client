@@ -21,7 +21,7 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::run()
         auto const paymentRecords = ioTransaction->historyStorage()->paymentRecordsByCommandUUID(
             mCommand->paymentRecordCommandUUID());
         if (paymentRecords.size() > 1) {
-            warning() << "Count transactions with given commandUUID is more than one";
+            warning() << "Count transactions with requested commandUUID is more than one";
         }
         return resultOk(paymentRecords);
     }
@@ -69,7 +69,7 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::resultOk(
 
         stream << kTokensSeparator << kRecord->operationUUID() << kTokensSeparator;
         stream << kUnixTimestampMicrosec << kTokensSeparator;
-        // todo : add contractor info
+        stream << kRecord->contractor() << kTokensSeparator;
         stream << formattedOperationType << kTokensSeparator;
         stream << kRecord->amount() << kTokensSeparator;
         stream << kRecord->balanceAfterOperation();

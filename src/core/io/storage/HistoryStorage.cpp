@@ -626,7 +626,7 @@ size_t HistoryStorage::countRecordsByType(
                           "Bad binding of RecordType; sqlite error: " + to_string(rc));
     }
     sqlite3_step(stmt);
-    size_t result = (size_t)sqlite3_column_int(stmt, 0);
+    auto result = (size_t)sqlite3_column_int(stmt, 0);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return result;
@@ -889,7 +889,7 @@ vector<Record::Shared> HistoryStorage::recordsPortionWithContractor(
 }
 
 vector<Record::Shared> HistoryStorage::recordsWithContractor(
-    Contractor::Shared contractor,
+    vector<BaseAddress::Shared> contractorAddresses,
     const SerializedEquivalent equivalent,
     size_t recordsCount,
     size_t fromRecord)
@@ -909,11 +909,12 @@ vector<Record::Shared> HistoryStorage::recordsWithContractor(
                           "Bad binding of Equivalent; sqlite error: " + to_string(rc));
     }
     sqlite3_step(stmt);
-    size_t allRecordsCount = (size_t)sqlite3_column_int(stmt, 0);
+    auto allRecordsCount = (size_t)sqlite3_column_int(stmt, 0);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-
+#ifdef STORAGE_HANDLER_DEBUG_LOG
     debug() << "all records count: " << allRecordsCount;
+#endif
     size_t currentOffset = 0;
     size_t countRecordsUnderConditions = 0;
     while (result.size() < recordsCount && currentOffset < allRecordsCount) {
@@ -922,7 +923,7 @@ vector<Record::Shared> HistoryStorage::recordsWithContractor(
             kPortionRequestSize,
             currentOffset);
         for (auto &record : records) {
-            if (record->contractor() == contractor) {
+            if (record->contractor()->containsAddresses(contractorAddresses)) {
                 countRecordsUnderConditions++;
                 if (countRecordsUnderConditions > fromRecord) {
                     result.push_back(record);

@@ -81,6 +81,24 @@ BaseAddress::Shared Contractor::mainAddress() const
     return mAddresses.at(0);
 }
 
+bool Contractor::containsAddresses(
+    vector<BaseAddress::Shared> &addresses) const
+{
+    for (const auto &address : addresses) {
+        bool containsAddress = false;
+        for (const auto &contractorAddress : mAddresses) {
+            if (contractorAddress == address) {
+                containsAddress = true;
+                break;
+            }
+        }
+        if (!containsAddress) {
+            return false;
+        }
+    }
+    return true;
+}
+
 BytesShared Contractor::serializeToBytes() const
 {
     BytesShared dataBytesShared = tryCalloc(serializedSize());
@@ -117,6 +135,16 @@ string Contractor::toString() const
 {
     stringstream ss;
     ss << mID << " " << mOwnIdOnContractorSide << " ";
+    for (const auto &address : mAddresses) {
+        ss << address->fullAddress() << " ";
+    }
+    return ss.str();
+}
+
+string Contractor::historyString() const
+{
+    stringstream ss;
+    ss << mAddresses.size() << " ";
     for (const auto &address : mAddresses) {
         ss << address->fullAddress() << " ";
     }

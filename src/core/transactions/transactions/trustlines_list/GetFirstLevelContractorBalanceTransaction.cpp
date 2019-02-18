@@ -36,7 +36,6 @@ TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::run()
     ss << kContractorTrustLine->balance();
     ss << kCommandsSeparator;
     string kResultInfo = ss.str();
-    // todo return also state of TL
     return transactionResultFromCommand(
         mCommand->resultOk(
             kResultInfo));

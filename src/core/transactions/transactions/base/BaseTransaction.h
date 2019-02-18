@@ -91,7 +91,7 @@ public:
         MaxFlowCalculationStepTwoTransactionType = 410,
         MaxFlowCalculationFullyTransactionType = 411,
 
-        // Contractors
+        // TrustLine list
         ContractorsList = 500,
         TrustLinesList = 501,
         TrustLineOne = 502,
