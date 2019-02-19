@@ -1,13 +1,13 @@
-#include "GetFirstLevelContractorBalanceTransaction.h"
+#include "GetTrustLineByAddressTransaction.h"
 
-GetFirstLevelContractorBalanceTransaction::GetFirstLevelContractorBalanceTransaction(
-    GetTrustLineCommand::Shared command,
+GetTrustLineByAddressTransaction::GetTrustLineByAddressTransaction(
+    GetTrustLineByAddressCommand::Shared command,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
     Logger &logger)
-noexcept:
+    noexcept:
     BaseTransaction(
-        BaseTransaction::TrustLineOne,
+        BaseTransaction::TrustLineOneByAddress,
         command->equivalent(),
         logger),
     mCommand(command),
@@ -15,10 +15,16 @@ noexcept:
     mTrustLinesManager(trustLinesManager)
 {}
 
-TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::run()
+TransactionResult::SharedConst GetTrustLineByAddressTransaction::run()
 {
-    auto contractorID = mContractorsManager->contractorIDByAddress(
-        mCommand->contractorAddress());
+    auto contractorID = ContractorsManager::kNotFoundContractorID;
+    auto contractorAddresses = mCommand->contractorAddresses();
+    for (const auto &contractor : mContractorsManager->allContractors()) {
+        if (contractor->containsAddresses(contractorAddresses)) {
+            contractorID = contractor->getID();
+            break;
+        }
+    }
     if (contractorID == ContractorsManager::kNotFoundContractorID) {
         return resultTrustLineIsAbsent();
     }
@@ -41,15 +47,15 @@ TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::run()
             kResultInfo));
 }
 
-TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::resultTrustLineIsAbsent()
+TransactionResult::SharedConst GetTrustLineByAddressTransaction::resultTrustLineIsAbsent()
 {
     return transactionResultFromCommand(
         mCommand->responseTrustLineIsAbsent());
 }
 
-const string GetFirstLevelContractorBalanceTransaction::logHeader() const
+const string GetTrustLineByAddressTransaction::logHeader() const
 {
     stringstream s;
-    s << "[GetFirstLevelContractorBalanceTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
+    s << "[GetTrustLineByAddressTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }

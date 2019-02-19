@@ -1,16 +1,15 @@
-#include "CloseIncomingTrustLineCommand.h"
+#include "GetTrustLineByIDCommand.h"
 
-CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
+GetTrustLineByIDCommand::GetTrustLineByIDCommand(
     const CommandUUID &commandUUID,
     const string &command) :
-
     BaseUserCommand(
         commandUUID,
         identifier())
 {
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator) {
-            throw ValueError("CloseIncomingTrustLineCommand: there is no input ");
+            throw ValueError("GetTrustLineByIDCommand: there is no input ");
         }
     };
     auto contractorid_add = [&](auto& ctx) {
@@ -30,25 +29,35 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
             command.end(),
             *(int_[contractorid_add]) > char_(kTokensSeparator) > *(int_[equivalentid_add]) > eol);
     } catch(...) {
-        throw ValueError("CloseIncomingTrustLineCommand: can't parse command.");
+        throw ValueError("GetTrustLineByIDCommand: can't parse command.");
     }
 }
 
-const string &CloseIncomingTrustLineCommand::identifier()
+const string &GetTrustLineByIDCommand::identifier()
     noexcept
 {
-    static const string identifier = "DELETE:contractors/incoming-trust-line";
+    static const string identifier = "GET:contractors/trust-lines/one/id";
     return identifier;
 }
 
-const ContractorID CloseIncomingTrustLineCommand::contractorID() const
+const ContractorID GetTrustLineByIDCommand::contractorID() const
     noexcept
 {
     return mContractorID;
 }
 
-const SerializedEquivalent CloseIncomingTrustLineCommand::equivalent() const
+const SerializedEquivalent GetTrustLineByIDCommand::equivalent() const
     noexcept
 {
     return mEquivalent;
+}
+
+CommandResult::SharedConst GetTrustLineByIDCommand::resultOk(
+    string &neighbor) const
+{
+    return make_shared<const CommandResult>(
+        identifier(),
+        UUID(),
+        200,
+        neighbor);
 }

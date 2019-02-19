@@ -4,11 +4,13 @@ set(SOURCE_FILES
         GetFirstLevelContractorsTransaction.h
         GetFirstLevelContractorsTransaction.cpp
 
-        GetFirstLevelContractorsBalancesTransaction.h
-        GetFirstLevelContractorsBalancesTransaction.cpp
+        GetTrustLinesListTransaction.h
+        GetTrustLinesListTransaction.cpp
 
-        GetFirstLevelContractorBalanceTransaction.h
-        GetFirstLevelContractorBalanceTransaction.cpp
+        GetTrustLineByIDTransaction.h
+        GetTrustLineByIDTransaction.cpp
+        GetTrustLineByAddressTransaction.h
+        GetTrustLineByAddressTransaction.cpp
 
         GetEquivalentListTransaction.h
         GetEquivalentListTransaction.cpp)

@@ -9,27 +9,36 @@ GetTrustLinesCommand::GetTrustLinesCommand(
         uuid,
         identifier())
 {
-    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("GetTrustLinesCommand: there is no input ");}};
-    auto mfrom_add = [&](auto &ctx){ mFrom = _attr(ctx); };
-    auto mcount_add = [&](auto &ctx){ mCount = _attr(ctx); };
-    auto mequivalent_add = [&](auto &ctx){ mEquivalent = _attr(ctx); };
+    auto check = [&](auto &ctx) {
+        if(_attr(ctx) == kCommandsSeparator) {
+            throw ValueError("GetTrustLinesCommand: there is no input ");
+        }
+    };
+    auto mfrom_add = [&](auto &ctx){
+        mFrom = _attr(ctx);
+    };
+    auto mcount_add = [&](auto &ctx) {
+        mCount = _attr(ctx);
+    };
+    auto mequivalent_add = [&](auto &ctx) {
+        mEquivalent = _attr(ctx);
+    };
 
-    try
-    {
-        parse(commandBuffer.begin(), commandBuffer.end(), char_[check]);
-        parse(commandBuffer.begin(), commandBuffer.end(),
-              (
-                      *(int_[mfrom_add])
-                      > char_('\t')
-                      > *(int_[mcount_add])
-                      > char_('\t')
-                      > *(int_[mequivalent_add])
-                      > eol
-              )
-             );
-    }
-    catch(...)
-    {
+    try {
+        parse(
+            commandBuffer.begin(),
+            commandBuffer.end(),
+            char_[check]);
+        parse(
+            commandBuffer.begin(),
+            commandBuffer.end(), (
+                *(int_[mfrom_add])
+                > char_(kTokensSeparator)
+                > *(int_[mcount_add])
+                > char_(kTokensSeparator)
+                > *(int_[mequivalent_add])
+                > eol));
+    } catch(...) {
         throw ValueError("GetTrustLinesCommand: can't parse command");
     }
 }

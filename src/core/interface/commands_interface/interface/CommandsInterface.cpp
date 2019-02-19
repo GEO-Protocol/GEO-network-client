@@ -207,8 +207,13 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
-        } else if (identifier == GetTrustLineCommand::identifier()) {
-            command = new GetTrustLineCommand(
+        } else if (identifier == GetTrustLineByAddressCommand::identifier()) {
+            command = new GetTrustLineByAddressCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == GetTrustLineByIDCommand::identifier()) {
+            command = new GetTrustLineByIDCommand(
                 uuid,
                 buffer);
 

@@ -1,6 +1,6 @@
-#include "GetFirstLevelContractorsBalancesTransaction.h"
+#include "GetTrustLinesListTransaction.h"
 
-GetFirstLevelContractorsBalancesTransaction::GetFirstLevelContractorsBalancesTransaction(
+GetTrustLinesListTransaction::GetTrustLinesListTransaction(
     GetTrustLinesCommand::Shared command,
     TrustLinesManager *manager,
     Logger &logger)
@@ -13,7 +13,7 @@ GetFirstLevelContractorsBalancesTransaction::GetFirstLevelContractorsBalancesTra
     mTrustLinesManager(manager)
 {}
 
-TransactionResult::SharedConst GetFirstLevelContractorsBalancesTransaction::run()
+TransactionResult::SharedConst GetTrustLinesListTransaction::run()
 {
     const auto kNeighborsCount = mTrustLinesManager->trustLines().size();
     stringstream ss;
@@ -58,9 +58,9 @@ TransactionResult::SharedConst GetFirstLevelContractorsBalancesTransaction::run(
             kResultInfo));
 }
 
-const string GetFirstLevelContractorsBalancesTransaction::logHeader() const
+const string GetTrustLinesListTransaction::logHeader() const
 {
     stringstream s;
-    s << "[GetFirstLevelContractorsBalancesTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
+    s << "[GetTrustLinesListTA: " << currentTransactionUUID() << " " << mEquivalent << "] ";
     return s.str();
 }

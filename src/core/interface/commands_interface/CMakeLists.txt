@@ -43,8 +43,10 @@ set(SOURCE_FILES
         commands/trust_lines_list/GetFirstLevelContractorsCommand.cpp
         commands/trust_lines_list/GetTrustLinesCommand.h
         commands/trust_lines_list/GetTrustLinesCommand.cpp
-        commands/trust_lines_list/GetTrustLineCommand.h
-        commands/trust_lines_list/GetTrustLineCommand.cpp
+        commands/trust_lines_list/GetTrustLineByAddressCommand.h
+        commands/trust_lines_list/GetTrustLineByAddressCommand.cpp
+        commands/trust_lines_list/GetTrustLineByIDCommand.h
+        commands/trust_lines_list/GetTrustLineByIDCommand.cpp
         commands/trust_lines_list/EquivalentListCommand.h
         commands/trust_lines_list/EquivalentListCommand.cpp
 

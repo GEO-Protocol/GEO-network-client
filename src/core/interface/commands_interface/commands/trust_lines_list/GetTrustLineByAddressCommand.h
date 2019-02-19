@@ -1,24 +1,23 @@
-#ifndef GEO_NETWORK_CLIENT_GETTRUSTLINECOMMAND_H
-#define GEO_NETWORK_CLIENT_GETTRUSTLINECOMMAND_H
+#ifndef GEO_NETWORK_CLIENT_GETTRUSTLINEBYADDRESSCOMMAND_H
+#define GEO_NETWORK_CLIENT_GETTRUSTLINEBYADDRESSCOMMAND_H
 
 #include "../BaseUserCommand.h"
 #include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/exceptions/ValueError.h"
 
-class GetTrustLineCommand : public BaseUserCommand {
+class GetTrustLineByAddressCommand : public BaseUserCommand {
 
 public:
-    typedef shared_ptr<GetTrustLineCommand> Shared;
+    typedef shared_ptr<GetTrustLineByAddressCommand> Shared;
 
 public:
-    GetTrustLineCommand(
+    GetTrustLineByAddressCommand(
         const CommandUUID &uuid,
         const string &commandBuffer);
 
-
     static const string &identifier();
 
-    BaseAddress::Shared contractorAddress() const;
+    vector<BaseAddress::Shared> contractorAddresses() const;
 
     const SerializedEquivalent equivalent() const;
 
@@ -26,8 +25,8 @@ public:
         string &neighbor) const;
 
 protected:
-    BaseAddress::Shared mContractorAddress;
+    vector<BaseAddress::Shared> mContractorAddresses;
     SerializedEquivalent mEquivalent;
 };
 
-#endif //GEO_NETWORK_CLIENT_GETTRUSTLINECOMMAND_H
+#endif //GEO_NETWORK_CLIENT_GETTRUSTLINEBYADDRESSCOMMAND_H

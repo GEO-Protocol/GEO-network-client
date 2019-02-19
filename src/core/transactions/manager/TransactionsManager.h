@@ -2,50 +2,8 @@
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
 #include "../scheduler/TransactionsScheduler.h"
-
-#include "../../common/memory/MemoryUtils.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
-#include "../../equivalents/EquivalentsSubsystemsRouter.h"
-#include "../../equivalents/EquivalentsCyclesSubsystemsRouter.h"
-#include "../../io/storage/StorageHandler.h"
-#include "../../logger/Logger.h"
-#include "../../subsystems_controller/SubsystemsController.h"
-#include "../../subsystems_controller/TrustLinesInfluenceController.h"
 #include "../../interface/events_interface/interface/EventsInterface.h"
-#include "../../crypto/keychain.h"
-
-/*
- * Interface commands
- */
-#include "../../interface/commands_interface/commands/trust_lines/InitTrustLineCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines/ShareKeysCommand.h"
-#include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
-#include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
-#include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h"
-#include "../../interface/commands_interface/commands/total_balances/TotalBalancesCommand.h"
-#include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
-#include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
-#include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
-#include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
-#include "../../interface/commands_interface/commands/history/HistoryWithContractorCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLineCommand.h"
-#include "../../interface/commands_interface/commands/transactions/PaymentTransactionByCommandUUIDCommand.h"
-
-/*
- * Network messages
- */
-#include "../../network/messages/Message.hpp"
-#include "../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
-#include "../../network/messages/cycles/FourNodes/CyclesFourNodesNegativeBalanceRequestMessage.h"
-#include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
-#include "../../network/messages/payments/VotesStatusRequestMessage.hpp"
-
-#include "../../resources/manager/ResourcesManager.h"
-#include "../../resources/resources/BaseResource.h"
 
 /*
  * Transactions
@@ -78,7 +36,6 @@
 #include "../transactions/regular/payments/CycleCloserInitiatorTransaction.h"
 #include "../transactions/regular/payments/CycleCloserIntermediateNodeTransaction.h"
 
-
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationFullyTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.h"
@@ -96,8 +53,9 @@
 #include "../transactions/history/HistoryWithContractorTransaction.h"
 
 #include "../transactions/trustlines_list/GetFirstLevelContractorsTransaction.h"
-#include "../transactions/trustlines_list/GetFirstLevelContractorsBalancesTransaction.h"
-#include "../transactions/trustlines_list/GetFirstLevelContractorBalanceTransaction.h"
+#include "../transactions/trustlines_list/GetTrustLinesListTransaction.h"
+#include "../transactions/trustlines_list/GetTrustLineByAddressTransaction.h"
+#include "../transactions/trustlines_list/GetTrustLineByIDTransaction.h"
 #include "../transactions/trustlines_list/GetEquivalentListTransaction.h"
 
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
@@ -333,8 +291,11 @@ protected: // Transactions
     void launchGetTrustLinesTransaction(
         GetTrustLinesCommand::Shared command);
 
-    void launchGetTrustLineTransaction(
-        GetTrustLineCommand::Shared command);
+    void launchGetTrustLineByAddressTransaction(
+        GetTrustLineByAddressCommand::Shared command);
+
+    void launchGetTrustLineByIDTransaction(
+        GetTrustLineByIDCommand::Shared command);
 
     void launchGetEquivalentListTransaction(
         EquivalentListCommand::Shared command);

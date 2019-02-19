@@ -8,52 +8,58 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
         uuid,
         identifier())
 {
-    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("HistoryTrustLinesCommand: there is no input ");}};
-    auto historyfrom_add = [&](auto &ctx) { mHistoryFrom = _attr(ctx); };
-    auto historycount_add = [&](auto &ctx) { mHistoryCount = _attr(ctx); };
-    auto timefrompresent_null = [&](auto &ctx) { mIsTimeFromPresent = false; };
-    auto timefrompresent_number = [&](auto &ctx)
-    {
+    auto check = [&](auto &ctx) {
+        if(_attr(ctx) == kCommandsSeparator) {
+            throw ValueError("HistoryTrustLinesCommand: there is no input ");
+        }
+    };
+    auto historyfrom_add = [&](auto &ctx) {
+        mHistoryFrom = _attr(ctx);
+    };
+    auto historycount_add = [&](auto &ctx) {
+        mHistoryCount = _attr(ctx);
+    };
+    auto timefrompresent_null = [&](auto &ctx) {
+        mIsTimeFromPresent = false;
+    };
+    auto timefrompresent_number = [&](auto &ctx) {
         mIsTimeFromPresent = true;
         mTimeFrom = pt::time_from_string("1970-01-01 00:00:00.000");
         mTimeFrom += pt::microseconds(_attr(ctx));
-
     };
-
-    auto timetopresent_null = [&](auto &ctx) { mIsTimeToPresent = false; };
-    auto timetopresent_number = [&](auto &ctx)
-    {
+    auto timetopresent_null = [&](auto &ctx) {
+        mIsTimeToPresent = false;
+    };
+    auto timetopresent_number = [&](auto &ctx) {
         mIsTimeToPresent = true;
         mTimeTo = pt::time_from_string("1970-01-01 00:00:00.000");
         mTimeTo += pt::microseconds(_attr(ctx));
-
     };
-    auto equivalentID_add = [&](auto &ctx) { mEquivalent = _attr(ctx); };
+    auto equivalentID_add = [&](auto &ctx) {
+        mEquivalent = _attr(ctx);
+    };
 
-    try
-    {
-        parse(commandBuffer.begin(), commandBuffer.end(), char_[check]);
-        parse(commandBuffer.begin(), commandBuffer.end(),
-              (
-                      *(int_[historyfrom_add])
-                      > char_('\t')
-                      > *(int_[historycount_add])
-                      > char_('\t')
-                      > -(+(char_("null")[timefrompresent_null]))
-                      > -(int_[timefrompresent_number])
-                      > char_('\t')
-                      > -(+(char_("null")[timetopresent_null]))
-                      > -(int_[timetopresent_number])
-                      > char_('\t')
-                      > int_[equivalentID_add]
-                      > eol
-
-              )
-             );
-
-    }
-    catch(...)
-    {
+    try {
+        parse(
+            commandBuffer.begin(),
+            commandBuffer.end(),
+            char_[check]);
+        parse(
+            commandBuffer.begin(),
+            commandBuffer.end(), (
+                *(int_[historyfrom_add])
+                > char_(kTokensSeparator)
+                > *(int_[historycount_add])
+                > char_(kTokensSeparator)
+                > -(+(char_("null")[timefrompresent_null]))
+                > -(int_[timefrompresent_number])
+                > char_(kTokensSeparator)
+                > -(+(char_("null")[timetopresent_null]))
+                > -(int_[timetopresent_number])
+                > char_(kTokensSeparator)
+                > int_[equivalentID_add]
+                > eol));
+    } catch(...) {
         throw ValueError("HistoryTrustLinesCommand : can't parse command");
     }
 }

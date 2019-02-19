@@ -1,5 +1,5 @@
 #include "../../../../catch.hpp"
-#include "../../../../../core/interface/commands_interface/commands/trust_lines_list/GetTrustLineCommand.h"
+#include "../../../../../core/interface/commands_interface/commands/trust_lines_list/GetTrustLineByAddressCommand.h"
 
 TEST_CASE("Testing GetTrustLineCommand")
 {

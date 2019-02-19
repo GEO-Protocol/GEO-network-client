@@ -305,9 +305,14 @@ void TransactionsManager::processCommand(
             static_pointer_cast<GetTrustLinesCommand>(
                 command));
 
-    } else if (command->identifier() == GetTrustLineCommand::identifier()){
-        launchGetTrustLineTransaction(
-            static_pointer_cast<GetTrustLineCommand>(
+    } else if (command->identifier() == GetTrustLineByAddressCommand::identifier()){
+        launchGetTrustLineByAddressTransaction(
+            static_pointer_cast<GetTrustLineByAddressCommand>(
+                command));
+
+    } else if (command->identifier() == GetTrustLineByIDCommand::identifier()){
+        launchGetTrustLineByIDTransaction(
+            static_pointer_cast<GetTrustLineByIDCommand>(
                 command));
 
     } else if (command->identifier() == EquivalentListCommand::identifier()){
@@ -1771,7 +1776,7 @@ void TransactionsManager::launchGetTrustLinesTransaction(
 {
     try {
         prepareAndSchedule(
-            make_shared<GetFirstLevelContractorsBalancesTransaction>(
+            make_shared<GetTrustLinesListTransaction>(
                 command,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
                 mLog),
@@ -1779,7 +1784,7 @@ void TransactionsManager::launchGetTrustLinesTransaction(
             false,
             false);
     } catch (NotFoundError &e) {
-        error() << "There are no subsystems for GetFirstLevelContractorsBalancesTransaction "
+        error() << "There are no subsystems for GetTrustLinesListTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(
@@ -1792,12 +1797,12 @@ void TransactionsManager::launchGetTrustLinesTransaction(
 
 }
 
-void TransactionsManager::launchGetTrustLineTransaction(
-    GetTrustLineCommand::Shared command)
+void TransactionsManager::launchGetTrustLineByAddressTransaction(
+    GetTrustLineByAddressCommand::Shared command)
 {
     try {
         prepareAndSchedule(
-            make_shared<GetFirstLevelContractorBalanceTransaction>(
+            make_shared<GetTrustLineByAddressTransaction>(
                 command,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
@@ -1806,7 +1811,32 @@ void TransactionsManager::launchGetTrustLineTransaction(
             false,
             false);
     } catch (NotFoundError &e) {
-        error() << "There are no subsystems for GetFirstLevelContractorBalanceTransaction "
+        error() << "There are no subsystems for GetTrustLineByAddressTransaction "
+                "with equivalent " << command->equivalent() << " Details are: " << e.what();
+        prepareAndSchedule(
+            make_shared<NoEquivalentTransaction>(
+                command,
+                mLog),
+            false,
+            false,
+            false);
+    }
+}
+
+void TransactionsManager::launchGetTrustLineByIDTransaction(
+    GetTrustLineByIDCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<GetTrustLineByIDTransaction>(
+                command,
+                mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
+                mLog),
+            true,
+            false,
+            false);
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for launchGetTrustLineByIDTransaction "
                 "with equivalent " << command->equivalent() << " Details are: " << e.what();
         prepareAndSchedule(
             make_shared<NoEquivalentTransaction>(

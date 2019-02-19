@@ -1,19 +1,18 @@
-#ifndef GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORSBALANCESTRANSACTION_H
-#define GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORSBALANCESTRANSACTION_H
+#ifndef GEO_NETWORK_CLIENT_GETTRUSTLINESLISTTRANSACTION_H
+#define GEO_NETWORK_CLIENT_GETTRUSTLINESLISTTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 
-
-class GetFirstLevelContractorsBalancesTransaction :
+class GetTrustLinesListTransaction :
     public BaseTransaction {
 
 public:
-    typedef shared_ptr<GetFirstLevelContractorsBalancesTransaction> Shared;
+    typedef shared_ptr<GetTrustLinesListTransaction> Shared;
 
 public:
-    GetFirstLevelContractorsBalancesTransaction(
+    GetTrustLinesListTransaction(
         GetTrustLinesCommand::Shared command,
         TrustLinesManager *manager,
         Logger &logger)
@@ -29,4 +28,4 @@ private:
     TrustLinesManager *mTrustLinesManager;
 };
 
-#endif //GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORSBALANCESTRANSACTION_H
+#endif //GEO_NETWORK_CLIENT_GETTRUSTLINESLISTTRANSACTION_H

@@ -1,22 +1,20 @@
-#ifndef GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORTRANSACTION_H_H
-#define GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORTRANSACTION_H_H
-
+#ifndef GEO_NETWORK_CLIENT_GETTRUSTLINEBYADDRESSTRANSACTION_H_H
+#define GEO_NETWORK_CLIENT_GETTRUSTLINEBYADDRESSTRANSACTION_H_H
 
 #include "../base/BaseTransaction.h"
-#include "../../../interface/commands_interface/commands/trust_lines_list/GetTrustLineCommand.h"
+#include "../../../interface/commands_interface/commands/trust_lines_list/GetTrustLineByAddressCommand.h"
 #include "../../../contractors/ContractorsManager.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 
-
-class GetFirstLevelContractorBalanceTransaction :
+class GetTrustLineByAddressTransaction :
     public BaseTransaction {
 
 public:
-    typedef shared_ptr<GetFirstLevelContractorBalanceTransaction> Shared;
+    typedef shared_ptr<GetTrustLineByAddressTransaction> Shared;
 
 public:
-    GetFirstLevelContractorBalanceTransaction(
-        GetTrustLineCommand::Shared command,
+    GetTrustLineByAddressTransaction(
+        GetTrustLineByAddressCommand::Shared command,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
         Logger &logger)
@@ -30,9 +28,9 @@ protected:
     const string logHeader() const;
 
 private:
-    GetTrustLineCommand::Shared mCommand;
+    GetTrustLineByAddressCommand::Shared mCommand;
     ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
 };
 
-#endif //GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORTRANSACTION_H_H
+#endif //GEO_NETWORK_CLIENT_GETTRUSTLINEBYADDRESSTRANSACTION_H_H
