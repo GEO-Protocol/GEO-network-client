@@ -1730,11 +1730,24 @@ void TransactionsManager::launchHistoryWithContractorTransaction(
 void TransactionsManager::launchGetFirstLevelContractorsTransaction(
     GetFirstLevelContractorsCommand::Shared command)
 {
+    if (command->equivalent() == 0) {
+        prepareAndSchedule(
+            make_shared<GetFirstLevelContractorsTransaction>(
+                command,
+                nullptr,
+                mContractorsManager,
+                mLog),
+            true,
+            false,
+            false);
+        return;
+    }
     try {
         prepareAndSchedule(
             make_shared<GetFirstLevelContractorsTransaction>(
                 command,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
+                nullptr,
                 mLog),
             true,
             false,

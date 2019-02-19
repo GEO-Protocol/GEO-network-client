@@ -16,6 +16,8 @@ public:
         StorageHandler *storageHandler,
         Logger &logger);
 
+    vector<Contractor::Shared> allContractors() const;
+
     ContractorID getContractorID(
         IOTransaction::Shared ioTransaction,
         vector<BaseAddress::Shared> contractorAddresses);

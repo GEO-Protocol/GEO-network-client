@@ -43,6 +43,17 @@ ContractorsManager::ContractorsManager(
 #endif
 }
 
+vector<Contractor::Shared> ContractorsManager::allContractors() const
+{
+    vector<Contractor::Shared> result;
+    result.reserve(mContractors.size());
+    for (const auto &contractor : mContractors) {
+        result.push_back(
+            contractor.second);
+    }
+    return result;
+}
+
 ContractorID ContractorsManager::getContractorID(
     IOTransaction::Shared ioTransaction,
     vector<BaseAddress::Shared> contractorAddresses)

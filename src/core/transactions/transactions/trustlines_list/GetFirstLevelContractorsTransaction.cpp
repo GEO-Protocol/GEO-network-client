@@ -2,25 +2,44 @@
 
 GetFirstLevelContractorsTransaction::GetFirstLevelContractorsTransaction(
     GetFirstLevelContractorsCommand::Shared command,
-    TrustLinesManager *manager,
-    Logger &logger)
-    noexcept :
+    TrustLinesManager *trustLinesManager,
+    ContractorsManager *contractorsManager,
+    Logger &logger) :
     BaseTransaction(
         BaseTransaction::ContractorsList,
         command->equivalent(),
         logger),
     mCommand(command),
-    mTrustLinesManager(manager)
+    mTrustLinesManager(trustLinesManager),
+    mContractorsManager(contractorsManager)
 {}
 
 TransactionResult::SharedConst GetFirstLevelContractorsTransaction::run()
 {
-    const auto kNeighborsCount = mTrustLinesManager->trustLines().size();
+    if (mContractorsManager != nullptr) {
+        const auto contractorsCount = mContractorsManager->allContractors().size();
+        stringstream ss;
+        ss << to_string(contractorsCount);
+        for (const auto &contractor: mContractorsManager->allContractors()) {
+            ss << kTokensSeparator << contractor->getID()
+               << kTokensSeparator << contractor->outputString();
+        }
+        ss << kCommandsSeparator;
+        string kResultInfo = ss.str();
+        return transactionResultFromCommand(
+            mCommand->resultOk(kResultInfo));
+    }
+    if (mTrustLinesManager == nullptr) {
+        warning() << "Both TrustLinesManager and ContractorsManager are null";
+        return transactionResultFromCommand(
+            mCommand->responseUnexpectedError());
+    }
+    const auto neighborsCount = mTrustLinesManager->trustLines().size();
     stringstream ss;
-    ss << to_string(kNeighborsCount);
-    for (const auto &kNodeIDAndTrustLine: mTrustLinesManager->trustLines()) {
-        ss << kTokensSeparator;
-        ss << kNodeIDAndTrustLine.first;
+    ss << to_string(neighborsCount);
+    for (const auto &nodeIDAndTrustLine: mTrustLinesManager->trustLines()) {
+        ss << kTokensSeparator << nodeIDAndTrustLine.first
+           << kTokensSeparator << mContractorsManager->contractor(nodeIDAndTrustLine.first)->outputString();
     }
     ss << kCommandsSeparator;
     string kResultInfo = ss.str();

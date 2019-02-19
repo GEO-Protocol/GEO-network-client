@@ -73,7 +73,7 @@ TransactionResult::SharedConst HistoryTrustLinesTransaction::resultOk(
 
         stream << kTokensSeparator << kRecord->operationUUID() << kTokensSeparator;
         stream << kUnixTimestampMicrosec << kTokensSeparator;
-        stream << kRecord->contractor()->historyString();
+        stream << kRecord->contractor()->outputString();
         stream << formattedOperationType << kTokensSeparator;
         stream << kRecord->amount();
     }

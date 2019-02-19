@@ -141,7 +141,7 @@ string Contractor::toString() const
     return ss.str();
 }
 
-string Contractor::historyString() const
+string Contractor::outputString() const
 {
     stringstream ss;
     ss << mAddresses.size() << " ";

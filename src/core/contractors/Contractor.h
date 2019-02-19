@@ -57,7 +57,7 @@ public:
 
     string toString() const;
 
-    string historyString() const;
+    string outputString() const;
 
 private:
     ContractorID mID;
