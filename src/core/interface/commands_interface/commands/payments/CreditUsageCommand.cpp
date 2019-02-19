@@ -9,92 +9,70 @@ CreditUsageCommand::CreditUsageCommand(
         uuid,
         identifier())
 {
-    static const auto minCommandLength = 7;
-    if (commandBuffer.size() < minCommandLength) {
-        throw ValueError(
-                "CreditUsageCommand::parse: "
-                    "can't parse command. "
-                    "Received command is too short.");
-    }
-
-    size_t tokenSeparatorPos = commandBuffer.find(kTokensSeparator);
-    auto contractorAddressesCntStr = commandBuffer.substr(0, tokenSeparatorPos);
-    try {
-        mContractorAddressesCount = (uint32_t)std::stoul(contractorAddressesCntStr);
-    } catch (...) {
-        throw ValueError(
-            "CreditUsageCommand: can't parse command. "
-                "Error occurred while parsing  'contractor addresses count' token.");
-    }
-
-    mContractorAddresses.reserve(mContractorAddressesCount);
-    size_t contractorAddressStartPos = tokenSeparatorPos + 1;
-    for (size_t idx = 0; idx < mContractorAddressesCount; idx++) {
-        try {
-            tokenSeparatorPos = commandBuffer.find(
-                kTokensSeparator,
-                contractorAddressStartPos);
-            string addressWithTypeStr = commandBuffer.substr(
-                contractorAddressStartPos,
-                tokenSeparatorPos - contractorAddressStartPos);
-            auto addressTypeSeparatorPos = addressWithTypeStr.find(kAddressTypeSeparator);
-            auto addressTypeStr = addressWithTypeStr.substr(0, addressTypeSeparatorPos);
-            auto addressType = (BaseAddress::AddressType)std::stoul(addressTypeStr);
-            auto addressStr = addressWithTypeStr.substr(
-                addressTypeSeparatorPos + 1,
-                addressWithTypeStr.length() - addressTypeSeparatorPos + 1);
-            switch (addressType) {
-                case BaseAddress::IPv4_IncludingPort: {
-                    mContractorAddresses.push_back(
-                        make_shared<IPv4WithPortAddress>(
-                            addressStr));
-                    break;
-                }
-                default:
-                    throw ValueError(
-                        "CreditUsageCommand: can't parse command. "
-                            "Error occurred while parsing 'Contractor Address' token.");
-            }
-            contractorAddressStartPos = tokenSeparatorPos + 1;
-        } catch (...) {
-            throw ValueError(
-                "CreditUsageCommand: can't parse command. "
-                    "Error occurred while parsing 'Contractor Address' token.");
+    std::string address,amount;
+    uint32_t addressType, equivalentID, flag_amount = 0;
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("CreditUsageCommand: there is no input ");}};
+    auto parserType = [&](auto &ctx) { addressType = _attr(ctx); };
+    auto address_add = [&](auto &ctx) { address += _attr(ctx); };
+    auto address_number_add = [&](auto &ctx) { address += std::to_string(_attr(ctx)); };
+    auto address_Count = [&](auto &ctx) { mContractorAddressesCount = _attr(ctx); };
+    auto addamount = [&](auto &ctx)
+     {
+        amount += _attr(ctx);
+        flag_amount++;
+        if (flag_amount > 39) { throw ValueError("Amount is too big"); }
+        else if (flag_amount == 1 && _attr(ctx) <= 0)
+        {
+            throw ValueError("Amount can't be zero or low");
         }
-    }
+    };
+    auto address_vector = [&](auto &ctx)
+    {
 
-    size_t amountStartPos = tokenSeparatorPos + 1;
-    tokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator,
-        amountStartPos);
-    try {
-        mAmount = TrustLineAmount(
-            commandBuffer.substr(
-                amountStartPos,
-                tokenSeparatorPos - amountStartPos));
+        switch (addressType)
+        {
+            case BaseAddress::IPv4_IncludingPort:
+            {
+                mContractorAddresses.push_back(
+                        make_shared<IPv4WithPortAddress>(
+                                address));
+                break;
 
-    } catch (...) {
-        throw ValueError(
-                "CreditUsageCommand: can't parse command. "
-                    "Error occurred while parsing 'Amount' token.");
-    }
-    if (mAmount == TrustLineAmount(0)) {
-        throw ValueError(
-                "CreditUsageCommand: can't parse command. "
-                    "Received 'Amount' can't be 0.");
-    }
+            }
+        }
 
-    size_t equivalentStartPoint = tokenSeparatorPos + 1;
-    string equivalentStr = commandBuffer.substr(
-        equivalentStartPoint,
-        commandBuffer.size() - equivalentStartPoint - 1);
-    try {
-        mEquivalent = (uint32_t)std::stoul(equivalentStr);
-    } catch (...) {
-        throw ValueError(
-                "CreditUsageCommand: can't parse command. "
-                    "Error occurred while parsing  'equivalent' token.");
+        address.erase();
+    };
+
+    auto equivalentID_add = [&](auto &ctx) { equivalentID = _attr(ctx); };
+
+    try
+    {
+        parse(commandBuffer.begin(), commandBuffer.end(), char_[check]);
+        parse(commandBuffer.begin(), commandBuffer.end(), *(int_[address_Count]-char_('\t')) > char_('\t'));
+
+        mContractorAddresses.reserve(mContractorAddressesCount);
+
+        parse(commandBuffer.begin(), commandBuffer.end(),
+              (
+                      *(int_[address_Count]) > char_('\t')
+                      > repeat(mContractorAddressesCount)[*(int_[parserType] - char_('\t')) > char_('\t')
+                      > repeat(3)[int_[address_number_add]> char_('.') [address_add]]
+                      > int_[address_number_add] > char_(':') [address_add]
+                      > int_[address_number_add] > char_('\t') [address_vector]]
+                      >*(digit [addamount] > !alpha > !punct)
+                      > char_('\t')
+                      > +(int_[equivalentID_add]) > eol
+              )
+        );
+
     }
+    catch(...)
+    {
+        throw ValueError("CreditUsageCommand: can't parse command.");
+    }
+    mAmount = TrustLineAmount(amount);
+    mEquivalent = equivalentID;
 }
 
 const string& CreditUsageCommand::identifier()

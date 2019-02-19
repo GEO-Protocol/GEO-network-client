@@ -8,51 +8,36 @@ TrustLinesInfluenceCommand::TrustLinesInfluenceCommand(
         uuid,
         identifier())
 {
-    if (commandBuffer.empty()) {
-        throw ValueError(
-            "TrustLinesInfluenceCommand: can't parse command."
-                    "Received command buffer is too short.");
-    }
-
-    auto tokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator);
-
-    if (tokenSeparatorPos != std::string::npos) {
-        auto flagsStr = commandBuffer.substr(
-            0,
-            tokenSeparatorPos);
-        mFlags = std::stoul(flagsStr);
-
-        auto firstParameterStartPos = tokenSeparatorPos + 1;
-        tokenSeparatorPos = commandBuffer.find(
-            kTokensSeparator,
-            firstParameterStartPos);
-        auto strFirstParameter = commandBuffer.substr(
-            firstParameterStartPos,
-            tokenSeparatorPos - firstParameterStartPos);
-        mFirstParameter = (uint32_t)std::stoi(strFirstParameter);
-
-        auto secondParameterStartPos = tokenSeparatorPos + 1;
-        tokenSeparatorPos = commandBuffer.find(
-            kTokensSeparator,
-            secondParameterStartPos);
-        auto strSecondParameter = commandBuffer.substr(
-            secondParameterStartPos,
-            tokenSeparatorPos - secondParameterStartPos);
-        mSecondParameter = (uint32_t)std::stoi(strSecondParameter);
-
-        auto thirdParameterStartPos = tokenSeparatorPos + 1;
-        auto strThirdParameter = commandBuffer.substr(
-            thirdParameterStartPos,
-            commandBuffer.size() - thirdParameterStartPos - 1);
-        mThirdParameter = (uint32_t) std::stoi(strThirdParameter);
-    } else {
-        auto flagsStr = commandBuffer.substr(
-            0,
-            commandBuffer.size() - 1);
-        mFlags = std::stoul(flagsStr);
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("TrustLinesInfluenceCommand: there is no input ");}};
+    auto flags_add = [&](auto &ctx)
+    {
+        mFlags = _attr(ctx);
         mFirstParameter = 0;
         mSecondParameter = 0;
+         mThirdParameter = 0;
+    };
+    auto firstparam_add = [&](auto &ctx) {mFirstParameter = _attr(ctx);};
+    auto secondparam_add = [&](auto &ctx) {mSecondParameter = _attr(ctx);};
+    auto thirdparam_add = [&](auto &ctx) {mThirdParameter = _attr(ctx);};
+    try
+    {
+        parse(commandBuffer.begin(), commandBuffer.end(),char_[check]);
+        parse(commandBuffer.begin(), commandBuffer.end(),
+              (
+                      *(int_[flags_add])
+                      >-(char_('\t')
+                      >*(int_[firstparam_add])
+                      >char_('\t')
+                      >*(int_[secondparam_add])
+                      >char_('\t')
+                      >*(int_[thirdparam_add]))
+                      >eol
+                      ));
+
+    }
+    catch(...)
+    {
+        throw ValueError("TrustLinesInfluenceCommand: can't parse command");
     }
 }
 

@@ -9,53 +9,32 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
         commandUUID,
         identifier())
 {
-    static const auto minCommandLength = 5;
+    std::string amount;
+    uint32_t flag_amount=0;
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("SetOutgoingTrustLineCommand: there is no input ");}};
+    auto contractorID_add = [&](auto &ctx) { mContractorID = _attr(ctx); };
+    auto amount_add = [&](auto &ctx)
+    {
+        amount += _attr(ctx);
+        flag_amount++;
+        if (flag_amount > 39) { throw ValueError("Amount is too big"); }
+        else if (flag_amount == 1 && _attr(ctx) <= 0)
+        {
+            throw ValueError("Amount can't be zero or low");
+        }
+    };
+    auto equivalent_add = [&](auto &ctx) { mEquivalent = _attr(ctx); };
 
-    if (command.size() < minCommandLength) {
-        throw ValueError(
-            "SetTrustLineCommand: can't parse command. "
-            "Received command is to short.");
+    try
+    {
+        parse(command.begin(), command.end(), char_[check]);
+        parse(command.begin(), command.end(), *(int_[contractorID_add]) > char_('\t')  > *(digit [amount_add] > !alpha > !punct) > char_('\t')  > int_[equivalent_add] > eol );
     }
-
-    size_t tokenSeparatorPos = command.find(
-        kTokensSeparator,
-        0);
-    string contractorIDStr = command.substr(0, tokenSeparatorPos);
-    try {
-        mContractorID = (uint32_t)std::stoul(contractorIDStr);
-    } catch (...) {
-        throw ValueError(
-            "SetTrustLineCommand: can't parse command. "
-                "Error occurred while parsing  'contractorID' token.");
+    catch(...)
+    {
+        throw ValueError("SetOutgoingTrustLineCommand : can't parse command");
     }
-
-    size_t amountTokenOffset = tokenSeparatorPos + 1;
-    tokenSeparatorPos = command.find(
-        kTokensSeparator,
-        amountTokenOffset);
-    try {
-        mAmount = TrustLineAmount(
-            command.substr(
-                amountTokenOffset,
-                tokenSeparatorPos - amountTokenOffset));
-
-    } catch (...) {
-        throw ValueError(
-                "SetTrustLineCommand: can't parse command. "
-                    "Error occurred while parsing 'New amount' token.");
-    }
-
-    size_t equivalentOffset = tokenSeparatorPos + 1;
-    string equivalentStr = command.substr(
-        equivalentOffset,
-        command.size() - equivalentOffset - 1);
-    try {
-        mEquivalent = (uint32_t)std::stoul(equivalentStr);
-    } catch (...) {
-        throw ValueError(
-                "SetTrustLineCommand: can't parse command. "
-                    "Error occurred while parsing  'equivalent' token.");
-    }
+    mAmount = TrustLineAmount(amount);
 }
 
 const string &SetOutgoingTrustLineCommand::identifier()

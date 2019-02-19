@@ -8,25 +8,19 @@ TotalBalancesCommand::TotalBalancesCommand(
         uuid,
         identifier())
 {
-    const auto minCommandLength = 1;
-    if (commandBuffer.size() < minCommandLength) {
-        throw ValueError(
-                "TotalBalancesCommand: can't parse command. "
-                    "Received command is to short.");
-    }
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("TotalBalancesCommand: there is no input ");}};
+    auto equivalent_add = [&](auto &ctx) { mEquivalent = _attr(ctx); };
 
-    string equivalentStr = commandBuffer.substr(
-        0,
-        commandBuffer.size() - 1);
-    try {
-        mEquivalent = (uint32_t)std::stoul(equivalentStr);
-    } catch (...) {
-        throw ValueError(
-                "TotalBalancesCommand: can't parse command. "
-                    "Error occurred while parsing  'equivalent' token.");
+    try
+    {
+        parse(commandBuffer.begin(), commandBuffer.end(), char_[check]);
+        parse(commandBuffer.begin(), commandBuffer.end(), *(int_[equivalent_add]) > eol);
+    }
+    catch (...)
+    {
+        throw ValueError("TotalBalancesCommand: can't parse command");
     }
 }
-
 const string &TotalBalancesCommand::identifier()
 {
     static const string identifier = "GET:stats/balance/total";

@@ -69,6 +69,8 @@ IF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
 ENDIF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
 
 IF (${BUILD_CONFIGURATION} MATCHES "TESTS")
+    add_subdirectory(src/tests)
+
     add_definitions(
         -DTESTS
         -DINTERNAL_ARGUMENTS_VALIDATION
@@ -170,7 +172,6 @@ set(SOURCE_FILES
 
         # libs
         src/libs/json/json.h)
-
 add_executable(geo_network_client ${SOURCE_FILES})
 
 target_link_libraries(geo_network_client

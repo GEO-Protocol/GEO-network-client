@@ -1,82 +1,65 @@
 #include "InitTrustLineCommand.h"
 
 InitTrustLineCommand::InitTrustLineCommand(
-    const CommandUUID &commandUUID,
-    const string &command) :
+        const CommandUUID &commandUUID,
+        const string &command) :
 
-    BaseUserCommand(
-        commandUUID,
-        identifier())
+        BaseUserCommand(
+                commandUUID,
+                identifier())
 {
-    static const auto minCommandLength = 7;
+    std::string address;
+    uint32_t addressType, addressesCount, equivalentID;
+    auto check = [&](auto &ctx) { if(_attr(ctx) == '\n'){throw ValueError("InitTrustLineCommand: there is no input ");}};
+    auto parserType = [&](auto &ctx) { addressType = _attr(ctx); };
+    auto address_add = [&](auto &ctx) { address += _attr(ctx); };
+    auto address_number_add = [&](auto &ctx) { address += std::to_string(_attr(ctx)); };
+    auto address_Count = [&](auto &ctx) { addressesCount = _attr(ctx); };
+    auto address_vector = [&](auto &ctx)
+    {
 
-    if (command.size() < minCommandLength) {
-        throw ValueError(
-            "InitTrustLineCommand: can't parse command. "
-                "Received command is to short.");
-    }
-
-    size_t tokenSeparatorPos = command.find(kTokensSeparator);
-    auto contractorAddressesCntStr = command.substr(0, tokenSeparatorPos);
-    try {
-        mContractorAddressesCount = (uint32_t)std::stoul(contractorAddressesCntStr);
-    } catch (...) {
-        throw ValueError(
-            "InitTrustLineCommand: can't parse command. "
-                "Error occurred while parsing  'contractor addresses count' token.");
-    }
-
-    mContractorAddresses.reserve(mContractorAddressesCount);
-    size_t contractorAddressStartPos = tokenSeparatorPos + 1;
-    for (size_t idx = 0; idx < mContractorAddressesCount; idx++) {
-        try {
-            tokenSeparatorPos = command.find(
-                kTokensSeparator,
-                contractorAddressStartPos);
-            string addressTypeStr = command.substr(
-                contractorAddressStartPos,
-                tokenSeparatorPos - contractorAddressStartPos);
-            auto addressType = (BaseAddress::AddressType)std::stoul(addressTypeStr);
-
-            contractorAddressStartPos = tokenSeparatorPos + 1;
-            tokenSeparatorPos = command.find(
-                kTokensSeparator,
-                contractorAddressStartPos);
-            string addressStr = command.substr(
-                contractorAddressStartPos,
-                tokenSeparatorPos - contractorAddressStartPos);
-
-            switch (addressType) {
-                case BaseAddress::IPv4_IncludingPort: {
-                    mContractorAddresses.push_back(
+        switch (addressType)
+        {
+            case BaseAddress::IPv4_IncludingPort:
+                {
+                mContractorAddresses.push_back(
                         make_shared<IPv4WithPortAddress>(
-                            addressStr));
-                    break;
-                }
-                default:
-                    throw ValueError(
-                        "InitTrustLineCommand: can't parse command. "
-                            "Error occurred while parsing 'Contractor Address' token.");
-            }
-            contractorAddressStartPos = tokenSeparatorPos + 1;
-        } catch (...) {
-            throw ValueError(
-                "InitTrustLineCommand: can't parse command. "
-                    "Error occurred while parsing 'Contractor Address' token.");
-        }
-    }
+                                address));
+                break;
 
-    size_t equivalentOffset = tokenSeparatorPos + 1;
-    string equivalentStr = command.substr(
-        equivalentOffset,
-        command.size() - equivalentOffset - 1);
-    try {
-        mEquivalent = (uint32_t)std::stoul(equivalentStr);
-    } catch (...) {
-        throw ValueError(
-            "InitTrustLineCommand: can't parse command. "
-                "Error occurred while parsing  'equivalent' token.");
+                }
+        }
+
+        address.erase();
+    };
+
+    auto equivalentID_add = [&](auto &ctx) { equivalentID = _attr(ctx); };
+
+    try
+    {
+        parse(command.begin(), command.end(), char_[check]);
+
+    parse(command.begin(), command.end(), *(int_[address_Count]-char_('\t')) > char_('\t'));
+
+    mContractorAddresses.reserve(addressesCount);
+
+    parse(command.begin(), command.end(),
+          (
+                  *(int_[address_Count]) > char_('\t')
+                  > repeat(addressesCount)[*(int_[parserType] - char_('\t')) > char_('\t')
+                  > repeat(3)[int_[address_number_add]> char_('.') [address_add]]
+                  > int_[address_number_add] > char_(':') [address_add]
+                  > int_[address_number_add] > char_('\t') [address_vector]]
+                  > +(int_[equivalentID_add]) > eol
+          )
+         );
+
     }
+    catch(...)
+    {
+        throw ValueError("InitTrustLineCommand: can't parse command.");
+    }
+    mEquivalent = equivalentID;
 }
 
 const string &InitTrustLineCommand::identifier()

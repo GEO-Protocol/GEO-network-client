@@ -12,8 +12,8 @@ public:
 public:
     GetTrustLinesCommand(
         const CommandUUID &uuid,
-        const string &commandBuffer)
-        noexcept;
+        const string &commandBuffer);
+
 
     static const string &identifier();
 

@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_TYPES_H
 
 #include <boost/multiprecision/cpp_int.hpp>
-
 #include <memory>
 #include <cstdint>
 

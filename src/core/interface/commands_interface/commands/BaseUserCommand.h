@@ -6,6 +6,18 @@
 
 #include <boost/uuid/uuid.hpp>
 
+#include <boost/spirit/home/x3.hpp>
+
+using boost::spirit::x3::int_;
+using boost::spirit::x3::char_;
+using boost::spirit::x3::_attr;
+using boost::spirit::x3::repeat;
+using boost::spirit::x3::eol;
+using boost::spirit::x3::ascii::space;
+using boost::spirit::x3::ascii::digit;
+using boost::spirit::x3::ascii::alpha;
+using boost::spirit::x3::ascii::punct;
+
 namespace uuids = boost::uuids;
 
 class BaseUserCommand {
