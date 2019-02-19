@@ -5,7 +5,7 @@
 #include "../../../interface/commands_interface/commands/trust_lines/InitTrustLineCommand.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../contractors/ContractorsManager.h"
-
+#include "../../../interface/events_interface/interface/EventsInterface.h"
 #include "../../../subsystems_controller/TrustLinesInfluenceController.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 
@@ -24,6 +24,7 @@ public:
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        EventsInterface *eventsInterface,
         bool iAmGateway,
         SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -35,6 +36,7 @@ public:
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        EventsInterface *eventsInterface,
         bool iAmGateway,
         SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -84,6 +86,7 @@ protected:
     ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
+    EventsInterface *mEventsInterface;
 
     uint16_t mCountSendingAttempts;
 

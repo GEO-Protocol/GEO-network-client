@@ -11,6 +11,7 @@
 #include "../../logger/Logger.h"
 #include "../../subsystems_controller/SubsystemsController.h"
 #include "../../subsystems_controller/TrustLinesInfluenceController.h"
+#include "../../interface/events_interface/interface/EventsInterface.h"
 #include "../../crypto/keychain.h"
 
 /*
@@ -142,6 +143,7 @@ public:
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        EventsInterface *eventsInterface,
         Logger &logger,
         SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController);
@@ -539,6 +541,7 @@ private:
     ResultsInterface *mResultsInterface;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
+    EventsInterface *mEventsInterface;
     Logger &mLog;
     bool isPaymentTransactionsAllowedDueToObserving;
 

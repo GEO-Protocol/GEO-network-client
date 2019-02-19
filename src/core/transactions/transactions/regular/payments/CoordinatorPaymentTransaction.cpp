@@ -11,6 +11,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     ResourcesManager *resourcesManager,
     PathsManager *pathsManager,
     Keystore *keystore,
+    EventsInterface *eventsInterface,
     Logger &log,
     SubsystemsController *subsystemsController)
     noexcept :
@@ -30,6 +31,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         subsystemsController),
     mCommand(command),
     mPathsManager(pathsManager),
+    mEventsInterface(eventsInterface),
     mReservationsStage(0),
     mDirectPathIsAlreadyProcessed(false),
     mCountReceiverInaccessible(0),
@@ -1508,6 +1510,28 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
         sendMessage(
             paymentNodeIdAndContractor.second->mainAddress(),
             mParticipantsVotesMessage);
+    }
+
+    set <PathID> actualPathsIds;
+    for (const auto &nodeAndReservations : mReservations) {
+        for (const auto &pathIdAndReservation : nodeAndReservations.second) {
+            actualPathsIds.insert(pathIdAndReservation.first);
+        }
+    }
+    vector<vector<BaseAddress::Shared>> paymentEventPaths;
+    for (const auto &identifier : actualPathsIds) {
+        const auto path = mPathsStats[identifier]->path();
+        paymentEventPaths.push_back(path->intermediates());
+    }
+
+    try {
+        mEventsInterface->writeEvent(
+            Event::paymentEvent(
+                mContractorsManager->selfContractor()->mainAddress(),
+                mContractor->mainAddress(),
+                paymentEventPaths));
+    } catch (std::exception &e) {
+        warning() << "Can't write payment event " << e.what();
     }
 
     mCommittedAmount = totalReservedAmount(

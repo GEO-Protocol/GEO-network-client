@@ -358,6 +358,8 @@ public:
 
     vector<ContractorID> firstLevelNeighbors() const;
 
+    vector<BaseAddress::Shared> firstLevelNeighborsAddresses() const;
+
     // total balance to all 1st level neighbors
     ConstSharedTrustLineBalance totalBalance() const;
 

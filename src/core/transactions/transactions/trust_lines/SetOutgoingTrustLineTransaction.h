@@ -5,6 +5,7 @@
 #include "../../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../interface/events_interface/interface/EventsInterface.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../network/messages/trust_lines/AuditMessage.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
@@ -38,6 +39,7 @@ public:
         MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
         Keystore *keystore,
+        EventsInterface *eventsInterface,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger)
         noexcept;
@@ -73,6 +75,7 @@ private:
     SetOutgoingTrustLineCommand::Shared mCommand;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
+    EventsInterface *mEventsInterface;
     SubsystemsController *mSubsystemsController;
 
     uint16_t mCountSendingAttempts;

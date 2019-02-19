@@ -1007,6 +1007,20 @@ vector<ContractorID> TrustLinesManager::firstLevelNeighbors() const
     return result;
 }
 
+vector<BaseAddress::Shared> TrustLinesManager::firstLevelNeighborsAddresses() const
+{
+    vector<BaseAddress::Shared> result;
+    result.reserve(mTrustLines.size());
+    for (auto &nodeIDAndTrustLine : mTrustLines) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Archived) {
+            result.push_back(
+                mContractorsManager->contractorMainAddress(
+                    nodeIDAndTrustLine.first));
+        }
+    }
+    return result;
+}
+
 ConstSharedTrustLineBalance TrustLinesManager::totalBalance() const
 {
     TrustLineBalance result = TrustLine::kZeroBalance();

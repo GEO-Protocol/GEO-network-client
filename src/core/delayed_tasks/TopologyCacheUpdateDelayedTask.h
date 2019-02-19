@@ -4,15 +4,9 @@
 #include "../topology/cashe/TopologyCacheManager.h"
 #include "../topology/manager/TopologyTrustLinesManager.h"
 #include "../topology/cashe/MaxFlowCacheManager.h"
-#include "../common/time/TimeUtils.h"
-#include "../logger/Logger.h"
 
 #include <boost/asio/steady_timer.hpp>
-#include <boost/asio/deadline_timer.hpp>
-#include <boost/signals2.hpp>
 #include <boost/asio.hpp>
-#include <iostream>
-#include <chrono>
 
 using namespace std;
 
@@ -23,7 +17,7 @@ class TopologyCacheUpdateDelayedTask {
 public:
     TopologyCacheUpdateDelayedTask(
         const SerializedEquivalent equivalent,
-        as::io_service &mIOService,
+        as::io_service &ioService,
         TopologyCacheManager *topologyCacheManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         MaxFlowCacheManager *maxFlowCalculationNodeCacheManager,
@@ -31,7 +25,7 @@ public:
 
 public:
     void runSignalTopologyCacheUpdate(
-            const boost::system::error_code &error);
+        const boost::system::error_code &error);
 
 private:
     DateTime minimalAwakeningTimestamp();

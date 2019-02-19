@@ -8,6 +8,7 @@
 #include "../topology/cashe/MaxFlowCacheManager.h"
 #include "../paths/PathsManager.h"
 #include "../delayed_tasks/GatewayNotificationAndRoutingTablesDelayedTask.h"
+#include "../interface/events_interface/interface/EventsInterface.h"
 
 #include <map>
 
@@ -24,6 +25,7 @@ public:
         StorageHandler *storageHandler,
         Keystore *keystore,
         ContractorsManager *contractorsManager,
+        EventsInterface *eventsInterface,
         as::io_service &ioService,
         vector<SerializedEquivalent> &equivalentsIAmGateway,
         Logger &logger);
@@ -55,6 +57,8 @@ public:
 
     void clearContractorsShouldBePinged();
 
+    void sendTopologyEvent() const;
+
 #ifdef TESTS
     void setMeAsGateway();
 #endif
@@ -85,6 +89,7 @@ private:
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
     ContractorsManager *mContractorsManager;
+    EventsInterface *mEventsInterface;
     Logger &mLogger;
     vector<SerializedEquivalent> mEquivalents;
     map<SerializedEquivalent, unique_ptr<TrustLinesManager>> mTrustLinesManagers;

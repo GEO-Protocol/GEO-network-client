@@ -10,6 +10,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
     Keystore *keystore,
+    EventsInterface *eventsInterface,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger)
     noexcept :
@@ -29,6 +30,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     mTopologyTrustLinesManager(topologyTrustLinesManager),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
+    mEventsInterface(eventsInterface),
     mSubsystemsController(subsystemsController)
 {
     mAuditNumber = mTrustLines->auditNumber(mContractorID) + 1;
@@ -292,6 +294,14 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
             keyChain.removeUnusedContractorKeys(ioTransaction);
             mTrustLines->setIsContractorKeysPresent(mContractorID, false);
             info() << "Trust Line become empty";
+            try {
+                mEventsInterface->writeEvent(
+                    Event::closeTrustLineEvent(
+                        mContractorsManager->selfContractor()->mainAddress(),
+                        mContractorsManager->contractorMainAddress(mContractorID)));
+            } catch (std::exception &e) {
+                warning() << "Can't write close TL event " << e.what();
+            }
         } else {
             mTrustLines->setTrustLineState(
                 mContractorID,

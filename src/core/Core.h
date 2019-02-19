@@ -8,6 +8,7 @@
 #include "network/communicator/Communicator.h"
 #include "interface/commands_interface/interface/CommandsInterface.h"
 #include "interface/results_interface/interface/ResultsInterface.h"
+#include "interface/events_interface/interface/EventsInterface.h"
 #include "resources/manager/ResourcesManager.h"
 #include "transactions/manager/TransactionsManager.h"
 #include "io/storage/StorageHandler.h"
@@ -15,6 +16,7 @@
 #include "crypto/keychain.h"
 #include "contractors/ContractorsManager.h"
 #include "observing/ObservingHandler.h"
+#include "delayed_tasks/TopologyEventDelayedTask.h"
 
 #include "logger/Logger.h"
 
@@ -62,6 +64,8 @@ private:
 
     int initResultsInterface();
 
+    int initEventsInterface();
+
     int initEquivalentsSubsystemsRouter(
         vector<SerializedEquivalent> equivalentIAmGateway);
 
@@ -79,6 +83,8 @@ private:
     int initTrustLinesInfluenceController();
 
     int initKeysStore();
+
+    int initTopologyEventDelayedTask();
 
     void connectCommunicatorSignals();
 
@@ -190,6 +196,7 @@ protected:
     unique_ptr<Communicator> mCommunicator;
     unique_ptr<CommandsInterface> mCommandsInterface;
     unique_ptr<ResultsInterface> mResultsInterface;
+    unique_ptr<EventsInterface> mEventsInterface;
     unique_ptr<ResourcesManager> mResourcesManager;
     unique_ptr<TransactionsManager> mTransactionsManager;
     unique_ptr<StorageHandler> mStorageHandler;
@@ -199,6 +206,7 @@ protected:
     unique_ptr<Keystore> mKeysStore;
     unique_ptr<ContractorsManager> mContractorsManager;
     unique_ptr<ObservingHandler> mObservingHandler;
+    unique_ptr<TopologyEventDelayedTask> mTopologyEventDelayedTask;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

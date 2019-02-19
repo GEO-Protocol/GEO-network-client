@@ -3,12 +3,11 @@
 
 
 #include "base/BasePaymentTransaction.h"
-#include "base/PathStats.h"
-#include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
-
 #include "../../../../paths/PathsManager.h"
+#include "../../../../interface/events_interface/interface/EventsInterface.h"
+#include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../../../resources/resources/PathsResource.h"
-
+#include "base/PathStats.h"
 #include "../../../../common/exceptions/CallChainBreakException.h"
 
 #include <unordered_map>
@@ -37,6 +36,7 @@ public:
         ResourcesManager *resourcesManager,
         PathsManager *pathsManager,
         Keystore *keystore,
+        EventsInterface *eventsInterface,
         Logger &log,
         SubsystemsController *subsystemsController)
         noexcept;
@@ -300,6 +300,8 @@ protected:
     static const uint8_t kMaxReceiverInaccessible = 5;
 
 protected:
+    EventsInterface *mEventsInterface;
+
     // Command on which current transaction was started
     CreditUsageCommand::Shared mCommand;
     Contractor::Shared mContractor;
