@@ -22,10 +22,11 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryEnqueueMessage(
     const auto equivalent = message->equivalent();
     const auto queueKey = make_pair(
         equivalent,
-        contractorAddress);
+        contractorAddress->fullAddress());
     if (mQueues.count(queueKey) == 0) {
         auto newQueue = make_shared<ConfirmationNotStronglyRequiredMessagesQueue>(
-            equivalent);
+            equivalent,
+            contractorAddress);
         mQueues[queueKey] = newQueue;
     }
 
@@ -55,11 +56,11 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryProcessConfirmation(
 {
     const auto queueKey = make_pair(
         confirmationMessage->equivalent(),
-        confirmationMessage->senderAddresses.at(0));
+        confirmationMessage->senderAddresses.at(0)->fullAddress());
     if (mQueues.count(queueKey) == 0) {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         warning() << "tryProcessConfirmation: no queue is present for contractor "
-                  << queueKey.second->fullAddress() << " on equivalent " << queueKey.first;
+                  << queueKey.second << " on equivalent " << queueKey.first;
 #endif
         return;
     }
@@ -140,13 +141,12 @@ void ConfirmationNotStronglyRequiredMessagesHandler::sendPostponedMessages()
 
     for (const auto &contractorAddressAndQueue : mQueues) {
         auto kEquivalent = contractorAddressAndQueue.first.first;
-        auto kContractorAddress = contractorAddressAndQueue.first.second;
         const auto kQueue = contractorAddressAndQueue.second;
 
         if (!kQueue->checkIfNeedResendMessages()) {
             signalClearTopologyCache(
                 kEquivalent,
-                kContractorAddress);
+                kQueue->contractorAddress());
             mQueues.erase(contractorAddressAndQueue.first);
             continue;
         }
@@ -158,7 +158,7 @@ void ConfirmationNotStronglyRequiredMessagesHandler::sendPostponedMessages()
 
         for (const auto &confirmationIDAndMessage : kQueue->messages()) {
             signalOutgoingMessageReady(
-                kContractorAddress,
+                kQueue->contractorAddress(),
                 confirmationIDAndMessage.second);
         }
     }

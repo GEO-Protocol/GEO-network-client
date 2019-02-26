@@ -80,23 +80,17 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
             case Stages::IntermediateNode_ReservationProlongation:
                 return runReservationProlongationStage();
 
-            case Stages::Common_ClarificationTransactionBeforeVoting:
-                return runClarificationOfTransactionBeforeVoting();
-
             case Stages::Coordinator_FinalAmountsConfigurationConfirmation:
                 return runFinalAmountsConfigurationConfirmation();
-
-            case Stages::Common_ClarificationTransactionDuringFinalAmountsClarification:
-                return runClarificationOfTransactionDuringFinalAmountsClarification();
 
             case Stages::Common_ObservingBlockNumberProcessing:
                 return runCheckObservingBlockNumber();
 
-            case Stages::Common_VotesChecking:
+            case Stages::Common_Voting:
                 return runVotesCheckingStageWithCoordinatorClarification();
 
-            case Stages::Common_ClarificationTransactionDuringVoting:
-                return runClarificationOfTransactionDuringVoting();
+            case Stages::Common_VotesChecking:
+                return runVotesConsistencyCheckingStage();
 
             case Stages::Common_Recovery:
                 return runVotesRecoveryParentStage();
@@ -196,10 +190,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             min(*kReservation.second.get(), *kIncomingAmount);
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
-//        kNeighbor,
-//        kReservationAmount);
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
+        kNeighbor,
+        kReservationAmount);
     mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
     mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
 #endif
@@ -309,10 +302,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     }
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
-//        kNextNode,
-//        reservationAmount);
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
+        kNextNode,
+        reservationAmount);
 #endif
 
     debug() << "Reserve locally " << reservationAmount << " to node "
@@ -379,10 +371,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     // todo : check sender node
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
-//        kContractor,
-//        kMessage->amountReserved());
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        mCoordinator->mainAddress(),
+        kMessage->amountReserved());
     mSubsystemsController->testThrowExceptionOnNextNeighborResponseProcessingStage();
     mSubsystemsController->testTerminateProcessOnNextNeighborResponseProcessingStage();
 #endif
@@ -423,7 +414,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 #ifdef TESTS
     // coordinator wait for this message maxNetworkDelay(4)
     // we try get max delay with normal working algorithm on this stage
-    mSubsystemsController->testSleepOnNextNeighborResponseProcessingStage(maxNetworkDelay(3) - 500);
+    mSubsystemsController->testSleepOnNextNeighborResponseProcessingStage(
+        maxNetworkDelay(3) - 500);
 #endif
 
     sendMessage<CoordinatorReservationResponseMessage>(
@@ -494,10 +486,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservatio
         return runPreviousNeighborRequestProcessingStage();
     }
 
-    if (contextIsValid(Message::Payments_TTLProlongationResponse, false)) {
-        return runClarificationOfTransactionBeforeVoting();
-    }
-
     if (contextIsValid(Message::Payments_FinalPathConfiguration, false)) {
         return runFinalPathConfigurationProcessingStage();
     }
@@ -507,75 +495,53 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservatio
         return runFinalReservationsNeighborConfirmation();
     }
 
-    // Node is clarifying of coordinator if transaction is still alive
-    if (!contextIsValid(Message::Payments_FinalAmountsConfiguration)) {
-        debug() << "Send TTLTransaction message to coordinator " << mCoordinator->mainAddress()->fullAddress();
-        sendMessage<TTLProlongationRequestMessage>(
-            mCoordinator->mainAddress(),
-            mEquivalent,
-            mContractorsManager->ownAddresses(),
-            currentTransactionUUID());
-        mStep = Stages::Common_ClarificationTransactionBeforeVoting;
-        // we don't wait for Payments_FinalPathConfiguration message,
-        // because it isn't critical for us
-        return resultWaitForMessageTypes(
-            {Message::Payments_IntermediateNodeReservationRequest,
-             Message::Payments_FinalPathConfiguration,
-             Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_TransactionPublicKeyHash,
-             Message::Payments_TTLProlongationResponse},
-            maxNetworkDelay(2));
-    }
-    mStep = Coordinator_FinalAmountsConfigurationConfirmation;
-    return runFinalReservationsCoordinatorConfirmation();
-}
-
-TransactionResult::SharedConst IntermediateNodePaymentTransaction::runClarificationOfTransactionBeforeVoting()
-{
-    // on this stage we can receive IntermediateNodeReservationRequest, FinalAmountsConfiguration
-    // messages and on this cases we process it properly
-    debug() << "runClarificationOfTransactionBeforeVoting";
-    if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
-        mMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
-        return runPreviousNeighborRequestProcessingStage();
-    }
-
-    if (contextIsValid(Message::Payments_FinalPathConfiguration, false)) {
-        mStep = IntermediateNode_ReservationProlongation;
-        return runFinalPathConfigurationProcessingStage();
-    }
-
     if (contextIsValid(Message::Payments_FinalAmountsConfiguration, false)) {
+        mTTLRequestWasSend = false;
         mStep = Coordinator_FinalAmountsConfigurationConfirmation;
         return runFinalReservationsCoordinatorConfirmation();
     }
 
-    if (contextIsValid(Message::Payments_TransactionPublicKeyHash, false)) {
-        mStep = Coordinator_FinalAmountsConfigurationConfirmation;
-        return runFinalReservationsNeighborConfirmation();
+    if (contextIsValid(Message::Payments_TTLProlongationResponse, false)) {
+        const auto kMessage = popNextMessage<TTLProlongationResponseMessage>();
+        if (kMessage->state() == TTLProlongationResponseMessage::Continue) {
+            // transactions is still alive and we continue waiting for messages
+            info() << "Transactions is still alive. Continue waiting for messages";
+            if (utc_now() - mTimeStarted > kMaxTransactionDuration()) {
+                return reject("Transaction duration time has expired. Rolling back");
+            }
+            // we don't wait for Payments_FinalPathConfiguration message,
+            // because it isn't critical for us
+            return resultWaitForMessageTypes(
+                {Message::Payments_TTLProlongationResponse,
+                 Message::Payments_FinalPathConfiguration,
+                 Message::Payments_FinalAmountsConfiguration,
+                 Message::Payments_TransactionPublicKeyHash,
+                 Message::Payments_IntermediateNodeReservationRequest},
+                maxNetworkDelay((kMaxPathLength - 2) * 4));
+        }
+        return reject("Coordinator send response with transaction finish state. Rolling Back");
     }
 
-    if (!contextIsValid(Message::MessageType::Payments_TTLProlongationResponse)) {
-        return reject("No actual message received. Transaction was closed. Rolling Back");
+    if (mTTLRequestWasSend) {
+        return reject("No TTL response message received. Transaction will be closed. Rolling Back");
     }
 
-    const auto kMessage = popNextMessage<TTLProlongationResponseMessage>();
-    if (kMessage->state() == TTLProlongationResponseMessage::Continue) {
-        // transactions is still alive and we continue waiting for messages
-        debug() << "Transactions is still alive. Continue waiting for messages";
-        mStep = Stages::IntermediateNode_ReservationProlongation;
-        // we don't wait for Payments_FinalPathConfiguration message,
-        // because it isn't critical for us
-        return resultWaitForMessageTypes(
-            {Message::Payments_TTLProlongationResponse,
-             Message::Payments_FinalPathConfiguration,
-             Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_TransactionPublicKeyHash,
-             Message::Payments_IntermediateNodeReservationRequest},
-            maxNetworkDelay((kMaxPathLength - 2) * 4));
-    }
-
-    return reject("Coordinator send response with transaction finish state. Rolling Back");
+    debug() << "Send TTLTransaction message to coordinator " << mCoordinator->mainAddress()->fullAddress();
+    sendMessage<TTLProlongationRequestMessage>(
+        mCoordinator->mainAddress(),
+        mEquivalent,
+        mContractorsManager->ownAddresses(),
+        currentTransactionUUID());
+    mTTLRequestWasSend = true;
+    // we don't wait for Payments_FinalPathConfiguration message,
+    // because it isn't critical for us
+    return resultWaitForMessageTypes(
+        {Message::Payments_IntermediateNodeReservationRequest,
+         Message::Payments_FinalPathConfiguration,
+         Message::Payments_FinalAmountsConfiguration,
+         Message::Payments_TransactionPublicKeyHash,
+         Message::Payments_TTLProlongationResponse},
+        maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmountsConfigurationConfirmation()
@@ -593,7 +559,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmoun
         debug() << "Receive TTL prolongation message";
         const auto kMessage = popNextMessage<TTLProlongationResponseMessage>();
         if (kMessage->state() == TTLProlongationResponseMessage::Continue) {
-            debug() << "Transactions is still alive. Continue waiting for messages";
+            info() << "Transactions is still alive. Continue waiting for messages";
+            if (utc_now() - mTimeStarted > kMaxTransactionDuration()) {
+                return reject("Transaction duration time has expired. Rolling back");
+            }
             return resultWaitForMessageTypes(
                 {Message::Payments_TTLProlongationResponse,
                  Message::Payments_FinalAmountsConfiguration,
@@ -604,14 +573,19 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmoun
         return reject("Coordinator send TTL message with transaction finish state. Rolling Back");
     }
 
+    if (mTTLRequestWasSend) {
+        removeAllDataFromStorageConcerningTransaction();
+        return reject("No all final amounts configuration received. Transaction will be closed. Rolling Back");
+    }
+
     debug() << "Send TTLTransaction message to coordinator " << mCoordinator->mainAddress()->fullAddress();
     sendMessage<TTLProlongationRequestMessage>(
         mCoordinator->mainAddress(),
         mEquivalent,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID());
-    mStep = Common_ClarificationTransactionDuringFinalAmountsClarification;
 
+    mTTLRequestWasSend = true;
     return resultWaitForMessageTypes(
         {Message::Payments_FinalAmountsConfiguration,
          Message::Payments_TransactionPublicKeyHash,
@@ -644,7 +618,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
 
 #ifdef TESTS
     // coordinator wait for this message maxNetworkDelay(2)
-    mSubsystemsController->testSleepOnFinalAmountClarificationStage(maxNetworkDelay(3));
+    mSubsystemsController->testSleepOnFinalAmountClarificationStage(
+        maxNetworkDelay(3));
 #endif
 
     info() << "All reservations was updated";
@@ -782,7 +757,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCheckObser
         }
 
 #ifdef TESTS
-        mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage(mPaymentParticipants.size() - 2);
+        mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage(
+            (uint32_t)mPaymentParticipants.size() - 2);
 #endif
 
         auto participantID = mContractorsManager->contractorIDByAddress(nodePaymentIdAndContractor.second->mainAddress());
@@ -869,7 +845,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCheckObser
 
         info() << "Accepted final amounts configuration";
 
-        mStep = Common_VotesChecking;
+        mStep = Common_Voting;
+        mTTLRequestWasSend = false;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsPublicKeys,
              Message::Payments_TTLProlongationResponse},
@@ -986,7 +963,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
 
         info() << "Accepted final amounts configuration";
 
-        mStep = Common_VotesChecking;
+        mStep = Common_Voting;
+        mTTLRequestWasSend = false;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsPublicKeys,
              Message::Payments_TTLProlongationResponse},
@@ -1000,40 +978,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
         maxNetworkDelay(2));
 }
 
-TransactionResult::SharedConst IntermediateNodePaymentTransaction::runClarificationOfTransactionDuringFinalAmountsClarification()
-{
-    debug() << "runClarificationOfTransactionDuringFinalAmountsClarification";
-
-    if (contextIsValid(Message::Payments_FinalAmountsConfiguration, false) or
-        contextIsValid(Message::Payments_TransactionPublicKeyHash, false)) {
-        mStep = Coordinator_FinalAmountsConfigurationConfirmation;
-        return runFinalAmountsConfigurationConfirmation();
-    }
-
-    if (!contextIsValid(Message::MessageType::Payments_TTLProlongationResponse)) {
-        removeAllDataFromStorageConcerningTransaction();
-        return reject("No participants votes message received. Transaction was closed. Rolling Back");
-    }
-
-    const auto kMessage = popNextMessage<TTLProlongationResponseMessage>();
-    if (kMessage->state() == TTLProlongationResponseMessage::Continue) {
-        // transactions is still alive and we continue waiting for messages
-        debug() << "Transactions is still alive. Continue waiting for messages";
-        mStep = Stages::Coordinator_FinalAmountsConfigurationConfirmation;
-        return resultWaitForMessageTypes(
-            {Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_TransactionPublicKeyHash,
-             Message::Payments_TTLProlongationResponse},
-            maxNetworkDelay((kMaxPathLength - 1) * 4));
-    }
-    removeAllDataFromStorageConcerningTransaction();
-    return reject("Coordinator send TTL message with transaction finish state. Rolling Back");
-}
-
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheckingStageWithCoordinatorClarification()
 {
-    if (contextIsValid(Message::Payments_ParticipantsPublicKeys, false) or
-            contextIsValid(Message::Payments_ParticipantsVotes, false)) {
+    info() << "runVotesCheckingStageWithCoordinatorClarification";
+    if (contextIsValid(Message::Payments_ParticipantsPublicKeys, false)) {
         return runVotesCheckingStage();
     }
 
@@ -1044,8 +992,20 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
             removeAllDataFromStorageConcerningTransaction();
             return reject("Coordinator send response with transaction finish state. Rolling Back");
         }
+        // transactions is still alive and we continue waiting for messages
+        debug() << "Transactions is still alive. Continue waiting for messages";
+        if (utc_now() - mTimeStarted > kMaxTransactionDuration()) {
+            return reject("Transaction duration time has expired. Rolling back");
+        }
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsPublicKeys,
+             Message::Payments_TTLProlongationResponse},
+            maxNetworkDelay((kMaxPathLength - 2) * 4));
+    }
+
+    if (mTTLRequestWasSend) {
         removeAllDataFromStorageConcerningTransaction();
-        return reject("Invalid TTL transaction state. Rolling back");
+        return reject("No participants votes message received. Transaction will be closed. Rolling Back");
     }
 
     debug() << "Send TTLTransaction message to coordinator " << mCoordinator->mainAddress()->fullAddress();
@@ -1054,46 +1014,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
         mEquivalent,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID());
-    mStep = Stages::Common_ClarificationTransactionDuringVoting;
+    mTTLRequestWasSend = true;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsPublicKeys,
-         Message::Payments_ParticipantsVotes,
          Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(2));
-}
-
-TransactionResult::SharedConst IntermediateNodePaymentTransaction::runClarificationOfTransactionDuringVoting()
-{
-    debug() << "runClarificationOfTransactionDuringVoting";
-    if (contextIsValid(Message::Payments_ParticipantsPublicKeys, false) or
-            contextIsValid(Message::Payments_ParticipantsVotes, false)) {
-        mStep = Stages::Common_VotesChecking;
-        return runVotesCheckingStage();
-    }
-    // this method is used also in voting stage, that's why we check if transaction is voted
-    if (!contextIsValid(Message::Payments_TTLProlongationResponse)) {
-        if (mTransactionIsVoted) {
-            return recover("No participants votes message with all votes received.");
-        } else {
-            removeAllDataFromStorageConcerningTransaction();
-            return reject("No participants votes message received. Transaction was closed. Rolling Back");
-        }
-    }
-
-    const auto kMessage = popNextMessage<TTLProlongationResponseMessage>();
-    if (kMessage->state() == TTLProlongationResponseMessage::Continue) {
-        // transactions is still alive and we continue waiting for messages
-        debug() << "Transactions is still alive. Continue waiting for messages";
-        mStep = Stages::Common_VotesChecking;
-        return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsPublicKeys,
-             Message::Payments_ParticipantsVotes,
-             Message::Payments_TTLProlongationResponse},
-            maxNetworkDelay((kMaxPathLength - 2) * 4));
-    }
-
-    removeAllDataFromStorageConcerningTransaction();
-    return reject("Coordinator send response with transaction finish state. Rolling Back");
 }
 
 void IntermediateNodePaymentTransaction::shortageReservationsOnPath(

@@ -17,6 +17,9 @@ TrustLinesManager::TrustLinesManager(
         make_unique<AmountReservationsHandler>())
 {
     loadTrustLinesFromStorage();
+#if defined(DEBUG) || defined(TESTS)
+    printTLs();
+#endif
 }
 
 void TrustLinesManager::loadTrustLinesFromStorage()
@@ -1309,13 +1312,19 @@ void TrustLinesManager::printTLs()
     auto ioTransaction = mStorageHandler->beginTransaction();
     debug << "printTLs\t size: " << trustLines().size() << endl;
     for (const auto &itTrustLine : trustLines()) {
-        debug << "printTLs\t" << itTrustLine.second->contractorID() << " "
+        debug << itTrustLine.second->contractorID() << " "
               << itTrustLine.second->state() << " "
               << itTrustLine.second->incomingTrustAmount() << " "
               << itTrustLine.second->outgoingTrustAmount() << " "
               << itTrustLine.second->balance() << " "
               << itTrustLine.second->isContractorGateway() << endl;
     }
+}
+
+void TrustLinesManager::printTLFlows()
+{
+    LoggerStream debug = mLogger.debug("TrustLinesManager::printTLFlows");
+    auto ioTransaction = mStorageHandler->beginTransaction();
     debug << "print payment incoming flows size: " << incomingFlows().size() << endl;
     for (auto const &itIncomingFlow : incomingFlows()) {
         debug << itIncomingFlow.first->fullAddress() << " " << *itIncomingFlow.second.get() << endl;

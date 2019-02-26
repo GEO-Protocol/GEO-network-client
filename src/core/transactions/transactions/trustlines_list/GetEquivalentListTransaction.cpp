@@ -19,8 +19,7 @@ TransactionResult::SharedConst GetEquivalentListTransaction::run()
     stringstream ss;
     ss << to_string(kEquivalentsCount);
     for (const auto &equivalent: mEquivalentsSubsystemsRouter->equivalents()) {
-        ss << kTokensSeparator;
-        ss << equivalent;
+        ss << kTokensSeparator << equivalent;
     }
     ss << kCommandsSeparator;
     string kResultInfo = ss.str();

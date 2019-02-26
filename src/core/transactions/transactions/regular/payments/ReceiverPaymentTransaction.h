@@ -58,13 +58,6 @@ protected:
      */
     TransactionResult::SharedConst runAmountReservationStage();
 
-    /**
-     * reaction on response TTL message from coordinator
-     * before receiving participants votes message,
-     * if no message received, reject this transaction
-     */
-    TransactionResult::SharedConst runClarificationOfTransactionBeforeVoting();
-
     TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
 
     TransactionResult::SharedConst runFinalReservationsCoordinatorConfirmation();
@@ -73,22 +66,13 @@ protected:
 
     TransactionResult::SharedConst runCheckObservingBlockNumber();
 
-    TransactionResult::SharedConst runClarificationOfTransactionDuringFinalAmountsClarification();
-
     /**
      * reaction on receiving participants votes message firstly
      * add own vote to message and send it to next participant
      * if no message received then send message (TTL)
      * to coordinator with request if transaction is still alive
      */
-    TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
-
-    /**
-     * reaction on response TTL message from coordinator
-     * after receiving participants votes message
-     * if no message received, reject this transaction
-     */
-    TransactionResult::SharedConst runClarificationOfTransactionDuringVoting();
+    TransactionResult::SharedConst runVotesStageWithCoordinatorClarification();
 
 protected:
     // Receiver must must save payment operation into history.

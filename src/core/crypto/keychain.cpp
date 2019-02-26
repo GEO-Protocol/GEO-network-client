@@ -458,7 +458,8 @@ namespace crypto {
             mTrustLineID,
             auditNumber);
         for (const auto &incomingReceiptAmount : incomingReceiptsAmounts) {
-            if (ioTransaction->paymentTransactionsHandler()->isTransactionCommitted(incomingReceiptAmount.first)) {
+            if (!ioTransaction->transactionHandler()->isTransactionSerialized(incomingReceiptAmount.first) and
+                    ioTransaction->paymentTransactionsHandler()->isTransactionPresent(incomingReceiptAmount.first)) {
                 result = result + incomingReceiptAmount.second;
             }
         }
@@ -474,7 +475,8 @@ namespace crypto {
             mTrustLineID,
             auditNumber);
         for (const auto &outgoingReceiptAmount : outgoingReceiptsAmounts) {
-            if (ioTransaction->paymentTransactionsHandler()->isTransactionCommitted(outgoingReceiptAmount.first)) {
+            if (!ioTransaction->transactionHandler()->isTransactionSerialized(outgoingReceiptAmount.first) and
+                    ioTransaction->paymentTransactionsHandler()->isTransactionPresent(outgoingReceiptAmount.first)) {
                 result = result + outgoingReceiptAmount.second;
             }
         }

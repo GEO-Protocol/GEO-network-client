@@ -27,6 +27,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mResourcesManager(resourcesManager),
     mKeysStore(keystore),
     mSubsystemsController(subsystemsController),
+    mTTLRequestWasSend(false),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr),
     mBlockNumberObtainingInProcess(false)
@@ -61,6 +62,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mResourcesManager(resourcesManager),
     mKeysStore(keystore),
     mSubsystemsController(subsystemsController),
+    mTTLRequestWasSend(false),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr),
     mBlockNumberObtainingInProcess(false)
@@ -224,6 +226,7 @@ BasePaymentTransaction::BasePaymentTransaction(
 
     if (mStep != Stages::Common_Observing) {
         mStep = Stages::Common_Recovery;
+        mVotesRecoveryStep = Common_PrepareNodesListToCheckVotes;
     }
 }
 
@@ -254,35 +257,16 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
     if (!checkPublicKeysAppropriate()) {
         removeAllDataFromStorageConcerningTransaction();
+        sendMessage<ParticipantVoteMessage>(
+            coordinator->mainAddress(),
+            mEquivalent,
+            mContractorsManager->ownAddresses(),
+            currentTransactionUUID());
         return reject("Public keys are not appropriate. Reject.");
     }
 
+    lamport::Signature::Shared signedTransaction;
     try {
-        // Check if current node is listed in the votes list.
-        // This check is needed to prevent processing message in case of missdelivering.
-        // todo : discuss if node sign Reject
-
-    } catch (NotFoundError &) {
-        // todo appropriate reaction
-        // It seems that current node wasn't listed in the votes list.
-        // This is possible only in case, when one node takes part in 2 parallel transactions,
-        // that have common Node (transactions UUIDs collision).
-        // The probability of this is very small, but is present.
-        //
-        // In this case - the message must be simply ignored.
-
-        warning() << "Votes message ignored due to transactions UUIDs collision detected.";
-        debug() << "Waiting for another votes message.";
-
-        return resultContinuePreviousState();
-    }
-
-#ifdef TESTS
-    mSubsystemsController->testThrowExceptionOnVoteStage();
-    mSubsystemsController->testTerminateProcessOnVoteStage();
-#endif
-
-    {
         debug() << "Serializing transaction";
         auto ioTransaction = mStorageHandler->beginTransaction();
         auto bytesAndCount = serializeToBytes();
@@ -292,30 +276,39 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
             bytesAndCount.first,
             bytesAndCount.second);
         debug() << "Transaction saved";
+
+        auto serializedOwnVotesData = getSerializedParticipantsVotesData(
+            make_shared<Contractor>(
+                mContractorsManager->ownAddresses()));
+        signedTransaction = mKeysStore->signPaymentTransaction(
+            ioTransaction,
+            currentTransactionUUID(),
+            serializedOwnVotesData.first,
+            serializedOwnVotesData.second);
+        debug() << "Voted +";
+        mTransactionIsVoted = true;
+
+        ioTransaction->paymentTransactionsHandler()->saveRecord(
+            mTransactionUUID,
+            mMaximalClaimingBlockNumber);
+    } catch (IOError &e) {
+        error() << "Can't sign payment transaction. Details " << e.what();
+        removeAllDataFromStorageConcerningTransaction();
+        sendMessage<ParticipantVoteMessage>(
+            coordinator->mainAddress(),
+            mEquivalent,
+            mContractorsManager->ownAddresses(),
+            currentTransactionUUID());
+        return reject("Canceling.");
     }
 
-    auto serializedOwnVotesData = getSerializedParticipantsVotesData(
-        make_shared<Contractor>(
-            mContractorsManager->ownAddresses()));
-    // todo : try catch IOError
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    auto signedTransaction = mKeysStore->signPaymentTransaction(
-        ioTransaction,
-        currentTransactionUUID(),
-        serializedOwnVotesData.first,
-        serializedOwnVotesData.second);
-    debug() << "Voted +";
-    mTransactionIsVoted = true;
-
-    ioTransaction->paymentTransactionsHandler()->saveRecord(
-        mTransactionUUID,
-        mMaximalClaimingBlockNumber);
-
 #ifdef TESTS
+    mSubsystemsController->testThrowExceptionOnVoteStage();
+    mSubsystemsController->testTerminateProcessOnVoteStage();
     mSubsystemsController->testForbidSendMessageToCoordinatorOnVoteStage();
     mSubsystemsController->testSleepOnVoteConsistencyStage(
         maxNetworkDelay(
-            mPaymentNodesIds.size() + 2));
+            (uint16_t)(mPaymentNodesIds.size() + 2)));
 #endif
 
     debug() << "Signed transaction transferred to coordinator";
@@ -326,6 +319,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         currentTransactionUUID(),
         signedTransaction);
 
+    mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},
         maxNetworkDelay(6));
@@ -348,7 +342,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
     }
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage();
     mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
     mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif

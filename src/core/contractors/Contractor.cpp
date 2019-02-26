@@ -144,9 +144,9 @@ string Contractor::toString() const
 string Contractor::outputString() const
 {
     stringstream ss;
-    ss << mAddresses.size() << " ";
+    ss << mAddresses.size();
     for (const auto &address : mAddresses) {
-        ss << address->fullAddress() << " ";
+        ss << " " << address->fullAddress();
     }
     return ss.str();
 }

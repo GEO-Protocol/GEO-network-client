@@ -2,7 +2,8 @@
 
 GetTrustLinesListTransaction::GetTrustLinesListTransaction(
     GetTrustLinesCommand::Shared command,
-    TrustLinesManager *manager,
+    TrustLinesManager *trustLinesManager,
+    ContractorsManager *contractorsManager,
     Logger &logger)
     noexcept:
     BaseTransaction(
@@ -10,7 +11,8 @@ GetTrustLinesListTransaction::GetTrustLinesListTransaction(
         command->equivalent(),
         logger),
     mCommand(command),
-    mTrustLinesManager(manager)
+    mTrustLinesManager(trustLinesManager),
+    mContractorsManager(contractorsManager)
 {}
 
 TransactionResult::SharedConst GetTrustLinesListTransaction::run()
@@ -31,20 +33,14 @@ TransactionResult::SharedConst GetTrustLinesListTransaction::run()
                 continue;
             }
             recordIdx++;
-            ss << kTokensSeparator;
-            ss << kNodeIDAndTrustLine.first;
-            ss << kTokensSeparator;
-            ss << kNodeIDAndTrustLine.second->state();
-            ss << kTokensSeparator;
-            ss << kNodeIDAndTrustLine.second->isOwnKeysPresent();
-            ss << kTokensSeparator;
-            ss << kNodeIDAndTrustLine.second->isContractorKeysPresent();
-            ss << kTokensSeparator;
-            ss << kNodeIDAndTrustLine.second->incomingTrustAmount();
-            ss << kTokensSeparator;
-            ss << kNodeIDAndTrustLine.second->outgoingTrustAmount();
-            ss << kTokensSeparator;
-            ss << kNodeIDAndTrustLine.second->balance();
+            ss << kTokensSeparator << kNodeIDAndTrustLine.first
+               << kTokensSeparator << mContractorsManager->contractor(kNodeIDAndTrustLine.first)->outputString()
+               << kTokensSeparator << kNodeIDAndTrustLine.second->state()
+               << kTokensSeparator << kNodeIDAndTrustLine.second->isOwnKeysPresent()
+               << kTokensSeparator << kNodeIDAndTrustLine.second->isContractorKeysPresent()
+               << kTokensSeparator << kNodeIDAndTrustLine.second->incomingTrustAmount()
+               << kTokensSeparator << kNodeIDAndTrustLine.second->outgoingTrustAmount()
+               << kTokensSeparator << kNodeIDAndTrustLine.second->balance();
             currentRecordsCount++;
             if (currentRecordsCount == mCommand->count()) {
                 break;

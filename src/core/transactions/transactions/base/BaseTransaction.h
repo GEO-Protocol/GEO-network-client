@@ -336,8 +336,7 @@ protected:
     SerializedEquivalent mEquivalent;
     deque<Message::Shared> mContext;
     deque<BaseResource::Shared> mResources;
-    SerializedStep mStep = 1;
-    uint8_t mVotesRecoveryStep = 0;
+    SerializedStep mStep;
     DateTime mTimeStarted;
 
     Logger &mLog;

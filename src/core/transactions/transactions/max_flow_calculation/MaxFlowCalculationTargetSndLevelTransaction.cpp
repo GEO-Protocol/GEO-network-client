@@ -92,8 +92,7 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(
     vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlowsForSending;
     auto const outgoingFlow = mTrustLinesManager->outgoingFlow(
         mMessage->idOnReceiverSide);
-    if (*outgoingFlow.second.get() > TrustLine::kZeroAmount() &&
-            !maxFlowCalculationCachePtr->containsOutgoingFlow(outgoingFlow.first, outgoingFlow.second)) {
+    if (!maxFlowCalculationCachePtr->containsOutgoingFlow(outgoingFlow.first, outgoingFlow.second)) {
         outgoingFlowsForSending.push_back(
             outgoingFlow);
     }
@@ -101,8 +100,7 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(
     vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsForSending;
     auto senderMainAddress = mContractorsManager->contractorMainAddress(mMessage->idOnReceiverSide);
     for (auto const &incomingFlow : mTrustLinesManager->incomingFlowsFromNonGateways()) {
-        if (*incomingFlow.second.get() > TrustLine::kZeroAmount() &&
-                incomingFlow.first != senderMainAddress &&
+        if (incomingFlow.first != senderMainAddress &&
                 incomingFlow.first != mMessage->targetAddresses().at(0) &&
                 !maxFlowCalculationCachePtr->containsIncomingFlow(incomingFlow.first, incomingFlow.second)) {
             incomingFlowsForSending.push_back(
@@ -203,8 +201,7 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendCachedGatewayResultToIniti
     if (mMessage->isTargetGateway()) {
         auto senderMainAddress = mContractorsManager->contractorMainAddress(mMessage->idOnReceiverSide);
         for (auto const &incomingFlow : mTrustLinesManager->incomingFlowsFromGateways()) {
-            if (*incomingFlow.second.get() > TrustLine::kZeroAmount() &&
-                    incomingFlow.first != senderMainAddress &&
+            if (incomingFlow.first != senderMainAddress &&
                     incomingFlow.first != mMessage->targetAddresses().at(0) &&
                     !maxFlowCalculationCachePtr->containsIncomingFlow(incomingFlow.first, incomingFlow.second)) {
                 incomingFlowsForSending.push_back(
@@ -214,8 +211,7 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendCachedGatewayResultToIniti
     } else {
         auto senderMainAddress = mContractorsManager->contractorMainAddress(mMessage->idOnReceiverSide);
         for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
-            if (*incomingFlow.second.get() > TrustLine::kZeroAmount() &&
-                    incomingFlow.first != senderMainAddress &&
+            if (incomingFlow.first != senderMainAddress &&
                     incomingFlow.first != mMessage->targetAddresses().at(0) &&
                     !maxFlowCalculationCachePtr->containsIncomingFlow(incomingFlow.first, incomingFlow.second)) {
                 incomingFlowsForSending.push_back(

@@ -37,6 +37,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     mCountReceiverInaccessible(0),
     mPreviousInaccessibleNodesCount(0),
     mPreviousRejectedTrustLinesCount(0),
+    mRebuildingAttemptsCount(0),
     mNeighborsKeysProblem(false),
     mParticipantsKeysProblem(false)
 {
@@ -87,13 +88,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
             continue;
         } catch (Exception &e) {
             warning() << e.what();
-            {
-                auto ioTransaction = mStorageHandler->beginTransaction();
-                if (ioTransaction->historyStorage()->whetherOperationWasConducted(currentTransactionUUID())) {
-                    warning() << "Something happens wrong in method run(), but transaction was conducted";
-                    return resultOK();
-                }
+            auto ioTransaction = mStorageHandler->beginTransaction();
+            if (ioTransaction->historyStorage()->whetherOperationWasConducted(currentTransactionUUID())) {
+                warning() << "Something happens wrong in method run(), but transaction was conducted";
+                return resultOK();
             }
+            removeAllDataFromStorageConcerningTransaction(ioTransaction);
+            ioTransaction->paymentTransactionsHandler()->deleteRecord(
+                mTransactionUUID);
             return reject("Something happens wrong in method run(). Transaction will be rejected");
         }
     }
@@ -474,7 +476,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveNextInte
 }
 
 void CoordinatorPaymentTransaction::addPathForFurtherProcessing(
-        Path::Shared path)
+    Path::Shared path)
 {
     // Preventing paths duplication
     for (const auto &identifierAndStats : mPathsStats) {
@@ -583,10 +585,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     debug() << "Prepared for sending reservations size: " << reservations.size();
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
-//        neighbor,
-//        kReservationAmount);
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
+        neighbor,
+        kReservationAmount);
 #endif
 
     sendMessage<IntermediateNodeReservationRequestMessage>(
@@ -632,10 +633,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
     debug() << "Prepared for sending reservations size: " << reservations.size();
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
-//        neighbor,
-//        path->maxFlow());
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        neighbor,
+        path->maxFlow());
 #endif
 
     sendMessage<CoordinatorReservationRequestMessage>(
@@ -922,11 +922,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
                               "or that an error is present in protocol itself.");
         }
 
-#ifdef TESTS
-        mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration(
-            path->path()->intermediates().size());
-#endif
-
         // send final path amount to all intermediate nodes on path
         sendFinalPathConfiguration(
             path,
@@ -979,10 +974,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     debug() << "Prepared for sending reservations size: " << reservations.size();
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
-//        remoteNode,
-//        path->maxFlow());
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        remoteNode,
+        path->maxFlow());
 #endif
 
     sendMessage<CoordinatorReservationRequestMessage>(
@@ -1174,11 +1168,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
                               "or that an error is present in protocol itself.");
         }
 
-#ifdef TESTS
-        mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration(
-            path->path()->intermediates().size());
-#endif
-
         // send final path amount to all intermediate nodes on path
         sendFinalPathConfiguration(
             path,
@@ -1215,6 +1204,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath
 
     } catch (NotFoundError &e) {
         debug() << "No another paths are available. Try build new paths.";
+        mRebuildingAttemptsCount++;
+        if (mRebuildingAttemptsCount > kMaxRebuildingAttemptsCount) {
+            reject("Count rebuilding attempts reaches maximal number. Canceling.");
+            return resultInsufficientFundsError();
+        }
 
         if (mInaccessibleNodes.size() != mPreviousInaccessibleNodesCount ||
                 mRejectedTrustLines.size() != mPreviousRejectedTrustLinesCount) {
@@ -1495,12 +1489,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 {
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
-        mPaymentParticipants.size() - 1);
+        (uint32_t)mPaymentParticipants.size() - 1);
     mSubsystemsController->testSleepOnVoteConsistencyStage(
         maxNetworkDelay(
-            mPaymentParticipants.size() + 2));
+            (uint16_t)(mPaymentParticipants.size() + 2)));
     mSubsystemsController->testThrowExceptionOnCoordinatorAfterApproveBeforeSendMessage();
-    mSubsystemsController->testTerminateProcessOnCoordinatorAfterApproveBeforeSendMessage();
 #endif
 
     for (const auto &paymentNodeIdAndContractor : mPaymentParticipants) {
@@ -1512,19 +1505,19 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
             mParticipantsVotesMessage);
     }
 
-    set <PathID> actualPathsIds;
-    for (const auto &nodeAndReservations : mReservations) {
-        for (const auto &pathIdAndReservation : nodeAndReservations.second) {
-            actualPathsIds.insert(pathIdAndReservation.first);
-        }
-    }
-    vector<vector<BaseAddress::Shared>> paymentEventPaths;
-    for (const auto &identifier : actualPathsIds) {
-        const auto path = mPathsStats[identifier]->path();
-        paymentEventPaths.push_back(path->intermediates());
-    }
-
     try {
+        set <PathID> actualPathsIds;
+        for (const auto &nodeAndReservations : mReservations) {
+            for (const auto &pathIdAndReservation : nodeAndReservations.second) {
+                actualPathsIds.insert(pathIdAndReservation.first);
+            }
+        }
+        vector<vector<BaseAddress::Shared>> paymentEventPaths;
+        for (const auto &identifier : actualPathsIds) {
+            const auto path = mPathsStats[identifier]->path();
+            paymentEventPaths.push_back(path->intermediates());
+        }
+
         mEventsInterface->writeEvent(
             Event::paymentEvent(
                 mContractorsManager->selfContractor()->mainAddress(),
@@ -1537,6 +1530,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
     mCommittedAmount = totalReservedAmount(
         AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
+#ifdef TESTS
+    mSubsystemsController->testTerminateProcessOnCoordinatorAfterApproveBeforeSendMessage();
+#endif
     BasePaymentTransaction::runThreeNodesCyclesTransactions();
     BasePaymentTransaction::runFourNodesCyclesTransactions();
 
@@ -1668,7 +1664,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
 
     if (! contextIsValid(Message::Payments_ParticipantVote)) {
         removeAllDataFromStorageConcerningTransaction();
-        // todo : inform all participants about transaction finishing
         return reject("Coordinator didn't receive all messages with votes");
     }
 
@@ -1678,6 +1673,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
     if (mPaymentNodesIds.find(sender->mainAddress()->fullAddress()) == mPaymentNodesIds.end()) {
         warning() << "Sender is not participant of current transaction";
         return resultContinuePreviousState();
+    }
+    if (kMessage->state() == ParticipantVoteMessage::Rejected) {
+        removeAllDataFromStorageConcerningTransaction();
+        return reject("Participant rejected voting. Rolling back");
     }
     auto participantSignature = kMessage->signature();
     auto participantPaymentID = mPaymentNodesIds[sender->mainAddress()->fullAddress()];
@@ -1691,7 +1690,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
             participantSerializedVotesData.second,
             participantPublicKey)) {
         removeAllDataFromStorageConcerningTransaction();
-        // todo : inform all participants about transaction finishing
         return reject("Participant signature is incorrect. Rolling back");
     }
     info() << "Participant signature is correct";
@@ -1920,7 +1918,7 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
     }
 
     // send message with dropping reservation instruction to all intermediate nodes because this path is unusable
-    if (pathStats->path()->length() == 0) {
+    if (pathStats->path()->length() == 1) {
         return;
     }
     const auto lastProcessedNodeAndPos = pathStats->currentIntermediateNodeAndPos();
@@ -1949,6 +1947,10 @@ void CoordinatorPaymentTransaction::sendFinalPathConfiguration(
     const TrustLineAmount &finalPathAmount)
 {
     debug() << "sendFinalPathConfiguration";
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration(
+        (uint32_t)pathStats->path()->intermediates().size() - 1);
+#endif
     for (const auto &intermediateNode : pathStats->path()->intermediates()) {
         if (intermediateNode == mContractor->mainAddress()) {
             continue;
@@ -1968,13 +1970,16 @@ void CoordinatorPaymentTransaction::informAllNodesAboutTransactionFinish()
 {
     debug() << "informAllNodesAboutTransactionFinish";
     for (auto const &paymentNodeIdAndContractor : mPaymentParticipants) {
+        if (paymentNodeIdAndContractor.first == kCoordinatorPaymentNodeID) {
+            continue;
+        }
         sendMessage<TTLProlongationResponseMessage>(
             paymentNodeIdAndContractor.second->mainAddress(),
             mEquivalent,
             mContractorsManager->ownAddresses(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Finish);
-        debug() << "Send transaction finishing message to node " << paymentNodeIdAndContractor.first;
+        debug() << "Send transaction finishing message to participant " << paymentNodeIdAndContractor.first;
     }
 }
 
@@ -1985,8 +1990,7 @@ void CoordinatorPaymentTransaction::buildPathsAgain()
     for (auto const &pathIDAndPathStats : mPathsStats) {
         auto const pathStats = pathIDAndPathStats.second.get();
 
-        mPathsManager->addUsedAmount(
-            mContractorsManager->ownAddresses().at(0),
+        mPathsManager->addUsedAmountFromInitiator(
             pathStats->path()->intermediates().at(0),
             pathStats->maxFlow());
         for (SerializedPositionInPath idx = 0; idx < pathStats->path()->intermediates().size() - 1; idx++) {

@@ -1770,7 +1770,6 @@ void TransactionsManager::launchGetFirstLevelContractorsTransaction(
     }
 }
 
-
 void TransactionsManager::launchGetTrustLinesTransaction(
     GetTrustLinesCommand::Shared command)
 {
@@ -1779,6 +1778,7 @@ void TransactionsManager::launchGetTrustLinesTransaction(
             make_shared<GetTrustLinesListTransaction>(
                 command,
                 mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
+                mContractorsManager,
                 mLog),
             true,
             false,

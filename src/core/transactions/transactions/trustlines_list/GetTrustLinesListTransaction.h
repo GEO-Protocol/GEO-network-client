@@ -4,6 +4,7 @@
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../contractors/ContractorsManager.h"
 
 class GetTrustLinesListTransaction :
     public BaseTransaction {
@@ -14,7 +15,8 @@ public:
 public:
     GetTrustLinesListTransaction(
         GetTrustLinesCommand::Shared command,
-        TrustLinesManager *manager,
+        TrustLinesManager *trustLinesManager,
+        ContractorsManager* contractorsManager,
         Logger &logger)
     noexcept;
 
@@ -26,6 +28,7 @@ protected:
 private:
     GetTrustLinesCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
+    ContractorsManager *mContractorsManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_GETTRUSTLINESLISTTRANSACTION_H

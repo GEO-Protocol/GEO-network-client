@@ -85,8 +85,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
     vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlowsForSending;
     if (mMessage->isSenderGateway()) {
         for (auto const &incomingFlow : mTrustLinesManager->incomingFlowsFromGateways()) {
-            if (*incomingFlow.second.get() > TrustLine::kZeroAmount() &&
-                    incomingFlow.first != mMessage->senderAddresses.at(0) &&
+            if (incomingFlow.first != mMessage->senderAddresses.at(0) &&
                     !maxFlowCalculationCachePtr->containsIncomingFlow(incomingFlow.first, incomingFlow.second)) {
                 incomingFlowsForSending.push_back(
                     incomingFlow);
@@ -94,8 +93,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
         }
     } else {
         for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
-            if (*incomingFlow.second.get() > TrustLine::kZeroAmount() &&
-                    incomingFlow.first != mMessage->senderAddresses.at(0) &&
+            if (incomingFlow.first != mMessage->senderAddresses.at(0) &&
                     !maxFlowCalculationCachePtr->containsIncomingFlow(incomingFlow.first, incomingFlow.second)) {
                 incomingFlowsForSending.push_back(
                     incomingFlow);

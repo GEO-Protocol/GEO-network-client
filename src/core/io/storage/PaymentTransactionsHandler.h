@@ -28,8 +28,11 @@ public:
 
     vector<pair<TransactionUUID, BlockNumber>> transactionsWithUncertainObservingState();
 
-    bool isTransactionCommitted(
-        const TransactionUUID &transactionUUID);
+    bool isTransactionPresent(
+        const TransactionUUID& transactionUUID);
+
+    void deleteRecord(
+        const TransactionUUID& transactionUUID);
 
 private:
     LoggerStream info() const;

@@ -299,6 +299,8 @@ protected:
     // max count failed attempts to connect with Receiver, after which transaction will be rollbacked
     static const uint8_t kMaxReceiverInaccessible = 5;
 
+    static const uint16_t kMaxRebuildingAttemptsCount = 3;
+
 protected:
     EventsInterface *mEventsInterface;
 
@@ -345,6 +347,7 @@ protected:
     vector<pair<BaseAddress::Shared, BaseAddress::Shared>> mRejectedTrustLines;
     size_t mPreviousRejectedTrustLinesCount;
     PaymentNodeID mCurrentFreePaymentID;
+    uint16_t mRebuildingAttemptsCount;
 
     // indicates that there are TL with keys absent problem
     bool mNeighborsKeysProblem;

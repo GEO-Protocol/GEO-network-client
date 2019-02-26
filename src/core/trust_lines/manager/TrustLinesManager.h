@@ -4,16 +4,12 @@
 #include "../TrustLine.h"
 
 #include "../../common/exceptions/IOError.h"
-#include "../../common/exceptions/ValueError.h"
-#include "../../common/exceptions/MemoryError.h"
 #include "../../common/exceptions/ConflictError.h"
 #include "../../common/exceptions/NotFoundError.h"
-#include "../../common/exceptions/PreconditionFailedError.h"
 #include "../../logger/Logger.h"
 #include "../../payments/reservations/AmountReservationsHandler.h"
 #include "../audit_rules/AuditRuleCountPayments.h"
 
-// TODO: remove storage handler include (IO transactions must be transferred as arguments)
 #include "../../io/storage/StorageHandler.h"
 #include "../../io/storage/IOTransaction.h"
 #include "../../crypto/keychain.h"
@@ -381,6 +377,7 @@ public:
 
     // TODO remove after testing
     void printTLs();
+    void printTLFlows();
 
 protected:
     /**

@@ -1,9 +1,11 @@
 #include "ConfirmationNotStronglyRequiredMessagesQueue.h"
 
 ConfirmationNotStronglyRequiredMessagesQueue::ConfirmationNotStronglyRequiredMessagesQueue(
-    const SerializedEquivalent equivalent)
+    const SerializedEquivalent equivalent,
+    BaseAddress::Shared contractorAddress)
     noexcept:
-    mEquivalent(equivalent)
+    mEquivalent(equivalent),
+    mContractorAddress(contractorAddress)
 {
     resetInternalTimeout();
     mNextSendingAttemptDateTime = utc_now() + boost::posix_time::seconds(mNextTimeoutSeconds);
@@ -13,6 +15,10 @@ bool ConfirmationNotStronglyRequiredMessagesQueue::enqueue(
     MaxFlowCalculationConfirmationMessage::Shared message,
     ConfirmationID confirmationID)
 {
+    // todo : check all sender addresses
+    if (message->senderAddresses.at(0) != mContractorAddress) {
+        return false;
+    }
     message->setConfirmationID(
         confirmationID);
     switch (message->typeID()) {
@@ -40,6 +46,11 @@ bool ConfirmationNotStronglyRequiredMessagesQueue::tryProcessConfirmation(
     }
 
     return false;
+}
+
+BaseAddress::Shared ConfirmationNotStronglyRequiredMessagesQueue::contractorAddress() const
+{
+    return mContractorAddress;
 }
 
 const DateTime &ConfirmationNotStronglyRequiredMessagesQueue::nextSendingAttemptDateTime()

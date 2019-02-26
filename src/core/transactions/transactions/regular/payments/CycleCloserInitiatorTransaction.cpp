@@ -73,6 +73,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
         }
     } catch(Exception &e) {
         warning() << e.what();
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        removeAllDataFromStorageConcerningTransaction(ioTransaction);
+        ioTransaction->paymentTransactionsHandler()->deleteRecord(
+            mTransactionUUID);
         return reject("Something happens wrong in method run(). Transaction will be rejected");
     }
 }
@@ -294,10 +298,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
     }
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
-//        mNextNode,
-//        mPathStats->maxFlow());
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
+        mNextNode,
+        mPathStats->maxFlow());
 #endif
 
     debug() << "Send request reservation (" << mPathStats->maxFlow() << ") message to next node";
@@ -422,10 +425,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
     // It was done on previous step.
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
-//        mNextNode,
-//        mPathStats->maxFlow());
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        mNextNode,
+        mPathStats->maxFlow());
 #endif
 
     sendMessage<CoordinatorCycleReservationRequestMessage>(
@@ -534,10 +536,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
     debug() << "askRemoteNodeToApproveReservation";
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
-//        remoteNode,
-//        mPathStats->maxFlow());
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        remoteNode,
+        mPathStats->maxFlow());
 #endif
 
     sendMessage<CoordinatorCycleReservationRequestMessage>(
@@ -747,10 +748,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
     }
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
-//        kMessage->senderUUID,
-//        mIncomingAmount);
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
+        mPreviousNode,
+        mIncomingAmount);
     mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
     mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
 #endif
@@ -791,10 +791,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
     }
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
-//        mPreviousNode,
-//        mIncomingAmount);
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
+        mPreviousNode,
+        mIncomingAmount);
     mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
     mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
 #endif
@@ -848,7 +847,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::sendFinalPathCon
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration(
-        mPathStats->path()->intermediates().size());
+        (uint32_t)mPathStats->path()->intermediates().size());
 #endif
 
     mParticipantsPublicKeys.clear();
@@ -1057,13 +1056,12 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
     debug() << "runVotesConsistencyCheckingStage";
     if (! contextIsValid(Message::Payments_ParticipantVote)) {
         removeAllDataFromStorageConcerningTransaction();
-        // todo : inform all participants about transaction finishing
         return reject("Coordinator didn't receive all messages with votes");
     }
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
-        mPaymentParticipants.size());
+        (uint32_t)mPaymentParticipants.size());
     mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
     mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif
@@ -1075,6 +1073,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
     if (mPaymentNodesIds.find(sender->mainAddress()->fullAddress()) == mPaymentNodesIds.end()) {
         warning() << "Sender is not participant of current transaction";
         return resultContinuePreviousState();
+    }
+    if (kMessage->state() == ParticipantVoteMessage::Rejected) {
+        removeAllDataFromStorageConcerningTransaction();
+        return reject("Participant signature is incorrect. Rolling back");
     }
 
     auto participantSignature = kMessage->signature();
@@ -1089,8 +1091,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
             participantSerializedVotesData.second,
             participantPublicKey)) {
         removeAllDataFromStorageConcerningTransaction();
-        // todo : inform all participants about transaction finishing
-        return reject("Participant signature is incorrect. Rolling back");
+        return reject("Participant rejected voting. Rolling back");
     }
     info() << "Participant signature is correct";
     mParticipantsSignatures.insert(

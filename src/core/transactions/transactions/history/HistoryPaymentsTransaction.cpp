@@ -67,12 +67,12 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::resultOk(
                 "unexpected operation type occurred.");
         }
 
-        stream << kTokensSeparator << kRecord->operationUUID() << kTokensSeparator;
-        stream << kUnixTimestampMicrosec << kTokensSeparator;
-        stream << kRecord->contractor() << kTokensSeparator;
-        stream << formattedOperationType << kTokensSeparator;
-        stream << kRecord->amount() << kTokensSeparator;
-        stream << kRecord->balanceAfterOperation();
+        stream << kTokensSeparator << kRecord->operationUUID()
+               << kTokensSeparator << kUnixTimestampMicrosec
+               << kTokensSeparator << kRecord->contractor()->outputString()
+               << kTokensSeparator << formattedOperationType
+               << kTokensSeparator << kRecord->amount()
+               << kTokensSeparator << kRecord->balanceAfterOperation();
     }
 
     auto result = stream.str();

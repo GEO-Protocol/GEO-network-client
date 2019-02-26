@@ -80,8 +80,11 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::run()
             case Stages::Common_ObservingBlockNumberProcessing:
                 return runCheckObservingBlockNumber();
 
-            case Stages::Common_VotesChecking:
+            case Stages::Common_Voting:
                 return runVotesCheckingStageWithPossibleTTL();
+
+            case Stages::Common_VotesChecking:
+                return runVotesConsistencyCheckingStage();
 
             case Stages::Common_Recovery:
                 return runVotesRecoveryParentStage();
@@ -195,10 +198,9 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     }
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
-//        mPreviousNode,
-//        mReservationAmount);
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
+        mPreviousNode,
+        mReservationAmount);
     mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
     mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
 #endif
@@ -238,10 +240,9 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     }
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
-//        mPreviousNode,
-//        mReservationAmount);
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
+        mPreviousNode,
+        mReservationAmount);
     mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
     mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
 #endif
@@ -282,10 +283,9 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     // TODO: add check for previous nodes amount reservation
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
-//        NodeUUID::empty(),
-//        0);
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        nullptr,
+        0);
     mSubsystemsController->testThrowExceptionOnCoordinatorRequestProcessingStage();
     mSubsystemsController->testTerminateProcessOnCoordinatorRequestProcessingStage();
 #endif
@@ -367,10 +367,9 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     }
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
-//        mNextNode,
-//        mReservationAmount);
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
+        mNextNode,
+        mReservationAmount);
 #endif
 
     mLastReservedAmount = mReservationAmount;
@@ -410,10 +409,9 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     }
 
 #ifdef TESTS
-    // todo adapt SubsystemsController
-//    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
-//        mNextNode,
-//        mReservationAmount);
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
+        mNextNode,
+        mReservationAmount);
 #endif
 
     mLastReservedAmount = mReservationAmount;
@@ -497,10 +495,9 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
     }
 
 #ifdef TESTS
-    // todo : adapt SubsystemsController
-//    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
-//        mCoordinator,
-//        mLastReservedAmount);
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        mCoordinator,
+        mLastReservedAmount);
     mSubsystemsController->testThrowExceptionOnNextNeighborResponseProcessingStage();
     mSubsystemsController->testTerminateProcessOnNextNeighborResponseProcessingStage();
 #endif
@@ -795,7 +792,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCheckO
 
         info() << "Accepted final amounts configuration";
 
-        mStep = Common_VotesChecking;
+        mStep = Common_Voting;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsPublicKeys,
              Message::Payments_TTLProlongationResponse},
@@ -913,7 +910,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
 
         info() << "Accepted final amounts configuration";
 
-        mStep = Common_VotesChecking;
+        mStep = Common_Voting;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsPublicKeys,
              Message::Payments_TTLProlongationResponse},

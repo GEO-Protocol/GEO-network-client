@@ -55,12 +55,12 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
                                 "unexpected payment operation type occurred.");
             }
 
-            stream << kTokensSeparator << formattedRecordType << kTokensSeparator;
-            stream << paymentRecord->operationUUID() << kTokensSeparator;
-            stream << kUnixTimestampMicrosec << kTokensSeparator;
-            stream << formattedOperationType << kTokensSeparator;
-            stream << paymentRecord->amount() << kTokensSeparator;
-            stream << paymentRecord->balanceAfterOperation();
+            stream << kTokensSeparator << formattedRecordType
+                   << kTokensSeparator << paymentRecord->operationUUID()
+                   << kTokensSeparator << kUnixTimestampMicrosec
+                   << kTokensSeparator << formattedOperationType
+                   << kTokensSeparator << paymentRecord->amount()
+                   << kTokensSeparator << paymentRecord->balanceAfterOperation();
 
         } else if (kRecord->isTrustLineRecord()) {
             formattedRecordType = "trustline";
@@ -99,11 +99,11 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
                             "unexpected trust line operation type occurred.");
             }
 
-            stream << kTokensSeparator << formattedRecordType << kTokensSeparator;
-            stream << trustLineRecord->operationUUID() << kTokensSeparator;
-            stream << kUnixTimestampMicrosec << kTokensSeparator;
-            stream << formattedOperationType << kTokensSeparator;
-            stream << trustLineRecord->amount();
+            stream << kTokensSeparator << formattedRecordType
+                   << kTokensSeparator << trustLineRecord->operationUUID()
+                   << kTokensSeparator << kUnixTimestampMicrosec
+                   << kTokensSeparator << formattedOperationType
+                   << kTokensSeparator << trustLineRecord->amount();
         } else {
             throw ValueError("HistoryWithContractorTransaction::resultOk: "
                                  "unexpected record type occurred.");

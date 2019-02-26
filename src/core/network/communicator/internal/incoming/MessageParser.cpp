@@ -11,6 +11,7 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
     BytesShared buffer,
     const size_t count)
 {
+    debug() << "processBytesSequence";
     if (count < kMinimalMessageSize || buffer == nullptr) {
         return messageInvalidOrIncomplete();
     }

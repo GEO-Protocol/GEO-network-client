@@ -556,8 +556,8 @@ void Core::onCommandReceivedSlot (
         mSubsystemsController->setFlags(
             subsystemsInfluenceCommand->flags());
 #ifdef TESTS
-        mSubsystemsController->setForbiddenNodeUUID(
-            subsystemsInfluenceCommand->forbiddenNodeUUID());
+        mSubsystemsController->setForbiddenNodeAddress(
+            subsystemsInfluenceCommand->forbiddenNodeAddress());
         mSubsystemsController->setForbiddenAmount(
             subsystemsInfluenceCommand->forbiddenAmount());
         // set node as gateway

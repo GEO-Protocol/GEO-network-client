@@ -119,13 +119,13 @@ private:
     static const uint32_t kInitialObservingRequestShiftSeconds = 5;
     static const uint32_t kInitialObservingRequestNextSeconds = 30;
 
-    // 6 min
-    static const uint32_t kTransactionCheckingSignalRepeatTimeSeconds = 30;//360;
-    static const uint32_t kTransactionCheckingSignalSmallRepeatTimeSeconds = 10;//60;
+    // 6 min for check one transaction state minimum 3 times
+    static const uint32_t kTransactionCheckingSignalRepeatTimeSeconds = 360;
+    static const uint32_t kTransactionCheckingSignalSmallRepeatTimeSeconds = 60;
 
     // block number updating period
-    static const byte kBlockNumberUpdateHours = 0;
-    static const byte kBlockNumberUpdateMinutes = 30;
+    static const byte kBlockNumberUpdateHours = 1;
+    static const byte kBlockNumberUpdateMinutes = 0;
     static const byte kBlockNumberUpdateSeconds = 0;
     static Duration& kBlockNumberUpdateDuration() {
         static auto duration = Duration(

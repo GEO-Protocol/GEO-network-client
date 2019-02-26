@@ -4,9 +4,6 @@
 
 #include "../../../base/BaseTransaction.h"
 
-#include "../../../../../common/Types.h"
-#include "../../../../../logger/Logger.h"
-
 #include "../../../../../contractors/ContractorsManager.h"
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../io/storage/StorageHandler.h"
@@ -14,9 +11,6 @@
 #include "../../../../../topology/cashe/MaxFlowCacheManager.h"
 #include "../../../../../resources/manager/ResourcesManager.h"
 #include "../../../../../resources/resources/BlockNumberRecourse.h"
-#include "../../../../../crypto/keychain.h"
-#include "../../../../../crypto/lamportkeys.h"
-#include "../../../../../crypto/lamportscheme.h"
 
 #include "../../../../../network/messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../../../../../network/messages/payments/ReceiverInitPaymentResponseMessage.h"
@@ -153,12 +147,10 @@ public:
         Cycles_WaitForIncomingAmountReleasing,
 
         Common_ObservingBlockNumberProcessing,
+        Common_Voting,
         Common_VotesChecking,
         Common_FinalPathConfigurationChecking,
         Common_Recovery,
-        Common_ClarificationTransactionBeforeVoting,
-        Common_ClarificationTransactionDuringFinalAmountsClarification,
-        Common_ClarificationTransactionDuringVoting,
         Common_Observing,
         Common_ObservingReject,
 
@@ -438,14 +430,25 @@ protected:
     static const auto kMaxPathLength = 7;
 
     static const uint32_t kWaitMillisecondsToTryRecoverAgain = 30000;
-
     static const uint8_t kMaxRecoveryAttempts = 3;
 
     // todo : make static
     const PaymentNodeID kCoordinatorPaymentNodeID = 0;
 
     static const uint64_t kCountBlocksForClaiming = 20;
-    static const uint64_t kAllowableBlockNumberDifference = 1;
+    static const uint64_t kAllowableBlockNumberDifference = 2;
+
+    static const uint32_t kMaxHoursTransactionDuration = 0;
+    static const uint32_t kMaxMinutesTransactionDuration = 0;
+    static const uint32_t kMaxSecondsTransactionDuration = 30;
+
+    static Duration& kMaxTransactionDuration() {
+        static auto duration = Duration(
+            kMaxHoursTransactionDuration,
+            kMaxMinutesTransactionDuration,
+            kMaxSecondsTransactionDuration);
+        return duration;
+    }
 
 public:
     // signal for launching transaction of building cycles on three nodes
@@ -468,6 +471,8 @@ protected:
     Keystore *mKeysStore;
     SubsystemsController *mSubsystemsController;
 
+    bool mTTLRequestWasSend;
+
     // If true - votes check stage has been processed and transaction has been approved.
     // In this case transaction can't be simply rolled back.
     // It may only be canceled through recover stage.
@@ -487,6 +492,7 @@ protected:
     bool mIAmGateway;
 
     // Votes recovery
+    uint8_t mVotesRecoveryStep;
     vector<Contractor::Shared> mNodesToCheckVotes;
     Contractor::Shared mCurrentNodeToCheckVotes;
     uint8_t mCountRecoveryAttempts;

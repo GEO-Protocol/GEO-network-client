@@ -21,6 +21,10 @@ public:
         BaseAddress::Shared contractorAddress,
         ContractorID contractorID);
 
+    void addUsedAmountFromInitiator(
+        BaseAddress::Shared targetAddress,
+        const TrustLineAmount &amount);
+
     void addUsedAmount(
         BaseAddress::Shared sourceAddress,
         BaseAddress::Shared targetAddress,

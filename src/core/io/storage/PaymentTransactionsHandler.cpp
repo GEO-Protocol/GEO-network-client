@@ -164,24 +164,21 @@ vector<pair<TransactionUUID, BlockNumber>> PaymentTransactionsHandler::transacti
     return result;
 }
 
-bool PaymentTransactionsHandler::isTransactionCommitted(
+bool PaymentTransactionsHandler::isTransactionPresent(
     const TransactionUUID &transactionUUID)
 {
-    // todo : use constant instead 3 in query
-    // 3 means that transaction have state equal or great than
-    // ObservingResponseType::ParticipantsVotesPresent (ObservingTransaction)
     string query = "SELECT 1 FROM "
-                   + mTableName + " WHERE uuid = ? AND observing_state >= 3 LIMIT 1";
+                   + mTableName + " WHERE uuid = ? LIMIT 1";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentTransactionsHandler::isTransactionCommitted: "
+        throw IOError("PaymentTransactionsHandler::isTransactionPresent: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentTransactionsHandler::isTransactionCommitted: "
+        throw IOError("PaymentTransactionsHandler::isTransactionPresent: "
                           "Bad binding of transactionUUID; sqlite error: " + to_string(rc));
     }
 
@@ -190,6 +187,34 @@ bool PaymentTransactionsHandler::isTransactionCommitted(
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return result;
+}
+
+void PaymentTransactionsHandler::deleteRecord(
+    const TransactionUUID &transactionUUID)
+{
+    string query = "DELETE FROM " + mTableName + " WHERE uuid = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("PaymentTransactionsHandler::delete: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("PaymentTransactionsHandler::delete: "
+                          "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "prepare deleting is completed successfully";
+#endif
+    } else {
+        throw IOError("PaymentTransactionsHandler::delete: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
 }
 
 LoggerStream PaymentTransactionsHandler::info() const

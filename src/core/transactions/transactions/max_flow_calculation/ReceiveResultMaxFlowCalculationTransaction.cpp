@@ -38,7 +38,6 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
     info() << "sender: " << mMessage->senderAddresses.at(0)->fullAddress();
     info() << "sender is gateway: " << mSenderIsGateway;
     info() << "beforeInsert mapTrustLinesCount: " << mTopologyTrustLineManager->trustLinesCounts();
-    info() << "receivedTrustLinesOut: " << mMessage->outgoingFlows().size();
 #endif
 
     auto senderID = mTopologyTrustLineManager->getID(mMessage->senderAddresses.at(0));

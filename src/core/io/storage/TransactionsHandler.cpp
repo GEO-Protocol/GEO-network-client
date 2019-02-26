@@ -105,7 +105,7 @@ void TransactionsHandler::deleteRecord(
         info() << "prepare deleting is completed successfully";
 #endif
     } else {
-        throw IOError("PaymentOperationStateHandler::delete: "
+        throw IOError("TransactionsHandler::delete: "
                           "Run query; sqlite error: " + to_string(rc));
     }
 }

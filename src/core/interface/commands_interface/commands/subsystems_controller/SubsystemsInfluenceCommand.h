@@ -2,7 +2,7 @@
 #define SUBSYSTEMSINFLUENCECOMMAND_H
 
 #include "../BaseUserCommand.h"
-
+#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/exceptions/ValueError.h"
 
 class SubsystemsInfluenceCommand:
@@ -20,9 +20,9 @@ public:
 
     size_t flags() const;
 
-    const NodeUUID &forbiddenNodeUUID() const;
-
     const TrustLineAmount &forbiddenAmount() const;
+
+    BaseAddress::Shared forbiddenNodeAddress() const;
 
 protected:
 //    bits order:
@@ -67,8 +67,8 @@ protected:
 
     size_t mFlags;
     // this parameter used for forbid send messages only for this node,
-    // if parameter is 0, forbid send messages to all nodes
-    NodeUUID mForbiddenNodeUUID;
+    // if parameter is null, forbid send messages to all nodes
+    BaseAddress::Shared mForbiddenNodeAddress;
     // this parameter used for forbid send message with this reservation amount
     // works in pair with mForbiddenNodeUUID
     TrustLineAmount mForbiddenAmount;

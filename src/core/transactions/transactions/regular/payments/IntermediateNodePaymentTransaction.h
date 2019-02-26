@@ -78,12 +78,6 @@ protected:
      */
     TransactionResult::SharedConst runReservationProlongationStage();
 
-    /**
-     * reaction on response TTL message from coordinator
-     * before receiving participants votes message
-     */
-    TransactionResult::SharedConst runClarificationOfTransactionBeforeVoting();
-
     TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
 
     /**
@@ -95,15 +89,7 @@ protected:
 
     TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
 
-    TransactionResult::SharedConst runClarificationOfTransactionDuringFinalAmountsClarification();
-
     TransactionResult::SharedConst runCheckObservingBlockNumber();
-
-    /**
-     * reaction on response TTL message from coordinator
-     * after receiving participants votes message
-     */
-    TransactionResult::SharedConst runClarificationOfTransactionDuringVoting();
 
     /**
      * reaction on receiving participants votes message firstly

@@ -15,8 +15,6 @@
 
 using namespace std;
 
-// todo: tests?
-// todo: hsc: review the tests.
 class TrustLine {
 public:
     typedef shared_ptr<TrustLine> Shared;

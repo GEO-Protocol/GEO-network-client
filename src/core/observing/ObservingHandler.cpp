@@ -130,7 +130,9 @@ void ObservingHandler::addTransactionForChecking(
     const TransactionUUID &transactionUUID,
     BlockNumber maxBlockNumberForClaiming)
 {
+#ifdef DEBUG_LOG_OBSEVING_HANDLER
     debug() << "addTransactionForChecking " << transactionUUID << " " << maxBlockNumberForClaiming;
+#endif
     mCheckedTransactions.insert(
         make_pair(
             transactionUUID,
@@ -140,7 +142,9 @@ void ObservingHandler::addTransactionForChecking(
 void ObservingHandler::requestActualBlockNumber(
     const TransactionUUID &transactionUUID)
 {
+#ifdef DEBUG_LOG_OBSEVING_HANDLER
     debug() << "requestActualBlockNumber for " << transactionUUID;
+#endif
     mRequestsTimer.expires_from_now(
         std::chrono::milliseconds(
             5));
@@ -153,7 +157,9 @@ void ObservingHandler::requestActualBlockNumber(
 
 void ObservingHandler::initialObservingRequest()
 {
+#ifdef DEBUG_LOG_OBSEVING_HANDLER
     debug() << "initialObservingRequest";
+#endif
     mBlockNumberRequestTimer.cancel();
 
     auto getActualBlockNumberMessage = make_shared<ObservingBlockNumberRequest>();
@@ -176,7 +182,7 @@ void ObservingHandler::initialObservingRequest()
             auto actualBlockNumberResponse = make_shared<ObservingBlockNumberResponse>(
                 observerResponse);
 
-            debug() << "Actual observing block number: " << actualBlockNumberResponse->actualBlockNumber();
+            info() << "Actual observing block number: " << actualBlockNumberResponse->actualBlockNumber();
             mLastUpdatedBlockNumber = make_pair(
                 actualBlockNumberResponse->actualBlockNumber(),
                 utc_now());
@@ -192,7 +198,7 @@ void ObservingHandler::initialObservingRequest()
                     as::placeholders::error));
             return;
         } catch (std::exception &e) {
-            this->warning() << "Can't parse observer response";
+            this->warning() << "Can't parse observer response " << e.what();
             continue;
         }
     }
@@ -323,7 +329,7 @@ bool ObservingHandler::performOneClaim(
             debug() << "Actual block number " << actualTransactionStateResponse->actualBlockNumber();
             debug() << "Observer response " << actualTransactionStateResponse->transactionsResponses().size();
             if (actualTransactionStateResponse->transactionsResponses().size() > 1) {
-                warning() << "Size of responsed transactions is invalid";
+                warning() << "Size of received transactions is invalid";
                 continue;
             }
             observingResponseType = actualTransactionStateResponse->transactionsResponses().at(0);
@@ -331,18 +337,19 @@ bool ObservingHandler::performOneClaim(
             this->warning() << "Can't parse observer response " << e.what();
             continue;
         }
-
+#ifdef DEBUG_LOG_OBSEVING_HANDLER
         debug() << "Transaction state " << observingResponseType;
+#endif
         if (observingResponseType == ObservingTransaction::NoInfo) {
             debug() << "No Info";
             // todo : need correct reaction
         } else if (observingResponseType == ObservingTransaction::ClaimInPool or
                 observingResponseType == ObservingTransaction::ClaimInBlock) {
-            debug() << "ClaimInBlock";
+            info() << "ClaimInBlock";
             observingTransaction->setObservingResponseType(observingResponseType);
             if (mLastUpdatedBlockNumber.first >
                 observingTransaction->observingRequestMessage()->maximalClaimingBlockNumber()) {
-                debug() << "Claiming time has expired, transaction rejected";
+                info() << "Claiming time has expired, transaction rejected";
                 mRejectTransactionSignal(
                     observingTransaction->transactionUUID(),
                     observingTransaction->observingRequestMessage()->maximalClaimingBlockNumber());
@@ -355,7 +362,7 @@ bool ObservingHandler::performOneClaim(
             observingTransaction->rescheduleNextActionTime();
             return false;
         } else if (observingResponseType == ObservingTransaction::ParticipantsVotesPresent) {
-            debug() << "ParticipantsVotesPresent";
+            info() << "ParticipantsVotesPresent";
             if (!getParticipantsVotes(
                     observingTransaction->transactionUUID(),
                     observingTransaction->observingRequestMessage()->maximalClaimingBlockNumber())) {
@@ -429,7 +436,7 @@ bool ObservingHandler::getParticipantsVotes(
     const TransactionUUID &transactionUUID,
     BlockNumber maximalClaimingBlockNumber)
 {
-    debug() << "getParticipantsVotes " << transactionUUID;
+    info() << "getParticipantsVotes " << transactionUUID;
     auto getTSLRequest = make_shared<ObservingParticipantsVotesRequestMessage>(
         transactionUUID,
         maximalClaimingBlockNumber);
@@ -453,7 +460,7 @@ bool ObservingHandler::getParticipantsVotes(
                 warning() << "ParticipantsVotes are absent";
                 continue;
             }
-            debug() << "Receiver participants votes " << participantsVotesMessage->transactionUUID() << " "
+            info() << "Receive participants votes " << participantsVotesMessage->transactionUUID() << " "
                     << participantsVotesMessage->maximalClaimingBlockNumber() << " "
                     << participantsVotesMessage->participantsSignatures().size();
             // todo : check if participantsVotesMessage is correct
@@ -479,7 +486,9 @@ bool ObservingHandler::getParticipantsVotes(
 void ObservingHandler::runTransactionsChecking(
     const boost::system::error_code &errorCode)
 {
+#ifdef DEBUG_LOG_OBSEVING_HANDLER
     debug() << "runTransactionsChecking";
+#endif
     if (errorCode) {
         warning() << errorCode.message().c_str();
     }
@@ -527,25 +536,33 @@ void ObservingHandler::runTransactionsChecking(
         mLastUpdatedBlockNumber = make_pair(
             transactionsResponse->actualBlockNumber(),
             utc_now());
+#ifdef DEBUG_LOG_OBSEVING_HANDLER
         debug() << "Actual observing block number: " << transactionsResponse->actualBlockNumber();
+#endif
         if (transactionsResponse->transactionsResponses().size() != checkedTransactions.size()) {
-            warning() << "Responsed data contains wrong number of transaction "
+            warning() << "Received data contains wrong number of transaction "
                       << transactionsResponse->transactionsResponses().size();
             continue;
         }
+#ifdef DEBUG_LOG_OBSEVING_HANDLER
         debug() << "Observer response cnt " << transactionsResponse->transactionsResponses().size();
+#endif
 
         auto transactionCheckingSignalRepeatTimeSeconds = kTransactionCheckingSignalRepeatTimeSeconds;
         size_t idxProcessedTransaction = 0;
         for (const auto &responseTransaction : transactionsResponse->transactionsResponses()) {
             auto processedTransaction = checkedTransactions.at(idxProcessedTransaction++).first;
+#ifdef DEBUG_LOG_OBSEVING_HANDLER
             debug() << "Processed transaction " << processedTransaction << " with response " << responseTransaction;
+#endif
             switch (responseTransaction) {
                 case ObservingTransaction::NoInfo: {
+#ifdef DEBUG_LOG_OBSEVING_HANDLER
                     debug() << "NoInfo";
+#endif
                     // if claiming time has expired remove transaction from claiming map
                     if (mCheckedTransactions[processedTransaction] < transactionsResponse->actualBlockNumber()) {
-                        debug() << "Claim time has expired";
+                        info() << "Claim time has expired for " << processedTransaction;
                         mCheckedTransactions.erase(
                             processedTransaction);
                         auto ioTransaction = mStorageHandler->beginTransaction();
@@ -556,7 +573,7 @@ void ObservingHandler::runTransactionsChecking(
                     break;
                 }
                 case ObservingTransaction::ClaimInPool: {
-                    debug() << "Claim in pool";
+                    info() << "Claim in pool for " << processedTransaction;
                     // todo: need correct reaction because observer get info about claim, when it on the blackchain
                     if (!sendParticipantsVoteMessageToObservers(
                         processedTransaction,
@@ -566,9 +583,9 @@ void ObservingHandler::runTransactionsChecking(
                     break;
                 }
                 case ObservingTransaction::ClaimInBlock: {
-                    debug() << "Claim in block";
+                    info() << "Claim in block for " << processedTransaction;
                     if (mCheckedTransactions[processedTransaction] < transactionsResponse->actualBlockNumber()) {
-                        debug() << "Transaction was rejected by observing. Cancelling.";
+                        info() << "Transaction was rejected by observing. Cancelling.";
                         mCancelTransactionSignal(
                             processedTransaction,
                             mCheckedTransactions[processedTransaction]);
@@ -588,7 +605,7 @@ void ObservingHandler::runTransactionsChecking(
                     break;
                 }
                 case ObservingTransaction::ParticipantsVotesPresent: {
-                    debug() << "ParticipantsVotesPresent";
+                    info() << "ParticipantsVotesPresent for " << processedTransaction;
                     mCheckedTransactions.erase(
                         processedTransaction);
                     // todo : check if TSL correct
@@ -633,7 +650,7 @@ bool ObservingHandler::sendParticipantsVoteMessageToObservers(
     const TransactionUUID &transactionUUID,
     BlockNumber maximalClaimingBlockNumber)
 {
-    debug() << "sendParticipantsVoteMessageToObservers " << transactionUUID << " " << maximalClaimingBlockNumber;
+    info() << "sendParticipantsVoteMessageToObservers " << transactionUUID << " " << maximalClaimingBlockNumber;
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto participantsSignatures = ioTransaction->paymentParticipantsVotesHandler()->participantsSignatures(
         transactionUUID);
@@ -665,13 +682,13 @@ bool ObservingHandler::sendParticipantsVoteMessageToObservers(
             info() << "participantsVotesAppendResponse " << participantsVotesAppendResponse->observingResponse();
             if (participantsVotesAppendResponse->observingResponse() == ObservingTransaction::ClaimInPool or
                     participantsVotesAppendResponse->observingResponse() == ObservingTransaction::ClaimInBlock) {
-                debug() << "ParticipantsVotes put into blockchain";
+                info() << "ParticipantsVotes put into blockchain";
                 return true;
             } else if (participantsVotesAppendResponse->observingResponse() == ObservingTransaction::NoInfo) {
-                debug() << "No Info";
+                info() << "No Info";
                 continue;
             } else if (participantsVotesAppendResponse->observingResponse() == ObservingTransaction::RejectedByObserving) {
-                debug() << "RejectedByObserving";
+                info() << "RejectedByObserving";
                 // if ParticipantsVotes sending period has expired,
                 // then node should check if transaction is not rejected
                 // and if yes reject transaction on it side
@@ -696,7 +713,9 @@ bool ObservingHandler::sendParticipantsVoteMessageToObservers(
 void ObservingHandler::responseActualBlockNumber(
     const TransactionUUID &transactionUUID)
 {
+#ifdef DEBUG_LOG_OBSEVING_HANDLER
     debug() << "responseActualBlockNumber " << transactionUUID;
+#endif
     mRequestsTimer.cancel();
     Duration durationWithoutBlockNumberUpdating = utc_now() - mLastUpdatedBlockNumber.second;
     if (durationWithoutBlockNumberUpdating > kBlockNumberUpdateDuration()) {
@@ -722,7 +741,7 @@ void ObservingHandler::responseActualBlockNumber(
                     make_shared<BlockNumberRecourse>(
                         transactionUUID,
                         actualBlockNumberResponse->actualBlockNumber()));
-                debug() << "Actual observing block number: " << actualBlockNumberResponse->actualBlockNumber();
+                info() << "Actual observing block number: " << actualBlockNumberResponse->actualBlockNumber();
                 mLastUpdatedBlockNumber = make_pair(
                     actualBlockNumberResponse->actualBlockNumber(),
                     utc_now());
@@ -748,7 +767,7 @@ void ObservingHandler::responseActualBlockNumber(
 
     BlockNumber actualBlockNumber = mLastUpdatedBlockNumber.first +
             durationWithoutBlockNumberUpdating.seconds() / kApproximateBlockNumberIncrementingPeriodSeconds;
-    debug() << "Calculated observing block number: " << actualBlockNumber;
+    info() << "Calculated observing block number: " << actualBlockNumber;
     mResourcesManager->putResource(
         make_shared<BlockNumberRecourse>(
             transactionUUID,
@@ -757,7 +776,9 @@ void ObservingHandler::responseActualBlockNumber(
 
 void ObservingHandler::getActualBlockNumber()
 {
+#ifdef DEBUG_LOG_OBSEVING_HANDLER
     debug() << "getActualBlockNumber";
+#endif
     mBlockNumberRequestTimer.cancel();
 
     auto getActualBlockNumberMessage = make_shared<ObservingBlockNumberRequest>();
@@ -780,7 +801,7 @@ void ObservingHandler::getActualBlockNumber()
             auto actualBlockNumberResponse = make_shared<ObservingBlockNumberResponse>(
                 observerResponse);
 
-            debug() << "Actual observing block number: " << actualBlockNumberResponse->actualBlockNumber();
+            info() << "Actual observing block number: " << actualBlockNumberResponse->actualBlockNumber();
             mLastUpdatedBlockNumber = make_pair(
                 actualBlockNumberResponse->actualBlockNumber(),
                 utc_now());
