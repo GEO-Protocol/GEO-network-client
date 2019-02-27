@@ -160,7 +160,7 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
             // In case if "amount" is greater than 0 - outgoing trust line should be created.
             auto trustLine = mTrustLines[contractorID];
             trustLine->setOutgoingTrustAmount(amount);
-            return TrustLineOperationResult::Opened;
+            return TrustLineOperationResult::Updated;
         }
     }
 
@@ -199,7 +199,7 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
             // In case if "amount" is greater than 0 - incoming trust line should be created.
             auto trustLine = mTrustLines[contractorID];
             trustLine->setIncomingTrustAmount(amount);
-            return TrustLineOperationResult::Opened;
+            return TrustLineOperationResult::Updated;
         }
     }
 

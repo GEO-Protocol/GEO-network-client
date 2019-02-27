@@ -107,12 +107,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
         mMaxFlowCacheManager->clearCashes();
 
         switch (mOperationResult) {
-            case TrustLinesManager::TrustLineOperationResult::Opened: {
-                info() << "Outgoing trust line to the node " << mContractorID
-                       << " successfully initialised with " << mCommand->amount();
-                break;
-            }
-
             case TrustLinesManager::TrustLineOperationResult::Updated: {
                 info() << "Outgoing trust line to the node " << mContractorID
                        << " successfully set to " << mCommand->amount();
@@ -134,6 +128,10 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
                 info() << "Outgoing trust line to the node " << mContractorID
                        << " successfully set to " << mCommand->amount();
                 break;
+            }
+            default: {
+                warning() << "Invalid operation result " << mOperationResult;
+                // todo : need correct reaction
             }
         }
     } catch (ValueError &) {
@@ -341,11 +339,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
         }
 
         switch (mOperationResult) {
-            case TrustLinesManager::TrustLineOperationResult::Opened: {
-                populateHistory(ioTransaction, TrustLineRecord::Opening);
-                break;
-            }
-
             case TrustLinesManager::TrustLineOperationResult::Updated: {
                 populateHistory(ioTransaction, TrustLineRecord::Setting);
                 break;
@@ -359,6 +352,9 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
             case TrustLinesManager::TrustLineOperationResult::NoChanges: {
                 populateHistory(ioTransaction, TrustLineRecord::Setting);
                 break;
+            }
+            default: {
+                warning() << "Invalid operation result " << mOperationResult << ". History wouldn't be recorded";
             }
         }
     } catch (ValueError &e) {

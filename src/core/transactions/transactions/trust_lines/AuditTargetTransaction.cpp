@@ -113,7 +113,6 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
 
         if (mMessage->outgoingAmount() != mTrustLines->incomingTrustAmount(mContractorID)) {
             info() << "setIncomingTrustLineAmount " << mMessage->outgoingAmount();
-            // todo : check black list if need
             setIncomingTrustLineAmount(ioTransaction);
         }
 
@@ -236,15 +235,6 @@ void AuditTargetTransaction::setIncomingTrustLineAmount(
         mContractorID,
         mMessage->outgoingAmount());
     switch (kOperationResult) {
-        case TrustLinesManager::TrustLineOperationResult::Opened: {
-            populateHistory(ioTransaction, TrustLineRecord::Accepting);
-            mTopologyCacheManager->resetInitiatorCache();
-            mMaxFlowCacheManager->clearCashes();
-            info() << "Incoming trust line from the node " << mContractorID
-                   << " has been successfully initialised with " << mMessage->outgoingAmount();
-            break;
-        }
-
         case TrustLinesManager::TrustLineOperationResult::Updated: {
             populateHistory(ioTransaction, TrustLineRecord::Updating);
             mTopologyCacheManager->resetInitiatorCache();
@@ -275,6 +265,9 @@ void AuditTargetTransaction::setIncomingTrustLineAmount(
             info() << "Incoming trust line from the node " << mContractorID
                    << " has not been changed.";
             break;
+        }
+        default: {
+            warning() << "Invalid operation result " << kOperationResult << ". History wouldn't be recorded";
         }
     }
 }

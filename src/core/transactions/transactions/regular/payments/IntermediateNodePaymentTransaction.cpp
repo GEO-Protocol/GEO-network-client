@@ -225,7 +225,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
          Message::Payments_FinalAmountsConfiguration,
          Message::Payments_TransactionPublicKeyHash,
          Message::Payments_TTLProlongationResponse},
-        maxNetworkDelay(3));
+        maxNetworkDelay(4));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage()
@@ -372,7 +372,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
-        mCoordinator->mainAddress(),
+        nextNodeAddress,
         kMessage->amountReserved());
     mSubsystemsController->testThrowExceptionOnNextNeighborResponseProcessingStage();
     mSubsystemsController->testTerminateProcessOnNextNeighborResponseProcessingStage();
@@ -526,6 +526,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservatio
         return reject("No TTL response message received. Transaction will be closed. Rolling Back");
     }
 
+    if (mCoordinator == nullptr) {
+        return reject("Node doesn't know coordinator yet. Transaction will be closed. Rolling Back");
+    }
     debug() << "Send TTLTransaction message to coordinator " << mCoordinator->mainAddress()->fullAddress();
     sendMessage<TTLProlongationRequestMessage>(
         mCoordinator->mainAddress(),
