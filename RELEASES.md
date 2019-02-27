@@ -2,7 +2,7 @@
 # Beta 1
 Version: `Beta 1, 02/27/2019` <br/>
 
-### [Linux x64 executable](https://gp-public.ams3.digitaloceanspaces.com/protocol/node/geo_network_client) <br/>
+### [Linux x64 executable](https://gp-public.ams3.digitaloceanspaces.com/protocol/node/geo_network_client)
 Linux x64 build of the GEO Node. <br/>
 Useful for deploying in real-world environments. <br/>
 Please, take into account, that GEO Protocol is in BETA stage. **Production usage is related to some serious risks!** <br/>
@@ -14,7 +14,7 @@ Please, take into account, that GEO Protocol is in BETA stage. **Production usag
 
 <hr/>
 
-### Virtual Box WM image (coming soon)
+### [Virtual Box WM image](https://gp-public.ams3.digitaloceanspaces.com/protocol/node/geo_node.vdi)
 Fully configured OS (Ubuntu 18.10) with already configured GEO Node. </br>
 Ideal choice for the first run and tutorial following. </br>
 Supports SSH connections.
