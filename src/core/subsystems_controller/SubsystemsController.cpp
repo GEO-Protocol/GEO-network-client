@@ -8,7 +8,6 @@ SubsystemsController::SubsystemsController(
     mIsRunCycleClosingTransactions = true;
     mIsRunPaymentTransactions = true;
     mIsRunTrustLineTransactions = true;
-    mIsWriteVisualResults = false;
 
     mForbidSendMessageToReceiverOnReservationStage = false;
     mForbidSendMessageToCoordinatorOnReservationStage = false;
@@ -42,7 +41,7 @@ SubsystemsController::SubsystemsController(
     mSleepOnVoteConsistencyStage = false;
 
     mCountForbiddenMessages = 0;
-    mForbiddenNodeUUID = NodeUUID::empty();
+    mForbiddenNodeAddress = nullptr;
 }
 
 void SubsystemsController::setFlags(size_t flags)
@@ -87,7 +86,6 @@ void SubsystemsController::setFlags(size_t flags)
     mSleepOnVoteStage = (flags & 0x800000000) > 0;
     mSleepOnVoteConsistencyStage = (flags & 0x1000000000) > 0;
 
-    mIsWriteVisualResults = (flags & 0x10000000000) != 0;
     mIsRunPaymentTransactions = (flags & 0x20000000000) == 0;
     mIsRunTrustLineTransactions = (flags & 0x40000000000) == 0;
 
@@ -95,14 +93,17 @@ void SubsystemsController::setFlags(size_t flags)
     debug() << "payment transactions " << mIsRunPaymentTransactions;
     debug() << "trust line transactions " << mIsRunTrustLineTransactions;
     debug() << "close cycles " << mIsRunCycleClosingTransactions;
-    debug() << "write visual results " << mIsWriteVisualResults;
 }
 
-void SubsystemsController::setForbiddenNodeUUID(
-    const NodeUUID &nodeUUID)
+void SubsystemsController::setForbiddenNodeAddress(
+    BaseAddress::Shared nodeAddress)
 {
-    mForbiddenNodeUUID = nodeUUID;
-    debug() << "setForbiddenNodeUUID " << mForbiddenNodeUUID;
+    mForbiddenNodeAddress = nodeAddress;
+    if (mForbiddenNodeAddress != nullptr) {
+        debug() << "setForbiddenNodeAddress " << mForbiddenNodeAddress->fullAddress();
+    } else {
+        debug() << "setForbiddenNodeAddress nullptr";
+    }
 }
 
 void SubsystemsController::setForbiddenAmount(
@@ -140,11 +141,6 @@ bool SubsystemsController::isRunCycleClosingTransactions() const
     return mIsRunCycleClosingTransactions;
 }
 
-bool SubsystemsController::isWriteVisualResults() const
-{
-    return mIsWriteVisualResults;
-}
-
 void SubsystemsController::turnOffNetwork()
 {
     mCountForbiddenMessages = UINT32_MAX;
@@ -169,20 +165,22 @@ void SubsystemsController::testForbidSendMessageToReceiverOnReservationStage(
 }
 
 void SubsystemsController::testForbidSendMessageToCoordinatorOnReservationStage(
-    const NodeUUID &previousNodeUUID,
+    BaseAddress::Shared previousNodeAddress,
     const TrustLineAmount &forbiddenAmount,
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageToCoordinatorOnReservationStage) {
-        if (mForbiddenNodeUUID == NodeUUID::empty() || previousNodeUUID == NodeUUID::empty()) {
+        if (mForbiddenNodeAddress == nullptr || previousNodeAddress == nullptr) {
             debug() << "ForbidSendMessageToCoordinatorOnReservationStage";
             mCountForbiddenMessages = countForbiddenMessages;
-        } else if (mForbiddenNodeUUID == previousNodeUUID) {
+        } else if (mForbiddenNodeAddress == previousNodeAddress) {
             if (mForbiddenAmount == 0) {
-                debug() << "ForbidSendMessageToCoordinatorOnReservationStage previous node " << previousNodeUUID;
+                debug() << "ForbidSendMessageToCoordinatorOnReservationStage previous node "
+                        << previousNodeAddress->fullAddress();
                 mCountForbiddenMessages = countForbiddenMessages;
             } else if (mForbiddenAmount == forbiddenAmount) {
-                debug() << "ForbidSendMessageToCoordinatorOnReservationStage previous node " << previousNodeUUID;
+                debug() << "ForbidSendMessageToCoordinatorOnReservationStage previous node "
+                        << previousNodeAddress->fullAddress() << " " << forbiddenAmount;
                 mCountForbiddenMessages = countForbiddenMessages;
             }
         }
@@ -190,20 +188,22 @@ void SubsystemsController::testForbidSendMessageToCoordinatorOnReservationStage(
 }
 
 void SubsystemsController::testForbidSendRequestToIntNodeOnReservationStage(
-    const NodeUUID &receiverMessageNode,
+    BaseAddress::Shared receiverMessageNodeAddress,
     const TrustLineAmount &forbiddenAmount,
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendRequestToIntNodeOnReservationStage) {
-        if (mForbiddenNodeUUID == NodeUUID::empty()) {
+        if (mForbiddenNodeAddress == nullptr) {
             debug() << "ForbidSendRequestToIntNodeOnReservationStage";
             mCountForbiddenMessages = countForbiddenMessages;
-        } else if (mForbiddenNodeUUID == receiverMessageNode) {
+        } else if (mForbiddenNodeAddress == receiverMessageNodeAddress) {
             if (mForbiddenAmount == 0) {
-                debug() << "ForbidSendRequestToIntNodeOnReservationStage to " << receiverMessageNode;
+                debug() << "ForbidSendRequestToIntNodeOnReservationStage to "
+                        << receiverMessageNodeAddress->fullAddress();
                 mCountForbiddenMessages = countForbiddenMessages;
             } else if (mForbiddenAmount == forbiddenAmount) {
-                debug() << "ForbidSendRequestToIntNodeOnReservationStage to " << receiverMessageNode;
+                debug() << "ForbidSendRequestToIntNodeOnReservationStage to "
+                        << receiverMessageNodeAddress->fullAddress() << " " << forbiddenAmount;
                 mCountForbiddenMessages = countForbiddenMessages;
             }
         }
@@ -211,20 +211,22 @@ void SubsystemsController::testForbidSendRequestToIntNodeOnReservationStage(
 }
 
 void SubsystemsController::testForbidSendResponseToIntNodeOnReservationStage(
-    const NodeUUID &receiverMessageNode,
+    BaseAddress::Shared receiverMessageNodeAddress,
     const TrustLineAmount &forbiddenAmount,
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendResponseToIntNodeOnReservationStage) {
-        if (mForbiddenNodeUUID == NodeUUID::empty()) {
+        if (mForbiddenNodeAddress == nullptr) {
             debug() << "ForbidSendResponseToIntNodeOnReservationStage";
             mCountForbiddenMessages = countForbiddenMessages;
-        } else if (mForbiddenNodeUUID == receiverMessageNode) {
+        } else if (mForbiddenNodeAddress == receiverMessageNodeAddress) {
             if (mForbiddenAmount == 0) {
-                debug() << "ForbidSendResponseToIntNodeOnReservationStage to " << receiverMessageNode;
+                debug() << "ForbidSendResponseToIntNodeOnReservationStage to "
+                        << receiverMessageNodeAddress->fullAddress();
                 mCountForbiddenMessages = countForbiddenMessages;
             } else if (mForbiddenAmount == forbiddenAmount) {
-                debug() << "ForbidSendResponseToIntNodeOnReservationStage to " << receiverMessageNode;
+                debug() << "ForbidSendResponseToIntNodeOnReservationStage to "
+                        << receiverMessageNodeAddress->fullAddress() << " " << forbiddenAmount;
                 mCountForbiddenMessages = countForbiddenMessages;
             }
         }
@@ -250,7 +252,7 @@ void SubsystemsController::testForbidSendMessageOnFinalAmountClarificationStage(
 }
 
 void SubsystemsController::testForbidSendMessageToNextNodeOnVoteStage(
-        uint32_t countForbiddenMessages)
+    uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageToNextNodeOnVoteStage) {
         debug() << "ForbidSendMessageToNextNodeOnVoteStage";

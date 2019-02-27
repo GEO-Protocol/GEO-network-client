@@ -3,14 +3,14 @@
 PaymentRecord::PaymentRecord(
     const TransactionUUID &operationUUID,
     const PaymentRecord::PaymentOperationType operationType,
-    const NodeUUID &contractorUUID,
+    Contractor::Shared contractor,
     const TrustLineAmount &amount,
     const TrustLineBalance &balanceAfterOperation):
 
     Record(
-        Record::RecordType::PaymentRecordType,
+        Record::PaymentRecordType,
         operationUUID,
-        contractorUUID),
+        contractor),
     mPaymentOperationType(operationType),
     mAmount(amount),
     mBalanceAfterOperation(balanceAfterOperation),
@@ -20,15 +20,15 @@ PaymentRecord::PaymentRecord(
 PaymentRecord::PaymentRecord(
     const TransactionUUID &operationUUID,
     const PaymentRecord::PaymentOperationType operationType,
-    const NodeUUID &contractorUUID,
+    Contractor::Shared contractor,
     const TrustLineAmount &amount,
     const TrustLineBalance &balanceAfterOperation,
     const GEOEpochTimestamp geoEpochTimestamp):
 
     Record(
-        Record::RecordType::PaymentRecordType,
+        Record::PaymentRecordType,
         operationUUID,
-        contractorUUID,
+        contractor,
         geoEpochTimestamp),
     mPaymentOperationType(operationType),
     mAmount(amount),
@@ -39,47 +39,15 @@ PaymentRecord::PaymentRecord(
 PaymentRecord::PaymentRecord(
     const TransactionUUID &operationUUID,
     const PaymentRecord::PaymentOperationType operationType,
-    const TrustLineAmount &amount):
-
-    Record(
-        Record::RecordType::PaymentRecordType,
-        operationUUID,
-        NodeUUID::empty()),
-    mPaymentOperationType(operationType),
-    mAmount(amount),
-    mBalanceAfterOperation(0),
-    mCommandUUID(CommandUUID::empty())
-{}
-
-PaymentRecord::PaymentRecord(
-    const TransactionUUID &operationUUID,
-    const PaymentRecord::PaymentOperationType operationType,
-    const TrustLineAmount &amount,
-    const GEOEpochTimestamp geoEpochTimestamp):
-
-    Record(
-        Record::RecordType::PaymentRecordType,
-        operationUUID,
-        NodeUUID::empty(),
-        geoEpochTimestamp),
-    mPaymentOperationType(operationType),
-    mAmount(amount),
-    mBalanceAfterOperation(0),
-    mCommandUUID(CommandUUID::empty())
-{}
-
-PaymentRecord::PaymentRecord(
-    const TransactionUUID &operationUUID,
-    const PaymentRecord::PaymentOperationType operationType,
-    const NodeUUID &contractorUUID,
+    Contractor::Shared contractor,
     const TrustLineAmount &amount,
     const TrustLineBalance &balanceAfterOperation,
     const CommandUUID &commandUUID):
 
     Record(
-        Record::RecordType::PaymentRecordType,
+        Record::PaymentRecordType,
         operationUUID,
-        contractorUUID),
+        contractor),
     mPaymentOperationType(operationType),
     mAmount(amount),
     mBalanceAfterOperation(balanceAfterOperation),
@@ -89,16 +57,16 @@ PaymentRecord::PaymentRecord(
 PaymentRecord::PaymentRecord(
     const TransactionUUID &operationUUID,
     const PaymentRecord::PaymentOperationType operationType,
-    const NodeUUID &contractorUUID,
+    Contractor::Shared contractor,
     const TrustLineAmount &amount,
     const TrustLineBalance &balanceAfterOperation,
     const CommandUUID &commandUUID,
     const GEOEpochTimestamp geoEpochTimestamp):
 
     Record(
-        Record::RecordType::PaymentRecordType,
+        Record::PaymentRecordType,
         operationUUID,
-        contractorUUID,
+        contractor,
         geoEpochTimestamp),
     mPaymentOperationType(operationType),
     mAmount(amount),
@@ -129,4 +97,46 @@ const TrustLineBalance& PaymentRecord::balanceAfterOperation() const
 const CommandUUID& PaymentRecord::commandUUID() const
 {
     return mCommandUUID;
+}
+
+pair<BytesShared, size_t> PaymentRecord::serializedHistoryRecordBody() const
+{
+    size_t recordBodySize = sizeof(SerializedPaymentOperationType)
+                            + mContractor->serializedSize()
+                            + kTrustLineAmountBytesCount
+                            + kTrustLineBalanceSerializeBytesCount;
+
+    BytesShared bytesBuffer = tryCalloc(
+        recordBodySize);
+    size_t bytesBufferOffset = 0;
+
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        &mPaymentOperationType,
+        sizeof(SerializedPaymentOperationType));
+    bytesBufferOffset += sizeof(SerializedPaymentOperationType);
+
+    auto contractorSerializedData = mContractor->serializeToBytes();
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        contractorSerializedData.get(),
+        mContractor->serializedSize());
+    bytesBufferOffset += mContractor->serializedSize();
+
+    auto trustAmountBytes = trustLineAmountToBytes(mAmount);
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        trustAmountBytes.data(),
+        kTrustLineAmountBytesCount);
+    bytesBufferOffset += kTrustLineAmountBytesCount;
+
+    auto trustBalanceBytes = trustLineBalanceToBytes(mBalanceAfterOperation);
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        trustBalanceBytes.data(),
+        kTrustLineBalanceSerializeBytesCount);
+
+    return make_pair(
+        bytesBuffer,
+        recordBodySize);
 }

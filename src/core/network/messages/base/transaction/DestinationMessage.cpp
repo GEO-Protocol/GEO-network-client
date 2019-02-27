@@ -2,16 +2,32 @@
 
 DestinationMessage::DestinationMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
+    ContractorID idOnSenderSide,
+    vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
-    const NodeUUID &destinationUUID)
-    noexcept :
+    ContractorID destinationID)
+    noexcept:
 
     TransactionMessage(
         equivalent,
-        senderUUID,
+        idOnSenderSide,
+        senderAddresses,
         transactionUUID),
-    mDestinationUUID(destinationUUID)
+    mDestinationID(destinationID)
+{}
+
+DestinationMessage::DestinationMessage(
+    const SerializedEquivalent equivalent,
+    ContractorID idOnSenderSide,
+    const TransactionUUID &transactionUUID,
+    ContractorID destinationID)
+    noexcept:
+
+    TransactionMessage(
+        equivalent,
+        idOnSenderSide,
+        transactionUUID),
+    mDestinationID(destinationID)
 {}
 
 DestinationMessage::DestinationMessage(
@@ -22,15 +38,14 @@ DestinationMessage::DestinationMessage(
 {
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     memcpy(
-        mDestinationUUID.data,
+        &mDestinationID,
         buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
+        sizeof(ContractorID));
 }
 
-const NodeUUID& DestinationMessage::destinationUUID() const
-noexcept
+const ContractorID DestinationMessage::destinationID() const
 {
-    return mDestinationUUID;
+    return mDestinationID;
 }
 
 const bool DestinationMessage::isDestinationMessage() const
@@ -46,7 +61,7 @@ pair<BytesShared, size_t> DestinationMessage::serializeToBytes() const
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
-                    + NodeUUID::kBytesSize;
+                    + sizeof(ContractorID);
 
     BytesShared dataBytesShared = tryMalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -59,8 +74,8 @@ pair<BytesShared, size_t> DestinationMessage::serializeToBytes() const
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
-        mDestinationUUID.data,
-        NodeUUID::kBytesSize);
+        &mDestinationID,
+        sizeof(ContractorID));
     //----------------------------------------------------
     return make_pair(
         dataBytesShared,
@@ -68,11 +83,10 @@ pair<BytesShared, size_t> DestinationMessage::serializeToBytes() const
 }
 
 const size_t DestinationMessage::kOffsetToInheritedBytes() const
-noexcept
 {
-    static const auto kOffset =
+    const auto kOffset =
         TransactionMessage::kOffsetToInheritedBytes()
-        + NodeUUID::kBytesSize;
+        + sizeof(ContractorID);
 
     return kOffset;
 }

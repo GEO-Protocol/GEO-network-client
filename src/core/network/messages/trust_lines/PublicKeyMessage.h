@@ -14,7 +14,13 @@ public:
 public:
     PublicKeyMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+        const KeyNumber number,
+        const lamport::PublicKey::Shared publicKey);
+
+    PublicKeyMessage(
+        const SerializedEquivalent equivalent,
+        ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
         const KeyNumber number,
         const lamport::PublicKey::Shared publicKey);
@@ -28,11 +34,12 @@ public:
 
     const MessageType typeID() const;
 
-    const bool isAddToConfirmationRequiredMessagesHandler() const;
-
     const bool isCheckCachedResponse() const override;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
+
+protected:
+    const size_t kOffsetToInheritedBytes() const override;
 
 private:
     KeyNumber mNumber;

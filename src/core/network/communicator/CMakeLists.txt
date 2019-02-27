@@ -35,10 +35,8 @@ set(SOURCE_FILES
         internal/outgoing/OutgoingRemoteNode.h
         internal/outgoing/OutgoingRemoteNode.cpp
 
-        # uuid2address
-        internal/uuid2address/UUID2Address.h
-        internal/uuid2address/UUID2Address.cpp
-
+        internal/outgoing/OutgoingRemoteAddressNode.h
+        internal/outgoing/OutgoingRemoteAddressNode.cpp
 
         # Confirmation required messages queue
         internal/queue/ConfirmationRequiredMessagesQueue.h
@@ -54,7 +52,10 @@ set(SOURCE_FILES
         internal/queue/ConfirmationResponseMessagesHandler.h
         internal/queue/ConfirmationResponseMessagesHandler.cpp
         internal/queue/ConfirmationCachedResponseMessage.h
-        internal/queue/ConfirmationCachedResponseMessage.cpp)
+        internal/queue/ConfirmationCachedResponseMessage.cpp
+
+        internal/queue/PingMessagesHandler.h
+        internal/queue/PingMessagesHandler.cpp)
 
 
 add_library(network__communicator ${SOURCE_FILES})

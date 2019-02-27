@@ -3,23 +3,24 @@
 TopologyTrustLinesManager::TopologyTrustLinesManager(
     const SerializedEquivalent equivalent,
     bool iAmGateway,
-    NodeUUID &nodeUUID,
     Logger &logger):
 
     mEquivalent(equivalent),
     mLog(logger),
-    mPreventDeleting(false)
+    mPreventDeleting(false),
+    mHigherFreeID(1)
 {
+    // todo : use here kCurrentNodeID
     if (iAmGateway) {
-        mGateways.insert(nodeUUID);
+        mGateways.insert(0);
     }
 }
 
 void TopologyTrustLinesManager::addTrustLine(
     TopologyTrustLine::Shared trustLine)
 {
-    auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
-    if (nodeUUIDAndSetFlows == msTrustLines.end()) {
+    auto const &nodeIDAndSetFlows = msTrustLines.find(trustLine->sourceID());
+    if (nodeIDAndSetFlows == msTrustLines.end()) {
         if (*(trustLine->amount()) == TrustLine::kZeroAmount()) {
             return;
         }
@@ -32,7 +33,7 @@ void TopologyTrustLinesManager::addTrustLine(
 
         msTrustLines.insert(
             make_pair(
-                trustLine->sourceUUID(),
+                trustLine->sourceID(),
                 newHashSet));
         auto now = utc_now();
         if (mtTrustLines.count(now) != 0) {
@@ -43,10 +44,10 @@ void TopologyTrustLinesManager::addTrustLine(
                 now,
                 newTrustLineWithPtr));
     } else {
-        auto hashSet = nodeUUIDAndSetFlows->second;
+        auto hashSet = nodeIDAndSetFlows->second;
         auto trLineWithPtr = hashSet->begin();
         while (trLineWithPtr != hashSet->end()) {
-            if ((*trLineWithPtr)->topologyTrustLine()->targetUUID() == trustLine->targetUUID()) {
+            if ((*trLineWithPtr)->topologyTrustLine()->targetID() == trustLine->targetID()) {
                 (*trLineWithPtr)->topologyTrustLine()->setAmount(trustLine->amount());
 
                 // update time creation of trustline
@@ -68,8 +69,8 @@ void TopologyTrustLinesManager::addTrustLine(
                             auto hashSetPtr = (*trLineWithPtr)->hashSetPtr();
                             hashSetPtr->erase(*trLineWithPtr);
                             if (hashSetPtr->empty()) {
-                                NodeUUID keyUUID = (*trLineWithPtr)->topologyTrustLine()->sourceUUID();
-                                msTrustLines.erase(keyUUID);
+                                ContractorID keyID = (*trLineWithPtr)->topologyTrustLine()->sourceID();
+                                msTrustLines.erase(keyID);
                                 delete hashSetPtr;
                             }
                             delete *trLineWithPtr;
@@ -97,8 +98,8 @@ void TopologyTrustLinesManager::addTrustLine(
             if (mtTrustLines.count(now) != 0) {
                 now += pt::microseconds(5);
             }
-            mtTrustLines.insert
-                (make_pair(
+            mtTrustLines.insert(
+                make_pair(
                     now,
                     newTrustLineWithPtr));
         }
@@ -107,14 +108,14 @@ void TopologyTrustLinesManager::addTrustLine(
 }
 
 unordered_set<TopologyTrustLineWithPtr*> TopologyTrustLinesManager::trustLinePtrsSet(
-    const NodeUUID &nodeUUID)
+    ContractorID nodeID)
 {
-    auto const &nodeUUIDAndSetFlows = msTrustLines.find(nodeUUID);
-    if (nodeUUIDAndSetFlows == msTrustLines.end()) {
+    auto const &nodeIDAndSetFlows = msTrustLines.find(nodeID);
+    if (nodeIDAndSetFlows == msTrustLines.end()) {
         TrustLineWithPtrHashSet result;
         return result;
     }
-    return *nodeUUIDAndSetFlows->second;
+    return *nodeIDAndSetFlows->second;
 }
 
 void TopologyTrustLinesManager::resetAllUsedAmounts()
@@ -122,24 +123,24 @@ void TopologyTrustLinesManager::resetAllUsedAmounts()
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "resetAllUsedAmounts";
 #endif
-    for (auto &nodeUUIDAndTrustLine : msTrustLines) {
-        for (auto &trustLine : *nodeUUIDAndTrustLine.second) {
+    for (auto &nodeIDAndTrustLine : msTrustLines) {
+        for (auto &trustLine : *nodeIDAndTrustLine.second) {
             trustLine->topologyTrustLine()->setUsedAmount(0);
         }
     }
 }
 
 void TopologyTrustLinesManager::addUsedAmount(
-    const NodeUUID &sourceUUID,
-    const NodeUUID &targetUUID,
+    ContractorID sourceID,
+    ContractorID targetID,
     const TrustLineAmount &amount)
 {
-    auto const &nodeUUIDAndSetFlows = msTrustLines.find(sourceUUID);
-    if (nodeUUIDAndSetFlows == msTrustLines.end()) {
+    auto const &nodeIDAndSetFlows = msTrustLines.find(sourceID);
+    if (nodeIDAndSetFlows == msTrustLines.end()) {
         return;
     }
-    for (auto &trustLinePtr : *nodeUUIDAndSetFlows->second) {
-        if (trustLinePtr->topologyTrustLine()->targetUUID() == targetUUID) {
+    for (auto &trustLinePtr : *nodeIDAndSetFlows->second) {
+        if (trustLinePtr->topologyTrustLine()->targetID() == targetID) {
             trustLinePtr->topologyTrustLine()->addUsedAmount(amount);
             return;
         }
@@ -147,15 +148,15 @@ void TopologyTrustLinesManager::addUsedAmount(
 }
 
 void TopologyTrustLinesManager::makeFullyUsed(
-    const NodeUUID &sourceUUID,
-    const NodeUUID &targetUUID)
+    ContractorID sourceID,
+    ContractorID targetID)
 {
-    auto const &nodeUUIDAndSetFlows = msTrustLines.find(sourceUUID);
-    if (nodeUUIDAndSetFlows == msTrustLines.end()) {
+    auto const &nodeIDAndSetFlows = msTrustLines.find(sourceID);
+    if (nodeIDAndSetFlows == msTrustLines.end()) {
         return;
     }
-    for (auto &trustLinePtr : *nodeUUIDAndSetFlows->second) {
-        if (trustLinePtr->topologyTrustLine()->targetUUID() == targetUUID) {
+    for (auto &trustLinePtr : *nodeIDAndSetFlows->second) {
+        if (trustLinePtr->topologyTrustLine()->targetID() == targetID) {
             trustLinePtr->topologyTrustLine()->setUsedAmount(
                 *trustLinePtr->topologyTrustLine()->amount().get());
             return;
@@ -168,8 +169,8 @@ bool TopologyTrustLinesManager::deleteLegacyTrustLines()
     bool isTrustLineWasDeleted = false;
     if (mtTrustLines.empty()) {
         if (utc_now() - mLastTrustLineTimeAdding > kClearTrustLinesDuration()) {
-            for (auto nodeUUIDAndSetFlows : msTrustLines) {
-                auto hashSetPtr = nodeUUIDAndSetFlows.second;
+            for (auto nodeIDAndSetFlows : msTrustLines) {
+                auto hashSetPtr = nodeIDAndSetFlows.second;
                 hashSetPtr->clear();
                 delete hashSetPtr;
             }
@@ -185,18 +186,18 @@ bool TopologyTrustLinesManager::deleteLegacyTrustLines()
             auto trustLineWithPtr = timeAndTrustLineWithPtr.second;
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
             info() << "deleteLegacyTrustLines\t" <<
-                          trustLineWithPtr->topologyTrustLine()->sourceUUID() << " " <<
-                 trustLineWithPtr->topologyTrustLine()->targetUUID() << " " <<
-                 trustLineWithPtr->topologyTrustLine()->amount();
+                   trustLineWithPtr->topologyTrustLine()->sourceID() << " " <<
+                   trustLineWithPtr->topologyTrustLine()->targetID() << " " <<
+                   trustLineWithPtr->topologyTrustLine()->amount();
 #endif
             auto hashSetPtr = trustLineWithPtr->hashSetPtr();
             hashSetPtr->erase(trustLineWithPtr);
             if (hashSetPtr->empty()) {
-                NodeUUID keyUUID = trustLineWithPtr->topologyTrustLine()->sourceUUID();
+                ContractorID keyID = trustLineWithPtr->topologyTrustLine()->sourceID();
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-                info() << "deleteLegacyTrustLines\t" << "remove all trustLines for node: " << keyUUID;
+                info() << "deleteLegacyTrustLines\t" << "remove all trustLines for node: " << keyID;
 #endif
-                msTrustLines.erase(keyUUID);
+                msTrustLines.erase(keyID);
                 delete hashSetPtr;
             }
             delete trustLineWithPtr;
@@ -207,7 +208,7 @@ bool TopologyTrustLinesManager::deleteLegacyTrustLines()
         }
     }
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "deleteLegacyTrustLines\t" << "map size after deleting: " << msTrustLines.size();
+    info() << "deleteLegacyTrustLinesNew\t" << "map size after deleting: " << msTrustLines.size();
 #endif
     return isTrustLineWasDeleted;
 }
@@ -215,33 +216,37 @@ bool TopologyTrustLinesManager::deleteLegacyTrustLines()
 size_t TopologyTrustLinesManager::trustLinesCounts() const
 {
     size_t countTrustLines = 0;
-    for (const auto &nodeUUIDAndTrustLines : msTrustLines) {
-        countTrustLines += (nodeUUIDAndTrustLines.second)->size();
+    for (const auto &contractoIDAndTrustLines : msTrustLines) {
+        countTrustLines += (contractoIDAndTrustLines.second)->size();
     }
     return countTrustLines;
 }
 
 void TopologyTrustLinesManager::printTrustLines() const
 {
-    size_t trustLinesCnt = 0;
-    info() << "print\t" << "trustLineMap size: " << msTrustLines.size();
-    for (const auto &nodeUUIDAndTrustLines : msTrustLines) {
-        info() << "print\t" << "key: " << nodeUUIDAndTrustLines.first;
-        for (auto &itTrustLine : *nodeUUIDAndTrustLines.second) {
-            TopologyTrustLine::Shared trustLine = itTrustLine->topologyTrustLine();
-            info() << "print\t" << "value: " << trustLine->targetUUID() << " " << *trustLine->amount().get()
-                    << " free amount: " << *trustLine->freeAmount();
-        }
-        trustLinesCnt += nodeUUIDAndTrustLines.second->size();
+    info() << "participants:";
+    for (const auto &participant : mParticipantsAddresses) {
+        info() << participant.first->fullAddress() << " " << participant.second;
     }
-    info() << "print\t" << "trust lines count: " << trustLinesCnt;
+    size_t trustLinesCnt = 0;
+    info() << "print new\t" << "trustLineMap size: " << msTrustLines.size();
+    for (const auto &nodeIDAndTrustLines : msTrustLines) {
+        info() << "print new\t" << "key: " << nodeIDAndTrustLines.first;
+        for (auto &itTrustLine : *nodeIDAndTrustLines.second) {
+            TopologyTrustLine::Shared trustLine = itTrustLine->topologyTrustLine();
+            info() << "print new\t" << "value: " << trustLine->targetID() << " " << *trustLine->amount().get()
+                   << " free amount: " << *trustLine->freeAmount();
+        }
+        trustLinesCnt += nodeIDAndTrustLines.second->size();
+    }
+    info() << "print new\t" << "trust lines count: " << trustLinesCnt;
 
     info() << "now is " << utc_now();
-    info() << "print\t" << "timesMap size: " << mtTrustLines.size();
+    info() << "print new\t" << "timesMap size: " << mtTrustLines.size();
     for (const auto &timeAndTrustLine : mtTrustLines) {
-        info() << "print\t" << "key: " << timeAndTrustLine.first;
+        info() << "print new\t" << "key: " << timeAndTrustLine.first;
         auto trustLine = timeAndTrustLine.second->topologyTrustLine();
-        info() << "print\t" << "value: " << trustLine->targetUUID() << " " << *trustLine->amount().get()
+        info() << "print new\t" << "value: " << trustLine->targetID() << " " << *trustLine->amount().get()
                << " free amount: " << *trustLine->freeAmount();
     }
 }
@@ -252,59 +257,88 @@ DateTime TopologyTrustLinesManager::closestTimeEvent() const
     // if there are cached trust lines, then take closest trust line removing time as result closest time event
     // else take trust line life time as result closest time event
     if (!mtTrustLines.empty()) {
-        auto timeAndNodeUUID = mtTrustLines.cbegin();
-        if (timeAndNodeUUID->first + kResetTrustLinesDuration() < result) {
-            result = timeAndNodeUUID->first + kResetTrustLinesDuration();
+        auto timeAndTrustLine = mtTrustLines.cbegin();
+        if (timeAndTrustLine->first + kResetTrustLinesDuration() < result) {
+            result = timeAndTrustLine->first + kResetTrustLinesDuration();
         }
-    }
-    return result;
-}
-
-set<NodeUUID> TopologyTrustLinesManager::neighborsOf(
-    const NodeUUID &sourceUUID)
-{
-    set<NodeUUID> result;
-    info() << "neighborsOf map size" << msTrustLines.size();
-    auto const &nodeUUIDAndSetTrustLines = msTrustLines.find(sourceUUID);
-    if (nodeUUIDAndSetTrustLines == msTrustLines.end()) {
-        return result;
-    }
-    for (auto &trustLinePtr : *nodeUUIDAndSetTrustLines->second) {
-        result.insert(trustLinePtr->topologyTrustLine()->targetUUID());
     }
     return result;
 }
 
 void TopologyTrustLinesManager::addGateway(
-    const NodeUUID &gateway)
+    ContractorID gateway)
 {
     mGateways.insert(gateway);
 }
 
-const set<NodeUUID> TopologyTrustLinesManager::gateways() const
+const set<ContractorID> TopologyTrustLinesManager::gateways() const
 {
     return mGateways;
 }
 
 void TopologyTrustLinesManager::makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
-    const NodeUUID &exceptedNode)
+    ContractorID exceptedNode)
 {
     for (const auto &gateway : mGateways) {
-        auto const &nodeUUIDAndSetFlows = msTrustLines.find(gateway);
-        if (nodeUUIDAndSetFlows == msTrustLines.end()) {
+        auto const &nodeIDAndSetFlows = msTrustLines.find(gateway);
+        if (nodeIDAndSetFlows == msTrustLines.end()) {
             continue;
         }
-        for (auto &trustLinePtr : *nodeUUIDAndSetFlows->second) {
-            const auto maxFlowTLTarget = trustLinePtr->topologyTrustLine()->targetUUID();
+        for (auto &trustLinePtr : *nodeIDAndSetFlows->second) {
+            const auto maxFlowTLTarget = trustLinePtr->topologyTrustLine()->targetID();
             if (mGateways.count(maxFlowTLTarget) != 0) {
                 continue;
             }
             if (maxFlowTLTarget != exceptedNode) {
                 trustLinePtr->topologyTrustLine()->setUsedAmount(
-                        *trustLinePtr->topologyTrustLine()->amount().get());
+                    *trustLinePtr->topologyTrustLine()->amount().get());
             }
         }
     }
+}
+
+const TrustLineAmount& TopologyTrustLinesManager::flowAmount(
+    ContractorID source,
+    ContractorID destination)
+{
+    auto const &nodeIDAndSetFlows = msTrustLines.find(source);
+    if (nodeIDAndSetFlows == msTrustLines.end()) {
+        return TrustLine::kZeroAmount();
+    }
+    for (auto &trustLinePtr : *nodeIDAndSetFlows->second) {
+        if (trustLinePtr->topologyTrustLine()->targetID() == destination) {
+            return *trustLinePtr->topologyTrustLine()->amount();
+        }
+    }
+    return TrustLine::kZeroAmount();
+}
+
+ContractorID TopologyTrustLinesManager::getID(
+    BaseAddress::Shared address)
+{
+    for (const auto &participantAddress : mParticipantsAddresses) {
+        if (participantAddress.first == address) {
+            return participantAddress.second;
+        }
+    }
+    mParticipantsAddresses.emplace_back(
+        address,
+        mHigherFreeID);
+    auto result = mHigherFreeID;
+    mHigherFreeID++;
+    return result;
+}
+
+// todo : improve this code for preventing loop
+BaseAddress::Shared TopologyTrustLinesManager::getAddressByID(
+    ContractorID nodeID) const
+{
+    for (const auto &participant : mParticipantsAddresses) {
+        if (participant.second == nodeID) {
+            return participant.first;
+        }
+    }
+    return nullptr;
 }
 
 void TopologyTrustLinesManager::setPreventDeleting(

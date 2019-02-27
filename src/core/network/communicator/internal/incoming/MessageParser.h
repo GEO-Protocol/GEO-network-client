@@ -5,10 +5,9 @@
 
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
 
-#include "../../../messages/trust_lines/SetIncomingTrustLineMessage.h"
-#include "../../../messages/trust_lines/SetIncomingTrustLineInitialMessage.h"
-#include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
+#include "../../../messages/trust_lines/TrustLineInitialMessage.h"
 #include "../../../messages/trust_lines/TrustLineConfirmationMessage.h"
+#include "../../../messages/trust_lines/PublicKeysSharingInitMessage.h"
 #include "../../../messages/trust_lines/PublicKeyMessage.h"
 #include "../../../messages/trust_lines/PublicKeyHashConfirmation.h"
 #include "../../../messages/trust_lines/AuditMessage.h"
@@ -59,13 +58,15 @@
 #include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
 #include "../../../messages/gateway_notification_and_routing_tables/RoutingTableResponseMessage.h"
 
+#include "../../../messages/general/PingMessage.h"
+#include "../../../messages/general/PongMessage.h"
+#include "../../../messages/general/NoEquivalentMessage.h"
+
 #include "../../../../logger/Logger.h"
 
 #include <utility>
 
-
 using namespace std;
-
 
 class MessagesParser {
 public:
@@ -97,6 +98,9 @@ protected:
     noexcept;
 
     LoggerStream warning() const
+    noexcept;
+
+    LoggerStream debug() const
     noexcept;
 
 protected:

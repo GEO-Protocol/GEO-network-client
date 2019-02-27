@@ -1,14 +1,12 @@
 #include "EquivalentsCyclesSubsystemsRouter.h"
 
 EquivalentsCyclesSubsystemsRouter::EquivalentsCyclesSubsystemsRouter(
-    NodeUUID &nodeUUID,
     TransactionsScheduler *transactionScheduler,
     SubsystemsController *subsystemsController,
     as::io_service &ioService,
     vector<SerializedEquivalent> equivalents,
     Logger &logger):
 
-    mNodeUUID(nodeUUID),
     mTransactionScheduler(transactionScheduler),
     mSubsystemsController(subsystemsController),
     mIOService(ioService),
@@ -21,7 +19,6 @@ EquivalentsCyclesSubsystemsRouter::EquivalentsCyclesSubsystemsRouter(
                 equivalent,
                 make_unique<CyclesManager>(
                     equivalent,
-                    mNodeUUID,
                     mTransactionScheduler,
                     mIOService,
                     mLogger,
@@ -76,7 +73,6 @@ void EquivalentsCyclesSubsystemsRouter::initNewEquivalent(
             equivalent,
             make_unique<CyclesManager>(
                 equivalent,
-                mNodeUUID,
                 mTransactionScheduler,
                 mIOService,
                 mLogger,
@@ -164,7 +160,7 @@ void EquivalentsCyclesSubsystemsRouter::onBuildCycleSixNodesSlot(
 
 void EquivalentsCyclesSubsystemsRouter::onCloseCycleSlot(
     const SerializedEquivalent equivalent,
-    Path::ConstShared cycle)
+    Path::Shared cycle)
 {
     closeCycleSignal(
         equivalent,

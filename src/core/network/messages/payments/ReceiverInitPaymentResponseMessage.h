@@ -12,9 +12,15 @@ public:
     typedef shared_ptr<const ReceiverInitPaymentResponseMessage> ConstShared;
 
 public:
-    using  ResponseMessage::ResponseMessage;
+    ReceiverInitPaymentResponseMessage(
+        const SerializedEquivalent equivalent,
+        vector<BaseAddress::Shared> &senderAddresses,
+        const TransactionUUID &transactionUUID,
+        const OperationState state);
 
-protected:
+    ReceiverInitPaymentResponseMessage(
+        BytesShared buffer);
+
     const MessageType typeID() const;
 };
 

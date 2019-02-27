@@ -2,8 +2,6 @@
 #define GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
 
 #include "base/BasePaymentTransaction.h"
-#include "../../../../interface/visual_interface/interface/VisualInterface.h"
-#include "../../../../interface/visual_interface/visual/VisualResult.h"
 
 class ReceiverPaymentTransaction:
     public BasePaymentTransaction {
@@ -14,24 +12,27 @@ public:
 
 public:
     ReceiverPaymentTransaction(
-        const NodeUUID &currentNodeUUID,
         ReceiverInitPaymentRequestMessage::ConstShared message,
+        bool iAmGateway,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
-        SubsystemsController *subsystemsController,
-        VisualInterface *visualInterface);
+        SubsystemsController *subsystemsController);
 
     ReceiverPaymentTransaction(
         BytesShared buffer,
-        const NodeUUID &nodeUUID,
+        bool iAmGateway,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
@@ -40,9 +41,9 @@ public:
         noexcept;
 
     /**
-     * @return UUID of coordinator node of current transaction
+     * @return Address of coordinator node of current transaction
      */
-    const NodeUUID& coordinatorUUID() const;
+    BaseAddress::Shared coordinatorAddress() const override;
 
 protected:
     /**
@@ -57,20 +58,13 @@ protected:
      */
     TransactionResult::SharedConst runAmountReservationStage();
 
-    /**
-     * reaction on response TTL message from coordinator
-     * before receiving participants votes message,
-     * if no message received, reject this transaction
-     */
-    TransactionResult::SharedConst runClarificationOfTransactionBeforeVoting();
-
     TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
 
     TransactionResult::SharedConst runFinalReservationsCoordinatorConfirmation();
 
     TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
 
-    TransactionResult::SharedConst runClarificationOfTransactionDuringFinalAmountsClarification();
+    TransactionResult::SharedConst runCheckObservingBlockNumber();
 
     /**
      * reaction on receiving participants votes message firstly
@@ -78,14 +72,7 @@ protected:
      * if no message received then send message (TTL)
      * to coordinator with request if transaction is still alive
      */
-    TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
-
-    /**
-     * reaction on response TTL message from coordinator
-     * after receiving participants votes message
-     * if no message received, reject this transaction
-     */
-    TransactionResult::SharedConst runClarificationOfTransactionDuringVoting();
+    TransactionResult::SharedConst runVotesStageWithCoordinatorClarification();
 
 protected:
     // Receiver must must save payment operation into history.
@@ -107,16 +94,22 @@ protected:
      */
     bool checkReservationsDirections() const;
 
+    TransactionResult::SharedConst sendErrorMessageOnPreviousNodeRequest(
+        BaseAddress::Shared previousNode,
+        PathID pathID,
+        ResponseMessage::OperationState errorState);
+
+    void sendErrorMessageOnFinalAmountsConfiguration();
+
     const string logHeader() const;
 
 protected:
-    // message on which current transaction was started
-    const ReceiverInitPaymentRequestMessage::ConstShared mMessage;
+    Contractor::Shared mCoordinator;
+
+    TrustLineAmount mTransactionAmount;
 
     // this field indicates that transaction should be rejected on voting stage
     bool mTransactionShouldBeRejected;
-
-    VisualInterface *mVisualInterface;
 };
 
 

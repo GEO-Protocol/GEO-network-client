@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_SUBSYSTEMSCONTROLLER_H
 
 #include "../common/Types.h"
-#include "../common/NodeUUID.h"
+#include "../contractors/addresses/BaseAddress.h"
 #include "../logger/Logger.h"
 
 #include <chrono>
@@ -17,8 +17,8 @@ public:
 public:
     void setFlags(size_t flags);
 
-    void setForbiddenNodeUUID(
-        const NodeUUID &nodeUUID);
+    void setForbiddenNodeAddress(
+        BaseAddress::Shared nodeAddress);
 
     void setForbiddenAmount(
         const TrustLineAmount &forbiddenAmount);
@@ -31,8 +31,6 @@ public:
 
     bool isRunTrustLineTransactions() const;
 
-    bool isWriteVisualResults() const;
-
     void turnOffNetwork();
 
     void turnOnNetwork();
@@ -41,17 +39,17 @@ public:
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendMessageToCoordinatorOnReservationStage(
-        const NodeUUID &previousNodeUUID,
+        BaseAddress::Shared previousNodeAddress,
         const TrustLineAmount &forbiddenAmount,
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendRequestToIntNodeOnReservationStage(
-        const NodeUUID &receiverMessageNode,
+        BaseAddress::Shared receiverMessageNodeAddress,
         const TrustLineAmount &forbiddenAmount,
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendResponseToIntNodeOnReservationStage(
-        const NodeUUID &receiverMessageNode,
+        BaseAddress::Shared receiverMessageNodeAddress,
         const TrustLineAmount &forbiddenAmount,
         uint32_t countForbiddenMessages = 1);
 
@@ -128,7 +126,6 @@ private:
     bool mIsRunCycleClosingTransactions;
     bool mIsRunPaymentTransactions;
     bool mIsRunTrustLineTransactions;
-    bool mIsWriteVisualResults;
 
     bool mForbidSendMessageToReceiverOnReservationStage;
     bool mForbidSendMessageToCoordinatorOnReservationStage;
@@ -161,7 +158,7 @@ private:
     bool mSleepOnVoteStage;
     bool mSleepOnVoteConsistencyStage;
 
-    NodeUUID mForbiddenNodeUUID;
+    BaseAddress::Shared mForbiddenNodeAddress;
     TrustLineAmount mForbiddenAmount;
 
     Logger &mLog;

@@ -12,12 +12,9 @@ public:
 
 public:
     TotalBalancesTransaction(
-        NodeUUID &nodeUUID,
         TotalBalancesCommand::Shared command,
         TrustLinesManager *manager,
         Logger &logger);
-
-    TotalBalancesCommand::Shared command() const;
 
     TransactionResult::SharedConst run();
 

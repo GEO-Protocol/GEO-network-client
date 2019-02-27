@@ -3,14 +3,14 @@
 
 ResponseMessage::ResponseMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const PathID &pathID,
     const OperationState state) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID),
     mPathID(pathID),
     mState(state)
@@ -42,19 +42,13 @@ const PathID ResponseMessage::pathID() const
 }
 
 const size_t ResponseMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
     return TransactionMessage::kOffsetToInheritedBytes()
            + sizeof(PathID)
            + sizeof(SerializedOperationState);
 }
 
-/**
- *
- * @throws bad_alloc;
- */
 pair<BytesShared, size_t> ResponseMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 

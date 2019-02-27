@@ -9,23 +9,35 @@ RoutingTableManager::RoutingTableManager(
 {}
 
 void RoutingTableManager::updateMapAddSeveralNeighbors(
-    const NodeUUID &firstLevelContractor,
-    set<NodeUUID> secondLevelContractors)
+    ContractorID firstLevelContractor,
+    vector<BaseAddress::Shared> secondLevelContractors)
 {
     debug() << "updateMapAddSeveralNeighbors. Neighbor: " << firstLevelContractor
-               << " 2nd level nodes cnt: " << secondLevelContractors.size();
+            << " 2nd level nodes cnt: " << secondLevelContractors.size();
     mRoutingTable[firstLevelContractor] = secondLevelContractors;
 }
 
-set<NodeUUID> RoutingTableManager::secondLevelContractorsForNode(
-    const NodeUUID &contractorUUID)
+vector<BaseAddress::Shared> RoutingTableManager::secondLevelContractorsForNode(
+    ContractorID contractorID)
 {
-    return mRoutingTable[contractorUUID];
+    return mRoutingTable[contractorID];
 }
 
 void RoutingTableManager::clearMap()
 {
     mRoutingTable.clear();
+}
+
+void RoutingTableManager::printRT()
+{
+    debug() << "Print RTs";
+    for (const auto &contractorAndNeighbors : mRoutingTable) {
+        debug() << "Contractor " << contractorAndNeighbors.first;
+        debug() << "\tNeighbors:";
+        for (const auto &neighbor : contractorAndNeighbors.second) {
+            debug() << "\t" << neighbor->fullAddress();
+        }
+    }
 }
 
 string RoutingTableManager::logHeader() const

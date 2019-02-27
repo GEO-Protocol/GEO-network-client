@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_VOUTESSTATUSRESPONSEPAYMENTTRANSACTION_H
 
 #include "../../base/BaseTransaction.h"
+#include "../../../../contractors/ContractorsManager.h"
 #include "../../../../io/storage/StorageHandler.h"
 #include "../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../../../network/messages/payments/ParticipantsVotesMessage.h"
@@ -13,8 +14,8 @@ class VotesStatusResponsePaymentTransaction:
         public BaseTransaction{
 public:
     VotesStatusResponsePaymentTransaction(
-        const NodeUUID &nodeUUID,
         VotesStatusRequestMessage::Shared message,
+        ContractorsManager *contractorsManager,
         StorageHandler *storageHandler,
         bool isRequestedTransactionCurrentlyInProcessing,
         Logger &logger);
@@ -26,6 +27,7 @@ protected:
 
 protected:
     VotesStatusRequestMessage::Shared mRequest;
+    ContractorsManager *mContractorsManager;
     StorageHandler *mStorageHandler;
     bool mIsRequestedTransactionCurrentlyInProcessing;
 };

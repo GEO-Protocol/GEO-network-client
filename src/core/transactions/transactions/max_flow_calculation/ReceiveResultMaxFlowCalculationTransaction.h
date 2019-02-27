@@ -4,7 +4,6 @@
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../topology/manager/TopologyTrustLinesManager.h"
-#include "../../../topology/TopologyTrustLine.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
 
@@ -15,20 +14,16 @@ public:
 
 public:
     ReceiveResultMaxFlowCalculationTransaction(
-        NodeUUID &nodeUUID,
         ResultMaxFlowCalculationMessage::Shared message,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         Logger &logger);
 
     ReceiveResultMaxFlowCalculationTransaction(
-        NodeUUID &nodeUUID,
         ResultMaxFlowCalculationGatewayMessage::Shared message,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         Logger &logger);
-
-    ResultMaxFlowCalculationMessage::Shared message() const;
 
     TransactionResult::SharedConst run();
 

@@ -16,6 +16,10 @@ public:
     typedef uint16_t SerializedType;
 
 public:
+    enum ProtocolVersion {
+        Latest = 0,
+    };
+
     enum MessageType {
         /*
          * System messages types
@@ -25,16 +29,15 @@ public:
         /*
          * Trust lines
          */
-        TrustLines_SetIncoming = 101,
-        TrustLines_SetIncomingInitial = 102,
-        TrustLines_CloseOutgoing = 103,
-        TrustLines_Confirmation = 104,
-        TrustLines_PublicKey = 105,
-        TrustLines_HashConfirmation = 106,
-        TrustLines_Audit = 107,
-        TrustLines_AuditConfirmation = 108,
-        TrustLines_ConflictResolver = 109,
-        TrustLines_ConflictResolverConfirmation = 110,
+        TrustLines_Initial = 101,
+        TrustLines_Confirmation = 102,
+        TrustLines_PublicKeysSharingInit = 103,
+        TrustLines_PublicKey = 104,
+        TrustLines_HashConfirmation = 105,
+        TrustLines_Audit = 106,
+        TrustLines_AuditConfirmation = 107,
+        TrustLines_ConflictResolver = 108,
+        TrustLines_ConflictResolverConfirmation = 109,
 
         /*
          * Payments messages
@@ -93,8 +96,11 @@ public:
         MaxFlow_Confirmation = 407,
 
         /*
-         * Empty slot with codes 500-599
+         * General
          */
+        General_Ping = 500,
+        General_Pong = 501,
+        General_NoEquivalent,
 
         /*
          * Empty slot with codes 600-699
@@ -105,8 +111,6 @@ public:
          */
         GatewayNotification = 700,
         RoutingTableResponse = 701,
-
-        NoEquivalent = 800,
 
         /*
          * DEBUG
@@ -137,7 +141,7 @@ public:
      * The simplest way to do this - to attach response to the transaction by it's UUID
      * (scheduler checks if transactionUUID of the response is uqual to the transaction).
      *
-     * But transaction UUID may be redundant is ome cases
+     * But transactionUUID may be redundant is ome cases
      * (for example, in routing table responses,
      * max flow calculation responses, and several other)
      *
@@ -180,30 +184,47 @@ public:
 
     virtual const MessageType typeID() const = 0;
 
-    /**
-     * @throws bad_alloc;
-     */
     virtual pair<BytesShared, size_t> serializeToBytes() const
-        noexcept(false)
     {
+        SerializedProtocolVersion kProtocolVersion = ProtocolVersion::Latest;
         const SerializedType kMessageType = typeID();
-        auto buffer = tryMalloc(sizeof(kMessageType));
+        auto buffer = tryMalloc(
+                sizeof(SerializedProtocolVersion) + sizeof(kMessageType));
 
         memcpy(
             buffer.get(),
+            &kProtocolVersion,
+            sizeof(SerializedProtocolVersion));
+
+        memcpy(
+            buffer.get() + sizeof(SerializedProtocolVersion),
             &kMessageType,
             sizeof(kMessageType));
 
         return make_pair(
             buffer,
-            sizeof(kMessageType));
+            sizeof(SerializedProtocolVersion) + sizeof(kMessageType));
+    }
+
+    void setSenderIncomingIP(
+        const string &senderIncomingIP)
+    {
+        mSenderIncomingIP = senderIncomingIP;
+    }
+
+    string senderIncomingIP()
+    {
+        return mSenderIncomingIP;
     }
 
 protected:
     virtual const size_t kOffsetToInheritedBytes() const
     {
-        return sizeof(SerializedType);
+        return sizeof(SerializedProtocolVersion) + sizeof(SerializedType);
     }
+
+private:
+    string mSenderIncomingIP;
 };
 
 #endif //GEO_NETWORK_CLIENT_MESSAGE_H

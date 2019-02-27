@@ -8,42 +8,45 @@ TrustLinesInfluenceCommand::TrustLinesInfluenceCommand(
         uuid,
         identifier())
 {
-    if (commandBuffer.empty()) {
-        throw ValueError(
-            "TrustLinesInfluenceCommand: can't parse command."
-                    "Received command buffer is too short.");
-    }
+    auto check = [&](auto &ctx) {
+        if(_attr(ctx) == kCommandsSeparator) {
+            throw ValueError("TrustLinesInfluenceCommand: there is no input ");
+        }
+    };
+    auto flags_add = [&](auto &ctx) {
+        mFlags = _attr(ctx);
+        mFirstParameter = 0;
+        mSecondParameter = 0;
+        mThirdParameter = 0;
+    };
+    auto firstparam_add = [&](auto &ctx) {
+        mFirstParameter = _attr(ctx);
+    };
+    auto secondparam_add = [&](auto &ctx) {
+        mSecondParameter = _attr(ctx);
+    };
+    auto thirdparam_add = [&](auto &ctx) {
+        mThirdParameter = _attr(ctx);
+    };
 
-    auto tokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator);
-
-    if (tokenSeparatorPos != std::string::npos) {
-        auto flagsStr = commandBuffer.substr(
-            0,
-            tokenSeparatorPos);
-        mFlags = std::stoul(flagsStr);
-
-        auto forbiddenMessageTypeStartPos = tokenSeparatorPos + 1;
-        tokenSeparatorPos = commandBuffer.find(
-            kTokensSeparator,
-            forbiddenMessageTypeStartPos);
-        auto strForbiddenMessageType = commandBuffer.substr(
-            forbiddenMessageTypeStartPos,
-            tokenSeparatorPos - forbiddenMessageTypeStartPos);
-        mForbiddenReceiveMessageType = (Message::MessageType) std::stoi(strForbiddenMessageType);
-
-        auto countForbiddenMessagesReceivedStartPos = tokenSeparatorPos + 1;
-        auto strCountForbiddenMessagesReceived = commandBuffer.substr(
-            countForbiddenMessagesReceivedStartPos,
-            commandBuffer.size() - countForbiddenMessagesReceivedStartPos - 1);
-        mCountForbiddenReceivedMessages = (uint32_t) std::stoi(strCountForbiddenMessagesReceived);
-    } else {
-        auto flagsStr = commandBuffer.substr(
-            0,
-            commandBuffer.size() - 1);
-        mFlags = std::stoul(flagsStr);
-        mForbiddenReceiveMessageType = Message::Debug;
-        mCountForbiddenReceivedMessages = 0;
+    try {
+        parse(
+            commandBuffer.begin(),
+            commandBuffer.end(),
+            char_[check]);
+        parse(
+            commandBuffer.begin(),
+            commandBuffer.end(), (
+                *(int_[flags_add])
+                >-(char_(kTokensSeparator)
+                >*(int_[firstparam_add])
+                >char_(kTokensSeparator)
+                >*(int_[secondparam_add])
+                >char_(kTokensSeparator)
+                >*(int_[thirdparam_add]))
+                >eol));
+    } catch(...) {
+        throw ValueError("TrustLinesInfluenceCommand: can't parse command");
     }
 }
 
@@ -58,12 +61,17 @@ size_t TrustLinesInfluenceCommand::flags() const
     return mFlags;
 }
 
-const Message::MessageType TrustLinesInfluenceCommand::forbiddenReceiveMessageType() const
+const uint32_t TrustLinesInfluenceCommand::firstParameter() const
 {
-    return mForbiddenReceiveMessageType;
+    return mFirstParameter;
 }
 
-const uint32_t TrustLinesInfluenceCommand::countForbiddenReceivedMessages() const
+const uint32_t TrustLinesInfluenceCommand::secondParameter() const
 {
-    return mCountForbiddenReceivedMessages;
+    return mSecondParameter;
+}
+
+const uint32_t TrustLinesInfluenceCommand::thirdParameter() const
+{
+    return mThirdParameter;
 }

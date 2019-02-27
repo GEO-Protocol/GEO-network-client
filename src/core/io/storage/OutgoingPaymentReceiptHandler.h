@@ -26,13 +26,16 @@ public:
         const KeyHash::Shared ownPublicKeyHash,
         const TrustLineAmount &amount);
 
-    vector<TrustLineAmount> auditAmounts(
+    vector<pair<TransactionUUID, TrustLineAmount>> auditAmounts(
         const TrustLineID trustLineID,
         const AuditNumber auditNumber);
 
     vector<ReceiptRecord::Shared> receiptsByAuditNumber(
         const TrustLineID trustLineID,
         const AuditNumber auditNumber);
+
+    void deleteRecords(
+        const TransactionUUID &transactionUUID);
 
 private:
     LoggerStream info() const;

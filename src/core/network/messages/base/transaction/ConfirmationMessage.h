@@ -15,16 +15,25 @@ public:
         OK = 1,
         ErrorShouldBeRemovedFromQueue = 2,
         ContractorBanned = 3,
-        ReservationsPresentOnTrustLine = 4,
-        Audit_Reject = 5,
-        Audit_Invalid = 6,
-        Audit_KeyNotFound = 7,
+        TrustLineAlreadyPresent = 4,
+        ReservationsPresentOnTrustLine = 5,
+        Audit_Reject = 6,
+        Audit_Invalid = 7,
+        Audit_KeyNotFound = 8,
+        Audit_IncorrectNumber = 9,
+        OwnKeysAbsent = 10,
+        ContractorKeysAbsent = 11,
     };
 
 public:
     ConfirmationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+        const OperationState state = OK);
+
+    ConfirmationMessage(
+        const SerializedEquivalent equivalent,
+        ContractorID idOnReceiverSide,
         const TransactionUUID &transactionUUID,
         const OperationState state = OK);
 
@@ -35,12 +44,10 @@ public:
 
     const OperationState state() const;
 
-    pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc);
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
-    const size_t kOffsetToInheritedBytes() const
-        noexcept;
+    const size_t kOffsetToInheritedBytes() const override;
 
 private:
     typedef byte SerializedOperationState;

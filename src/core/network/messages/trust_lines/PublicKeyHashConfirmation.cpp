@@ -2,13 +2,13 @@
 
 PublicKeyHashConfirmation::PublicKeyHashConfirmation(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
+    ContractorID idOnSenderSide,
     const TransactionUUID &transactionUUID,
     KeyNumber number,
     lamport::KeyHash::Shared hashConfirmation):
     ConfirmationMessage(
         equivalent,
-        senderUUID,
+        idOnSenderSide,
         transactionUUID),
     mNumber(number),
     mHashConfirmation(hashConfirmation)
@@ -16,12 +16,12 @@ PublicKeyHashConfirmation::PublicKeyHashConfirmation(
 
 PublicKeyHashConfirmation::PublicKeyHashConfirmation(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
+    ContractorID idOnSenderSide,
     const TransactionUUID &transactionUUID,
     OperationState state) :
     ConfirmationMessage(
         equivalent,
-        senderUUID,
+        idOnSenderSide,
         transactionUUID,
         state),
     mNumber(0),
@@ -62,7 +62,6 @@ const lamport::KeyHash::Shared PublicKeyHashConfirmation::hashConfirmation() con
 }
 
 pair<BytesShared, size_t> PublicKeyHashConfirmation::serializeToBytes() const
-    throw (bad_alloc)
 {
     const auto parentBytesAndCount = ConfirmationMessage::serializeToBytes();
     auto kBufferSize = parentBytesAndCount.second;

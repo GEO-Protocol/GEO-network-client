@@ -4,15 +4,22 @@
 TrustLinesManager::TrustLinesManager(
     const SerializedEquivalent equivalent,
     StorageHandler *storageHandler,
+    Keystore *keyStore,
+    ContractorsManager *contractorsManager,
     Logger &logger):
 
     mEquivalent(equivalent),
     mStorageHandler(storageHandler),
+    mKeysStore(keyStore),
+    mContractorsManager(contractorsManager),
     mLogger(logger),
     mAmountReservationsHandler(
         make_unique<AmountReservationsHandler>())
 {
     loadTrustLinesFromStorage();
+#if defined(DEBUG) || defined(TESTS)
+    printTLs();
+#endif
 }
 
 void TrustLinesManager::loadTrustLinesFromStorage()
@@ -23,130 +30,137 @@ void TrustLinesManager::loadTrustLinesFromStorage()
     mTrustLines.reserve(kTrustLines.size());
 
     for (auto const &kTrustLine : kTrustLines) {
+        auto keyChain = mKeysStore->keychain(kTrustLine->trustLineID());
         try {
             auto auditRecord = ioTransaction->auditHandler()->getActualAudit(
                 kTrustLine->trustLineID());
             kTrustLine->setAuditNumber(auditRecord->auditNumber());
             kTrustLine->setIncomingTrustAmount(auditRecord->incomingAmount());
             kTrustLine->setOutgoingTrustAmount(auditRecord->outgoingAmount());
-            info() << "audit number " << auditRecord->auditNumber();
 
-            auto incomingReceiptsAmounts = ioTransaction->incomingPaymentReceiptHandler()->auditAmounts(
-                kTrustLine->trustLineID(),
-                auditRecord->auditNumber());
-            TrustLineAmount totalIncomingReceiptsAmount = TrustLine::kZeroAmount();
-            for (const auto &incomingReceiptAmount : incomingReceiptsAmounts) {
-                totalIncomingReceiptsAmount = totalIncomingReceiptsAmount + incomingReceiptAmount;
-            }
-            auto outgoingReceiptsAmounts = ioTransaction->outgoingPaymentReceiptHandler()->auditAmounts(
-                kTrustLine->trustLineID(),
-                auditRecord->auditNumber());
-            TrustLineAmount totalOutgoingReceiptsAmount = TrustLine::kZeroAmount();
-            for (const auto &outgoingReceiptAmount : outgoingReceiptsAmounts) {
-                totalOutgoingReceiptsAmount = totalOutgoingReceiptsAmount + outgoingReceiptAmount;
-            }
-            TrustLineBalance balance = auditRecord->balance() + totalIncomingReceiptsAmount - totalOutgoingReceiptsAmount;
-            kTrustLine->setBalance(balance);
+            if (!auditRecord->isPendingState()) {
+                auto totalIncomingReceiptsAmount = keyChain.incomingCommittedReceiptsAmountsSum(
+                    ioTransaction,
+                    auditRecord->auditNumber());
+                auto totalOutgoingReceiptsAmount = keyChain.outgoingCommittedReceiptsAmountsSum(
+                    ioTransaction,
+                    auditRecord->auditNumber());
+                TrustLineBalance balance =
+                    auditRecord->balance() + totalIncomingReceiptsAmount - totalOutgoingReceiptsAmount;
+                kTrustLine->setBalance(balance);
 
-            if (auditRecord->balance() > TrustLine::kZeroBalance()) {
-                totalIncomingReceiptsAmount = totalIncomingReceiptsAmount + TrustLineAmount(auditRecord->balance());
+                if (auditRecord->balance() > TrustLine::kZeroBalance()) {
+                    totalIncomingReceiptsAmount =
+                        totalIncomingReceiptsAmount + TrustLineAmount(auditRecord->balance());
+                } else {
+                    totalOutgoingReceiptsAmount =
+                        totalOutgoingReceiptsAmount + TrustLineAmount(abs(auditRecord->balance()));
+                }
+
+                kTrustLine->setTotalIncomingReceiptsAmount(
+                    totalIncomingReceiptsAmount);
+                kTrustLine->setTotalOutgoingReceiptsAmount(
+                    totalOutgoingReceiptsAmount);
             } else {
-                totalOutgoingReceiptsAmount = totalOutgoingReceiptsAmount + TrustLineAmount(abs(auditRecord->balance()));
+                info() << "audit pending TL in storage with contractor " << kTrustLine->contractorID();
+                kTrustLine->setState(TrustLine::AuditPending);
+                mContractorsShouldBePinged.push_back(
+                    kTrustLine->contractorID());
             }
 
-            kTrustLine->setTotalIncomingReceiptsAmount(
-                totalIncomingReceiptsAmount);
-            kTrustLine->setTotalOutgoingReceiptsAmount(
-                totalOutgoingReceiptsAmount);
+            if (keyChain.ownKeysPresent(ioTransaction)) {
+                kTrustLine->setIsOwnKeysPresent(true);
+            }
+
+            if (keyChain.contractorKeysPresent(ioTransaction)) {
+                kTrustLine->setIsContractorKeysPresent(true);
+            }
 
         } catch (NotFoundError&) {
-            info() << "init TL in storage with contractor " << kTrustLine->contractorNodeUUID();
+            info() << "init TL in storage with contractor " << kTrustLine->contractorID();
+            if (keyChain.ownKeysPresent(ioTransaction)) {
+                warning() << "Something wrong, because TL contains own valid keys";
+            }
+            if (keyChain.contractorKeysPresent(ioTransaction)) {
+                warning() << "Something wrong, because TL contains contractor's valid keys";
+            }
+            mContractorsShouldBePinged.push_back(
+                kTrustLine->contractorID());
         }
 
         mTrustLines.insert(
             make_pair(
-                kTrustLine->contractorNodeUUID(),
+                kTrustLine->contractorID(),
                 kTrustLine));
     }
 }
 
 void TrustLinesManager::open(
-    const NodeUUID &contractorUUID,
-    const TrustLineAmount &amount,
+    ContractorID contractorID,
     IOTransaction::Shared ioTransaction)
 {
+    if (trustLineIsPresent(contractorID)) {
+        throw ValueError(
+            logHeader() + "::open: trust line already present.");
+    }
     TrustLineID trustLineID = nextFreeID(ioTransaction);
-    // In case if trust line to this contractor is absent,
-    // and "amount" is greater than 0 - new trust line should be created.
+    // In case if TL to this contractor is absent,
+    // new trust line should be created.
     // contractor is not gateway by default
     auto trustLine = make_shared<TrustLine>(
-        contractorUUID,
-        trustLineID,
-        0,
-        amount,
-        0,
-        false);
-    mTrustLines[contractorUUID] = trustLine;
+        contractorID,
+        trustLineID);
+    mTrustLines[contractorID] = trustLine;
 
     if (ioTransaction != nullptr) {
-        saveToStorage(
-            ioTransaction,
-            trustLine);
+        ioTransaction->trustLinesHandler()->saveTrustLine(
+            trustLine,
+            mEquivalent);
     }
 }
 
 void TrustLinesManager::accept(
-    const NodeUUID &contractorUUID,
-    const TrustLineAmount &amount,
+    ContractorID contractorID,
     IOTransaction::Shared ioTransaction)
 {
-    if (trustLineIsPresent(contractorUUID)) {
+    if (trustLineIsPresent(contractorID)) {
         throw ValueError(
             logHeader() + "::accept: trust line already present.");
-    }
-    if (amount == 0) {
-        throw ValueError(
-            logHeader() + "::accept: "
-                "can't establish trust line with zero amount.");
     }
 
     TrustLineID trustLineID = nextFreeID(ioTransaction);
     // In case if TL to this contractor is absent,
-    // and "amount" is greater than 0 - new trust line should be created.
+    // new trust line should be created.
     // contractor is not gateway by default
     auto trustLine = make_shared<TrustLine>(
-        contractorUUID,
-        trustLineID,
-        amount,
-        0,
-        0,
-        false);
-    mTrustLines[contractorUUID] = trustLine;
+        contractorID,
+        trustLineID);
+    mTrustLines[contractorID] = trustLine;
 
     if (ioTransaction != nullptr) {
-        saveToStorage(
-            ioTransaction,
-            trustLine);
+        ioTransaction->trustLinesHandler()->saveTrustLine(
+            trustLine,
+            mEquivalent);
     }
 }
 
 TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     const TrustLineAmount &amount)
 {
-    if (outgoingTrustAmount(contractorUUID) == 0) {
+    if (outgoingTrustAmount(contractorID) == 0) {
         // In case if outgoing TL to this contractor is absent,
         // "amount" can't be 0 (otherwise, trust line set to zero would be opened).
         if (amount == 0) {
             throw ValueError(
                 logHeader() + "::setOutgoing: "
-                "can't establish trust line with zero amount.");
+                    "can't establish trust line with zero amount.");
 
         } else {
             // In case if "amount" is greater than 0 - outgoing trust line should be created.
-            auto trustLine = mTrustLines[contractorUUID];
+            auto trustLine = mTrustLines[contractorID];
             trustLine->setOutgoingTrustAmount(amount);
-            return TrustLineOperationResult::Opened;
+            return TrustLineOperationResult::Updated;
         }
     }
 
@@ -155,11 +169,11 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
         // but incoming trust amount is 0, and received "amount" is 0 -
         // then it is interpreted as the command to close the outgoing trust line.
         closeOutgoing(
-            contractorUUID);
+            contractorID);
         return TrustLineOperationResult::Closed;
     }
 
-    auto trustLine = mTrustLines[contractorUUID];
+    auto trustLine = mTrustLines[contractorID];
     if (trustLine->outgoingTrustAmount() == amount) {
         // There is no reason to write the same data to the disk.
         return TrustLineOperationResult::NoChanges;
@@ -170,22 +184,22 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
 }
 
 TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     const TrustLineAmount &amount)
 {
-    if (incomingTrustAmount(contractorUUID) == 0) {
+    if (incomingTrustAmount(contractorID) == 0) {
         // In case if incoming TL amount to this contractor is absent,
         // "amount" can't be 0 (otherwise, trust line with both sides set to zero would be opened).
         if (amount == 0) {
             throw ValueError(
                 logHeader() + "::setIncoming: "
-                "can't establish trust line with zero amount at both sides.");
+                    "can't establish trust line with zero amount at both sides.");
 
         } else {
             // In case if "amount" is greater than 0 - incoming trust line should be created.
-            auto trustLine = mTrustLines[contractorUUID];
+            auto trustLine = mTrustLines[contractorID];
             trustLine->setIncomingTrustAmount(amount);
-            return TrustLineOperationResult::Opened;
+            return TrustLineOperationResult::Updated;
         }
     }
 
@@ -194,11 +208,11 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
         // and received "amount" is 0 -
         // then it is interpreted as the command to close the incoming trust line.
         closeIncoming(
-            contractorUUID);
+            contractorID);
         return TrustLineOperationResult::Closed;
     }
 
-    auto trustLine = mTrustLines[contractorUUID];
+    auto trustLine = mTrustLines[contractorID];
     if (trustLine->incomingTrustAmount() == amount) {
         // There is no reason to write the same data to the disk.
         return TrustLineOperationResult::NoChanges;
@@ -209,163 +223,222 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
 }
 
 void TrustLinesManager::closeOutgoing(
-    const NodeUUID &contractorUUID)
+    ContractorID contractorID)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::closeOutgoing: "
-                "No trust line to this contractor is present.");
+                "No trust line to this contractor is present " + to_string(contractorID));
     }
 
-    auto trustLine = mTrustLines[contractorUUID];
+    auto trustLine = mTrustLines[contractorID];
     trustLine->setOutgoingTrustAmount(0);
 }
 
 void TrustLinesManager::closeIncoming(
-    const NodeUUID &contractorUUID)
+    ContractorID contractorID)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::closeIncoming: "
-                "No trust line to this contractor is present.");
+                "No trust line to this contractor is present " + to_string(contractorID));
     }
 
-    auto trustLine = mTrustLines[contractorUUID];
+    auto trustLine = mTrustLines[contractorID];
     trustLine->setIncomingTrustAmount(0);
 }
 
 void TrustLinesManager::setContractorAsGateway(
     IOTransaction::Shared ioTransaction,
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     bool contractorIsGateway)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::setContractorAsGateway: "
-                "There is no trust line to contractor " + contractorUUID.stringUUID());
+                "There is no trust line to contractor " + to_string(contractorID));
     }
 
-    auto trustLine = mTrustLines[contractorUUID];
+    auto trustLine = mTrustLines[contractorID];
     trustLine->setContractorAsGateway(contractorIsGateway);
-    updateTrustLine(
-        ioTransaction,
-        trustLine);
+    ioTransaction->trustLinesHandler()->updateTrustLineIsContractorGateway(
+        trustLine,
+        mEquivalent);
+}
+
+void TrustLinesManager::setIsOwnKeysPresent(
+    ContractorID contractorID,
+    bool isOwnKeysPresent)
+{
+    if (not trustLineIsPresent(contractorID)) {
+        throw NotFoundError(
+            logHeader() + "::setIsOwnKeysPresent: "
+                "There is no trust line to contractor " + to_string(contractorID));
+    }
+
+    auto trustLine = mTrustLines[contractorID];
+    trustLine->setIsOwnKeysPresent(isOwnKeysPresent);
+}
+
+void TrustLinesManager::setIsContractorKeysPresent(
+    ContractorID contractorID,
+    bool isContractorKeysPresent)
+{
+    if (not trustLineIsPresent(contractorID)) {
+        throw NotFoundError(
+            logHeader() + "::setIsContractorKeysPresent: "
+                "There is no trust line to contractor " + to_string(contractorID));
+    }
+
+    auto trustLine = mTrustLines[contractorID];
+    trustLine->setIsContractorKeysPresent(isContractorKeysPresent);
 }
 
 void TrustLinesManager::setTrustLineState(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     TrustLine::TrustLineState state,
     IOTransaction::Shared ioTransaction)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::setTrustLineState: "
-                "There is no trust line to contractor " + contractorUUID.stringUUID());
+                "There is no trust line to contractor " + to_string(contractorID));
     }
 
-    auto trustLine = mTrustLines[contractorUUID];
+    auto trustLine = mTrustLines[contractorID];
     trustLine->setState(state);
 
     if (ioTransaction != nullptr) {
-        updateTrustLine(
-            ioTransaction,
-            trustLine);
+        ioTransaction->trustLinesHandler()->updateTrustLineState(
+            trustLine,
+            mEquivalent);
     }
 }
 
-void TrustLinesManager::setTrustLineAuditNumberAndMakeActive(
-    IOTransaction::Shared ioTransaction,
-    const NodeUUID &contractorUUID,
+void TrustLinesManager::setTrustLineAuditNumber(
+    ContractorID contractorID,
     AuditNumber newAuditNumber)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::setTrustLineAuditNumber: "
-                "There is no trust line to contractor " + contractorUUID.stringUUID());
+                "There is no trust line to contractor " + to_string(contractorID));
     }
 
-    auto trustLine = mTrustLines[contractorUUID];
+    auto trustLine = mTrustLines[contractorID];
     trustLine->setAuditNumber(newAuditNumber);
-    trustLine->setState(TrustLine::Active);
-    updateTrustLine(
-        ioTransaction,
-        trustLine);
+}
+
+const bool TrustLinesManager::isContractorGateway(
+    ContractorID contractorID) const
+{
+    if (not trustLineIsPresent(contractorID)) {
+        throw NotFoundError(
+            logHeader() + "::isContractorGateway: "
+                "There is no trust line to this contractor.");
+    }
+
+    return mTrustLines.at(contractorID)->isContractorGateway();
 }
 
 const TrustLineAmount &TrustLinesManager::incomingTrustAmount(
-    const NodeUUID &contractorUUID) const
+    ContractorID contractorID) const
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
-            logHeader() + "::incomingTrustAmountDespiteReservations: "
-                "There is no trust line to contractor " + contractorUUID.stringUUID());
+            logHeader() + "::incomingTrustAmount: "
+                "There is no trust line to contractor " + to_string(contractorID));
     }
 
-    return mTrustLines.at(contractorUUID)->incomingTrustAmount();
+    return mTrustLines.at(contractorID)->incomingTrustAmount();
 }
 
 const TrustLineAmount &TrustLinesManager::outgoingTrustAmount(
-    const NodeUUID &contractorUUID) const
+    ContractorID contractorID) const
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
-            logHeader() + "::outgoingTrustAmountDespiteReservations: "
-                "There is no trust line to contractor " + contractorUUID.stringUUID());
+            logHeader() + "::outgoingTrustAmount: "
+                "There is no trust line to contractor " + to_string(contractorID));
     }
 
-    return mTrustLines.at(contractorUUID)->outgoingTrustAmount();
+    return mTrustLines.at(contractorID)->outgoingTrustAmount();
 }
 
 const TrustLineBalance &TrustLinesManager::balance(
-    const NodeUUID &contractorUUID) const
+    ContractorID contractorID) const
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
-            logHeader() + "::outgoingTrustAmountDespiteResevations: "
-                "There is no trust line to contractor " + contractorUUID.stringUUID());
+            logHeader() + "::balance: "
+                "There is no trust line to contractor " + to_string(contractorID));
     }
 
-    return mTrustLines.at(contractorUUID)->balance();
+    return mTrustLines.at(contractorID)->balance();
 }
 
 const TrustLineID TrustLinesManager::trustLineID(
-    const NodeUUID &contractorUUID) const
+    ContractorID contractorID) const
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::trustLineID: "
-                "There is no trust line to contractor " + contractorUUID.stringUUID());
+                "There is no trust line to contractor " + to_string(contractorID));
     }
 
-    return mTrustLines.at(contractorUUID)->trustLineID();
+    return mTrustLines.at(contractorID)->trustLineID();
 }
 
 const AuditNumber TrustLinesManager::auditNumber(
-    const NodeUUID &contractorUUID) const
+    ContractorID contractorID) const
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::auditNumber: "
-                "There is no trust line to contractor " + contractorUUID.stringUUID());
+                "There is no trust line to contractor " + to_string(contractorID));
     }
 
-    return mTrustLines.at(contractorUUID)->currentAuditNumber();
+    return mTrustLines.at(contractorID)->currentAuditNumber();
 }
 
 const TrustLine::TrustLineState TrustLinesManager::trustLineState(
-    const NodeUUID &contractorUUID) const
+    ContractorID contractorID) const
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::trustLineState: "
-                "There is no trust line to contractor " + contractorUUID.stringUUID());
+                "There is no trust line to contractor " + to_string(contractorID));
     }
 
-    return mTrustLines.at(contractorUUID)->state();
+    return mTrustLines.at(contractorID)->state();
+}
+
+bool TrustLinesManager::trustLineOwnKeysPresent(
+    ContractorID contractorID) const
+{
+    if (not trustLineIsPresent(contractorID)) {
+        throw NotFoundError(
+            logHeader() + "::trustLineOwnKeysPresent: "
+                "There is no trust line to contractor " + to_string(contractorID));
+    }
+
+    return mTrustLines.at(contractorID)->isOwnKeysPresent();
+}
+
+bool TrustLinesManager::trustLineContractorKeysPresent(
+    ContractorID contractorID) const
+{
+    if (not trustLineIsPresent(contractorID)) {
+        throw NotFoundError(
+            logHeader() + "::trustLineContractorKeysPresent: "
+                "There is no trust line to contractor " + to_string(contractorID));
+    }
+
+    return mTrustLines.at(contractorID)->isContractorKeysPresent();
 }
 
 AmountReservation::ConstShared TrustLinesManager::reserveOutgoingAmount(
-    const NodeUUID &contractor,
+    ContractorID contractor,
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount)
 {
@@ -383,9 +456,9 @@ AmountReservation::ConstShared TrustLinesManager::reserveOutgoingAmount(
 }
 
 AmountReservation::ConstShared TrustLinesManager::reserveIncomingAmount(
-    const NodeUUID& contractor,
-    const TransactionUUID& transactionUUID,
-    const TrustLineAmount& amount)
+    ContractorID contractor,
+    const TransactionUUID &transactionUUID,
+    const TrustLineAmount &amount)
 {
     const auto kAvailableAmount = incomingTrustAmountConsideringReservations(contractor);
     if (*kAvailableAmount >= amount) {
@@ -401,7 +474,7 @@ AmountReservation::ConstShared TrustLinesManager::reserveIncomingAmount(
 }
 
 AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
-    const NodeUUID &contractor,
+    ContractorID contractor,
     const AmountReservation::ConstShared reservation,
     const TrustLineAmount &newAmount)
 {
@@ -425,8 +498,21 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
             "Trust line has not enough free amount.");
 }
 
+AmountReservation::ConstShared TrustLinesManager::getAmountReservation(
+    ContractorID contractor,
+    const TransactionUUID &transactionUUID,
+    const TrustLineAmount &amount,
+    AmountReservation::ReservationDirection direction)
+{
+    return mAmountReservationsHandler->getReservation(
+        contractor,
+        transactionUUID,
+        amount,
+        direction);
+}
+
 void TrustLinesManager::dropAmountReservation(
-    const NodeUUID &contractor,
+    ContractorID contractor,
     const AmountReservation::ConstShared reservation)
 {
     mAmountReservationsHandler->free(
@@ -435,15 +521,15 @@ void TrustLinesManager::dropAmountReservation(
 }
 
 ConstSharedTrustLineAmount TrustLinesManager::outgoingTrustAmountConsideringReservations(
-    const NodeUUID& contractor) const
+    ContractorID contractorID) const
 {
-    const auto kTL = trustLineReadOnly(contractor);
+    const auto kTL = trustLineReadOnly(contractorID);
     if (kTL->state() != TrustLine::Active) {
         return make_shared<const TrustLineAmount>(0);
     }
     const auto kAvailableAmount = kTL->availableOutgoingAmount();
     const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
-        contractor, AmountReservation::Outgoing);
+        contractorID, AmountReservation::Outgoing);
 
     if (*kAlreadyReservedAmount >= *kAvailableAmount) {
         return make_shared<const TrustLineAmount>(0);
@@ -453,15 +539,15 @@ ConstSharedTrustLineAmount TrustLinesManager::outgoingTrustAmountConsideringRese
 }
 
 ConstSharedTrustLineAmount TrustLinesManager::incomingTrustAmountConsideringReservations(
-    const NodeUUID& contractor) const
+    ContractorID contractorID) const
 {
-    const auto kTL = trustLineReadOnly(contractor);
+    const auto kTL = trustLineReadOnly(contractorID);
     if (kTL->state() != TrustLine::Active) {
         return make_shared<const TrustLineAmount>(0);
     }
     const auto kAvailableAmount = kTL->availableIncomingAmount();
     const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
-        contractor, AmountReservation::Incoming);
+        contractorID, AmountReservation::Incoming);
 
     if (*kAlreadyReservedAmount >= *kAvailableAmount) {
         return make_shared<const TrustLineAmount>(0);
@@ -471,9 +557,9 @@ ConstSharedTrustLineAmount TrustLinesManager::incomingTrustAmountConsideringRese
 }
 
 pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::availableOutgoingCycleAmounts(
-    const NodeUUID &contractor) const
+    ContractorID contractorID) const
 {
-    const auto kTL = trustLineReadOnly(contractor);
+    const auto kTL = trustLineReadOnly(contractorID);
     if (kTL->state() != TrustLine::Active) {
         return make_pair(
             make_shared<const TrustLineAmount>(0),
@@ -487,7 +573,7 @@ pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::
     }
 
     const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
-        contractor, AmountReservation::Outgoing);
+        contractorID, AmountReservation::Outgoing);
 
     if (*kAlreadyReservedAmount.get() == TrustLine::kZeroAmount()) {
         return make_pair(
@@ -509,9 +595,9 @@ pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::
 }
 
 pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::availableIncomingCycleAmounts(
-    const NodeUUID &contractor) const
+    ContractorID contractorID) const
 {
-    const auto kTL = trustLineReadOnly(contractor);
+    const auto kTL = trustLineReadOnly(contractorID);
     if (kTL->state() != TrustLine::Active) {
         return make_pair(
             make_shared<const TrustLineAmount>(0),
@@ -525,7 +611,7 @@ pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::
     }
 
     const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
-        contractor, AmountReservation::Incoming);
+        contractorID, AmountReservation::Incoming);
 
     auto kAbsoluteBalance = absoluteBalanceAmount(kBalance);
     if (*kAlreadyReservedAmount.get() == TrustLine::kZeroAmount()) {
@@ -545,103 +631,71 @@ pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::
         make_shared<const TrustLineAmount>(kAbsoluteBalance));
 }
 
-const bool TrustLinesManager::trustLineIsPresent (
-    const NodeUUID &contractorUUID) const
+const bool TrustLinesManager::trustLineIsPresent(
+    ContractorID contractorID) const
 {
-    return mTrustLines.count(contractorUUID) > 0;
+    return mTrustLines.count(contractorID) > 0;
 }
 
 const bool TrustLinesManager::trustLineIsActive(
-    const NodeUUID &contractorUUID) const
+    ContractorID contractorID) const
 {
-    if (!trustLineIsPresent(contractorUUID)) {
+    if (!trustLineIsPresent(contractorID)) {
         throw NotFoundError(logHeader() +
-                        " There is no trust line to contractor " + contractorUUID.stringUUID());
+            " There is no trust line to contractor " + to_string(contractorID));
     }
-    return mTrustLines.at(contractorUUID)->state() == TrustLine::Active;
+    return mTrustLines.at(contractorID)->state() == TrustLine::Active;
 }
 
 bool TrustLinesManager::isReservationsPresentOnTrustLine(
-    const NodeUUID &contractorUUID) const
+    ContractorID contractorID) const
 {
-    return mAmountReservationsHandler->isReservationsPresent(
-        contractorUUID);
+    return mAmountReservationsHandler->isReservationsPresentWithContractor(
+        contractorID);
 }
 
-void TrustLinesManager::saveToStorage(
-    IOTransaction::Shared ioTransaction,
-    TrustLine::Shared trustLine)
+bool TrustLinesManager::isReservationsPresentConsiderTransaction(
+    const TransactionUUID &transactionUUID) const
 {
-    ioTransaction->trustLinesHandler()->saveTrustLine(
-        trustLine,
-        mEquivalent);
-    try {
-        mTrustLines.insert(
-            make_pair(
-                trustLine->contractorNodeUUID(),
-                trustLine));
-
-    } catch (std::bad_alloc&) {
-            throw MemoryError(
-                logHeader() + "::saveToStorage: "
-                "Can not reallocate STL container memory for new trust line instance.");
-    }
-}
-
-void TrustLinesManager::updateTrustLine(
-    IOTransaction::Shared ioTransaction,
-    TrustLine::Shared trustLine)
-{
-    if (not trustLineIsPresent(trustLine->contractorNodeUUID())) {
-        throw NotFoundError(
-            logHeader() + "::updateTrustLine: "
-                "There is no trust line to the contractor.");
-    }
-    ioTransaction->trustLinesHandler()->updateTrustLine(
-        trustLine,
-        mEquivalent);
-    try {
-        mTrustLines[trustLine->contractorNodeUUID()] = trustLine;
-    } catch (std::bad_alloc&) {
-        throw MemoryError(
-            logHeader() + "::updateTrustLine: "
-            "Can not reallocate STL container memory for new trust line instance.");
-    }
+    return mAmountReservationsHandler->isTransactionReservationsPresent(
+        transactionUUID);
 }
 
 /**
  * @throws NotFoundError
  */
 void TrustLinesManager::removeTrustLine(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     IOTransaction::Shared ioTransaction)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::removeTrustLine: "
-            "There is no trust line to the contractor.");
+                "There is no trust line to the contractor " + to_string(contractorID));
     }
 
-    mTrustLines.erase(contractorUUID);
+    mTrustLines.erase(contractorID);
 
     if (ioTransaction != nullptr) {
         ioTransaction->trustLinesHandler()->deleteTrustLine(
-            contractorUUID,
+            contractorID,
             mEquivalent);
     }
+
+    // todo remove contractor if need
 }
 
 void TrustLinesManager::updateTrustLineFromStorage(
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     IOTransaction::Shared ioTransaction)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::removeTrustLine: "
                 "There is no trust line to the contractor.");
     }
 
-    auto kTrustLine = mTrustLines[contractorUUID];
+    auto kTrustLine = mTrustLines[contractorID];
     try {
         auto auditRecord = ioTransaction->auditHandler()->getActualAudit(
             kTrustLine->trustLineID());
@@ -650,20 +704,13 @@ void TrustLinesManager::updateTrustLineFromStorage(
         kTrustLine->setOutgoingTrustAmount(auditRecord->outgoingAmount());
         info() << "audit number " << auditRecord->auditNumber();
 
-        auto incomingReceiptsAmounts = ioTransaction->incomingPaymentReceiptHandler()->auditAmounts(
-            kTrustLine->trustLineID(),
+        auto keyChain = mKeysStore->keychain(kTrustLine->trustLineID());
+        TrustLineAmount totalIncomingReceiptsAmount = keyChain.incomingCommittedReceiptsAmountsSum(
+            ioTransaction,
             auditRecord->auditNumber());
-        TrustLineAmount totalIncomingReceiptsAmount = TrustLine::kZeroAmount();
-        for (const auto &incomingReceiptAmount : incomingReceiptsAmounts) {
-            totalIncomingReceiptsAmount = totalIncomingReceiptsAmount + incomingReceiptAmount;
-        }
-        auto outgoingReceiptsAmounts = ioTransaction->outgoingPaymentReceiptHandler()->auditAmounts(
-            kTrustLine->trustLineID(),
+        TrustLineAmount totalOutgoingReceiptsAmount = keyChain.outgoingCommittedReceiptsAmountsSum(
+            ioTransaction,
             auditRecord->auditNumber());
-        TrustLineAmount totalOutgoingReceiptsAmount = TrustLine::kZeroAmount();
-        for (const auto &outgoingReceiptAmount : outgoingReceiptsAmounts) {
-            totalOutgoingReceiptsAmount = totalOutgoingReceiptsAmount + outgoingReceiptAmount;
-        }
         TrustLineBalance balance = auditRecord->balance() + totalIncomingReceiptsAmount - totalOutgoingReceiptsAmount;
         kTrustLine->setBalance(balance);
 
@@ -678,240 +725,300 @@ void TrustLinesManager::updateTrustLineFromStorage(
         kTrustLine->setTotalOutgoingReceiptsAmount(
             totalOutgoingReceiptsAmount);
 
+        if (keyChain.ownKeysPresent(ioTransaction)) {
+            kTrustLine->setIsOwnKeysPresent(true);
+        } else {
+            kTrustLine->setIsOwnKeysPresent(false);
+        }
+
+        if (keyChain.contractorKeysPresent(ioTransaction)) {
+            kTrustLine->setIsContractorKeysPresent(true);
+        } else {
+            kTrustLine->setIsContractorKeysPresent(false);
+        }
+
     } catch (NotFoundError&) {
-        info() << "init TL in storage with contractor " << kTrustLine->contractorNodeUUID();
+        info() << "init TL in storage with contractor " << kTrustLine->contractorID();
     }
 
-    mTrustLines[kTrustLine->contractorNodeUUID()] = kTrustLine;
+    mTrustLines[kTrustLine->contractorID()] = kTrustLine;
 }
 
 /**
  * @throws NotFoundError
  */
 bool TrustLinesManager::isTrustLineEmpty(
-    const NodeUUID &contractorUUID)
+    ContractorID contractorID)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
-            logHeader() + "::isTrustLineEmpty: "
-            "There is no trust line to the contractor.");
+           logHeader() + "::isTrustLineEmpty: "
+                "There is no trust line to the contractor " + to_string(contractorID));
     }
 
-    return (outgoingTrustAmount(contractorUUID) == TrustLine::kZeroAmount()
-        and incomingTrustAmount(contractorUUID) == TrustLine::kZeroAmount()
-        and balance(contractorUUID) == TrustLine::kZeroBalance());
+    return (outgoingTrustAmount(contractorID) == TrustLine::kZeroAmount()
+        and incomingTrustAmount(contractorID) == TrustLine::kZeroAmount()
+        and balance(contractorID) == TrustLine::kZeroBalance());
 }
 
 bool TrustLinesManager::isTrustLineOverflowed(
-    const NodeUUID &contractorUUID)
+    ContractorID contractorID)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::isTrustLineOverflowed: "
-                "There is no trust line to the contractor.");
+                "There is no trust line to the contractor " + to_string(contractorID));
     }
-    auto trustLine = mTrustLines[contractorUUID];
+    auto trustLine = mTrustLines[contractorID];
     return trustLine->isTrustLineOverflowed();
 }
 
 void TrustLinesManager::resetTrustLineTotalReceiptsAmounts(
-    const NodeUUID &contractorUUID)
+    ContractorID contractorID)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::resetTrustLineTotalReceiptsAmounts: "
-                "There is no trust line to the contractor.");
+                "There is no trust line to the contractor " + to_string(contractorID));
     }
-    auto trustLine = mTrustLines[contractorUUID];
+    auto trustLine = mTrustLines[contractorID];
     trustLine->resetTotalReceiptsAmounts();
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const
 {
-    vector<NodeUUID> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        if (nodeUUIDAndTrustLine.second->state() != TrustLine::Active) {
+    vector<ContractorID> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLines) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
         }
         auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
-            nodeUUIDAndTrustLine.first);
+            nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.push_back(
-                nodeUUIDAndTrustLine.first);
+                nodeIDAndTrustLine.first);
         }
     }
     return result;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFlow() const
+vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFlow() const
 {
-    vector<NodeUUID> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        if (nodeUUIDAndTrustLine.second->state() != TrustLine::Active) {
+    vector<ContractorID> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLines) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
         }
-        if (!nodeUUIDAndTrustLine.second->isContractorGateway()) {
+        if (!nodeIDAndTrustLine.second->isContractorGateway()) {
             continue;
         }
         auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
-            nodeUUIDAndTrustLine.first);
+            nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.push_back(
-                nodeUUIDAndTrustLine.first);
+                nodeIDAndTrustLine.first);
         }
     }
     return result;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const
 {
-    vector<NodeUUID> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        if (nodeUUIDAndTrustLine.second->state() != TrustLine::Active) {
+    vector<ContractorID> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLines) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
         }
         auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
-            nodeUUIDAndTrustLine.first);
+            nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
 
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.push_back(
-                nodeUUIDAndTrustLine.first);
+                nodeIDAndTrustLine.first);
         }
     }
     return result;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNonGatewayNeighborsWithIncomingFlow() const
+vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithIncomingFlow() const
 {
-    vector<NodeUUID> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        if (nodeUUIDAndTrustLine.second->state() != TrustLine::Active) {
-            continue;
-        }
-        if (nodeUUIDAndTrustLine.second->isContractorGateway()) {
+    vector<ContractorID> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLines) {
+        if (!nodeIDAndTrustLine.second->isContractorGateway()) {
             continue;
         }
         auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
-            nodeUUIDAndTrustLine.first);
+            nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
 
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
-            result.push_back(nodeUUIDAndTrustLine.first);
+            result.push_back(nodeIDAndTrustLine.first);
         }
     }
     return result;
 }
 
-vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlows() const
+vector<ContractorID> TrustLinesManager::firstLevelNonGatewayNeighborsWithIncomingFlow() const
 {
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        if (nodeUUIDAndTrustLine.second->state() != TrustLine::Active) {
+    vector<ContractorID> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLines) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
+            continue;
+        }
+        if (nodeIDAndTrustLine.second->isContractorGateway()) {
             continue;
         }
         auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
-            nodeUUIDAndTrustLine.first);
+            nodeIDAndTrustLine.first);
+        auto trustLineAmountPtr = trustLineAmountShared.get();
+
+        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
+            result.push_back(nodeIDAndTrustLine.first);
+        }
+    }
+    return result;
+}
+
+vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlows() const
+{
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLines) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
+            continue;
+        }
+        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
+            nodeIDAndTrustLine.first);
         result.emplace_back(
-            nodeUUIDAndTrustLine.first,
+            mContractorsManager->contractorMainAddress(nodeIDAndTrustLine.first),
             trustLineAmountShared);
     }
     return result;
 }
 
-vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlows() const
+vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlows() const
 {
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        if (nodeUUIDAndTrustLine.second->state() != TrustLine::Active) {
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLines) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
         }
         auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
-            nodeUUIDAndTrustLine.first);
+            nodeIDAndTrustLine.first);
         result.emplace_back(
-            nodeUUIDAndTrustLine.first,
+            mContractorsManager->contractorMainAddress(nodeIDAndTrustLine.first),
             trustLineAmountShared);
     }
     return result;
 }
 
-pair<NodeUUID, ConstSharedTrustLineAmount> TrustLinesManager::incomingFlow(
-    const NodeUUID &contractorUUID) const
+pair<BaseAddress::Shared, ConstSharedTrustLineAmount> TrustLinesManager::incomingFlow(
+    ContractorID contractorID) const
 {
     return make_pair(
-        contractorUUID,
+        mContractorsManager->contractorMainAddress(contractorID),
         incomingTrustAmountConsideringReservations(
-            contractorUUID));
+            contractorID));
 }
 
-pair<NodeUUID, ConstSharedTrustLineAmount> TrustLinesManager::outgoingFlow(
-    const NodeUUID &contractorUUID) const
+pair<BaseAddress::Shared, ConstSharedTrustLineAmount> TrustLinesManager::outgoingFlow(
+    ContractorID contractorID) const
 {
     return make_pair(
-        contractorUUID,
+        mContractorsManager->contractorMainAddress(contractorID),
         outgoingTrustAmountConsideringReservations(
-            contractorUUID));
+            contractorID));
 }
 
-vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlowsFromNonGateways() const
+vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlowsFromNonGateways() const
 {
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        if (nodeUUIDAndTrustLine.second->state() != TrustLine::Active) {
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLines) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
         }
-        if (nodeUUIDAndTrustLine.second->isContractorGateway()) {
+        if (nodeIDAndTrustLine.second->isContractorGateway()) {
             continue;
         }
         auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
-            nodeUUIDAndTrustLine.first);
+            nodeIDAndTrustLine.first);
         result.emplace_back(
-            nodeUUIDAndTrustLine.first,
+            mContractorsManager->contractorMainAddress(nodeIDAndTrustLine.first),
             trustLineAmountShared);
     }
     return result;
 }
 
-vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlowsToGateways() const
+vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlowsFromGateways() const
 {
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        if (nodeUUIDAndTrustLine.second->state() != TrustLine::Active) {
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLines) {
+        if (!nodeIDAndTrustLine.second->isContractorGateway()) {
             continue;
         }
-        if (!nodeUUIDAndTrustLine.second->isContractorGateway()) {
+        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
+            nodeIDAndTrustLine.first);
+        result.emplace_back(
+            mContractorsManager->contractorMainAddress(nodeIDAndTrustLine.first),
+            trustLineAmountShared);
+    }
+    return result;
+}
+
+vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlowsToGateways() const
+{
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLines) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
+            continue;
+        }
+        if (!nodeIDAndTrustLine.second->isContractorGateway()) {
             continue;
         }
         auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
-            nodeUUIDAndTrustLine.first);
+            nodeIDAndTrustLine.first);
         result.emplace_back(
-            nodeUUIDAndTrustLine.first,
+            mContractorsManager->contractorMainAddress(nodeIDAndTrustLine.first),
             trustLineAmountShared);
     }
     return result;
 }
 
-vector<NodeUUID> TrustLinesManager::gateways() const
+vector<ContractorID> TrustLinesManager::gateways() const
 {
-    vector<NodeUUID> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        if (nodeUUIDAndTrustLine.second->isContractorGateway()) {
-            result.push_back(nodeUUIDAndTrustLine.first);
+    vector<ContractorID> result;
+    for (auto const &nodeIDAndTrustLine : mTrustLines) {
+        if (nodeIDAndTrustLine.second->isContractorGateway()) {
+            result.push_back(nodeIDAndTrustLine.first);
         }
     }
     return result;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighbors() const
+vector<ContractorID> TrustLinesManager::firstLevelNeighbors() const
 {
-    vector<NodeUUID> result;
+    vector<ContractorID> result;
     result.reserve(mTrustLines.size());
-    for (auto &nodeUUIDAndTrustLine : mTrustLines) {
-        if (nodeUUIDAndTrustLine.second->state() == TrustLine::Active) {
+    for (auto &nodeIDAndTrustLine : mTrustLines) {
+        if (nodeIDAndTrustLine.second->state() == TrustLine::Active) {
             result.push_back(
-                nodeUUIDAndTrustLine.first);
+                nodeIDAndTrustLine.first);
+        }
+    }
+    return result;
+}
+
+vector<BaseAddress::Shared> TrustLinesManager::firstLevelNeighborsAddresses() const
+{
+    vector<BaseAddress::Shared> result;
+    result.reserve(mTrustLines.size());
+    for (auto &nodeIDAndTrustLine : mTrustLines) {
+        if (nodeIDAndTrustLine.second->state() != TrustLine::Archived) {
+            result.push_back(
+                mContractorsManager->contractorMainAddress(
+                    nodeIDAndTrustLine.first));
         }
     }
     return result;
@@ -934,63 +1041,55 @@ ConstSharedTrustLineBalance TrustLinesManager::totalBalance() const
  * @throws NotFoundError - in case if no trust line with exact contractor.
  */
 const TrustLine::ConstShared TrustLinesManager::trustLineReadOnly(
-    const NodeUUID& contractorUUID) const
+    ContractorID contractorID) const
 {
-    if (trustLineIsPresent(contractorUUID)) {
+    if (trustLineIsPresent(contractorID)) {
         // Since c++11, a return value is an rvalue.
         //
-        // -> mTrustLines.at(contractorUUID)
+        // -> mTrustLines.at(contractorID)
         //
         // In this case, there will be no shared_ptr copy done due to RVO.
         // But the copy is strongly needed here. Otherwise, moved shared_ptr would
         // try to free the memory, that is also used by the shared_ptr in the map.
         // As a result - map would be corrupted.
         const auto temp = const_pointer_cast<const TrustLine>(
-            mTrustLines.at(contractorUUID));
+            mTrustLines.at(contractorID));
         return temp;
 
     } else {
         throw NotFoundError(
-            logHeader() + "::trustLineReadOnly: " + contractorUUID.stringUUID() +
-                    " Trust line to such an contractor does not exists.");
+            logHeader() + "::trustLineReadOnly: " + to_string(contractorID) +
+                " Trust line to such an contractor does not exists.");
     }
 }
 
-unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>> &TrustLinesManager::trustLines()
+unordered_map<ContractorID, TrustLine::Shared> &TrustLinesManager::trustLines()
 {
     return mTrustLines;
 }
 
-vector<NodeUUID> TrustLinesManager::getFirstLevelNodesForCycles(
-    TrustLineBalance maxFlow)
+vector<ContractorID> TrustLinesManager::getFirstLevelNodesForCycles(
+    bool isCreditorBranch)
 {
-    vector<NodeUUID> nodes;
+    vector<ContractorID> nodes;
     TrustLineBalance stepBalance;
     for (auto const& nodeAndTrustLine : mTrustLines) {
         if (nodeAndTrustLine.second->state() != TrustLine::Active) {
             continue;
         }
         stepBalance = nodeAndTrustLine.second->balance();
-        if (maxFlow == TrustLine::kZeroBalance()) {
-            if (stepBalance != TrustLine::kZeroBalance()) {
-                nodes.push_back(nodeAndTrustLine.first);
-            }
-        } else if(maxFlow < TrustLine::kZeroBalance()){
-            if (stepBalance < TrustLine::kZeroBalance()) {
-                nodes.push_back(nodeAndTrustLine.first);
-            }
-        } else {
-            if (stepBalance > TrustLine::kZeroBalance()) {
-                nodes.push_back(nodeAndTrustLine.first);
-            }
+        if (isCreditorBranch and stepBalance > TrustLine::kZeroBalance()) {
+            nodes.push_back(nodeAndTrustLine.first);
+        } else if (!isCreditorBranch and stepBalance < TrustLine::kZeroBalance()) {
+            nodes.push_back(nodeAndTrustLine.first);
         }
     }
     return nodes;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() const
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() const
 {
-    vector<NodeUUID> nodes;
+    vector<ContractorID> nodes;
     TrustLineBalance stepBalance;
     for (auto const& nodeAndTrustLine : mTrustLines){
         if (nodeAndTrustLine.second->state() != TrustLine::Active) {
@@ -999,14 +1098,14 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() con
         stepBalance = nodeAndTrustLine.second->balance();
         if (stepBalance > TrustLine::kZeroBalance())
             nodes.push_back(nodeAndTrustLine.first);
-        }
+    }
     return nodes;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNegativeBalance() const
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithNegativeBalance() const
 {
     // todo change vector to set
-    vector<NodeUUID> nodes;
+    vector<ContractorID> nodes;
     TrustLineBalance stepBalance;
     for (const auto &nodeAndTrustLine : mTrustLines){
         if (nodeAndTrustLine.second->state() != TrustLine::Active) {
@@ -1019,9 +1118,9 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNegativeBalance() con
     return nodes;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNoneZeroBalance() const
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithNoneZeroBalance() const
 {
-    vector<NodeUUID> nodes;
+    vector<ContractorID> nodes;
     TrustLineBalance stepBalance;
     for (auto const &nodeAndTrustLine : mTrustLines) {
         if (nodeAndTrustLine.second->state() != TrustLine::Active) {
@@ -1035,35 +1134,35 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNoneZeroBalance() con
 }
 
 void TrustLinesManager::useReservation(
-    const NodeUUID &contractor,
+    ContractorID contractorID,
     const AmountReservation::ConstShared reservation)
 {
-    if (not trustLineIsPresent(contractor)) {
+    if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::useReservation: "
-            "No trust line with the contractor is present.");
+                "No trust line is present with the contractor " + to_string(contractorID));
     }
 
     switch (reservation->direction()) {
-    case AmountReservation::Outgoing: {
-        mTrustLines[contractor]->pay(reservation->amount());
-        return;
-    }
+        case AmountReservation::Outgoing: {
+            mTrustLines[contractorID]->pay(reservation->amount());
+            return;
+        }
 
-    case AmountReservation::Incoming: {
-        mTrustLines[contractor]->acceptPayment(reservation->amount());
-        return;
-    }
+        case AmountReservation::Incoming: {
+            mTrustLines[contractorID]->acceptPayment(reservation->amount());
+            return;
+        }
 
-    default: {
-        throw ValueError(
-            logHeader() + "::useReservation: "
-            "Unexpected trust line direction occurred.");
-    }
+        default: {
+            throw ValueError(
+                logHeader() + "::useReservation: "
+                    "Unexpected trust line direction occurred.");
+        }
     }
 }
 
-ConstSharedTrustLineAmount TrustLinesManager::totalOutgoingAmount () const
+ConstSharedTrustLineAmount TrustLinesManager::totalOutgoingAmount() const
 {
     auto totalAmount = make_shared<TrustLineAmount>(0);
     for (const auto &kTrustLine : mTrustLines) {
@@ -1092,18 +1191,18 @@ ConstSharedTrustLineAmount TrustLinesManager::totalIncomingAmount() const
 }
 
 vector<AmountReservation::ConstShared> TrustLinesManager::reservationsToContractor(
-    const NodeUUID &contractorUUID) const
+    ContractorID contractorID) const
 {
     return mAmountReservationsHandler->contractorReservations(
-        contractorUUID,
+        contractorID,
         AmountReservation::ReservationDirection::Outgoing);
 }
 
 vector<AmountReservation::ConstShared> TrustLinesManager::reservationsFromContractor(
-    const NodeUUID &contractorUUID) const
+    ContractorID contractorID) const
 {
     return mAmountReservationsHandler->contractorReservations(
-        contractorUUID,
+        contractorID,
         AmountReservation::ReservationDirection::Incoming);
 }
 
@@ -1128,6 +1227,65 @@ const TrustLineID TrustLinesManager::nextFreeID(
     return prevElement + 1;
 }
 
+TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterTransaction(
+    ContractorID contractorID,
+    bool isActionInitiator)
+{
+    info() << "checkTrustLineAfterTransaction";
+    if (not trustLineIsPresent(contractorID)) {
+        throw NotFoundError(
+            logHeader() + "::checkTrustLineAfterTransaction: "
+                "No trust line with the contractor is present " + to_string(contractorID));
+    }
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (isTrustLineEmpty(contractorID)) {
+        info() << "TL become empty";
+        // if TL become empty, it is necessary to run Audit TA.
+        // AuditSource TA run on node which pay
+        if (isActionInitiator) {
+            info() << "Audit signal";
+            return TrustLineActionType::Audit;
+        } else {
+            return TrustLineActionType::NoActions;
+        }
+    } else if (isTrustLineOverflowed(contractorID)) {
+        // todo : add audit rules
+        info() << "TL become overflowed";
+        // if TL become overflowed, it is necessary to run Audit TA.
+        // AuditSource TA run on node which pay
+        if (isActionInitiator) {
+            info() << "Audit signal";
+            return TrustLineActionType::Audit;
+        } else {
+            return TrustLineActionType::NoActions;
+        }
+    } else {
+        // if both cases AuditSignal and PublicKeysSharingSignal occur simultaneously,
+        // AuditSignal run and Audit Transaction and it include changing keys procedure
+        auto keyChain = mKeysStore->keychain(
+            trustLineID(
+                contractorID));
+        if (keyChain.ownKeysCriticalCount(ioTransaction)) {
+            setIsOwnKeysPresent(
+                contractorID,
+                false);
+            info() << "Public key sharing signal";
+            return TrustLineActionType::KeysSharing;
+        }
+    }
+    return TrustLineActionType::NoActions;
+}
+
+vector<ContractorID> TrustLinesManager::contractorsShouldBePinged() const
+{
+    return mContractorsShouldBePinged;
+}
+
+void TrustLinesManager::clearContractorsShouldBePinged()
+{
+    mContractorsShouldBePinged.clear();
+}
+
 const string TrustLinesManager::logHeader() const
     noexcept
 {
@@ -1142,25 +1300,38 @@ LoggerStream TrustLinesManager::info() const
     return mLogger.info(logHeader());
 }
 
-void TrustLinesManager::printRTs()
+LoggerStream TrustLinesManager::warning() const
+    noexcept
 {
-    LoggerStream debug = mLogger.debug("TrustLinesManager::printRts");
+    return mLogger.warning(logHeader());
+}
+
+void TrustLinesManager::printTLs()
+{
+    LoggerStream debug = mLogger.debug("TrustLinesManager::printTLs");
     auto ioTransaction = mStorageHandler->beginTransaction();
-    debug << "printRTs\tRT1 size: " << trustLines().size() << endl;
+    debug << "printTLs\t size: " << trustLines().size() << endl;
     for (const auto &itTrustLine : trustLines()) {
-        debug << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
-               << itTrustLine.second->incomingTrustAmount() << " "
-               << itTrustLine.second->outgoingTrustAmount() << " "
-               << itTrustLine.second->balance() << " "
-               << itTrustLine.second->isContractorGateway() << endl;
+        debug << itTrustLine.second->contractorID() << " "
+              << itTrustLine.second->state() << " "
+              << itTrustLine.second->incomingTrustAmount() << " "
+              << itTrustLine.second->outgoingTrustAmount() << " "
+              << itTrustLine.second->balance() << " "
+              << itTrustLine.second->isContractorGateway() << endl;
     }
+}
+
+void TrustLinesManager::printTLFlows()
+{
+    LoggerStream debug = mLogger.debug("TrustLinesManager::printTLFlows");
+    auto ioTransaction = mStorageHandler->beginTransaction();
     debug << "print payment incoming flows size: " << incomingFlows().size() << endl;
     for (auto const &itIncomingFlow : incomingFlows()) {
-        debug << itIncomingFlow.first << " " << *itIncomingFlow.second.get() << endl;
+        debug << itIncomingFlow.first->fullAddress() << " " << *itIncomingFlow.second.get() << endl;
     }
     debug << "print payment outgoing flows size: " << outgoingFlows().size() << endl;
     for (auto const &itOutgoingFlow : outgoingFlows()) {
-        debug << itOutgoingFlow.first << " " << *itOutgoingFlow.second.get() << endl;
+        debug << itOutgoingFlow.first->fullAddress() << " " << *itOutgoingFlow.second.get() << endl;
     }
     debug << "print cycle incoming flows size: " << incomingFlows().size() << endl;
     for (auto const &trLine : mTrustLines) {

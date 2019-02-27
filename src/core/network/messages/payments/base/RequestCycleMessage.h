@@ -10,7 +10,7 @@ class RequestCycleMessage : public TransactionMessage {
 public:
     RequestCycleMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount);
 
@@ -20,11 +20,9 @@ public:
     const TrustLineAmount& amount() const;
 
 protected:
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-    throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
-    const size_t kOffsetToInheritedBytes() const
-    noexcept;
+    const size_t kOffsetToInheritedBytes() const override;
 
 protected:
     TrustLineAmount mAmount;

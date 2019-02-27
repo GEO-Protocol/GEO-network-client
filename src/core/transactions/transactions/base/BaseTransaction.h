@@ -4,14 +4,10 @@
 #include "TransactionUUID.h"
 
 #include "../../../common/Types.h"
-#include "../../../common/NodeUUID.h"
 #include "../../../common/memory/MemoryUtils.h"
 
-#include "../../../network/messages/Message.hpp"
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
 #include "../result/TransactionResult.h"
-#include "../result/state/TransactionState.h"
-#include "../../../interface/results_interface/result/CommandResult.h"
 #include "../../../resources/resources/BaseResource.h"
 
 #include "../../../common/exceptions/RuntimeError.h"
@@ -35,13 +31,19 @@ public:
     typedef uint16_t SerializedTransactionType;
     typedef uint16_t SerializedStep;
 
-    typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
+    typedef signals::signal<void(Message::Shared, const ContractorID)> SendMessageSignal;
+    typedef signals::signal<void(Message::Shared, BaseAddress::Shared)> SendMessageToAddressSignal;
     typedef signals::signal<void(
             TransactionMessage::Shared,
-            const NodeUUID&,
-            Message::MessageType)> SendMessageWithCachingSignal;
+            ContractorID,
+            Message::MessageType,
+            uint32_t)> SendMessageWithCachingSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
     typedef signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
+    typedef signals::signal<void(ContractorID, const SerializedEquivalent, bool)> TrustLineActionSignal;
+    typedef signals::signal<void(ContractorID, const SerializedEquivalent)> PublicKeysSharingSignal;
+    typedef signals::signal<void(ContractorID, const SerializedEquivalent)> AuditSignal;
+    typedef signals::signal<void(ContractorID)> ProcessPongMessageSignal;
 
 public:
     virtual ~BaseTransaction() = default;
@@ -50,15 +52,14 @@ public:
         OpenTrustLineTransaction = 100,
         AcceptTrustLineTransaction = 101,
         SetOutgoingTrustLineTransaction = 102,
-        SetIncomingTrustLineTransaction = 103,
-        CloseIncomingTrustLineTransactionType = 104,
-        CloseOutgoingTrustLineTransactionType = 105,
-        PublicKeysSharingSourceTransactionType = 106,
-        PublicKeysSharingTargetTransactionType = 107,
-        AuditSourceTransactionType = 108,
-        AuditTargetTransactionType = 109,
-        ConflictResolverInitiatorTransactionType = 110,
-        ConflictResolverContractorTransactionType = 111,
+        CloseIncomingTrustLineTransactionType = 103,
+        PublicKeysSharingSourceTransactionType = 104,
+        PublicKeysSharingTargetTransactionType = 105,
+        AuditSourceTransactionType = 106,
+        AuditTargetTransactionType = 107,
+        ConflictResolverInitiatorTransactionType = 108,
+        ConflictResolverContractorTransactionType = 109,
+        CheckTrustLineAfterPaymentTransactionType = 110,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction = 200,
@@ -90,11 +91,12 @@ public:
         MaxFlowCalculationStepTwoTransactionType = 410,
         MaxFlowCalculationFullyTransactionType = 411,
 
-        // Contractors
+        // TrustLine list
         ContractorsList = 500,
         TrustLinesList = 501,
-        TrustLineOne = 502,
-        EquivalentsList = 503,
+        TrustLineOneByAddress = 502,
+        TrustLineOneByID = 503,
+        EquivalentsList = 504,
 
         // TotalBalances
         TotalBalancesTransactionType = 600,
@@ -123,16 +125,15 @@ public:
         GatewayNotificationReceiverType = 1201,
         RoutingTableUpdatingType = 1202,
 
-        //No equivalent
-        NoEquivalentType = 1300
+        // General
+        NoEquivalentType = 1300,
+        PongReactionType = 1301
     };
 
 public:
     virtual const TransactionType transactionType() const;
 
     const TransactionUUID &currentTransactionUUID () const;
-
-    const NodeUUID &currentNodeUUID () const;
 
     const SerializedEquivalent equivalent() const;
 
@@ -166,20 +167,17 @@ protected:
 
     BaseTransaction(
         const TransactionType type,
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         Logger &log);
 
     BaseTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID,
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
         Logger &log);
 
     BaseTransaction(
         BytesShared buffer,
-        const NodeUUID &nodeUUID,
         Logger &log);
 
     // TODO: convert to hpp?
@@ -192,8 +190,8 @@ protected:
     }
 
     template<typename ResourceType>
-    inline shared_ptr<ResourceType> popNextResource() {
-
+    inline shared_ptr<ResourceType> popNextResource()
+    {
         const auto resource = static_pointer_cast<ResourceType>(mResources.front());
         mResources.pop_front();
         return resource;
@@ -202,7 +200,7 @@ protected:
     // TODO: convert to hpp?
     template <typename MessageType, typename... Args>
     inline void sendMessage(
-        const NodeUUID &addressee,
+        const ContractorID addressee,
         Args&&... args) const
     {
         const auto message = make_shared<MessageType>(args...);
@@ -211,8 +209,19 @@ protected:
             addressee);
     }
 
+    template <typename MessageType, typename... Args>
     inline void sendMessage(
-        const NodeUUID &addressee,
+        BaseAddress::Shared addressee,
+        Args&&... args) const
+    {
+        const auto message = make_shared<MessageType>(args...);
+        outgoingMessageToAddressReadySignal(
+            message,
+            addressee);
+    }
+
+    inline void sendMessage(
+        const ContractorID addressee,
         const Message::Shared message) const
     {
         outgoingMessageIsReadySignal(
@@ -220,17 +229,28 @@ protected:
             addressee);
     }
 
+    inline void sendMessage(
+        BaseAddress::Shared addressee,
+        const Message::Shared message) const
+    {
+        outgoingMessageToAddressReadySignal(
+            message,
+            addressee);
+    }
+
     template <typename MessageType, typename... Args>
-    inline void sendMessageWithCaching(
-        const NodeUUID &addressee,
+    inline void sendMessageWithTemporaryCaching(
+        ContractorID addressee,
         Message::MessageType incomingMessageTypeFilter,
+        uint32_t cacheLivingSecondsTime,
         Args&&... args) const
     {
         const auto message = make_shared<MessageType>(args...);
         sendMessageWithCachingSignal(
             message,
             addressee,
-            incomingMessageTypeFilter);
+            incomingMessageTypeFilter,
+            cacheLivingSecondsTime);
     }
 
     void processConfirmationMessage(
@@ -240,8 +260,15 @@ protected:
             confirmationMessage);
     }
 
+    void processPongMessage(
+        ContractorID contractorID)
+    {
+        processPongMessageSignal(
+            contractorID);
+    }
+
     void launchSubsidiaryTransaction(
-      BaseTransaction::Shared transaction);
+        BaseTransaction::Shared transaction);
 
     void clearContext();
 
@@ -256,6 +283,11 @@ protected:
 
     TransactionResult::Shared resultWaitForResourceTypes(
         vector<BaseResource::ResourceType> &&requiredResourcesType,
+        uint32_t noLongerThanMilliseconds) const;
+
+    TransactionResult::Shared resultWaitForResourceAndMessagesTypes(
+        vector<BaseResource::ResourceType> &&requiredResourcesType,
+        vector<Message::MessageType> &&requiredMessagesTypes,
         uint32_t noLongerThanMilliseconds) const;
 
     TransactionResult::Shared resultAwakeAfterMilliseconds(
@@ -277,6 +309,10 @@ protected:
         vector<Message::MessageType> &&requiredMessagesTypes,
         uint32_t noLongerThanMilliseconds) const;
 
+    TransactionResult::Shared transactionResultFromCommandAndAwakeAfterMilliseconds(
+        CommandResult::SharedConst result,
+        uint32_t responseWaitTime) const;
+
     virtual const string logHeader() const = 0;
     LoggerStream info() const;
     LoggerStream warning() const;
@@ -285,23 +321,22 @@ protected:
 
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
+    mutable SendMessageToAddressSignal outgoingMessageToAddressReadySignal;
     mutable SendMessageWithCachingSignal sendMessageWithCachingSignal;
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
     mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;
-
-protected:
-    static const uint16_t mkStandardConnectionTimeout = 1500; //miliseconds
-    static const uint16_t mkWaitingForResponseTime = 3000;
+    mutable ProcessPongMessageSignal processPongMessageSignal;
+    mutable TrustLineActionSignal trustLineActionSignal;
+    mutable PublicKeysSharingSignal publicKeysSharingSignal;
+    mutable AuditSignal auditSignal;
 
 protected:
     TransactionType mType;
     TransactionUUID mTransactionUUID;
-    NodeUUID mNodeUUID;
     SerializedEquivalent mEquivalent;
     deque<Message::Shared> mContext;
     deque<BaseResource::Shared> mResources;
-    SerializedStep mStep = 1;
-    uint8_t mVotesRecoveryStep = 0;
+    SerializedStep mStep;
     DateTime mTimeStarted;
 
     Logger &mLog;

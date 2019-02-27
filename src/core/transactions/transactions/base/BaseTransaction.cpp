@@ -6,7 +6,8 @@ BaseTransaction::BaseTransaction(
     Logger &log) :
 
     mType(type),
-    mLog(log)
+    mLog(log),
+    mTimeStarted(utc_now())
 {
     mStep = 1;
 }
@@ -18,17 +19,16 @@ BaseTransaction::BaseTransaction(
 
     mType(type),
     mLog(log),
-    mTransactionUUID(transactionUUID)
+    mTransactionUUID(transactionUUID),
+    mTimeStarted(utc_now())
 {
     mStep = 1;
 }
 
 BaseTransaction::BaseTransaction(
     BytesShared buffer,
-    const NodeUUID &nodeUUID,
     Logger &log) :
-    mLog(log),
-    mNodeUUID(nodeUUID)
+    mLog(log)
 {
     size_t bytesBufferOffset = 0;
 
@@ -54,13 +54,11 @@ BaseTransaction::BaseTransaction(
 
 BaseTransaction::BaseTransaction(
     const TransactionType type,
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     Logger &log) :
 
     mType(type),
     mLog(log),
-    mNodeUUID(nodeUUID),
     mEquivalent(equivalent)
 {
     mStep = 1;
@@ -69,14 +67,12 @@ BaseTransaction::BaseTransaction(
 BaseTransaction::BaseTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID,
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
     Logger &log) :
 
     mType(type),
     mLog(log),
     mTransactionUUID(transactionUUID),
-    mNodeUUID(nodeUUID),
     mEquivalent(equivalent)
 {
     mStep = 1;
@@ -119,6 +115,18 @@ TransactionResult::Shared BaseTransaction::resultWaitForResourceTypes(
     return make_shared<TransactionResult>(
         TransactionState::waitForResourcesTypes(
             move(requiredResourcesType),
+            noLongerThanMilliseconds));
+}
+
+TransactionResult::Shared BaseTransaction::resultWaitForResourceAndMessagesTypes(
+    vector<BaseResource::ResourceType> &&requiredResourcesType,
+    vector<Message::MessageType> &&requiredMessagesTypes,
+    uint32_t noLongerThanMilliseconds) const
+{
+    return make_shared<TransactionResult>(
+        TransactionState::waitForResourcesAndMessagesTypes(
+            move(requiredResourcesType),
+            move(requiredMessagesTypes),
             noLongerThanMilliseconds));
 }
 
@@ -170,6 +178,17 @@ TransactionResult::Shared BaseTransaction::transactionResultFromCommandAndWaitFo
         result);
 }
 
+TransactionResult::Shared BaseTransaction::transactionResultFromCommandAndAwakeAfterMilliseconds(
+    CommandResult::SharedConst result,
+    uint32_t responseWaitTime) const
+{
+    return make_shared<TransactionResult>(
+        TransactionState::awakeAfterMilliseconds(
+            responseWaitTime),
+        result);
+
+}
+
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const
 {
     return mType;
@@ -178,11 +197,6 @@ const BaseTransaction::TransactionType BaseTransaction::transactionType() const
 const TransactionUUID &BaseTransaction::currentTransactionUUID () const
 {
     return mTransactionUUID;
-}
-
-const NodeUUID &BaseTransaction::currentNodeUUID () const
-{
-    return mNodeUUID;
 }
 
 const SerializedEquivalent BaseTransaction::equivalent() const

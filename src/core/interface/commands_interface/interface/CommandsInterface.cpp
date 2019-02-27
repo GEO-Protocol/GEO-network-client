@@ -137,13 +137,23 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 {
     BaseUserCommand *command = nullptr;
     try {
-        if (identifier == SetOutgoingTrustLineCommand::identifier()) {
+        if (identifier == InitTrustLineCommand::identifier()) {
+            command = new InitTrustLineCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == SetOutgoingTrustLineCommand::identifier()) {
             command = new SetOutgoingTrustLineCommand(
                 uuid,
                 buffer);
 
         } else if (identifier == CloseIncomingTrustLineCommand::identifier()) {
             command = new CloseIncomingTrustLineCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == ShareKeysCommand::identifier()) {
+            command = new ShareKeysCommand(
                 uuid,
                 buffer);
 
@@ -197,8 +207,13 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
-        } else if (identifier == GetTrustLineCommand::identifier()) {
-            command = new GetTrustLineCommand(
+        } else if (identifier == GetTrustLineByAddressCommand::identifier()) {
+            command = new GetTrustLineByAddressCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == GetTrustLineByIDCommand::identifier()) {
+            command = new GetTrustLineByIDCommand(
                 uuid,
                 buffer);
 
@@ -214,27 +229,6 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
         } else if (identifier == TrustLinesInfluenceCommand::identifier()) {
             return newCommand<TrustLinesInfluenceCommand>(
-                uuid,
-                buffer);
-
-            // Black list command
-        } else if (identifier == AddNodeToBlackListCommand::identifier()) {
-            return newCommand<AddNodeToBlackListCommand>(
-                uuid,
-                buffer);
-
-        } else if (identifier == RemoveNodeFromBlackListCommand::identifier()) {
-            return newCommand<RemoveNodeFromBlackListCommand>(
-                uuid,
-                buffer);
-
-        } else if (identifier == CheckIfNodeInBlackListCommand::identifier()) {
-            return newCommand<CheckIfNodeInBlackListCommand>(
-                uuid,
-                buffer);
-
-        } else if (identifier == GetBlackListCommand::identifier()) {
-            return newCommand<GetBlackListCommand>(
                 uuid,
                 buffer);
 

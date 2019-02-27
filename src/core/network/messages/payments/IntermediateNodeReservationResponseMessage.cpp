@@ -2,7 +2,7 @@
 
 IntermediateNodeReservationResponseMessage::IntermediateNodeReservationResponseMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const PathID& pathID,
     const ResponseMessage::OperationState state,
@@ -10,7 +10,7 @@ IntermediateNodeReservationResponseMessage::IntermediateNodeReservationResponseM
 
     ResponseMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID,
         pathID,
         state),
@@ -39,7 +39,6 @@ const TrustLineAmount& IntermediateNodeReservationResponseMessage::amountReserve
 }
 
 pair<BytesShared, size_t> IntermediateNodeReservationResponseMessage::serializeToBytes() const
-throw(bad_alloc)
 {
     auto parentBytesAndCount = ResponseMessage::serializeToBytes();
     auto serializedAmount = trustLineAmountToBytes(mAmountReserved);

@@ -2,7 +2,7 @@
 
 ConflictResolverMessage::ConflictResolverMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
+    ContractorID idOnReceiverSide,
     const TransactionUUID &transactionUUID,
     AuditRecord::Shared auditRecord,
     vector<ReceiptRecord::Shared> &incomingReceipts,
@@ -10,7 +10,7 @@ ConflictResolverMessage::ConflictResolverMessage(
 
     TransactionMessage(
         equivalent,
-        senderUUID,
+        idOnReceiverSide,
         transactionUUID),
     mAuditRecord(auditRecord),
     mIncomingReceipts(incomingReceipts),
@@ -84,7 +84,6 @@ const bool ConflictResolverMessage::isCheckCachedResponse() const
 }
 
 pair<BytesShared, size_t> ConflictResolverMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     auto kBufferSize = parentBytesAndCount.second

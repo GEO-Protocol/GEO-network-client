@@ -12,7 +12,7 @@ ConfirmationNotStronglyRequiredMessagesHandler::ConfirmationNotStronglyRequiredM
 {}
 
 void ConfirmationNotStronglyRequiredMessagesHandler::tryEnqueueMessage(
-    const NodeUUID &contractorUUID,
+    BaseAddress::Shared contractorAddress,
     const Message::Shared message)
 {
     // Only messages on which method isAddToConfirmationNotStronglyRequiredMessagesHandler returns true
@@ -22,11 +22,11 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryEnqueueMessage(
     const auto equivalent = message->equivalent();
     const auto queueKey = make_pair(
         equivalent,
-        contractorUUID);
+        contractorAddress->fullAddress());
     if (mQueues.count(queueKey) == 0) {
         auto newQueue = make_shared<ConfirmationNotStronglyRequiredMessagesQueue>(
             equivalent,
-            contractorUUID);
+            contractorAddress);
         mQueues[queueKey] = newQueue;
     }
 
@@ -56,7 +56,7 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryProcessConfirmation(
 {
     const auto queueKey = make_pair(
         confirmationMessage->equivalent(),
-        confirmationMessage->senderUUID);
+        confirmationMessage->senderAddresses.at(0)->fullAddress());
     if (mQueues.count(queueKey) == 0) {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         warning() << "tryProcessConfirmation: no queue is present for contractor "
@@ -93,8 +93,8 @@ const DateTime ConfirmationNotStronglyRequiredMessagesHandler::closestQueueSendi
     }
 
     DateTime nextClearingDateTime = mQueues.begin()->second->nextSendingAttemptDateTime();
-    for (const auto &contractorUUIDAndQueue : mQueues) {
-        const auto kQueueNextAttemptPlanned = contractorUUIDAndQueue.second->nextSendingAttemptDateTime();
+    for (const auto &contractorAddressAndQueue : mQueues) {
+        const auto kQueueNextAttemptPlanned = contractorAddressAndQueue.second->nextSendingAttemptDateTime();
         if (kQueueNextAttemptPlanned < nextClearingDateTime) {
             nextClearingDateTime = kQueueNextAttemptPlanned;
         }
@@ -139,16 +139,15 @@ void ConfirmationNotStronglyRequiredMessagesHandler::sendPostponedMessages()
 {
     const auto now = utc_now();
 
-    for (const auto &contractorUUIDAndQueue : mQueues) {
-        auto kEquivalent = contractorUUIDAndQueue.first.first;
-        auto kContractor = contractorUUIDAndQueue.first.second;
-        const auto kQueue = contractorUUIDAndQueue.second;
+    for (const auto &contractorAddressAndQueue : mQueues) {
+        auto kEquivalent = contractorAddressAndQueue.first.first;
+        const auto kQueue = contractorAddressAndQueue.second;
 
         if (!kQueue->checkIfNeedResendMessages()) {
             signalClearTopologyCache(
                 kEquivalent,
-                kContractor);
-            mQueues.erase(contractorUUIDAndQueue.first);
+                kQueue->contractorAddress());
+            mQueues.erase(contractorAddressAndQueue.first);
             continue;
         }
 
@@ -159,9 +158,8 @@ void ConfirmationNotStronglyRequiredMessagesHandler::sendPostponedMessages()
 
         for (const auto &confirmationIDAndMessage : kQueue->messages()) {
             signalOutgoingMessageReady(
-                make_pair(
-                    kContractor,
-                    confirmationIDAndMessage.second));
+                kQueue->contractorAddress(),
+                confirmationIDAndMessage.second);
         }
     }
 }

@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
 
-#add_subdirectory(manager)
-#add_subdirectory(scheduler)
 add_subdirectory(transactions/trust_lines)
 add_subdirectory(transactions/regular/payments)
 
@@ -13,10 +11,9 @@ add_subdirectory(transactions/total_balances)
 add_subdirectory(transactions/history)
 add_subdirectory(transactions/find_path)
 add_subdirectory(transactions/trustlines_list)
-add_subdirectory(transactions/blacklist)
 add_subdirectory(transactions/transaction)
 add_subdirectory(transactions/gateway_notification)
-add_subdirectory(transactions/no_equivalent)
+add_subdirectory(transactions/general)
 
 set(SOURCE_FILES
         manager/TransactionsManager.h
@@ -38,10 +35,9 @@ target_link_libraries(transactions
         transactions__history
         transactions__trustlines_list
         transactions__find_path
-        transactions__black_list
         transactions__transaction
         transactions__gateway_notification
-        transactions__no_equivalent
+        transactions__general
 
         common
         exceptions

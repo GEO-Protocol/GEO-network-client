@@ -16,7 +16,25 @@ public:
 public:
     TransactionMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID)
+        noexcept;
+
+    TransactionMessage(
+        const SerializedEquivalent equivalent,
+        ContractorID idOnReceiverSide,
+        vector<BaseAddress::Shared> &senderAddresses,
+        const TransactionUUID &transactionUUID)
+        noexcept;
+
+    TransactionMessage(
+        const SerializedEquivalent equivalent,
+        vector<BaseAddress::Shared> &senderAddresses,
+        const TransactionUUID &transactionUUID)
+        noexcept;
+
+    TransactionMessage(
+        const SerializedEquivalent equivalent,
+        ContractorID idOnReceiverSide,
         const TransactionUUID &transactionUUID)
         noexcept;
 
@@ -24,14 +42,13 @@ public:
         BytesShared buffer)
         noexcept;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
     const TransactionUUID &transactionUUID() const
         noexcept;
 
 protected:
-    const size_t kOffsetToInheritedBytes() const
-        noexcept;
+    const size_t kOffsetToInheritedBytes() const override;
 
     const bool isTransactionMessage() const
         noexcept;

@@ -15,16 +15,17 @@ public:
 
 public:
     FindPathByMaxFlowTransaction(
-        NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
+        BaseAddress::Shared contractorAddress,
         const TransactionUUID &requestedTransactionUUID,
         const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
         PathsManager *pathsManager,
         ResourcesManager *resourcesManager,
         TrustLinesManager *manager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        bool iAmGateway,
         Logger &logger);
 
 protected:
@@ -48,11 +49,13 @@ private:
             kTopologyCollectingAgainMillisecondsTimeout;
 
 private:
-    NodeUUID mContractorUUID;
+    ContractorID mContractorID;
+    BaseAddress::Shared mContractorAddress;
     TransactionUUID mRequestedTransactionUUID;
     PathsManager *mPathsManager;
     ResourcesManager *mResourcesManager;
     size_t mCountProcessCollectingTopologyRun;
+    bool mIamGateway;
 };
 
 

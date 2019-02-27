@@ -8,157 +8,134 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         uuid,
         identifier())
 {
-    const auto minCommandLength = 17;
-    if (commandBuffer.size() < minCommandLength) {
-        throw ValueError(
-                "HistoryPaymentsCommand: can't parse command. "
-                    "Received command is to short.");
-    }
-    size_t tokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator);
-    string historyFromStr = commandBuffer.substr(
-        0,
-        tokenSeparatorPos);
-    try {
-        mHistoryFrom = std::stoul(historyFromStr);
-    } catch (...) {
-        throw ValueError(
-                "HistoryPaymentsCommand: can't parse command. "
-                    "Error occurred while parsing  'from' token.");
-    }
-
-    size_t nextTokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator,
-        tokenSeparatorPos + 1);
-    string historyCountStr = commandBuffer.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    try {
-        mHistoryCount = std::stoul(historyCountStr);
-    } catch (...) {
-        throw ValueError(
-                "HistoryPaymentsCommand: can't parse command. "
-                    "Error occurred while parsing 'count' token.");
-    }
-
-    tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator,
-        tokenSeparatorPos + 1);
-    string timeFromStr = commandBuffer.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    if (timeFromStr == kNullParameter) {
+    uint32_t flag_low = 0, flag_high = 0, flag_4 = 0, flag_8 =0 , flag_12 = 0;
+    std::string lowBoundaryAmount, highBoundaryAmount, paymentRecordCommandUUID;
+    auto check = [&](auto &ctx) {
+        if(_attr(ctx) == kCommandsSeparator) {
+            throw ValueError("HistoryPaymentsCommand: there is no input ");
+        }
+    };
+    auto historyfrom_add = [&](auto &ctx) {
+        mHistoryFrom = _attr(ctx);
+    };
+    auto historycount_add = [&](auto &ctx) {
+        mHistoryCount = _attr(ctx);
+    };
+    auto timefrompresent_null = [&](auto &ctx) {
         mIsTimeFromPresent = false;
-    } else {
+    };
+    auto timefrompresent_number = [&](auto &ctx) {
         mIsTimeFromPresent = true;
-        try {
-            int64_t timeFrom = std::stoul(timeFromStr);
-            mTimeFrom = pt::time_from_string("1970-01-01 00:00:00.000");
-            mTimeFrom += pt::microseconds(timeFrom);
-        } catch (...) {
-            throw ValueError(
-                    "HistoryPaymentsCommand: can't parse command. "
-                        "Error occurred while parsing 'timeFrom' token.");
-        }
-    }
-
-    tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator,
-        tokenSeparatorPos + 1);
-    string timeToStr = commandBuffer.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    if (timeToStr == kNullParameter) {
+        mTimeFrom = pt::time_from_string("1970-01-01 00:00:00.000");
+        mTimeFrom += pt::microseconds(_attr(ctx));
+    };
+    auto timetopresent_null = [&](auto &ctx) {
         mIsTimeToPresent = false;
-    } else {
+    };
+    auto timetopresent_number = [&](auto &ctx) {
         mIsTimeToPresent = true;
-        try {
-            int64_t timeTo = std::stoul(timeToStr);
-            mTimeTo = pt::time_from_string("1970-01-01 00:00:00.000");
-            mTimeTo += pt::microseconds(timeTo);
-        } catch (...) {
-            throw ValueError(
-                    "HistoryPaymentsCommand: can't parse command. "
-                        "Error occurred while parsing 'timeTo' token.");
+        mTimeTo = pt::time_from_string("1970-01-01 00:00:00.000");
+        mTimeTo += pt::microseconds(_attr(ctx));
+    };
+    auto lowboundary_null = [&](auto &ctx) {
+        mIsLowBoundaryAmountPresent = false;
+    };
+    auto lowboundary_number = [&](auto &ctx) {
+        lowBoundaryAmount += _attr(ctx);
+        mIsLowBoundaryAmountPresent = true;
+        flag_low++;
+        if(flag_low>39) {
+            throw ValueError("Amount is too big");
+        } else if (flag_low == 1 && _attr(ctx) <= 0) {
+            throw ValueError("Amount can't be zero or low");
         }
-    }
-
-    tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator,
-        tokenSeparatorPos + 1);
-    string lowBoundaryAmountStr = commandBuffer.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    if (lowBoundaryAmountStr == kNullParameter) {
-        mIsLowBoundartAmountPresent = false;
-    } else {
-        mIsLowBoundartAmountPresent = true;
-        try {
-            mLowBoundaryAmount = TrustLineAmount(
-                    lowBoundaryAmountStr);
-        } catch (...) {
-            throw ValueError(
-                    "HistoryPaymentsCommand: can't parse command. "
-                        "Error occurred while parsing 'lowBoundaryAmount' token.");
-        }
-    }
-
-    tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator,
-        tokenSeparatorPos + 1);
-    string highBoundaryAmountStr = commandBuffer.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    if (highBoundaryAmountStr == kNullParameter) {
+    };
+    auto highboundary_null = [&](auto &ctx) {
         mIsHighBoundaryAmountPresent = false;
-    } else {
+    };
+    auto highboundary_number = [&](auto &ctx) {
+        highBoundaryAmount += _attr(ctx);
         mIsHighBoundaryAmountPresent = true;
-        try {
-            mHighBoundaryAmount = TrustLineAmount(
-                highBoundaryAmountStr);
-        } catch (...) {
-            throw ValueError(
-                    "HistoryPaymentsCommand: can't parse command. "
-                        "Error occurred while parsing 'mHighBoundaryAmount' token.");
+        flag_high++;
+        if(flag_high>39) {
+            throw ValueError("Amount is too big");
+        } else if (flag_high == 1 && _attr(ctx) <= 0) {
+            throw ValueError("Amount can't be zero or low");
         }
-    }
-
-    tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = commandBuffer.find(
-        kTokensSeparator,
-        tokenSeparatorPos + 1);
-    string paymentRecordCommandUUIDStr = commandBuffer.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
-    if (paymentRecordCommandUUIDStr == kNullParameter) {
+    };
+    auto paymentRecordUUID_null = [&](auto &ctx){
         mIsPaymentRecordCommandUUIDPresent = false;
-    } else {
+    };
+    auto add_8 = [&](auto &ctx) {
+        flag_8++;
+        if(flag_8 >9) {
+            throw 1;
+        } else if(_attr(ctx) == '-' && flag_8 < 9) {
+            throw ValueError("Expect 8 digits");
+        }
         mIsPaymentRecordCommandUUIDPresent = true;
-        try {
-            mPaymentRecordCommandUUID = boost::lexical_cast<uuids::uuid>(paymentRecordCommandUUIDStr);
-        } catch (...) {
-            throw ValueError(
-                    "HistoryPaymentsCommand: can't parse command. "
-                        "Error occurred while parsing 'mPaymentRecordCommandUUID' token.");
+        paymentRecordCommandUUID += _attr(ctx);
+    };
+    auto add_4 = [&](auto &ctx) {
+        flag_4++;
+        if(flag_4 >5 || (_attr(ctx) == '-' && flag_4 < 5)) {
+            throw ValueError("Expect 4 digits");
+        } else if(_attr(ctx) == '-') {
+            flag_4 = 0;
         }
-    }
+        paymentRecordCommandUUID += _attr(ctx);
+    };
+    auto add_12 = [&](auto &ctx) {
+        flag_12++;
+        if(flag_12 >13 || (_attr(ctx) == kTokensSeparator && flag_12 < 13)) {
+            throw ValueError("Expect 12 digits");
+        } else if(_attr(ctx) == kTokensSeparator) {
+        } else { paymentRecordCommandUUID += _attr(ctx);
+        }
+    };
+    auto equivalentID_add = [&](auto &ctx) {
+        mEquivalent = _attr(ctx);
+    };
 
-    tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = commandBuffer.size() - 1;
-    string equivalentStr = commandBuffer.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
     try {
-        mEquivalent = (uint32_t)std::stoul(equivalentStr);
-    } catch (...) {
-        throw ValueError(
-                "HistoryPaymentsCommand: can't parse command. "
-                    "Error occurred while parsing 'equivalent' token.");
-        }
+        parse(
+            commandBuffer.begin(),
+            commandBuffer.end(),
+            char_[check]);
+        parse(
+            commandBuffer.begin(),
+            commandBuffer.end(), (
+                *(int_[historyfrom_add])
+                > char_(kTokensSeparator)
+                > *(int_[historycount_add])
+                > char_(kTokensSeparator)
+                > -(+(char_("null")[timefrompresent_null]))
+                > -(int_[timefrompresent_number])
+                > char_(kTokensSeparator)
+                > -(+(char_("null")[timetopresent_null]))
+                > -(int_[timetopresent_number])
+                > char_(kTokensSeparator)
+                > -(+(char_("null")[lowboundary_null]))
+                > -(*(digit [lowboundary_number] > !alpha > !punct))
+                > char_(kTokensSeparator)
+                > -(+(char_("null")[highboundary_null]))
+                > -(*(digit [highboundary_number] > !alpha > !punct))
+                > char_(kTokensSeparator)
+                    > -(+(char_("null")[paymentRecordUUID_null] >char_('\t')))
+                    > -( *(char_[add_8] - char_('-')) > char_('-') [add_8]
+                        >*(char_[add_4] - char_('-')) > char_('-') [add_4]
+                        >*(char_[add_4] - char_('-')) > char_('-') [add_4]
+                        >*(char_[add_4] - char_('-')) > char_('-') [add_4]
+                        >*(char_[add_12] - char_('\t')) > char_('\t') [add_12])
+                > int_[equivalentID_add]
+                > eol));
+
+        mLowBoundaryAmount = TrustLineAmount(lowBoundaryAmount);
+        mHighBoundaryAmount = TrustLineAmount(highBoundaryAmount);
+        mPaymentRecordCommandUUID = boost::lexical_cast<uuids::uuid>(paymentRecordCommandUUID);
+    } catch(...) {
+        throw ValueError("HistoryPaymentsCommand : can't parse command");
+    }
 }
 
 const string &HistoryPaymentsCommand::identifier()
@@ -209,7 +186,7 @@ const TrustLineAmount& HistoryPaymentsCommand::highBoundaryAmount() const
 
 const bool HistoryPaymentsCommand::isLowBoundaryAmountPresent() const
 {
-    return mIsLowBoundartAmountPresent;
+    return mIsLowBoundaryAmountPresent;
 }
 
 const bool HistoryPaymentsCommand::isHighBoundaryAmountPresent() const

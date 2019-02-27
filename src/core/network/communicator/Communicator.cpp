@@ -3,30 +3,18 @@
 
 Communicator::Communicator(
     IOService &IOService,
-    const Host &interface,
-    const Port port,
-    const Host &UUID2AddressHost,
-    const Port UUID2AddressPort,
-    const NodeUUID &nodeUUID,
+    ContractorsManager *contractorsManager,
     Logger &logger):
 
-    mInterface(interface),
-    mPort(port),
     mIOService(IOService),
-    mNodeUUID(nodeUUID),
+    mContractorsManager(contractorsManager),
     mLog(logger),
     mSocket(
         make_unique<UDPSocket>(
             IOService,
             udp::endpoint(
                 udp::v4(),
-                port))),
-
-    mUUID2AddressService(
-        make_unique<UUID2Address>(
-            IOService,
-            UUID2AddressHost,
-            UUID2AddressPort)),
+                contractorsManager->selfContractor()->mainAddress()->port()))),
 
     mIncomingMessagesHandler(
         make_unique<IncomingMessagesHandler>(
@@ -38,7 +26,7 @@ Communicator::Communicator(
         make_unique<OutgoingMessagesHandler>(
             IOService,
             *mSocket,
-            *mUUID2AddressService,
+            mContractorsManager,
             logger)),
 
     mCommunicatorStorageHandler(
@@ -61,6 +49,13 @@ Communicator::Communicator(
 
     mConfirmationResponseMessagesHandler(
         make_unique<ConfirmationResponseMessagesHandler>(
+            IOService,
+            logger)),
+
+    mPingMessagesHandler(
+        make_unique<PingMessagesHandler>(
+            mContractorsManager,
+            IOService,
             logger))
 {
     // Direct signals chaining.
@@ -80,7 +75,8 @@ Communicator::Communicator(
         boost::bind(
             &Communicator::onConfirmationNotStronglyRequiredMessageReadyToResend,
             this,
-            _1));
+            _1,
+            _2));
 
     mConfirmationNotStronglyRequiredMessagesHandler->signalClearTopologyCache.connect(
         boost::bind(
@@ -88,32 +84,12 @@ Communicator::Communicator(
             this,
             _1,
             _2));
-}
 
-/**
- * Registers current node into the UUID2Address service.
- *
- * @returns "true" in case of success, otherwise - returns "false".
- */
-bool Communicator::joinUUID2Address(
-    const NodeUUID &nodeUUID)
-    noexcept
-{
-    try {
-        mUUID2AddressService->registerInGlobalCache(
-            nodeUUID,
-            mInterface,
-            mPort);
-
-        return true;
-
-    } catch (std::exception &e) {
-        error() << "joinUUID2Address: "
-            << "Can't register in global nodes addresses space. "
-            << "Internal error details: " << e.what();
-    }
-
-    return false;
+    mPingMessagesHandler->signalOutgoingMessageReady.connect(
+        boost::bind(
+            &Communicator::onPingMessageReadyToResend,
+            this,
+            _1));
 }
 
 void Communicator::beginAcceptMessages()
@@ -132,45 +108,62 @@ void Communicator::beginAcceptMessages()
  *
  *
  * @param message - message that must be sent to the remote node.
- * @param contractorUUID - uuid of the remote node which should receive the message.
+ * @param contractorID - id of the remote node which should receive the message.
  */
 void Communicator::sendMessage (
     const Message::Shared message,
-    const NodeUUID &contractorUUID)
+    const ContractorID contractorID)
     noexcept
 {
     // Filter outgoing messages for confirmation-required messages.
-    if (message->isAddToConfirmationNotStronglyRequiredMessagesHandler()) {
-        mConfirmationNotStronglyRequiredMessagesHandler->tryEnqueueMessage(
-            contractorUUID,
+    if (message->isAddToConfirmationRequiredMessagesHandler()) {
+        mConfirmationRequiredMessagesHandler->tryEnqueueMessage(
+            contractorID,
             message);
     }
 
-    else if (message->isAddToConfirmationRequiredMessagesHandler()) {
-        mConfirmationRequiredMessagesHandler->tryEnqueueMessage(
-            contractorUUID,
+    if (message->typeID() == Message::General_Ping) {
+        mPingMessagesHandler->tryEnqueueContractor(
+            contractorID);
+    }
+
+    mOutgoingMessagesHandler->sendMessage(
+        message,
+        contractorID);
+}
+
+void Communicator::sendMessage (
+    const Message::Shared message,
+    const BaseAddress::Shared contractorAddress)
+    noexcept
+{
+    if (message->isAddToConfirmationNotStronglyRequiredMessagesHandler()) {
+        mConfirmationNotStronglyRequiredMessagesHandler->tryEnqueueMessage(
+            contractorAddress,
             message);
     }
 
     mOutgoingMessagesHandler->sendMessage(
         message,
-        contractorUUID);
+        contractorAddress);
 }
 
 void Communicator::sendMessageWithCacheSaving(
     const TransactionMessage::Shared message,
-    const NodeUUID &contractorUUID,
-    Message::MessageType incomingMessageTypeFilter)
+    ContractorID contractorID,
+    Message::MessageType incomingMessageTypeFilter,
+    uint32_t cacheLivingTime)
     noexcept
 {
     mConfirmationResponseMessagesHandler->addCachedMessage(
-        contractorUUID,
+        contractorID,
         message,
-        incomingMessageTypeFilter);
+        incomingMessageTypeFilter,
+        cacheLivingTime);
 
     mOutgoingMessagesHandler->sendMessage(
         message,
-        contractorUUID);
+        contractorID);
 }
 
 void Communicator::processConfirmationMessage(
@@ -180,9 +173,26 @@ void Communicator::processConfirmationMessage(
         confirmationMessage);
 }
 
+void Communicator::processPongMessage(
+    ContractorID contractorID)
+{
+    mPingMessagesHandler->tryProcessPongMessage(
+        contractorID);
+}
+
+void Communicator::enqueueContractorWithPostponedSending(
+    ContractorID contractorID)
+{
+    mPingMessagesHandler->enqueueContractorWithPostponedSending(
+        contractorID);
+}
+
 void Communicator::onMessageReceived(
     Message::Shared message)
 {
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+    debug() << "onMessageReceived " << message->typeID();
+#endif
     // these messages contain parts of topology and after theirs receiving we should send confirmation
     if (message->typeID() == Message::MaxFlow_ResultMaxFlowCalculation ||
             message->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
@@ -191,9 +201,9 @@ void Communicator::onMessageReceived(
         sendMessage(
             make_shared<MaxFlowCalculationConfirmationMessage>(
                 kResultMaxFlowCalculationMessage->equivalent(),
-                mNodeUUID,
+                mContractorsManager->ownAddresses(),
                 kResultMaxFlowCalculationMessage->confirmationID()),
-            kResultMaxFlowCalculationMessage->senderUUID);
+            kResultMaxFlowCalculationMessage->senderAddresses.at(0));
     }
 
     // In case if received message is of type "max flow confirmation message" -
@@ -213,14 +223,33 @@ void Communicator::onMessageReceived(
     else if (message->isDestinationMessage()) {
         const auto kDestinationMessage =
             static_pointer_cast<DestinationMessage>(message);
-        if (kDestinationMessage->destinationUUID() != mNodeUUID) {
-            error() << "onMessageReceived: "
-                    << "Invalid destinationUUID. "
+        if (kDestinationMessage->destinationID() !=
+                mContractorsManager->idOnContractorSide(kDestinationMessage->idOnReceiverSide)) {
+            error() << "onMessageReceived: Invalid destinationID. "
                     << "Message type: " << kDestinationMessage->typeID()
-                    << ", destination UUID: " << kDestinationMessage->destinationUUID()
-                    << ", sender UUID: " << kDestinationMessage->senderUUID;
+                    << ", destination ID: " << kDestinationMessage->destinationID()
+                    << ", idOnReceiverSide: " << kDestinationMessage->idOnReceiverSide
+                    << ", idOnContractorSide: " << mContractorsManager->idOnContractorSide(kDestinationMessage->idOnReceiverSide);
             return;
         }
+    }
+
+    if (message->typeID() == Message::General_Ping) {
+        const auto pingMessage =
+            static_pointer_cast<PingMessage>(message);
+        if (pingMessage->senderAddresses.empty()) {
+            error() << "Ping message from " << pingMessage->senderIncomingIP()
+                      << " doesn't contain sender addresses and will be ignored";
+            return;
+        }
+        sendMessage(
+            make_shared<PongMessage>(
+                0,
+                // PingMessage contains our id on contractor side instead of his id on our side
+                // and we should include it to PongMessage
+                pingMessage->idOnReceiverSide),
+            pingMessage->senderAddresses.at(0));
+        return;
     }
 
     if (message->isCheckCachedResponse()) {
@@ -229,7 +258,7 @@ void Communicator::onMessageReceived(
         if (cachedResponse != nullptr) {
             sendMessage(
                 cachedResponse,
-                incomingTransactionMessage->senderUUID);
+                incomingTransactionMessage->idOnReceiverSide);
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
             debug() << "send cached response";
 #endif
@@ -257,30 +286,37 @@ void Communicator::onMessageReceived(
 }
 
 void Communicator::onConfirmationRequiredMessageReadyToResend(
-    pair<NodeUUID, TransactionMessage::Shared> addresseeAndMessage)
+    pair<ContractorID, TransactionMessage::Shared> addresseeAndMessage)
 {
     mOutgoingMessagesHandler->sendMessage(
-        static_pointer_cast<Message>(
-            addresseeAndMessage.second),
+        addresseeAndMessage.second,
         addresseeAndMessage.first);
 }
 
 void Communicator::onConfirmationNotStronglyRequiredMessageReadyToResend(
-    pair<NodeUUID, MaxFlowCalculationConfirmationMessage::Shared> addresseeAndMessage)
+    BaseAddress::Shared contractorAddress,
+    MaxFlowCalculationConfirmationMessage::Shared message)
 {
     mOutgoingMessagesHandler->sendMessage(
-        static_pointer_cast<Message>(
-            addresseeAndMessage.second),
+        message,
+        contractorAddress);
+}
+
+void Communicator::onPingMessageReadyToResend(
+    pair<ContractorID, PingMessage::Shared> addresseeAndMessage)
+{
+    mOutgoingMessagesHandler->sendMessage(
+        addresseeAndMessage.second,
         addresseeAndMessage.first);
 }
 
 void Communicator::onClearTopologyCache(
     const SerializedEquivalent equivalent,
-    const NodeUUID &nodeUUID)
+    BaseAddress::Shared nodeAddress)
 {
     signalClearTopologyCache(
         equivalent,
-        nodeUUID);
+        nodeAddress);
 }
 
 string Communicator::logHeader()

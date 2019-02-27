@@ -18,7 +18,7 @@ public:
 public:
     TTLProlongationResponseMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const OperationState state);
 
@@ -32,8 +32,7 @@ public:
 protected:
     typedef byte SerializedOperationState;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-    throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
     OperationState mState;

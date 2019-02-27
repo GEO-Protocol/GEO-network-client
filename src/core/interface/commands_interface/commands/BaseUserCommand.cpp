@@ -14,7 +14,6 @@ BaseUserCommand::BaseUserCommand(
     mCommandIdentifier(identifier)
 {}
 
-
 const CommandUUID &BaseUserCommand::UUID() const
 {
     return mCommandUUID;
@@ -69,27 +68,34 @@ CommandResult::SharedConst BaseUserCommand::responseTrustLineIsAbsent() const
     return makeResult(405);
 }
 
-CommandResult::SharedConst BaseUserCommand::responseCurrentIncomingDebtIsGreaterThanNewAmount() const
+CommandResult::SharedConst BaseUserCommand::responseThereAreNoKeys() const
     noexcept
 {
     return makeResult(406);
 }
 
-CommandResult::SharedConst BaseUserCommand::responseTrustLineIsAlreadyPresent() const
+CommandResult::SharedConst BaseUserCommand::responseNoConsensus() const
     noexcept
 {
     return makeResult(409);
-}
-
-CommandResult::SharedConst BaseUserCommand::responseTrustLineRejected() const
-{
-    return makeResult(402);
 }
 
 CommandResult::SharedConst BaseUserCommand::responseInsufficientFunds() const
     noexcept
 {
     return makeResult(412);
+}
+
+CommandResult::SharedConst BaseUserCommand::responseInsufficientFundsDueToKeysAbsent() const
+    noexcept
+{
+    return makeResult(413);
+}
+
+CommandResult::SharedConst BaseUserCommand::responseInsufficientFundsDueToParticipantsKeysAbsent() const
+    noexcept
+{
+    return makeResult(414);
 }
 
 CommandResult::SharedConst BaseUserCommand::responseConflictWithOtherOperation() const

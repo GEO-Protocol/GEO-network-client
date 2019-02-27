@@ -1,63 +1,61 @@
 #include "MaxFlowCalculationSourceFstLevelTransaction.h"
 
 MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTransaction(
-    const NodeUUID &nodeUUID,
     MaxFlowCalculationSourceFstLevelMessage::Shared message,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
     Logger &logger,
     bool iAmGateway) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationSourceFstLevelTransactionType,
-        nodeUUID,
         message->equivalent(),
         logger),
     mMessage(message),
+    mContractorsManager (contractorsManager),
     mTrustLinesManager(trustLinesManager),
     mIAmGateway(iAmGateway)
 {}
 
-MaxFlowCalculationSourceFstLevelMessage::Shared MaxFlowCalculationSourceFstLevelTransaction::message() const
-{
-    return mMessage;
-}
-
 TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "run\t" << "Iam: " << mNodeUUID;
-    info() << "run\t" << "sender: " << mMessage->senderUUID;
+    info() << "run\t" << "sender: " << mMessage->idOnReceiverSide;
     info() << "run\t" << "i am is gateway: " << mIAmGateway;
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
     info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 #endif
-    vector<NodeUUID> outgoingFlowUuids;
+    vector<ContractorID> outgoingFlowIDs;
     if (mIAmGateway) {
-        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
-        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows;
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlows;
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlows;
         // inform that I am is gateway
+        // todo : it is not required inform about gateway, because this info initiator can obtain on it side
+        auto contractorsAddresses = mContractorsManager->contractorAddresses(mMessage->idOnReceiverSide);
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
-            mMessage->senderUUID,
+            contractorsAddresses.at(0),
             mEquivalent,
-            mNodeUUID,
+            mContractorsManager->ownAddresses(),
             outgoingFlows,
             incomingFlows);
-        outgoingFlowUuids = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow();
+        outgoingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow();
     } else {
-        outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
+        outgoingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
     }
-    for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
-        if (nodeUUIDOutgoingFlow == mMessage->senderUUID) {
+    for (auto const &nodeIDWithOutgoingFlow : outgoingFlowIDs) {
+        if (nodeIDWithOutgoingFlow == mMessage->idOnReceiverSide) {
             continue;
         }
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-        info() << "sendFirst\t" << nodeUUIDOutgoingFlow;
+        info() << "sendFirst\t" << nodeIDWithOutgoingFlow;
 #endif
         sendMessage<MaxFlowCalculationSourceSndLevelMessage>(
-            nodeUUIDOutgoingFlow,
+            nodeIDWithOutgoingFlow,
             mEquivalent,
-            mNodeUUID,
-            mMessage->senderUUID);
+            mContractorsManager->idOnContractorSide(
+                nodeIDWithOutgoingFlow),
+            mContractorsManager->contractorAddresses(
+                mMessage->idOnReceiverSide));
     }
     return resultDone();
 }

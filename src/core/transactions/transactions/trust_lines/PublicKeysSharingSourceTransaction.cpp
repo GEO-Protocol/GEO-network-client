@@ -1,78 +1,69 @@
 #include "PublicKeysSharingSourceTransaction.h"
 
 PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
-    const NodeUUID &nodeUUID,
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     const SerializedEquivalent equivalent,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
-    BaseTrustLineTransaction(
+    BaseTransaction(
         BaseTransaction::PublicKeysSharingSourceTransactionType,
-        nodeUUID,
         equivalent,
-        contractorUUID,
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger)
+        logger),
+    mContractorID(contractorID),
+    mCurrentKeyNumber(0),
+    mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
+    mCountSendingAttempts(0),
+    mContractorsManager(contractorsManager),
+    mTrustLines(manager),
+    mStorageHandler(storageHandler),
+    mKeysStore(keystore),
+    mTrustLinesInfluenceController(trustLinesInfluenceController)
 {
-    mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
-    mCurrentKeyNumber = 0;
-    mStep = KeysSharingInitialization;
+    mStep = Initialization;
 }
 
+
 PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
-    BytesShared buffer,
-    const NodeUUID &nodeUUID,
+    ShareKeysCommand::Shared command,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
-
-    BaseTrustLineTransaction(
-        buffer,
-        nodeUUID,
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger)
+    BaseTransaction(
+        BaseTransaction::PublicKeysSharingSourceTransactionType,
+        mCommand->equivalent(),
+        logger),
+    mCommand(command),
+    mContractorID(mCommand->contractorID()),
+    mCurrentKeyNumber(0),
+    mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
+    mCountSendingAttempts(0),
+    mContractorsManager(contractorsManager),
+    mTrustLines(manager),
+    mStorageHandler(storageHandler),
+    mKeysStore(keystore),
+    mTrustLinesInfluenceController(trustLinesInfluenceController)
 {
-    auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
-    mStep = Stages::Recovery;
-
-    memcpy(
-        mContractorUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
-
-    memcpy(
-        &mAuditNumber,
-        buffer.get() + bytesBufferOffset,
-        sizeof(AuditNumber));
-    bytesBufferOffset += sizeof(AuditNumber);
-
-    auto *keyNumber = new (buffer.get() + bytesBufferOffset) KeyNumber;
-    mCurrentKeyNumber = (KeyNumber) *keyNumber;
+    mStep = CommandInitialization;
 }
 
 TransactionResult::SharedConst PublicKeysSharingSourceTransaction::run()
 {
     switch (mStep) {
-        case Stages::KeysSharingInitialization: {
+        case Stages::Initialization: {
             return runPublicKeysSharingInitializationStage();
         }
-        case Stages::NextKeyProcessing: {
-            return runPublicKeysSendNextKeyStage();
+        case Stages::CommandInitialization: {
+            return runCommandPublicKeysSharingInitializationStage();
         }
-        case Stages::Recovery: {
-            return runRecoveryStage();
+        case Stages::ResponseProcessing: {
+            return runPublicKeysSendNextKeyStage();
         }
         default:
             throw ValueError(logHeader() + "::run: "
@@ -80,75 +71,281 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::run()
     }
 }
 
-TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runRecoveryStage()
+TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeysSharingInitializationStage()
 {
-    info() << "Recovery";
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
-        warning() << "Trust line is absent " << mContractorUUID;
+    info() << "runPublicKeysSharingInitializationStage with " << mContractorID;
+
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
         return resultDone();
     }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        info() << "Keys pending state, current key number " << mCurrentKeyNumber;
-        auto keyChain = mKeysStore->keychain(mTrustLines->trustLineID(mContractorUUID));
+
+    if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
+        return resultDone();
+    }
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorID));
+    try {
+        keyChain.removeUnusedOwnKeys(
+            ioTransaction);
+        keyChain.generateKeyPairsSet(
+            ioTransaction);
+        info() << "All keys saved";
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(
+            BaseTransaction::PublicKeysSharingSourceTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceInitializationStage(
+            BaseTransaction::PublicKeysSharingSourceTransactionType);
+#endif
+
+        mCurrentPublicKey = keyChain.publicKey(
+            ioTransaction,
+            mCurrentKeyNumber);
+        if (mCurrentPublicKey == nullptr) {
+            warning() << "There are no data for keyNumber " << mCurrentKeyNumber;
+            // todo run reset keys sharing TA
+            return resultDone();
+        }
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        error() << "Can't generate public keys. Details: " << e.what();
+        throw e;
+    }
+
+    sendMessage<PublicKeysSharingInitMessage>(
+        mContractorID,
+        mEquivalent,
+        mContractorsManager->idOnContractorSide(mContractorID),
+        mTransactionUUID,
+        mKeysCount,
+        mCurrentKeyNumber,
+        mCurrentPublicKey);
+    mCountSendingAttempts++;
+    info() << "Send key number: " << mCurrentKeyNumber;
+
+    mStep = ResponseProcessing;
+    return resultWaitForMessageTypes(
+        {Message::TrustLines_HashConfirmation},
+        kWaitMillisecondsForResponse);
+}
+
+TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runCommandPublicKeysSharingInitializationStage()
+{
+    info() << "runCommandPublicKeysSharingInitializationStage with " << mContractorID;
+
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
+        return resultProtocolError();
+    }
+
+    if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
+        return resultProtocolError();
+    }
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorID));
+    try {
+        keyChain.removeUnusedOwnKeys(
+            ioTransaction);
+        keyChain.generateKeyPairsSet(
+            ioTransaction);
+        info() << "All keys saved";
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(
+            BaseTransaction::PublicKeysSharingSourceTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceInitializationStage(
+            BaseTransaction::PublicKeysSharingSourceTransactionType);
+#endif
+
+        mCurrentPublicKey = keyChain.publicKey(
+            ioTransaction,
+            mCurrentKeyNumber);
+        if (mCurrentPublicKey == nullptr) {
+            warning() << "There are no data for keyNumber " << mCurrentKeyNumber;
+            // todo run reset keys sharing TA
+            return resultUnexpectedError();
+        }
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        error() << "Can't generate public keys. Details: " << e.what();
+        return resultUnexpectedError();
+    }
+
+    sendMessage<PublicKeysSharingInitMessage>(
+        mContractorID,
+        mEquivalent,
+        mContractorsManager->idOnContractorSide(mContractorID),
+        mTransactionUUID,
+        mKeysCount,
+        mCurrentKeyNumber,
+        mCurrentPublicKey);
+    mCountSendingAttempts++;
+    info() << "Send key number: " << mCurrentKeyNumber;
+
+    mStep = ResponseProcessing;
+    return resultOK();
+}
+
+TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeysSendNextKeyStage()
+{
+    info() << "runPublicKeysSendNextKeyStage";
+    if (mContext.empty()) {
+        warning() << "No confirmation message received.";
+        if (mCountSendingAttempts < kMaxCountSendingAttempts) {
+            if (mCurrentKeyNumber == 0) {
+                sendMessage<PublicKeysSharingInitMessage>(
+                    mContractorID,
+                    mEquivalent,
+                    mContractorsManager->idOnContractorSide(mContractorID),
+                    mTransactionUUID,
+                    mKeysCount,
+                    mCurrentKeyNumber,
+                    mCurrentPublicKey);
+            } else {
+                sendMessage<PublicKeyMessage>(
+                    mContractorID,
+                    mEquivalent,
+                    mContractorsManager->idOnContractorSide(mContractorID),
+                    mTransactionUUID,
+                    mCurrentKeyNumber,
+                    mCurrentPublicKey);
+            }
+            mCountSendingAttempts++;
+            info() << "Send message " << mCountSendingAttempts << " times";
+            return resultWaitForMessageTypes(
+                {Message::TrustLines_HashConfirmation},
+                kWaitMillisecondsForResponse);
+        }
+        info() << "Transaction will be closed";
+        return resultDone();
+    }
+
+    auto message = popNextMessage<PublicKeyHashConfirmation>();
+    info() << "contractor " << message->idOnReceiverSide << " send confirmation.";
+    if (message->idOnReceiverSide != mContractorID) {
+        warning() << "Sender is not contractor of this transaction";
+        return resultContinuePreviousState();
+    }
+
+    if (!mTrustLines->trustLineIsPresent(mContractorID)) {
+        warning() << "Something wrong, because TL must be created";
+        // todo : need correct reaction
+        return resultDone();
+    }
+
+    if (message->state() != ConfirmationMessage::OK) {
+        warning() << "Contractor didn't accept public key. Response code: " << message->state();
+        // todo run reset keys sharing TA
+        return resultDone();
+    }
+
+    if (message->number() < mCurrentKeyNumber) {
+        info() << "message key number " << message->number() << " is less than current. ignore it";
+        return resultContinuePreviousState();
+    }
+
+    if (message->number() != mCurrentKeyNumber || *message->hashConfirmation() != *mCurrentPublicKey->hash()) {
+        warning() << "Number " << message->number() << " or Hash is incorrect";
+        // todo run reset keys sharing TA
+        return resultDone();
+    }
+
+    info() << "Key number: " << mCurrentKeyNumber << " confirmed";
+    mCurrentKeyNumber++;
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorID));
+    if (mCurrentKeyNumber >= TrustLineKeychain::kDefaultKeysSetSize) {
+        info() << "all keys confirmed";
         auto ioTransaction = mStorageHandler->beginTransaction();
         try {
-            mCurrentPublicKey = keyChain.publicKey(
-                ioTransaction,
-                mCurrentKeyNumber);
-            if (mCurrentPublicKey == nullptr) {
-                warning() << "Can't get own public key with number " << mCurrentKeyNumber;
-                return resultDone();
+            mTrustLines->setTrustLineState(
+                mContractorID,
+                TrustLine::Active,
+                ioTransaction);
+            mTrustLines->setIsOwnKeysPresent(
+                mContractorID,
+                true);
+            info() << "TL is ready for using";
+            if (!mTrustLines->isTrustLineEmpty(mContractorID)) {
+                auditSignal(mContractorID, mEquivalent);
+            } else {
+                if (mTrustLines->trustLineContractorKeysPresent(mContractorID)) {
+                    info() << "Init audit signal";
+                    auditSignal(mContractorID, mEquivalent);
+                }
             }
         } catch (IOError &e) {
             ioTransaction->rollback();
-            error() << "Can't get own public key from storage. Details: " << e.what();
+            error() << "Can't update TL state. Details " << e.what();
+            throw e;
+        }
+        return resultDone();
+    }
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    try {
+        mCurrentPublicKey = keyChain.publicKey(
+            ioTransaction,
+            mCurrentKeyNumber);
+        if (mCurrentPublicKey == nullptr) {
+            warning() << "There are no data for keyNumber " << mCurrentKeyNumber;
+            // todo run reset keys sharing TA
             return resultDone();
         }
-        mStep = NextKeyProcessing;
-        return resultAwakeAsFastAsPossible();
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceProcessingResponseStage(
+            BaseTransaction::PublicKeysSharingSourceTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceProcessingResponseStage(
+            BaseTransaction::PublicKeysSharingSourceTransactionType);
+#endif
+
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        error() << "Can't serialize TA. Details " << e.what();
+        throw e;
     }
-    warning() << "Invalid TL state for this TA state: "
-              << mTrustLines->trustLineState(mContractorUUID);
-    return resultDone();
+
+    sendMessage<PublicKeyMessage>(
+        mContractorID,
+        mEquivalent,
+        mContractorsManager->idOnContractorSide(mContractorID),
+        mTransactionUUID,
+        mCurrentKeyNumber,
+        mCurrentPublicKey);
+    mCountSendingAttempts = 1;
+    info() << "Send key number: " << mCurrentKeyNumber;
+
+    return resultWaitForMessageTypes(
+        {Message::TrustLines_HashConfirmation},
+        kWaitMillisecondsForResponse);
 }
 
-pair<BytesShared, size_t> PublicKeysSharingSourceTransaction::serializeToBytes() const
+TransactionResult::SharedConst PublicKeysSharingSourceTransaction::resultOK()
 {
-    const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
-    size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize
-                        + sizeof(AuditNumber)
-                        + sizeof(KeyNumber);
+    return transactionResultFromCommandAndWaitForMessageTypes(
+        mCommand->responseOK(),
+        {Message::TrustLines_HashConfirmation},
+        kWaitMillisecondsForResponse);
+}
 
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
+TransactionResult::SharedConst PublicKeysSharingSourceTransaction::resultProtocolError()
+{
+    return transactionResultFromCommand(
+        mCommand->responseProtocolError());
+}
 
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    dataBytesOffset += parentBytesAndCount.second;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize);
-    dataBytesOffset += NodeUUID::kBytesSize;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &mAuditNumber,
-        sizeof(AuditNumber));
-    dataBytesOffset += sizeof(AuditNumber);
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &mCurrentKeyNumber,
-        sizeof(KeyNumber));
-
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
+TransactionResult::SharedConst PublicKeysSharingSourceTransaction::resultUnexpectedError()
+{
+    return transactionResultFromCommand(
+        mCommand->responseUnexpectedError());
 }
 
 const string PublicKeysSharingSourceTransaction::logHeader() const

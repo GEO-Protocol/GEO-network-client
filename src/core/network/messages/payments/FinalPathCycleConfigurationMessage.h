@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_FINALPATHCYCLECONFIGURATIONMESSAGE_H
 
 #include "base/RequestCycleMessage.h"
+#include "../../../contractors/Contractor.h"
 #include "../../../crypto/lamportscheme.h"
 #include <map>
 
@@ -16,26 +17,31 @@ public:
 public:
     FinalPathCycleConfigurationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount,
-        const map<NodeUUID, PaymentNodeID> &paymentNodesIds);
+        const map<PaymentNodeID, Contractor::Shared> &paymentParticipants,
+        const BlockNumber maximalClaimingBlockNumber);
 
     FinalPathCycleConfigurationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount,
-        const map<NodeUUID, PaymentNodeID> &paymentNodesIds,
+        const map<PaymentNodeID, Contractor::Shared> &paymentParticipants,
+        const BlockNumber maximalClaimingBlockNumber,
         const KeyNumber publicKeyNumber,
-        const lamport::Signature::Shared signature);
+        const lamport::Signature::Shared signature,
+        const lamport::KeyHash::Shared transactionPublicKeyHash);
 
     FinalPathCycleConfigurationMessage(
         BytesShared buffer);
 
     const MessageType typeID() const;
 
-    const map<NodeUUID, PaymentNodeID>& paymentNodesIds() const;
+    const map<PaymentNodeID, Contractor::Shared>& paymentParticipants() const;
+
+    const BlockNumber maximalClaimingBlockNumber() const;
 
     bool isReceiptContains() const;
 
@@ -43,15 +49,18 @@ public:
 
     const lamport::Signature::Shared signature() const;
 
+    const lamport::KeyHash::Shared transactionPublicKeyHash() const;
+
 protected:
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-    throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
-    map<NodeUUID, PaymentNodeID> mPaymentNodesIds;
+    map<PaymentNodeID, Contractor::Shared> mPaymentParticipants;
+    BlockNumber mMaximalClaimingBlockNumber;
     bool mIsReceiptContains;
     KeyNumber mPublicKeyNumber;
     lamport::Signature::Shared mSignature;
+    lamport::KeyHash::Shared mTransactionPublicKeyHash;
 };
 
 

@@ -3,10 +3,9 @@
 
 #include "../common/time/TimeUtils.h"
 #include "../logger/Logger.h"
-#include "../common/Types.h"
+#include "../transactions/transactions/base/TransactionUUID.h"
 
 #include <boost/asio/steady_timer.hpp>
-#include <boost/asio/deadline_timer.hpp>
 #include <boost/signals2.hpp>
 #include <boost/asio.hpp>
 
@@ -21,7 +20,7 @@ public:
 
 public:
     GatewayNotificationAndRoutingTablesDelayedTask(
-        as::io_service &mIOService,
+        as::io_service &ioService,
         Logger &logger);
 
 public:
@@ -30,6 +29,8 @@ public:
 private:
     void runSignalNotify(
         const boost::system::error_code &error);
+
+    uint32_t randomInitializer() const;
 
     LoggerStream info() const;
 

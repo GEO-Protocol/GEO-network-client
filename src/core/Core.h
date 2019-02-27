@@ -3,17 +3,20 @@
 #define GEO_NETWORK_CLIENT_CORE_H
 
 #include "common/Types.h"
-#include "common/NodeUUID.h"
 
 #include "settings/Settings.h"
 #include "network/communicator/Communicator.h"
 #include "interface/commands_interface/interface/CommandsInterface.h"
 #include "interface/results_interface/interface/ResultsInterface.h"
+#include "interface/events_interface/interface/EventsInterface.h"
 #include "resources/manager/ResourcesManager.h"
 #include "transactions/manager/TransactionsManager.h"
 #include "io/storage/StorageHandler.h"
 #include "equivalents/EquivalentsSubsystemsRouter.h"
 #include "crypto/keychain.h"
+#include "contractors/ContractorsManager.h"
+#include "observing/ObservingHandler.h"
+#include "delayed_tasks/TopologyEventDelayedTask.h"
 
 #include "logger/Logger.h"
 
@@ -52,12 +55,16 @@ private:
 
     int initLogger();
 
-    int initCommunicator(
+    int initCommunicator();
+
+    int initObservingHandler(
         const json &conf);
 
     int initCommandsInterface();
 
     int initResultsInterface();
+
+    int initEventsInterface();
 
     int initEquivalentsSubsystemsRouter(
         vector<SerializedEquivalent> equivalentIAmGateway);
@@ -68,13 +75,20 @@ private:
 
     int initStorageHandler();
 
+    int initContractorsManager(
+        const json &conf);
+
     int initSubsystemsController();
 
     int initTrustLinesInfluenceController();
 
     int initKeysStore();
 
+    int initTopologyEventDelayedTask();
+
     void connectCommunicatorSignals();
+
+    void connectObservingSignals();
 
     void connectCommandsInterfaceSignals();
 
@@ -87,27 +101,65 @@ private:
 
     void onClearTopologyCacheSlot(
         const SerializedEquivalent equivalent,
-        const NodeUUID &nodeUUID);
+        BaseAddress::Shared nodeAddress);
 
     void onMessageReceivedSlot(
         Message::Shared message);
 
     void onMessageSendSlot(
         Message::Shared message,
-        const NodeUUID &contractorUUID);
+        const ContractorID contractorID);
+
+    void onMessageSendToAddressSlot(
+        Message::Shared message,
+        BaseAddress::Shared address);
 
     void onMessageSendWithCachingSlot(
         TransactionMessage::Shared message,
-        const NodeUUID &contractorUUID,
-        Message::MessageType incomingMessageTypeFilter);
+        ContractorID contractorID,
+        Message::MessageType incomingMessageTypeFilter,
+        uint32_t cacheTimeLiving);
+
+    void onClaimSendToObserverSlot(
+        ObservingClaimAppendRequestMessage::Shared message);
+
+    void onAddTransactionToObservingCheckingSlot(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maxBlockNumberForClaiming);
+
+    void onObservingParticipantsVotesSlot(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber,
+        map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures);
+
+    void onObservingTransactionRejectSlot(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
+
+    void onObservingTransactionUncertainSlot(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
+
+    void onObservingTransactionCancelingSlot(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
+
+    void onObservingAllowPaymentTransactionsSlot(
+        bool allowPaymentTransactions);
 
     void onProcessConfirmationMessageSlot(
         ConfirmationMessage::Shared confirmationMessage);
 
+    void onProcessPongMessageSlot(
+        ContractorID contractorID);
+
     void onPathsResourceRequestedSlot(
         const TransactionUUID &transactionUUID,
-        const NodeUUID &destinationNodeUUID,
+        BaseAddress::Shared destinationNodeAddress,
         const SerializedEquivalent equivalent);
+
+    void onObservingBlockNumberRequestSlot(
+        const TransactionUUID &transactionUUID);
 
     void onResourceCollectedSlot(
         BaseResource::Shared resource);
@@ -137,7 +189,6 @@ protected:
     // By default, it would point to the standard argv[0] char sequence;
     char* mCommandDescriptionPtr;
 
-    NodeUUID mNodeUUID;
     as::io_service mIOService;
 
     unique_ptr<Logger> mLog;
@@ -145,6 +196,7 @@ protected:
     unique_ptr<Communicator> mCommunicator;
     unique_ptr<CommandsInterface> mCommandsInterface;
     unique_ptr<ResultsInterface> mResultsInterface;
+    unique_ptr<EventsInterface> mEventsInterface;
     unique_ptr<ResourcesManager> mResourcesManager;
     unique_ptr<TransactionsManager> mTransactionsManager;
     unique_ptr<StorageHandler> mStorageHandler;
@@ -152,6 +204,9 @@ protected:
     unique_ptr<TrustLinesInfluenceController> mTrustLinesInfluenceController;
     unique_ptr<EquivalentsSubsystemsRouter> mEquivalentsSubsystemsRouter;
     unique_ptr<Keystore> mKeysStore;
+    unique_ptr<ContractorsManager> mContractorsManager;
+    unique_ptr<ObservingHandler> mObservingHandler;
+    unique_ptr<TopologyEventDelayedTask> mTopologyEventDelayedTask;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

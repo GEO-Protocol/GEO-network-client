@@ -45,7 +45,7 @@ void TransactionsScheduler::scheduleTransaction(
             warning() << "scheduleTransaction: Duplicate TransactionUUID. Already exists. "
                       << "Current TA type: " << transaction->transactionType()
                       << ". Conflicted TA type:" << transactionAndState.first->transactionType();
-            throw ConflictError("Duplicate Transaction UUID");
+            throw ConflictError("Duplicate TransactionUUID");
         }
     }
     (*mTransactions)[transaction] = TransactionState::awakeAsFastAsPossible();
@@ -57,6 +57,14 @@ void TransactionsScheduler::postponeTransaction(
     BaseTransaction::Shared transaction,
     uint32_t millisecondsDelay)
 {
+    for (const auto &transactionAndState : *mTransactions){
+        if (transaction->currentTransactionUUID() == transactionAndState.first->currentTransactionUUID()) {
+            warning() << "scheduleTransaction: Duplicate TransactionUUID. Already exists. "
+                      << "Current TA type: " << transaction->transactionType()
+                      << ". Conflicted TA type:" << transactionAndState.first->transactionType();
+            throw ConflictError("Duplicate TransactionUUID");
+        }
+    }
     (*mTransactions)[transaction] = TransactionState::awakeAfterMilliseconds(millisecondsDelay);
 
     adjustAwakeningToNextTransaction();
@@ -91,7 +99,7 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
                     message->typeID() == Message::Payments_FinalPathConfiguration) {
                 auto paymentTransaction = static_pointer_cast<BasePaymentTransaction>(
                     transactionAndState.first);
-                if (paymentTransaction->coordinatorUUID() != transactionMessage->senderUUID) {
+                if (paymentTransaction->coordinatorAddress() != transactionMessage->senderAddresses.at(0)) {
                     continue;
                 }
             }
@@ -106,7 +114,7 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
     throw NotFoundError(
         "TransactionsScheduler::tryAttachMessageToTransaction: " +
             transactionMessage->transactionUUID().stringUUID() +
-            " invalid/unexpected message/response received " +
+            " there is no requested transaction for message " +
             to_string(message->typeID()));
 }
 
@@ -125,11 +133,9 @@ void TransactionsScheduler::tryAttachResourceToTransaction(
             }
 
             transactionAndState.first->pushResource(resource);
+            launchTransaction(transactionAndState.first);
+            return;
         }
-
-        launchTransaction(transactionAndState.first);
-        return;
-
     }
 
     throw NotFoundError(
@@ -152,7 +158,7 @@ void TransactionsScheduler::launchTransaction(
             && kTAType <= BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
 
             info() << "Payment or cycle closing TA launched:"
-                << " UUID: " << transaction->currentTransactionUUID()
+                << " TransactionUUID: " << transaction->currentTransactionUUID()
                 << " Type: " << transaction->transactionType()
                 << " Step: " << transaction->currentStep();
         }
@@ -175,7 +181,7 @@ void TransactionsScheduler::launchTransaction(
 
     } catch (exception &e) {
         error() << "TA error occurred:"
-            << " UUID: " << transaction->currentTransactionUUID()
+            << " TransactionUUID: " << transaction->currentTransactionUUID()
             << " Type: " << transaction->transactionType()
             << " Step: " << transaction->currentStep()
             << " Error message: " << e.what()
@@ -267,7 +273,7 @@ void TransactionsScheduler::forgetTransaction(
         && kTAType <= BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
 
         info() << "Payment or cycle closing TA has been forgotten:"
-                << " UUID: " << transaction->currentTransactionUUID()
+                << " TransactionUUID: " << transaction->currentTransactionUUID()
                 << " Type: " << transaction->transactionType()
                 << " Step: " << transaction->currentStep();
     }

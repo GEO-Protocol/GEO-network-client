@@ -8,7 +8,7 @@ add_subdirectory(payments)
 add_subdirectory(cycles)
 add_subdirectory(max_flow_calculation)
 add_subdirectory(gateway_notification_and_routing_tables)
-add_subdirectory(no_equivalent)
+add_subdirectory(general)
 
 
 set(SOURCE_FILES
@@ -33,4 +33,4 @@ target_link_libraries(network__messages
         messages__cycles
         messages__max_flow_calculation
         messages__gateway_notification_and_routing_tables
-        messages__no_equivalent)
+        messages__general)

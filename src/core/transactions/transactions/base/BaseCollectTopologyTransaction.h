@@ -19,8 +19,8 @@ public:
 public:
     BaseCollectTopologyTransaction(
         const TransactionType type,
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
@@ -30,8 +30,8 @@ public:
     BaseCollectTopologyTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID,
-        const NodeUUID &nodeUUID,
         const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
@@ -57,13 +57,15 @@ protected:
     void fillTopology();
 
 protected:
-    const string kFinalStep = "10";
+    const uint16_t kFinalStep = 10;
 
 protected:
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     TopologyTrustLinesManager *mTopologyTrustLineManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
+    set<ContractorID> mGateways;
 };
 
 

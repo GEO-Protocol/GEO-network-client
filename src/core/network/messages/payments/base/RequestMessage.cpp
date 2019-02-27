@@ -3,14 +3,14 @@
 
 RequestMessage::RequestMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const PathID &pathID,
     const TrustLineAmount &amount) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID),
     mPathID(pathID),
     mAmount(amount)
@@ -44,14 +44,8 @@ const PathID &RequestMessage::pathID() const
     return mPathID;
 }
 
-/*!
- *
- * Throws bad_alloc;
- */
 pair<BytesShared, size_t> RequestMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
-
     auto serializedAmount = trustLineAmountToBytes(mAmount); // TODO: serialize only non-zero
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount =
@@ -85,9 +79,8 @@ pair<BytesShared, size_t> RequestMessage::serializeToBytes() const
 }
 
 const size_t RequestMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
-    static const size_t offset =
+    const size_t offset =
         TransactionMessage::kOffsetToInheritedBytes()
         + sizeof(PathID)
         + kTrustLineAmountBytesCount;

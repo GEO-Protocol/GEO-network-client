@@ -12,7 +12,6 @@ public:
 
 public:
     GetEquivalentListTransaction(
-        NodeUUID &nodeUUID,
         EquivalentListCommand::Shared command,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         Logger &logger)

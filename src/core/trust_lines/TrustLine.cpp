@@ -1,37 +1,13 @@
 ﻿#include "TrustLine.h"
 
 TrustLine::TrustLine(
-    const NodeUUID &nodeUUID,
     const TrustLineID trustLineID,
-    const TrustLineAmount &incomingAmount,
-    const TrustLineAmount &outgoingAmount,
-    const TrustLineBalance &nodeBalance,
-    bool isContractorGateway,
-    TrustLineState state,
-    AuditNumber auditNumber) :
-
-    mContractorNodeUUID(nodeUUID),
-    mID(trustLineID),
-    mIncomingTrustAmount(incomingAmount),
-    mOutgoingTrustAmount(outgoingAmount),
-    mBalance(nodeBalance),
-    mIsContractorGateway(isContractorGateway),
-    mCurrentAudit(auditNumber),
-    mState(state),
-    mTotalIncomingReceiptsAmount(kZeroAmount()),
-    mTotalOutgoingReceiptsAmount(kZeroAmount())
-{
-    // todo zero amounts checking
-}
-
-TrustLine::TrustLine(
-    const NodeUUID &nodeUUID,
-    const TrustLineID trustLineID,
+    const ContractorID contractorID,
     bool isContractorGateway,
     TrustLineState state) :
 
-    mContractorNodeUUID(nodeUUID),
     mID(trustLineID),
+    mContractorID(contractorID),
     mIncomingTrustAmount(kZeroAmount()),
     mOutgoingTrustAmount(kZeroAmount()),
     mBalance(kZeroBalance()),
@@ -39,7 +15,27 @@ TrustLine::TrustLine(
     mCurrentAudit(kInitialAuditNumber),
     mState(state),
     mTotalIncomingReceiptsAmount(kZeroAmount()),
-    mTotalOutgoingReceiptsAmount(kZeroAmount())
+    mTotalOutgoingReceiptsAmount(kZeroAmount()),
+    mIsOwnKeysPresent(false),
+    mIsContractorKeysPresent(false)
+{}
+
+TrustLine::TrustLine(
+    const ContractorID contractorID,
+    const TrustLineID trustLineID):
+
+    mContractorID(contractorID),
+    mID(trustLineID),
+    mIncomingTrustAmount(kZeroAmount()),
+    mOutgoingTrustAmount(kZeroAmount()),
+    mBalance(kZeroBalance()),
+    mIsContractorGateway(false),
+    mCurrentAudit(kInitialAuditNumber),
+    mState(TrustLine::Init),
+    mTotalIncomingReceiptsAmount(kZeroAmount()),
+    mTotalOutgoingReceiptsAmount(kZeroAmount()),
+    mIsOwnKeysPresent(false),
+    mIsContractorKeysPresent(false)
 {}
 
 /**
@@ -92,9 +88,9 @@ void TrustLine::setBalance(
     mBalance = balance;
 }
 
-const NodeUUID &TrustLine::contractorNodeUUID() const
+const ContractorID TrustLine::contractorID() const
 {
-    return mContractorNodeUUID;
+    return mContractorID;
 }
 
 const TrustLineAmount &TrustLine::incomingTrustAmount() const
@@ -228,6 +224,28 @@ void TrustLine::setContractorAsGateway(
     mIsContractorGateway = contractorAsGateway;
 }
 
+void TrustLine::setIsOwnKeysPresent(
+    bool isOwnKeysPresent)
+{
+    mIsOwnKeysPresent = isOwnKeysPresent;
+}
+
+void TrustLine::setIsContractorKeysPresent(
+    bool isContractorKeysPresent)
+{
+    mIsContractorKeysPresent = isContractorKeysPresent;
+}
+
+bool TrustLine::isOwnKeysPresent() const
+{
+    return mIsOwnKeysPresent;
+}
+
+bool TrustLine::isContractorKeysPresent() const
+{
+    return mIsContractorKeysPresent;
+}
+
 /*!
  * @returns static constant zero balance,
  * that is useful in comparison operations.
@@ -252,14 +270,14 @@ bool operator==(
     const TrustLine::Shared contractor1,
     const TrustLine::Shared contractor2)
 {
-    return contractor1->contractorNodeUUID() == contractor2->contractorNodeUUID();
+    return contractor1->contractorID() == contractor2->contractorID();
 }
 
 bool operator==(
     const TrustLine &contractor1,
     const TrustLine &contractor2)
 {
-    return contractor1.contractorNodeUUID() == contractor2.contractorNodeUUID();
+    return contractor1.contractorID() == contractor2.contractorID();
 }
 
 /**

@@ -3,7 +3,6 @@
 
 #include "../common/exceptions/Exception.h"
 #include "../common/time/TimeUtils.h"
-#include "../common/NodeUUID.h"
 
 #include <iostream>
 #include <sstream>
@@ -65,8 +64,7 @@ class Logger {
     friend class LoggerStream;
 
 public:
-    Logger(
-        const NodeUUID &nodeUUID);
+    Logger();
 
     void logException(
         const string &subsystem,
@@ -109,7 +107,6 @@ protected:
     void calculateOperationsLogFileLinesNumber();
 
 private:
-    NodeUUID mNodeUUID;
     std::ofstream mOperationsLogFile;
     uint32_t mOperationsLogFileLinesNumber;
     string mOperationLogFileName;

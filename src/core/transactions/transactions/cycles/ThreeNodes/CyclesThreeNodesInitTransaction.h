@@ -2,14 +2,12 @@
 #define GEO_NETWORK_CLIENT_THREENODESINITTRANSACTION_H
 
 #include "../../base/BaseTransaction.h"
+#include "../../../../contractors/ContractorsManager.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../cycles/CyclesManager.h"
 #include "../../../../cycles/RoutingTableManager.h"
-#include "../../../../paths/lib/Path.h"
 #include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
 #include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
-
-#include <set>
 
 
 class CyclesThreeNodesInitTransaction :
@@ -17,9 +15,9 @@ class CyclesThreeNodesInitTransaction :
 
 public:
     CyclesThreeNodesInitTransaction(
-        const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         RoutingTableManager *routingTable,
         CyclesManager *cyclesManager,
@@ -34,14 +32,20 @@ protected:
     };
 
     TransactionResult::SharedConst runCollectDataAndSendMessageStage();
+
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
 protected:
     const string logHeader() const;
-    set<NodeUUID> getNeighborsWithContractor();
+
+    vector<BaseAddress::Shared> getNeighborsWithContractor();
 
 protected:
-    NodeUUID mContractorUUID;
+    static const uint16_t mkWaitingForResponseTime = 3000;
+
+protected:
+    ContractorID mContractorID;
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     CyclesManager *mCyclesManager;
     RoutingTableManager *mRougingTable;

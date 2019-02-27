@@ -6,8 +6,6 @@
 
 #include "CollectTopologyTransaction.h"
 
-#include <set>
-
 class MaxFlowCalculationFullyTransaction : public BaseCollectTopologyTransaction {
 
 public:
@@ -15,15 +13,14 @@ public:
 
 public:
     MaxFlowCalculationFullyTransaction(
-        const NodeUUID &nodeUUID,
         const InitiateMaxFlowCalculationFullyCommand::Shared command,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        bool iAmGateway,
         Logger &logger);
-
-    InitiateMaxFlowCalculationFullyCommand::Shared command() const;
 
 protected:
     const string logHeader() const;
@@ -36,17 +33,16 @@ private:
     TransactionResult::SharedConst applyCustomLogic();
 
     TrustLineAmount calculateMaxFlow(
-        const NodeUUID &contractorUUID);
+        ContractorID contractorID);
 
     void calculateMaxFlowOnOneLevel();
 
     TrustLineAmount calculateOneNode(
-        const NodeUUID& nodeUUID,
-        const TrustLineAmount& currentFlow,
+        ContractorID nodeID,
+        const TrustLineAmount &currentFlow,
         byte level);
 
-    TransactionResult::SharedConst resultOk(
-        vector<pair<NodeUUID, TrustLineAmount>> &maxFlows);
+    TransactionResult::SharedConst resultOk();
 
     TransactionResult::SharedConst resultProtocolError();
 
@@ -61,14 +57,16 @@ private:
 
 private:
     InitiateMaxFlowCalculationFullyCommand::Shared mCommand;
-    vector<NodeUUID> mForbiddenNodeUUIDs;
+    vector<ContractorID> mForbiddenNodeIDs;
     byte mCurrentPathLength;
     TrustLineAmount mCurrentMaxFlow;
-    NodeUUID mCurrentContractor;
+    ContractorID mCurrentContractor;
     size_t mCountProcessCollectingTopologyRun;
     TopologyTrustLinesManager::TrustLineWithPtrHashSet mFirstLevelTopology;
-    vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
+    vector<pair<ContractorID, BaseAddress::Shared>> mContractorIDs;
+    vector<pair<ContractorID, TrustLineAmount>> mMaxFlows;
     size_t mCurrentGlobalContractorIdx;
+    bool mIamGateway;
 };
 
 

@@ -1,7 +1,6 @@
 #include "ReceiveResultMaxFlowCalculationTransaction.h"
 
 ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTransaction(
-    NodeUUID &nodeUUID,
     ResultMaxFlowCalculationMessage::Shared message,
     TrustLinesManager *trustLinesManager,
     TopologyTrustLinesManager *topologyTrustLineManager,
@@ -9,7 +8,6 @@ ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTrans
 
     BaseTransaction(
         BaseTransaction::TransactionType::ReceiveResultMaxFlowCalculationTransactionType,
-        nodeUUID,
         message->equivalent(),
         logger),
     mMessage(message),
@@ -19,7 +17,6 @@ ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTrans
 {}
 
 ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTransaction(
-    NodeUUID &nodeUUID,
     ResultMaxFlowCalculationGatewayMessage::Shared message,
     TrustLinesManager *trustLinesManager,
     TopologyTrustLinesManager *topologyTrustLineManager,
@@ -27,7 +24,6 @@ ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTrans
 
     BaseTransaction(
         BaseTransaction::TransactionType::ReceiveResultMaxFlowCalculationTransactionType,
-        nodeUUID,
         message->equivalent(),
         logger),
     mMessage(message),
@@ -36,34 +32,30 @@ ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTrans
     mSenderIsGateway(true)
 {}
 
-ResultMaxFlowCalculationMessage::Shared ReceiveResultMaxFlowCalculationTransaction::message() const
-{
-    return mMessage;
-}
-
 TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "initiator: " << mNodeUUID;
-    info() << "sender: " << mMessage->senderUUID;
+    info() << "sender: " << mMessage->senderAddresses.at(0)->fullAddress();
     info() << "sender is gateway: " << mSenderIsGateway;
     info() << "beforeInsert mapTrustLinesCount: " << mTopologyTrustLineManager->trustLinesCounts();
+#endif
+
+    auto senderID = mTopologyTrustLineManager->getID(mMessage->senderAddresses.at(0));
+    if (mSenderIsGateway) {
+        mTopologyTrustLineManager->addGateway(senderID);
+    }
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "receivedTrustLinesOut: " << mMessage->outgoingFlows().size();
 #endif
-
-    if (mSenderIsGateway) {
-        mTopologyTrustLineManager->addGateway(
-            mMessage->senderUUID);
-    }
-
     for (auto const &outgoingFlow : mMessage->outgoingFlows()) {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-        info() << "\t" << outgoingFlow.first << " " << *outgoingFlow.second.get();
+        info() << "\t" << outgoingFlow.first->fullAddress() << " " << *outgoingFlow.second.get();
 #endif
+        auto targetID = mTopologyTrustLineManager->getID(outgoingFlow.first);
         mTopologyTrustLineManager->addTrustLine(
             make_shared<TopologyTrustLine>(
-                mMessage->senderUUID,
-                outgoingFlow.first,
+                senderID,
+                targetID,
                 outgoingFlow.second));
     }
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
@@ -71,12 +63,13 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
 #endif
     for (auto const &incomingFlow : mMessage->incomingFlows()) {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-        info() << "\t" << incomingFlow.first << " " << *incomingFlow.second.get();
+        info() << "\t" << incomingFlow.first->fullAddress() << " " << *incomingFlow.second.get();
 #endif
+        auto sourceID = mTopologyTrustLineManager->getID(incomingFlow.first);
         mTopologyTrustLineManager->addTrustLine(
             make_shared<TopologyTrustLine>(
-                incomingFlow.first,
-                mMessage->senderUUID,
+                sourceID,
+                senderID,
                 incomingFlow.second));
     }
     return resultDone();

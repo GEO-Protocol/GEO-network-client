@@ -29,7 +29,7 @@ TopologyCacheUpdateDelayedTask::TopologyCacheUpdateDelayedTask(
 }
 
 void TopologyCacheUpdateDelayedTask::runSignalTopologyCacheUpdate(
-        const boost::system::error_code &errorCode)
+    const boost::system::error_code &errorCode)
 {
     if (errorCode) {
         warning() << errorCode.message().c_str();
@@ -62,6 +62,9 @@ DateTime TopologyCacheUpdateDelayedTask::minimalAwakeningTimestamp()
     if (closestNodeCacheManagerTimeEvent < result) {
         result = closestNodeCacheManagerTimeEvent;
     }
+#ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
+    info() << "TopologyCacheUpdateDelayedTask::minimalAwakeningTimestamp " << result;
+#endif
     return result;
 }
 
@@ -75,7 +78,7 @@ DateTime TopologyCacheUpdateDelayedTask::updateCache()
         result = closestNodeCacheManagerTimeEvent;
     }
     // if MaxFlowCalculation transaction not finished it is forbidden to delete trustlines
-    // and should increse trustlines caches time
+    // and should increase trustlines caches time
     DateTime closestTrustLineManagerTimeEvent;
     if (mTopologyTrustLineManager->preventDeleting()) {
         closestTrustLineManagerTimeEvent = utc_now() + kProlongationTrustLineUpdatingDuration();

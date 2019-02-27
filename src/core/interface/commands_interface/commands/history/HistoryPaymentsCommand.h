@@ -58,7 +58,7 @@ private:
     bool mIsTimeToPresent;
     TrustLineAmount mLowBoundaryAmount;
     TrustLineAmount mHighBoundaryAmount;
-    bool mIsLowBoundartAmountPresent;
+    bool mIsLowBoundaryAmountPresent;
     bool mIsHighBoundaryAmountPresent;
     CommandUUID mPaymentRecordCommandUUID;
     bool mIsPaymentRecordCommandUUIDPresent;

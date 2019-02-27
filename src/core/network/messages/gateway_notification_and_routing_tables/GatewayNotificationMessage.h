@@ -10,7 +10,7 @@ public:
 
 public:
     GatewayNotificationMessage(
-        const NodeUUID &senderUUID,
+        ContractorID idOnReceiverSide,
         const TransactionUUID &transactionUUID,
         const vector<SerializedEquivalent> gatewayEquivalents);
 
@@ -24,7 +24,7 @@ public:
     const bool isAddToConfirmationRequiredMessagesHandler() const;
 
 protected:
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
     vector<SerializedEquivalent> mGatewayEquivalents;

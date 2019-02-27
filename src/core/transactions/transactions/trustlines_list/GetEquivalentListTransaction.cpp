@@ -1,14 +1,12 @@
 #include "GetEquivalentListTransaction.h"
 
 GetEquivalentListTransaction::GetEquivalentListTransaction(
-    NodeUUID &nodeUUID,
     EquivalentListCommand::Shared command,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     Logger &logger)
     noexcept :
     BaseTransaction(
         BaseTransaction::EquivalentsList,
-        nodeUUID,
         0,
         logger),
     mCommand(command),
@@ -21,8 +19,7 @@ TransactionResult::SharedConst GetEquivalentListTransaction::run()
     stringstream ss;
     ss << to_string(kEquivalentsCount);
     for (const auto &equivalent: mEquivalentsSubsystemsRouter->equivalents()) {
-        ss << kTokensSeparator;
-        ss << equivalent;
+        ss << kTokensSeparator << equivalent;
     }
     ss << kCommandsSeparator;
     string kResultInfo = ss.str();

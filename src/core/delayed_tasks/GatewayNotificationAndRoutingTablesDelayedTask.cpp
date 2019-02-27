@@ -11,7 +11,9 @@ GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationAndRoutingTab
         mIOService);
     // todo : rand() used for concurrent start of all nodes or some part of nodes (data center)
     // on decentralize network it is not necessary
-    int timeStarted = 120 + rand() % (240);
+    srand(randomInitializer());
+    int timeStarted = 120 + rand() % (600);
+    info() << "timeStarted " << timeStarted;
 #ifdef TESTS
     timeStarted = 10;
 #endif
@@ -47,6 +49,18 @@ void GatewayNotificationAndRoutingTablesDelayedTask::runSignalNotify(
             as::placeholders::error));
     gatewayNotificationSignal();
 }
+
+uint32_t GatewayNotificationAndRoutingTablesDelayedTask::randomInitializer() const
+{
+    NodeUUID randomInitializator;
+    uint32_t result = 0;
+    for (int i=0; i < NodeUUID::kBytesSize; i++) {
+        result = result << 2;
+        result |= (randomInitializator.data[i] & 0x3);
+    }
+    return result;
+}
+
 
 LoggerStream GatewayNotificationAndRoutingTablesDelayedTask::debug() const
 {

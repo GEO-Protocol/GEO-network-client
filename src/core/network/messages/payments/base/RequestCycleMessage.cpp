@@ -2,13 +2,13 @@
 
 RequestCycleMessage::RequestCycleMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID),
     mAmount(amount)
 {}
@@ -33,12 +33,7 @@ const TrustLineAmount &RequestCycleMessage::amount() const
     return mAmount;
 }
 
-/*!
- *
- * Throws bad_alloc;
- */
 pair<BytesShared, size_t> RequestCycleMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto serializedAmount = trustLineAmountToBytes(mAmount); // TODO: serialize only non-zero
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
@@ -66,9 +61,8 @@ pair<BytesShared, size_t> RequestCycleMessage::serializeToBytes() const
 }
 
 const size_t RequestCycleMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
-    static const size_t offset =
+    const size_t offset =
         TransactionMessage::kOffsetToInheritedBytes()
         + kTrustLineAmountBytesCount;
 

@@ -6,6 +6,7 @@
 #include "../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/NotFoundError.h"
+#include "../../common/exceptions/ValueError.h"
 #include "../../crypto/lamportscheme.h"
 #include "record/audit/AuditRecord.h"
 
@@ -21,7 +22,7 @@ public:
         const string &tableName,
         Logger &logger);
 
-    void saveAudit(
+    void saveFullAudit(
         AuditNumber number,
         TrustLineID trustLineID,
         lamport::KeyHash::Shared ownKeyHash,
@@ -31,6 +32,21 @@ public:
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);
+
+    void saveOwnAuditPart(
+        AuditNumber number,
+        TrustLineID trustLineID,
+        lamport::KeyHash::Shared ownKeyHash,
+        lamport::Signature::Shared ownSignature,
+        const TrustLineAmount &incomingAmount,
+        const TrustLineAmount &outgoingAmount,
+        const TrustLineBalance &balance);
+
+    void saveContractorAuditPart(
+        AuditNumber number,
+        TrustLineID trustLineID,
+        lamport::KeyHash::Shared contractorKeyHash,
+        lamport::Signature::Shared contractorSignature);
 
     const AuditRecord::Shared getActualAudit(
         TrustLineID trustLineID);

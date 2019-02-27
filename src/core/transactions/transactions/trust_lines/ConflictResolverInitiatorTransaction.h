@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_CONFLICTRESOLVERINITIATORTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
+#include "../../../contractors/ContractorsManager.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../crypto/keychain.h"
 #include "../../../crypto/lamportkeys.h"
@@ -18,10 +19,10 @@ public:
 
 public:
     ConflictResolverInitiatorTransaction(
-        const NodeUUID &nodeUUID,
         SerializedEquivalent equivalent,
-        const NodeUUID &contractorUUID,
-        TrustLinesManager *manager,
+        ContractorID contractorID,
+        ContractorsManager *contractorsManager,
+        TrustLinesManager *trustLinesManager,
         StorageHandler *storageHandler,
         Keystore *keystore,
         TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -29,8 +30,8 @@ public:
 
     ConflictResolverInitiatorTransaction(
         BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *manager,
+        ContractorsManager *contractorsManager,
+        TrustLinesManager *trustLinesManager,
         StorageHandler *storageHandler,
         Keystore *keystore,
         TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -62,11 +63,12 @@ private:
     static const uint32_t kWaitMillisecondsForResponse = 60000;
 
 private:
-    TrustLinesManager *mTrustLines;
+    ContractorsManager *mContractorsManager;
+    TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
 
-    NodeUUID mContractorUUID;
+    ContractorID mContractorID;
 
     TrustLinesInfluenceController *mTrustLinesInfluenceController;
 };

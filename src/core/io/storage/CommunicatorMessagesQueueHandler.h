@@ -21,22 +21,22 @@ public:
         Logger &logger);
 
     void saveRecord(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent,
         const TransactionUUID &transactionUUID,
         const Message::SerializedType messageType,
         BytesShared message,
         size_t messageBytesCount);
 
-    vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> allMessages();
+    vector<tuple<ContractorID, BytesShared, Message::SerializedType>> allMessages();
 
     void deleteRecord(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent,
         const Message::SerializedType messageType);
 
     void deleteRecord(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const TransactionUUID &transactionUUID);
 
 private:

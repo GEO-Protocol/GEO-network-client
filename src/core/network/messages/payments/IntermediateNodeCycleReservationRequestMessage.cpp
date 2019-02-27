@@ -2,18 +2,18 @@
 
 IntermediateNodeCycleReservationRequestMessage::IntermediateNodeCycleReservationRequestMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID& transactionUUID,
     const TrustLineAmount& amount,
-    const NodeUUID& coordinatorUUID,
+    BaseAddress::Shared coordinatorAddress,
     SerializedPathLengthSize cycleLength) :
 
     RequestCycleMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID,
         amount),
-    mCoordinatorUUID(coordinatorUUID),
+    mCoordinatorAddress(coordinatorAddress),
     mCycleLength(cycleLength)
 {}
 
@@ -23,13 +23,12 @@ IntermediateNodeCycleReservationRequestMessage::IntermediateNodeCycleReservation
     RequestCycleMessage(buffer)
 {
     auto parentMessageOffset = RequestCycleMessage::kOffsetToInheritedBytes();
-    auto coordinatorUUIDOffset = buffer.get() + parentMessageOffset;
-    memcpy(
-        mCoordinatorUUID.data,
-        coordinatorUUIDOffset,
-        NodeUUID::kBytesSize);
-    auto cycleLengthOffset = coordinatorUUIDOffset + NodeUUID::kBytesSize;
-    SerializedPathLengthSize *cycleLength = new (cycleLengthOffset) SerializedPathLengthSize;
+    auto dataBytesOffset = buffer.get() + parentMessageOffset;
+
+    mCoordinatorAddress = deserializeAddress(dataBytesOffset);
+    dataBytesOffset += mCoordinatorAddress->serializedSize();
+
+    SerializedPathLengthSize *cycleLength = new (dataBytesOffset) SerializedPathLengthSize;
     mCycleLength = *cycleLength;
 }
 
@@ -43,39 +42,36 @@ SerializedPathLengthSize IntermediateNodeCycleReservationRequestMessage::cycleLe
     return mCycleLength;
 }
 
-const NodeUUID& IntermediateNodeCycleReservationRequestMessage::coordinatorUUID() const
+BaseAddress::Shared IntermediateNodeCycleReservationRequestMessage::coordinatorAddress() const
 {
-    return mCoordinatorUUID;
+    return mCoordinatorAddress;
 }
 
-/**
- * @throws bad_alloc;
- */
 pair<BytesShared, size_t> IntermediateNodeCycleReservationRequestMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = RequestCycleMessage::serializeToBytes();
     size_t totalBytesCount =
         + parentBytesAndCount.second
-        + NodeUUID::kBytesSize
+        + mCoordinatorAddress->serializedSize()
         + sizeof(SerializedPathLengthSize);
 
     BytesShared buffer = tryMalloc(totalBytesCount);
-    auto initialOffset = buffer.get();
+    auto bytesBufferOffset = buffer.get();
     memcpy(
-        initialOffset,
+        bytesBufferOffset,
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
+    bytesBufferOffset += parentBytesAndCount.second;
 
-    auto coordinatorUUIDOffset = initialOffset + parentBytesAndCount.second;
+    auto serializedAddress = mCoordinatorAddress->serializeToBytes();
     memcpy(
-        coordinatorUUIDOffset,
-        mCoordinatorUUID.data,
-        NodeUUID::kBytesSize);
+        bytesBufferOffset,
+        serializedAddress.get(),
+        mCoordinatorAddress->serializedSize());
+    bytesBufferOffset += mCoordinatorAddress->serializedSize();
 
-    auto cycleLengthOffset = coordinatorUUIDOffset + NodeUUID::kBytesSize;
     memcpy(
-        cycleLengthOffset,
+        bytesBufferOffset,
         &mCycleLength,
         sizeof(SerializedPathLengthSize));
 

@@ -7,6 +7,8 @@ set(SOURCE_FILES
         record/trust_line/TrustLineRecord.cpp
         record/payment/PaymentRecord.h
         record/payment/PaymentRecord.cpp
+        record/payment/PaymentAdditionalRecord.h
+        record/payment/PaymentAdditionalRecord.cpp
         record/audit/AuditRecord.h
         record/audit/AuditRecord.cpp
         record/audit/ReceiptRecord.h
@@ -32,9 +34,6 @@ set(SOURCE_FILES
         CommunicatorMessagesQueueHandler.h
         CommunicatorMessagesQueueHandler.cpp
 
-        BlackListHandler.h
-        BlackListHandler.cpp
-
         OwnKeysHandler.h
         OwnKeysHandler.cpp
         ContractorKeysHandler.h
@@ -47,10 +46,20 @@ set(SOURCE_FILES
         IncomingPaymentReceiptHandler.cpp
         OutgoingPaymentReceiptHandler.h
         OutgoingPaymentReceiptHandler.cpp
+        PaymentTransactionsHandler.h
+        PaymentTransactionsHandler.cpp
         PaymentParticipantsVotesHandler.h
-        PaymentParticipantsVotesHandler.cpp)
+        PaymentParticipantsVotesHandler.cpp
+        AuditRulesHandler.h
+        AuditRulesHandler.cpp
+
+        ContractorsHandler.h
+        ContractorsHandler.cpp
+        AddressHandler.h
+        AddressHandler.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 
 target_link_libraries(io__storage
-        libsqlite3)
+        libsqlite3
+        contractors)

@@ -3,12 +3,12 @@
 TrustLineRecord::TrustLineRecord(
     const TransactionUUID &operationUUID,
     const TrustLineRecord::TrustLineOperationType operationType,
-    const NodeUUID &contractorUUID):
+    Contractor::Shared contractor):
 
     Record(
-        Record::RecordType::TrustLineRecordType,
+        Record::TrustLineRecordType,
         operationUUID,
-        contractorUUID),
+        contractor),
     mTrustLineOperationType(operationType),
     mAmount(0)
 {}
@@ -16,13 +16,13 @@ TrustLineRecord::TrustLineRecord(
 TrustLineRecord::TrustLineRecord(
     const TransactionUUID &operationUUID,
     const TrustLineRecord::TrustLineOperationType operationType,
-    const NodeUUID &contractorUUID,
+    Contractor::Shared contractor,
     const TrustLineAmount &amount):
 
     Record(
-        Record::RecordType::TrustLineRecordType,
+        Record::TrustLineRecordType,
         operationUUID,
-        contractorUUID),
+        contractor),
     mTrustLineOperationType(operationType),
     mAmount(amount)
 {}
@@ -30,14 +30,14 @@ TrustLineRecord::TrustLineRecord(
 TrustLineRecord::TrustLineRecord(
     const TransactionUUID &operationUUID,
     const TrustLineRecord::TrustLineOperationType operationType,
-    const NodeUUID &contractorUUID,
+    Contractor::Shared contractor,
     const TrustLineAmount &amount,
     const GEOEpochTimestamp geoEpochTimestamp) :
 
     Record(
         Record::RecordType::TrustLineRecordType,
         operationUUID,
-        contractorUUID,
+        contractor,
         geoEpochTimestamp),
     mTrustLineOperationType(operationType),
     mAmount(amount)
@@ -56,4 +56,43 @@ const TrustLineRecord::TrustLineOperationType TrustLineRecord::trustLineOperatio
 const TrustLineAmount TrustLineRecord::amount() const
 {
     return mAmount;
+}
+
+pair<BytesShared, size_t> TrustLineRecord::serializedHistoryRecordBody() const
+{
+    size_t recordBodySize = sizeof(SerializedTrustLineOperationType) + mContractor->serializedSize();
+    if (mTrustLineOperationType != Closing &&
+            mTrustLineOperationType != Rejecting) {
+        recordBodySize += kTrustLineAmountBytesCount;
+    }
+
+    BytesShared bytesBuffer = tryCalloc(
+        recordBodySize);
+    size_t bytesBufferOffset = 0;
+
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        &mTrustLineOperationType,
+        sizeof(SerializedTrustLineOperationType));
+    bytesBufferOffset += sizeof(SerializedTrustLineOperationType);
+
+    auto contractorSerializedData = mContractor->serializeToBytes();
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        contractorSerializedData.get(),
+        mContractor->serializedSize());
+    bytesBufferOffset += mContractor->serializedSize();
+
+    if (mTrustLineOperationType != Closing &&
+            mTrustLineOperationType != Rejecting) {
+        auto trustAmountBytes = trustLineAmountToBytes(mAmount);
+
+        memcpy(
+            bytesBuffer.get() + bytesBufferOffset,
+            trustAmountBytes.data(),
+            kTrustLineAmountBytesCount);
+    }
+    return make_pair(
+        bytesBuffer,
+        recordBodySize);
 }

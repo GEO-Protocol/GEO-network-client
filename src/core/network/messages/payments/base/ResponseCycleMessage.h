@@ -9,14 +9,16 @@ public:
     enum OperationState {
         Accepted = 1,
         Rejected = 2,
-        RejectedBecauseReservations = 3,
-        NextNodeInaccessible = 4
+        RejectedDueOwnKeysAbsence = 3,
+        RejectedDueContractorKeysAbsence = 4,
+        RejectedBecauseReservations = 5,
+        NextNodeInaccessible = 6
     };
 
 public:
     ResponseCycleMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const OperationState state);
 
@@ -27,11 +29,10 @@ public:
 
 protected:
     typedef byte SerializedOperationState;
-    const size_t kOffsetToInheritedBytes() const
-    noexcept;
 
-    pair<BytesShared, size_t> serializeToBytes() const
-    throw (bad_alloc);
+    const size_t kOffsetToInheritedBytes() const override;
+
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     OperationState mState;

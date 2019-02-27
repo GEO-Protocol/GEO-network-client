@@ -1,24 +1,17 @@
 #include "HistoryPaymentsTransaction.h"
 
 HistoryPaymentsTransaction::HistoryPaymentsTransaction(
-    NodeUUID &nodeUUID,
     HistoryPaymentsCommand::Shared command,
     StorageHandler *storageHandler,
     Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::HistoryPaymentsTransactionType,
-        nodeUUID,
         command->equivalent(),
         logger),
     mCommand(command),
     mStorageHandler(storageHandler)
 {}
-
-HistoryPaymentsCommand::Shared HistoryPaymentsTransaction::command() const
-{
-    return mCommand;
-}
 
 TransactionResult::SharedConst HistoryPaymentsTransaction::run()
 {
@@ -28,7 +21,7 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::run()
         auto const paymentRecords = ioTransaction->historyStorage()->paymentRecordsByCommandUUID(
             mCommand->paymentRecordCommandUUID());
         if (paymentRecords.size() > 1) {
-            warning() << "Count transactions with given commandUUID is more than one";
+            warning() << "Count transactions with requested commandUUID is more than one";
         }
         return resultOk(paymentRecords);
     }
@@ -74,12 +67,12 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::resultOk(
                 "unexpected operation type occurred.");
         }
 
-        stream << kTokensSeparator << kRecord->operationUUID() << kTokensSeparator;
-        stream << kUnixTimestampMicrosec << kTokensSeparator;
-        stream << kRecord->contractorUUID() << kTokensSeparator;
-        stream << formattedOperationType << kTokensSeparator;
-        stream << kRecord->amount() << kTokensSeparator;
-        stream << kRecord->balanceAfterOperation();
+        stream << kTokensSeparator << kRecord->operationUUID()
+               << kTokensSeparator << kUnixTimestampMicrosec
+               << kTokensSeparator << kRecord->contractor()->outputString()
+               << kTokensSeparator << formattedOperationType
+               << kTokensSeparator << kRecord->amount()
+               << kTokensSeparator << kRecord->balanceAfterOperation();
     }
 
     auto result = stream.str();

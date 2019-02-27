@@ -1,14 +1,18 @@
 #include "EquivalentsSubsystemsRouter.h"
 
 EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
-    NodeUUID &nodeUUID,
     StorageHandler *storageHandler,
+    Keystore *keystore,
+    ContractorsManager *contractorsManager,
+    EventsInterface *eventsInterface,
     as::io_service &ioService,
     vector<SerializedEquivalent> &equivalentsIAmGateway,
     Logger &logger):
 
-    mNodeUUID(nodeUUID),
     mStorageHandler(storageHandler),
+    mKeysStore(keystore),
+    mContractorsManager(contractorsManager),
+    mEventsInterface(eventsInterface),
     mIOService(ioService),
     mLogger(logger)
 {
@@ -33,6 +37,8 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                 make_unique<TrustLinesManager>(
                     equivalent,
                     mStorageHandler,
+                    mKeysStore,
+                    mContractorsManager,
                     mLogger)));
         info() << "Trust Lines Manager is successfully initialized";
 
@@ -42,7 +48,6 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                 make_unique<TopologyTrustLinesManager>(
                     equivalent,
                     mIAmGateways[equivalent],
-                    mNodeUUID,
                     mLogger)));
         info() << "Topology Trust Lines Manager is successfully initialized";
 
@@ -79,11 +84,17 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                 equivalent,
                 make_unique<PathsManager>(
                     equivalent,
-                    mNodeUUID,
                     mTrustLinesManagers[equivalent].get(),
                     mTopologyTrustLinesManagers[equivalent].get(),
                     mLogger)));
         info() << "Paths Manager is successfully initialized";
+    }
+
+    for (const auto &trustLinesManager : mTrustLinesManagers) {
+        for (const auto &contractorID : trustLinesManager.second->contractorsShouldBePinged()) {
+            mContractorsShouldBePinged.insert(contractorID);
+        }
+        trustLinesManager.second->clearContractorsShouldBePinged();
     }
 
     mGatewayNotificationAndRoutingTablesDelayedTask = make_unique<GatewayNotificationAndRoutingTablesDelayedTask>(
@@ -185,6 +196,8 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
             make_unique<TrustLinesManager>(
                 equivalent,
                 mStorageHandler,
+                mKeysStore,
+                mContractorsManager,
                 mLogger)));
     info() << "Trust Lines Manager is successfully initialized";
 
@@ -194,7 +207,6 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
             make_unique<TopologyTrustLinesManager>(
                 equivalent,
                 false,
-                mNodeUUID,
                 mLogger)));
     info() << "Topology Trust Lines Manager is successfully initialized";
 
@@ -231,13 +243,37 @@ void EquivalentsSubsystemsRouter::initNewEquivalent(
              equivalent,
              make_unique<PathsManager>(
                  equivalent,
-                 mNodeUUID,
                  mTrustLinesManagers[equivalent].get(),
                  mTopologyTrustLinesManagers[equivalent].get(),
                  mLogger)));
     info() << "Paths Manager is successfully initialized";
 
     mEquivalents.push_back(equivalent);
+}
+
+set<ContractorID> EquivalentsSubsystemsRouter::contractorsShouldBePinged() const
+{
+    return mContractorsShouldBePinged;
+}
+
+void EquivalentsSubsystemsRouter::clearContractorsShouldBePinged()
+{
+    mContractorsShouldBePinged.clear();
+}
+
+void EquivalentsSubsystemsRouter::sendTopologyEvent() const
+{
+    for (const auto &trustLineManager : mTrustLinesManagers) {
+        auto neighbors = trustLineManager.second->firstLevelNeighborsAddresses();
+        try {
+            mEventsInterface->writeEvent(
+                Event::topologyEvent(
+                    mContractorsManager->selfContractor()->mainAddress(),
+                    neighbors));
+        } catch (std::exception &e) {
+            warning() << "Can't write topology event " << e.what();
+        }
+    }
 }
 
 void EquivalentsSubsystemsRouter::subscribeForGatewayNotification(

@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_CLOSEINCOMINGTRUSTLINECOMMAND_H
 
 #include "../BaseUserCommand.h"
-
 #include "../../../../common/exceptions/ValueError.h"
 
 class CloseIncomingTrustLineCommand : public BaseUserCommand {
@@ -18,14 +17,14 @@ public:
     static const string &identifier()
         noexcept;
 
-    const NodeUUID &contractorUUID() const
+    const ContractorID contractorID() const
         noexcept;
 
     const SerializedEquivalent equivalent() const
         noexcept;
 
 private:
-    NodeUUID mContractorUUID;
+    ContractorID mContractorID;
     SerializedEquivalent mEquivalent;
 };
 

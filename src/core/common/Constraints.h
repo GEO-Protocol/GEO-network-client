@@ -3,12 +3,14 @@
 
 #include "Types.h"
 
+const size_t kTrustLineAmountBytesCount = 32;
+const size_t kTrustLineBalanceBytesCount = 32;
+const size_t kTrustLineBalanceSerializeBytesCount = 33;
 
-static const uint16_t kMaxNeighborNodesCount = std::numeric_limits<uint16_t>::max() - 10;
-
-
-// Routing tables
-static const uint8_t kRoutingTablesMaxLevel = 2; // 0, 1, 2, three in total
+static const constexpr char kCommandsSeparator = '\n';
+static const constexpr char kTokensSeparator = '\t';
+static const constexpr char kAddressTypeSeparator = '-';
+static const constexpr char kAddressSeparator = ':';
 
 
 #endif //GEO_NETWORK_CLIENT_CONSTANTS_H

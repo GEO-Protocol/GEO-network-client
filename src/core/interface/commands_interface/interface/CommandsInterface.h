@@ -5,8 +5,10 @@
 
 #include "../../../logger/Logger.h"
 
+#include "../commands/trust_lines/InitTrustLineCommand.h"
 #include "../commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../commands/trust_lines/CloseIncomingTrustLineCommand.h"
+#include "../commands/trust_lines/ShareKeysCommand.h"
 #include "../commands/payments/CreditUsageCommand.h"
 #include "../commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 #include "../commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h"
@@ -17,14 +19,11 @@
 #include "../commands/history/HistoryWithContractorCommand.h"
 #include "../commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../commands/trust_lines_list/GetTrustLinesCommand.h"
-#include "../commands/trust_lines_list/GetTrustLineCommand.h"
+#include "../commands/trust_lines_list/GetTrustLineByAddressCommand.h"
+#include "../commands/trust_lines_list/GetTrustLineByIDCommand.h"
 #include "../commands/trust_lines_list/EquivalentListCommand.h"
 #include "../commands/subsystems_controller/SubsystemsInfluenceCommand.h"
 #include "../commands/subsystems_controller/TrustLinesInfluenceCommand.h"
-#include "../commands/blacklist/AddNodeToBlackListCommand.h"
-#include "../commands/blacklist/CheckIfNodeInBlackListCommand.h"
-#include "../commands/blacklist/RemoveNodeFromBlackListCommand.h"
-#include "../commands/blacklist/GetBlackListCommand.h"
 #include "../commands/transactions/PaymentTransactionByCommandUUIDCommand.h"
 
 #include "../../../common/exceptions/IOError.h"

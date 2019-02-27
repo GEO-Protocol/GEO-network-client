@@ -1,16 +1,13 @@
 #include "OutgoingRemoteNode.h"
 
-
 OutgoingRemoteNode::OutgoingRemoteNode(
-    const NodeUUID &remoteNodeUUID,
-    UUID2Address &uuid2addressService,
+    Contractor::Shared remoteContractor,
     UDPSocket &socket,
     IOService &ioService,
     Logger &logger)
     noexcept :
 
-    mRemoteNodeUUID(remoteNodeUUID),
-    mUUID2AddressService(uuid2addressService),
+    mRemoteContractor(remoteContractor),
     mIOService(ioService),
     mSocket(socket),
     mLog(logger),
@@ -27,7 +24,7 @@ void OutgoingRemoteNode::sendMessage(
         // In case if queue already contains packets -
         // then async handler is already scheduled.
         // Otherwise - it must be initialised.
-        bool packetsSendingAlreadyScheduled = mPacketsQueue.size() > 0;
+        bool packetsSendingAlreadyScheduled = !mPacketsQueue.empty();
 
         auto bytesAndBytesCount = message->serializeToBytes();
         if (bytesAndBytesCount.second > Message::maxSize()) {
@@ -38,7 +35,7 @@ void OutgoingRemoteNode::sendMessage(
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         const Message::SerializedType kMessageType =
             *(reinterpret_cast<Message::SerializedType*>(
-                bytesAndBytesCount.first.get()));
+                bytesAndBytesCount.first.get() + sizeof(SerializedProtocolVersion)));
 
         debug()
             << "Message of type "
@@ -56,14 +53,14 @@ void OutgoingRemoteNode::sendMessage(
 
     } catch (exception &e) {
         errors()
-            << "Exception occured: "
+            << "Exception occurred: "
             << e.what();
     }
 }
 
 bool OutgoingRemoteNode::containsPacketsInQueue() const
 {
-    return mPacketsQueue.size() > 0;
+    return !mPacketsQueue.empty();
 }
 
 uint32_t OutgoingRemoteNode::crc32Checksum(
@@ -83,8 +80,8 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
     const auto kMessageContentWithCRC32BytesCount = messageBytesCount + sizeof(uint32_t);
 
     PacketHeader::TotalPacketsCount kTotalPacketsCount =
-        static_cast<PacketHeader::TotalPacketsCount>(
-            kMessageContentWithCRC32BytesCount / Packet::kMaxSize);
+            static_cast<PacketHeader::TotalPacketsCount>(
+                    kMessageContentWithCRC32BytesCount / Packet::kMaxSize);
 
     if (kMessageContentWithCRC32BytesCount % Packet::kMaxSize != 0)
         kTotalPacketsCount += 1;
@@ -104,7 +101,7 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
             // ToDo: remove all previously created packets from the queue to prevent memory leak.
             auto buffer = static_cast<byte*>(malloc(Packet::kMaxSize));
             if (buffer == nullptr) {
-                // Memory error occured.
+                // Memory error occurred.
                 // Current packet can't be enqueued, so there is no reason to try to enqueue the rest packets.
                 // Already created packets would be removed from the queue on the cleaning stage.
                 throw bad_alloc();
@@ -147,7 +144,7 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
 
     // Writing last packet
     const PacketHeader::PacketSize kLastPacketSize =
-        static_cast<PacketHeader::PacketSize>(kMessageContentWithCRC32BytesCount - messageContentBytesProcessed) + PacketHeader::kSize;
+            static_cast<PacketHeader::PacketSize>(kMessageContentWithCRC32BytesCount - messageContentBytesProcessed) + PacketHeader::kSize;
 
     byte *buffer = static_cast<byte*>(malloc(kLastPacketSize));
     if (buffer == nullptr) {
@@ -201,15 +198,17 @@ void OutgoingRemoteNode::beginPacketsSending()
         return;
     }
 
-
     UDPEndpoint endpoint;
     try {
-        endpoint = mUUID2AddressService.endpoint(mRemoteNodeUUID);
-
+        endpoint = as::ip::udp::endpoint(
+            as::ip::address_v4::from_string(mRemoteContractor->mainAddress()->host()),
+            mRemoteContractor->mainAddress()->port());
+        debug() << "Endpoint address " << endpoint.address().to_string();
+        debug() << "Endpoint port " << endpoint.port();
     } catch  (exception &) {
         errors()
-            << "Endpoint can't be fetched from uuid2address. "
-            << "No messages can be sent. Outgoing queue cleared.";
+                << "Endpoint can't be fetched from Contractor. "
+                << "No messages can be sent. Outgoing queue cleared.";
 
         while (!mPacketsQueue.empty()) {
             const auto packetDataAndSize = mPacketsQueue.front();
@@ -252,20 +251,19 @@ void OutgoingRemoteNode::beginPacketsSending()
             packetDataAndSize.second),
         endpoint,
         [this, endpoint] (const boost::system::error_code &error, const size_t bytesTransferred) {
-
             const auto packetDataAndSize = mPacketsQueue.front();
             if (bytesTransferred != packetDataAndSize.second) {
                 if (error) {
                     errors()
                         << "OutgoingRemoteNode::beginPacketsSending: "
-                        << "Next packet can't be sent to the node (" << mRemoteNodeUUID << "). "
+                        << "Next packet can't be sent to the node (" << mRemoteContractor->getID() << "). "
                         << "Error code: " << error.value();
                 }
 
                 // Removing packet from the memory
                 free(packetDataAndSize.first);
                 mPacketsQueue.pop();
-                if (mPacketsQueue.size() > 0) {
+                if (!mPacketsQueue.empty()) {
                     beginPacketsSending();
                 }
 
@@ -294,10 +292,8 @@ void OutgoingRemoteNode::beginPacketsSending()
             free(packetDataAndSize.first);
             mPacketsQueue.pop();
 
-
-
             mCyclesStats.first = boost::posix_time::microsec_clock::universal_time();
-            if (mPacketsQueue.size() > 0) {
+            if (!mPacketsQueue.empty()) {
                 beginPacketsSending();
             }
         });
@@ -314,7 +310,7 @@ LoggerStream OutgoingRemoteNode::errors() const
 {
     return mLog.warning(
             string("Communicator / OutgoingRemoteNode [")
-            + mRemoteNodeUUID.stringUUID()
+            + to_string(mRemoteContractor->getID())
             + string("]"));
 }
 
@@ -322,8 +318,8 @@ LoggerStream OutgoingRemoteNode::debug() const
 {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     return mLog.debug(
-        string("Communicator / OutgoingRemoteNode [")
-        + mRemoteNodeUUID.stringUUID()
+        string("Communicator / OutgoingRemoteNodeNew [")
+        + to_string(mRemoteContractor->getID())
         + string("]"));
 #endif
 

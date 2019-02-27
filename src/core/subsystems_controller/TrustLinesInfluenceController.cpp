@@ -4,23 +4,18 @@ TrustLinesInfluenceController::TrustLinesInfluenceController(
     Logger &log):
     mLog(log)
 {
-    mCountForbiddenReceivedMessages = 0;
-    mForbiddenReceiveMessageType = Message::Debug;
+    mFirstParameter = 0;
+    mSecondParameter = 0;
+    mThirdParameter = 0;
     mForbidReceiveMessages = false;
-    mThrowExceptionOnTLModifyingStage = false;
-    mThrowExceptionOnTLProcessingResponseStage = false;
-    mThrowExceptionOnKeysSharingStage = false;
-    mThrowExceptionOnKeysSharingResponseProcessingStage = false;
-    mThrowExceptionOnKeysSharingReceiverStage = false;
-    mThrowExceptionOnAuditStage = false;
-    mThrowExceptionOnAuditResponseProcessingStage = false;
-    mTerminateProcessOnTLModifyingStage = false;
-    mTerminateProcessOnTLProcessingResponseStage = false;
-    mTerminateProcessOnKeysSharingStage = false;
-    mTerminateProcessOnKeysSharingResponseProcessingStage = false;
-    mTerminateProcessOnKeysSharingReceiverStage = false;
-    mTerminateProcessOnAuditStage = false;
-    mTerminateProcessOnAuditResponseProcessingStage = false;
+    mThrowExceptionOnSourceInitializationStage = false;
+    mThrowExceptionOnSourceProcessingResponseStage = false;
+    mThrowExceptionOnSourceResumingStage = false;
+    mThrowExceptionOnTargetStage = false;
+    mTerminateProcessOnSourceInitializationStage = false;
+    mTerminateProcessOnSourceProcessingResponseStage = false;
+    mTerminateProcessOnSourceResumingStage = false;
+    mTerminateProcessOnTargetStage = false;
 
     mTerminateProcessOnScheduler = false;
 }
@@ -30,35 +25,36 @@ void TrustLinesInfluenceController::setFlags(size_t flags)
     debug() << "setFlags: " << flags;
     mForbidReceiveMessages = (flags & 0x4) != 0;
 
-    mThrowExceptionOnTLModifyingStage = (flags & 0x800) != 0;
-    mThrowExceptionOnTLProcessingResponseStage = (flags & 0x1000) != 0;
-    mThrowExceptionOnKeysSharingStage = (flags & 0x2000) != 0;
-    mThrowExceptionOnKeysSharingResponseProcessingStage = (flags & 0x4000) != 0;
-    mThrowExceptionOnKeysSharingReceiverStage = (flags & 0x8000) != 0;
-    mThrowExceptionOnAuditStage = (flags & 0x10000) != 0;
-    mThrowExceptionOnAuditResponseProcessingStage = (flags & 0x20000) != 0;
+    mThrowExceptionOnSourceInitializationStage = (flags & 0x800) != 0;
+    mThrowExceptionOnSourceProcessingResponseStage = (flags & 0x1000) != 0;
+    mThrowExceptionOnSourceResumingStage = (flags & 0x2000) != 0;
+    mThrowExceptionOnTargetStage = (flags & 0x4000) != 0;
 
-    mTerminateProcessOnTLModifyingStage = (flags & 0x200000) != 0;
-    mTerminateProcessOnTLProcessingResponseStage = (flags & 0x400000) != 0;
-    mTerminateProcessOnKeysSharingStage = (flags & 0x800000) != 0;
-    mTerminateProcessOnKeysSharingResponseProcessingStage = (flags & 0x1000000) != 0;
-    mTerminateProcessOnKeysSharingReceiverStage = (flags & 0x2000000) != 0;
-    mTerminateProcessOnAuditStage = (flags & 0x4000000) != 0;
-    mTerminateProcessOnAuditResponseProcessingStage = (flags & 0x8000000) != 0;
+    mTerminateProcessOnSourceInitializationStage = (flags & 0x200000) != 0;
+    mTerminateProcessOnSourceProcessingResponseStage = (flags & 0x400000) != 0;
+    mTerminateProcessOnSourceResumingStage = (flags & 0x800000) != 0;
+    mTerminateProcessOnTargetStage = (flags & 0x1000000) != 0;
 }
 
-void TrustLinesInfluenceController::setForbiddenReceiveMessageType(
-    const Message::MessageType forbiddenMessageType)
+void TrustLinesInfluenceController::setFirstParameter(
+    uint32_t firstParameter)
 {
-    debug() << "setForbiddenReceiveMessageType " << forbiddenMessageType;
-    mForbiddenReceiveMessageType = forbiddenMessageType;
+    debug() << "setFirstParameter " << firstParameter;
+    mFirstParameter = firstParameter;
 }
 
-void TrustLinesInfluenceController::setCountForbiddenReceivedMessages(
-    uint32_t countForbiddenReceivedMessages)
+void TrustLinesInfluenceController::setSecondParameter(
+    uint32_t secondParameter)
 {
-    debug() << "setCountForbiddenReceivedMessages " << countForbiddenReceivedMessages;
-    mCountForbiddenReceivedMessages = countForbiddenReceivedMessages;
+    debug() << "setSecondParameter " << secondParameter;
+    mSecondParameter = secondParameter;
+}
+
+void TrustLinesInfluenceController::setThirdParameter(
+    uint32_t thirdParameter)
+{
+    debug() << "setThirdParameter " << thirdParameter;
+    mThirdParameter = thirdParameter;
 }
 
 bool TrustLinesInfluenceController::checkReceivedMessage(
@@ -67,179 +63,155 @@ bool TrustLinesInfluenceController::checkReceivedMessage(
     if (!mForbidReceiveMessages) {
         return false;
     }
-    if (mCountForbiddenReceivedMessages == 0) {
+    if (receivedMessageType != mFirstParameter) {
         return false;
     }
-    if (receivedMessageType == mForbiddenReceiveMessageType) {
-        mCountForbiddenReceivedMessages--;
-        return true;
+    if (mSecondParameter == 0) {
+        return false;
     }
-    return false;
+    if (mThirdParameter != 0) {
+        mThirdParameter--;
+        return false;
+    }
+    mSecondParameter--;
+    return true;
 }
 
-void TrustLinesInfluenceController::testThrowExceptionOnTLModifyingStage()
+void TrustLinesInfluenceController::testThrowExceptionOnSourceInitializationStage(
+    BaseTransaction::TransactionType transactionType)
 {
-    if (mThrowExceptionOnTLModifyingStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            throw IOError("Test IO exception on TL modifying stage");
-        } else {
-            throw Exception("Test exception on TL modifying stage");
+    info() << "testThrowExceptionOnSourceInitializationStage " << transactionType;
+    if (mFirstParameter != transactionType) {
+        return;
+    }
+    if (mThrowExceptionOnSourceInitializationStage) {
+        mThrowExceptionOnSourceInitializationStage = false;
+        if (mSecondParameter == 1) {
+            throw Exception("Test exception");
+        } else if (mSecondParameter == 2) {
+            throw IOError("Test IO exception");
         }
     }
 }
 
-void TrustLinesInfluenceController::testThrowExceptionOnTLProcessingResponseStage()
+void TrustLinesInfluenceController::testThrowExceptionOnSourceProcessingResponseStage(
+    BaseTransaction::TransactionType transactionType)
 {
-    if (mThrowExceptionOnTLProcessingResponseStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            throw IOError("Test IO exception on TL response processing stage");
-        } else {
-            throw Exception("Test exception on TL response processing stage");
+    info() << "testThrowExceptionOnSourceProcessingResponseStage " << transactionType;
+    if (mFirstParameter != transactionType) {
+        return;
+    }
+    if (mThrowExceptionOnSourceProcessingResponseStage) {
+        mThrowExceptionOnSourceProcessingResponseStage = false;
+        if (mSecondParameter == 1) {
+            throw Exception("Test exception");
+        } else if (mSecondParameter == 2) {
+            throw IOError("Test IO exception");
         }
     }
 }
 
-void TrustLinesInfluenceController::testThrowExceptionOnKeysSharingStage()
+void TrustLinesInfluenceController::testThrowExceptionOnSourceResumingStage(
+        BaseTransaction::TransactionType transactionType)
 {
-    if (mThrowExceptionOnKeysSharingStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            throw IOError("testThrowExceptionOnKeysSharingStage IO");
-        } else {
-            throw Exception("testThrowExceptionOnKeysSharingStage");
+    info() << "testThrowExceptionOnSourceResumingStage " << transactionType;
+    if (mFirstParameter != transactionType) {
+        return;
+    }
+    if (mThrowExceptionOnSourceResumingStage) {
+        mThrowExceptionOnSourceResumingStage = false;
+        if (mSecondParameter == 1) {
+            throw Exception("Test exception");
+        } else if (mSecondParameter == 2) {
+            throw IOError("Test IO exception");
         }
     }
 }
 
-void TrustLinesInfluenceController::testThrowExceptionOnKeysSharingProcessingResponseStage()
+void TrustLinesInfluenceController::testThrowExceptionOnTargetStage(
+    BaseTransaction::TransactionType transactionType)
 {
-    if (mThrowExceptionOnKeysSharingResponseProcessingStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            throw IOError("testThrowExceptionOnKeysSharingProcessingResponseStage IO");
-        } else {
-            throw Exception("testThrowExceptionOnKeysSharingProcessingResponseStage");
+    info() << "testThrowExceptionOnTargetStage " << transactionType;
+    if (mFirstParameter != transactionType) {
+        return;
+    }
+    if (mThrowExceptionOnTargetStage) {
+        mThrowExceptionOnTargetStage = false;
+        if (mSecondParameter == 1) {
+            throw Exception("Test exception");
+        } else if (mSecondParameter == 2) {
+            throw IOError("Test IO exception");
         }
     }
 }
 
-void TrustLinesInfluenceController::testThrowExceptionOnKeysSharingReceiverStage()
+void TrustLinesInfluenceController::testTerminateProcessOnSourceInitializationStage(
+    BaseTransaction::TransactionType transactionType)
 {
-    if (mThrowExceptionOnKeysSharingReceiverStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            throw IOError("testThrowExceptionOnKeysSharingReceiverStage IO");
-        } else {
-            throw Exception("testThrowExceptionOnKeysSharingReceiverStage");
-        }
+    info() << "testTerminateProcessOnSourceInitializationStage " << transactionType;
+    if (mFirstParameter != transactionType) {
+        return;
     }
-}
-
-void TrustLinesInfluenceController::testThrowExceptionOnAuditStage()
-{
-    if (mThrowExceptionOnAuditStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            throw IOError("testThrowExceptionOnAuditStage IO");
-        } else {
-            throw Exception("testThrowExceptionOnAuditStage");
-        }
-    }
-}
-
-void TrustLinesInfluenceController::testThrowExceptionOnAuditResponseProcessingStage()
-{
-    if (mThrowExceptionOnAuditResponseProcessingStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            throw IOError("testThrowExceptionOnAuditResponseProcessingStage IO");
-        } else {
-            throw Exception("testThrowExceptionOnAuditResponseProcessingStage");
-        }
-    }
-}
-
-void TrustLinesInfluenceController::testTerminateProcessOnTLModifyingStage()
-{
-    if (mTerminateProcessOnTLModifyingStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            debug() << "testTerminateProcessOnTLModifyingStage";
+    if (mTerminateProcessOnSourceInitializationStage) {
+        if (mSecondParameter == 1) {
+            debug() << "TerminateProcess";
             exit(100);
-        } else {
-            debug() << "testTerminateProcessOnTLModifyingStage Scheduler";
+        } else if (mSecondParameter == 2) {
+            debug() << "TerminateProcess Scheduler";
             mTerminateProcessOnScheduler = true;
         }
     }
 }
 
-void TrustLinesInfluenceController::testTerminateProcessOnTLProcessingResponseStage()
+void TrustLinesInfluenceController::testTerminateProcessOnSourceProcessingResponseStage(
+    BaseTransaction::TransactionType transactionType)
 {
-    if (mTerminateProcessOnTLProcessingResponseStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            debug() << "testTerminateProcessOnTLProcessingResponseStage";
+    info() << "testTerminateProcessOnSourceProcessingResponseStage " << transactionType;
+    if (mFirstParameter != transactionType) {
+        return;
+    }
+    if (mTerminateProcessOnSourceProcessingResponseStage) {
+        if (mSecondParameter == 1) {
+            debug() << "TerminateProcess";
             exit(100);
-        } else {
-            debug() << "testTerminateProcessOnTLProcessingResponseStage Scheduler";
+        } else if (mSecondParameter == 2) {
+            debug() << "TerminateProcess Scheduler";
             mTerminateProcessOnScheduler = true;
         }
     }
 }
 
-void TrustLinesInfluenceController::testTerminateProcessOnKeysSharingStage()
+void TrustLinesInfluenceController::testTerminateProcessOnSourceResumingStage(
+    BaseTransaction::TransactionType transactionType)
 {
-    if (mTerminateProcessOnKeysSharingStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            debug() << "testTerminateProcessOnKeysSharingStage";
+    info() << "testTerminateProcessOnSourceResumingStage " << transactionType;
+    if (mFirstParameter != transactionType) {
+        return;
+    }
+    if (mTerminateProcessOnSourceResumingStage) {
+        if (mSecondParameter == 1) {
+            debug() << "TerminateProcess";
             exit(100);
-        } else {
-            debug() << "testTerminateProcessOnKeysSharingStage Scheduler";
+        } else if (mSecondParameter == 2) {
+            debug() << "TerminateProcess Scheduler";
             mTerminateProcessOnScheduler = true;
         }
     }
 }
 
-void TrustLinesInfluenceController::testTerminateProcessOnKeysSharingProcessingResponseStage()
+void TrustLinesInfluenceController::testTerminateProcessOnTargetStage(
+    BaseTransaction::TransactionType transactionType)
 {
-    if (mTerminateProcessOnKeysSharingResponseProcessingStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            debug() << "testTerminateProcessOnKeysSharingProcessingResponseStage";
-            exit(100);
-        } else {
-            debug() << "testTerminateProcessOnKeysSharingProcessingResponseStage Scheduler";
-            mTerminateProcessOnScheduler = true;
-        }
+    info() << "testTerminateProcessOnTargetStage " << transactionType;
+    if (mFirstParameter != transactionType) {
+        return;
     }
-}
-
-void TrustLinesInfluenceController::testTerminateProcessOnKeysSharingReceiverStage()
-{
-    if (mTerminateProcessOnKeysSharingReceiverStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            debug() << "testTerminateProcessOnKeysSharingReceiverStage";
+    if (mTerminateProcessOnTargetStage) {
+        if (mSecondParameter == 1) {
+            debug() << "TerminateProcess";
             exit(100);
-        } else {
-            debug() << "testTerminateProcessOnKeysSharingReceiverStage Scheduler";
-            mTerminateProcessOnScheduler = true;
-        }
-    }
-}
-
-void TrustLinesInfluenceController::testTerminateProcessOnAuditStage()
-{
-    if (mTerminateProcessOnAuditStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            debug() << "testTerminateProcessOnAuditStage";
-            exit(100);
-        } else {
-            debug() << "testTerminateProcessOnAuditStage Scheduler";
-            mTerminateProcessOnScheduler = true;
-        }
-    }
-}
-
-void TrustLinesInfluenceController::testTerminateProcessOnAuditResponseProcessingStage()
-{
-    if (mTerminateProcessOnAuditResponseProcessingStage) {
-        if (mForbiddenReceiveMessageType == Message::Debug) {
-            debug() << "testTerminateProcessOnAuditResponseProcessingStage";
-            exit(100);
-        } else {
-            debug() << "testTerminateProcessOnAuditResponseProcessingStage Scheduler";
+        } else if (mSecondParameter == 2) {
+            debug() << "TerminateProcess Scheduler";
             mTerminateProcessOnScheduler = true;
         }
     }

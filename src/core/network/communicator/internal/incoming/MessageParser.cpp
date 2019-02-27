@@ -9,15 +9,24 @@ MessagesParser::MessagesParser(
 
 pair<bool, Message::Shared> MessagesParser::processBytesSequence(
     BytesShared buffer,
-    const size_t count) {
-
+    const size_t count)
+{
+    debug() << "processBytesSequence";
     if (count < kMinimalMessageSize || buffer == nullptr) {
         return messageInvalidOrIncomplete();
     }
 
     try {
+        const SerializedProtocolVersion kMessageProtocolVersion =
+            *(reinterpret_cast<SerializedProtocolVersion *>(buffer.get()));
+        if (kMessageProtocolVersion != Message::ProtocolVersion::Latest) {
+            warning() << "processBytesSequence: Message with invalid protocol version occurred "
+                      << (uint16_t)kMessageProtocolVersion << " current protocol version " << Message::Latest << ". Message dropped.";
+            return messageInvalidOrIncomplete();
+        }
+
         const Message::SerializedType kMessageIdentifier =
-            *(reinterpret_cast<Message::SerializedType*>(buffer.get()));
+            *(reinterpret_cast<Message::SerializedType*>(buffer.get() + sizeof(SerializedProtocolVersion)));
 
         switch(kMessageIdentifier) {
 
@@ -31,17 +40,14 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         /*
          * Trust lines messages
          */
-        case Message::TrustLines_SetIncoming:
-            return messageCollected<SetIncomingTrustLineMessage>(buffer);
-
-        case Message::TrustLines_SetIncomingInitial:
-            return messageCollected<SetIncomingTrustLineInitialMessage>(buffer);
-
-        case Message::TrustLines_CloseOutgoing:
-            return messageCollected<CloseOutgoingTrustLineMessage>(buffer);
+        case Message::TrustLines_Initial:
+            return messageCollected<TrustLineInitialMessage>(buffer);
 
         case Message::TrustLines_Confirmation:
             return messageCollected<TrustLineConfirmationMessage>(buffer);
+
+        case Message::TrustLines_PublicKeysSharingInit:
+            return messageCollected<PublicKeysSharingInitMessage>(buffer);
 
         case Message::TrustLines_PublicKey:
             return messageCollected<PublicKeyMessage>(buffer);
@@ -196,6 +202,18 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::RoutingTableResponse:
             return messageCollected<RoutingTableResponseMessage>(buffer);
 
+        /*
+         * General
+         */
+        case Message::General_Ping:
+            return messageCollected<PingMessage>(buffer);
+
+        case Message::General_Pong:
+            return messageCollected<PongMessage>(buffer);
+
+        case Message::General_NoEquivalent:
+            return messageCollected<NoEquivalentMessage>(buffer);
+
         default: {
             warning() << "processBytesSequence: "
                 << "Unexpected message identifier occurred (" << kMessageIdentifier << "). Message dropped.";
@@ -205,6 +223,7 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         }
 
     } catch (exception &) {
+        warning() << "processBytesSequence: Unexpected error occurred";
         return messageInvalidOrIncomplete();
     }
 }
@@ -243,4 +262,10 @@ LoggerStream MessagesParser::warning() const
     noexcept
 {
     return mLog->warning(logHeader());
+}
+
+LoggerStream MessagesParser::debug() const
+    noexcept
+{
+    return mLog->debug(logHeader());
 }

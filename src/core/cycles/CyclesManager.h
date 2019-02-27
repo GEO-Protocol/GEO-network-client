@@ -28,16 +28,13 @@ public:
     };
 
 public:
-    typedef signals::signal<void(const SerializedEquivalent equivalent)> BuildSixNodesCyclesSignal;
-    typedef signals::signal<void(const SerializedEquivalent equivalent)> BuildFiveNodesCyclesSignal;
-    typedef signals::signal<void(
-            const SerializedEquivalent equivalent,
-            Path::ConstShared cycle)> CloseCycleSignal;
+    typedef signals::signal<void(const SerializedEquivalent)> BuildSixNodesCyclesSignal;
+    typedef signals::signal<void(const SerializedEquivalent)> BuildFiveNodesCyclesSignal;
+    typedef signals::signal<void(const SerializedEquivalent, Path::Shared)> CloseCycleSignal;
 
 public:
     CyclesManager(
         const SerializedEquivalent equivalent,
-        const NodeUUID &nodeUUID,
         TransactionsScheduler *transactionsScheduler,
         as::io_service &ioService,
         Logger &logger,
@@ -47,7 +44,7 @@ public:
         bool nextCycleShouldBeRunned = false);
 
     void addCycle(
-        Path::ConstShared);
+        Path::Shared);
 
     bool resolveReservationConflict(
         const TransactionUUID &challengerTransactionUUID,
@@ -57,11 +54,11 @@ public:
         const TransactionUUID &transactionUUID);
 
     void addClosedTrustLine(
-        const NodeUUID &source,
-        const NodeUUID &destination);
+        BaseAddress::Shared source,
+        BaseAddress::Shared destination);
 
     void addOfflineNode(
-        const NodeUUID &nodeUUID);
+        BaseAddress::Shared nodeAddress);
 
 private:
     void runSignalSixNodes(
@@ -73,7 +70,7 @@ private:
     void updateOfflineNodesAndClosedTLLists(
         const boost::system::error_code &err);
 
-    vector<Path::ConstShared>* cyclesVector(
+    vector<Path::Shared>* cyclesVector(
         CycleClosingState currentCycleClosingState);
 
     void incrementCurrentCycleClosingState();
@@ -85,13 +82,13 @@ private:
     void clearClosedCycles();
 
     void removeCyclesWithClosedTrustLine(
-        const NodeUUID &sourceClosed,
-        const NodeUUID &destinationClosed,
-        vector<Path::ConstShared> &cycles);
+        BaseAddress::Shared sourceClosed,
+        BaseAddress::Shared destinationClosed,
+        vector<Path::Shared> &cycles);
 
     void removeCyclesWithOfflineNode(
-        const NodeUUID &offlineNode,
-        vector<Path::ConstShared> &cycles);
+        BaseAddress::Shared offlineNode,
+        vector<Path::Shared> &cycles);
 
     uint32_t randomInitializer() const;
 
@@ -130,16 +127,16 @@ private:
 
 private:
     TransactionsScheduler *mTransactionScheduler;
-    NodeUUID mNodeUUID;
     SerializedEquivalent mEquivalent;
     as::io_service &mIOService;
-    vector<Path::ConstShared> mThreeNodesCycles;
-    vector<Path::ConstShared> mFourNodesCycles;
-    vector<Path::ConstShared> mFiveNodesCycles;
-    vector<Path::ConstShared> mSixNodesCycles;
 
-    map<DateTime, pair<NodeUUID, NodeUUID>> mClosedTrustLines;
-    map<DateTime, NodeUUID> mOfflineNodes;
+    vector<Path::Shared> mThreeNodesCycles;
+    vector<Path::Shared> mFourNodesCycles;
+    vector<Path::Shared> mFiveNodesCycles;
+    vector<Path::Shared> mSixNodesCycles;
+
+    map<DateTime, pair<BaseAddress::Shared, BaseAddress::Shared>> mClosedTrustLines;
+    map<DateTime, BaseAddress::Shared> mOfflineNodes;
 
     CycleClosingState mCurrentCycleClosingState;
     Logger &mLog;

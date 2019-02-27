@@ -7,15 +7,11 @@ set(SOURCE_FILES
 
     SetOutgoingTrustLineTransaction.h
     SetOutgoingTrustLineTransaction.cpp
-    SetIncomingTrustLineTransaction.h
-    SetIncomingTrustLineTransaction.cpp
 
-    CloseIncomingTrustLineTransaction.h
+        CloseIncomingTrustLineTransaction.h
     CloseIncomingTrustLineTransaction.cpp
-    CloseOutgoingTrustLineTransaction.h
-    CloseOutgoingTrustLineTransaction.cpp
 
-    OpenTrustLineTransaction.h
+        OpenTrustLineTransaction.h
     OpenTrustLineTransaction.cpp
     AcceptTrustLineTransaction.h
     AcceptTrustLineTransaction.cpp
@@ -33,7 +29,10 @@ set(SOURCE_FILES
     ConflictResolverInitiatorTransaction.h
     ConflictResolverInitiatorTransaction.cpp
     ConflictResolverContractorTransaction.h
-    ConflictResolverContractorTransaction.cpp)
+    ConflictResolverContractorTransaction.cpp
+
+    CheckTrustLineTransaction.h
+    CheckTrustLineTransaction.cpp)
 
 add_library(transactions__trustlines ${SOURCE_FILES})
 target_link_libraries(transactions__trustlines

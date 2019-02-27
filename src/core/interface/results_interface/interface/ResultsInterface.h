@@ -2,20 +2,11 @@
 #define GEO_NETWORK_CLIENT_RESULTSINTERFACE_H
 
 #include "../../BaseFIFOInterface.h"
-
 #include "../../../logger/Logger.h"
-
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/MemoryError.h"
 
-#include <boost/bind.hpp>
-
 #include <string>
-
-#ifndef TESTS__TRUSTLINES
-#include "../../../common/Types.h"
-#include "../../../common/time/TimeUtils.h"
-#endif
 
 using namespace std;
 

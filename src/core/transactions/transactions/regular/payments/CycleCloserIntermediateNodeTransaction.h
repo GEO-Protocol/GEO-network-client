@@ -12,25 +12,27 @@ public:
 
 public:
     CycleCloserIntermediateNodeTransaction(
-        const NodeUUID &currentNodeUUID,
         IntermediateNodeCycleReservationRequestMessage::ConstShared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
 
     CycleCloserIntermediateNodeTransaction(
         BytesShared buffer,
-        const NodeUUID &nodeUUID,
+        ContractorsManager *contractorsManager,
         TrustLinesManager* trustLines,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
@@ -39,9 +41,9 @@ public:
     noexcept;
 
     /**
-     * @return coordinator UUID of current transaction
+     * @return coordinator address of current transaction
      */
-    const NodeUUID& coordinatorUUID() const;
+    BaseAddress::Shared coordinatorAddress() const override;
 
     /**
      * @return length of cycle which is closing by current transaction
@@ -78,6 +80,8 @@ protected:
     TransactionResult::SharedConst runFinalPathConfigurationCoordinatorConfirmation();
 
     TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
+
+    TransactionResult::SharedConst runCheckObservingBlockNumber();
 
     /**
      * continue reaction on coordinator further reservation request message
@@ -117,6 +121,17 @@ protected:
      */
     bool checkReservationsDirections() const;
 
+    TransactionResult::SharedConst sendErrorMessageOnPreviousNodeRequest(
+        ResponseCycleMessage::OperationState errorState);
+
+    TransactionResult::SharedConst sendErrorMessageOnCoordinatorRequest(
+        ResponseCycleMessage::OperationState errorState);
+
+    TransactionResult::SharedConst sendErrorMessageOnNextNodeResponse(
+        ResponseCycleMessage::OperationState errorState);
+
+    void sendErrorMessageOnFinalAmountsConfiguration();
+
     const string logHeader() const;
 
 protected:
@@ -124,14 +139,14 @@ protected:
     IntermediateNodeCycleReservationRequestMessage::ConstShared mMessage;
 
     TrustLineAmount mLastReservedAmount;
-    NodeUUID mCoordinator;
+    BaseAddress::Shared mCoordinator;
     SerializedPathLengthSize mCycleLength;
 
     // fields, wor continue process coordinator request after releasing conflicted reservation
     // transaction on which reservation we pretend
     TransactionUUID mConflictedTransaction;
-    NodeUUID mNextNode;
-    NodeUUID mPreviousNode;
+    BaseAddress::Shared mNextNode;
+    BaseAddress::Shared mPreviousNode;
     TrustLineAmount mReservationAmount;
 
     // for resolving reservation conflicts

@@ -2,12 +2,12 @@
 
 ParticipantVoteMessage::ParticipantVoteMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     lamport::Signature::Shared signature) :
     TransactionMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID),
     mSignature(signature)
 {}
@@ -18,14 +18,24 @@ ParticipantVoteMessage::ParticipantVoteMessage(
 {
     auto bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
-    auto signature = make_shared<lamport::Signature>(
-        buffer.get() + bytesBufferOffset);
-    mSignature = signature;
+    auto *state = new (buffer.get() + bytesBufferOffset) SerializedOperationState;
+    mState = (OperationState) (*state);
+    if (mState == Accepted) {
+        bytesBufferOffset += sizeof(SerializedOperationState);
+        auto signature = make_shared<lamport::Signature>(
+            buffer.get() + bytesBufferOffset);
+        mSignature = signature;
+    }
 }
 
 const Message::MessageType ParticipantVoteMessage::typeID() const
 {
     return Message::Payments_ParticipantVote;
+}
+
+const ParticipantVoteMessage::OperationState ParticipantVoteMessage::state() const
+{
+    return mState;
 }
 
 const lamport::Signature::Shared ParticipantVoteMessage::signature() const
@@ -34,15 +44,17 @@ const lamport::Signature::Shared ParticipantVoteMessage::signature() const
 }
 
 pair<BytesShared, size_t> ParticipantVoteMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
-    const auto kBufferSize =
+    auto bufferSize =
             parentBytesAndCount.second
-            + lamport::Signature::signatureSize();
+            + sizeof(SerializedOperationState);
+    if (mSignature != nullptr) {
+        bufferSize += lamport::Signature::signatureSize();
+    }
 
-    BytesShared buffer = tryMalloc(kBufferSize);
+    BytesShared buffer = tryMalloc(bufferSize);
 
     size_t dataBytesOffset = 0;
     // Parent message content
@@ -52,12 +64,27 @@ pair<BytesShared, size_t> ParticipantVoteMessage::serializeToBytes() const
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
 
-    memcpy(
-        buffer.get() + dataBytesOffset,
-        mSignature->data(),
-        lamport::Signature::signatureSize());
+    if (mSignature != nullptr) {
+        SerializedOperationState state(ParticipantVoteMessage::Accepted);
+        memcpy(
+            buffer.get() + dataBytesOffset,
+            &state,
+            sizeof(SerializedOperationState));
+        dataBytesOffset += sizeof(SerializedOperationState);
+
+        memcpy(
+            buffer.get() + dataBytesOffset,
+            mSignature->data(),
+            lamport::Signature::signatureSize());
+    } else {
+        SerializedOperationState state(ParticipantVoteMessage::Rejected);
+        memcpy(
+            buffer.get() + dataBytesOffset,
+            &state,
+            sizeof(SerializedOperationState));
+    }
 
     return make_pair(
         buffer,
-        kBufferSize);
+        bufferSize);
 }

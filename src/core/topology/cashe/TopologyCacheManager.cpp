@@ -11,28 +11,27 @@ TopologyCacheManager::TopologyCacheManager(
 }
 
 void TopologyCacheManager::addCache(
-    const NodeUUID &keyUUID,
+    BaseAddress::Shared keyAddress,
     TopologyCache::Shared cache)
 {
-    auto nodeUUIDPtr = new NodeUUID(keyUUID);
     mCaches.insert(
         make_pair(
-            *nodeUUIDPtr,
+            keyAddress->fullAddress(),
             cache));
     msCache.insert(
         make_pair(
             utc_now(),
-            nodeUUIDPtr));
+            keyAddress));
 }
 
-TopologyCache::Shared TopologyCacheManager::cacheByNode(
-    const NodeUUID &nodeUUID) const
+TopologyCache::Shared TopologyCacheManager::cacheByAddress(
+    BaseAddress::Shared nodeAddress) const
 {
-    auto nodeUUIDAndCache = mCaches.find(nodeUUID);
-    if (nodeUUIDAndCache == mCaches.end()) {
+    auto nodeAddressAndCache = mCaches.find(nodeAddress->fullAddress());
+    if (nodeAddressAndCache == mCaches.end()) {
         return nullptr;
     }
-    return nodeUUIDAndCache->second;
+    return nodeAddressAndCache->second;
 }
 
 void TopologyCacheManager::updateCaches()
@@ -41,19 +40,19 @@ void TopologyCacheManager::updateCaches()
     info() << "updateCaches\t" << "mCaches size: " << mCaches.size();
     info() << "updateCaches\t" << "msCaches size: " << msCache.size();
 #endif
-    for (auto &timeAndNodeUUID : msCache) {
-        if (utc_now() - timeAndNodeUUID.first > kResetSenderCacheDuration()) {
-            NodeUUID* keyUUIDPtr = timeAndNodeUUID.second;
+    for (auto &timeAndNodeAddress : msCache) {
+        if (utc_now() - timeAndNodeAddress.first > kResetSenderCacheDuration()) {
+            auto keyAddress = timeAndNodeAddress.second;
 #ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
-            info() << "updateCaches delete cache\t" << *keyUUIDPtr;
+            info() << "updateCaches delete cache\t" << keyAddress->fullAddress();
 #endif
-            mCaches.erase(*keyUUIDPtr);
-            msCache.erase(timeAndNodeUUID.first);
-            delete keyUUIDPtr;
+            mCaches.erase(keyAddress->fullAddress());
+            msCache.erase(timeAndNodeAddress.first);
         } else {
             break;
         }
     }
+    /////////////////////////////////////////////////////////////////////////////////////////////
     if (mInitiatorCache.first && utc_now() - mInitiatorCache.second > kResetInitiatorCacheDuration()) {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
         info() << "updateCaches\t" << "reset Initiator cache";
@@ -79,21 +78,19 @@ bool TopologyCacheManager::isInitiatorCached()
 }
 
 void TopologyCacheManager::removeCache(
-    const NodeUUID &nodeUUID)
+    BaseAddress::Shared nodeAddress)
 {
-    for (auto &timeAndNodeUUID : msCache) {
-        NodeUUID* keyUUIDPtr = timeAndNodeUUID.second;
-        if (*keyUUIDPtr == nodeUUID) {
+    for (auto &timeAndNodeAddress : msCache) {
+        if (timeAndNodeAddress.second == nodeAddress) {
 #ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
-            info() << "removeCache delete cache\t" << *keyUUIDPtr;
+            info() << "removeCache delete cache\t" << timeAndNodeAddress.second->fullAddress();
 #endif
-            mCaches.erase(*keyUUIDPtr);
-            msCache.erase(timeAndNodeUUID.first);
-            delete keyUUIDPtr;
+            mCaches.erase(timeAndNodeAddress.second->fullAddress());
+            msCache.erase(timeAndNodeAddress.first);
             return;
         }
     }
-    warning() << "no cache found for key " << nodeUUID;
+    warning() << "no cacheNew found for key " << nodeAddress->fullAddress();
 }
 
 DateTime TopologyCacheManager::closestTimeEvent() const
@@ -108,15 +105,18 @@ DateTime TopologyCacheManager::closestTimeEvent() const
     // else take life time of sender cache + now as result closest time event
     // take as result minimal from initiator cache and sender cache closest time
     if (!msCache.empty()) {
-        auto timeAndNodeUUID = msCache.cbegin();
-        if (timeAndNodeUUID->first + kResetSenderCacheDuration() < result) {
-            result = timeAndNodeUUID->first + kResetSenderCacheDuration();
+        auto timeAndNodeAddress = msCache.cbegin();
+        if (timeAndNodeAddress->first + kResetSenderCacheDuration() < result) {
+            result = timeAndNodeAddress->first + kResetSenderCacheDuration();
         }
     } else {
         if (utc_now() + kResetSenderCacheDuration() < result) {
             result = utc_now() + kResetSenderCacheDuration();
         }
     }
+#ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
+    info() << "closestTimeEvent " << result;
+#endif
     return result;
 }
 

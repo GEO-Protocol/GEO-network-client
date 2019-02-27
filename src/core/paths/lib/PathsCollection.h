@@ -14,11 +14,10 @@ public:
 
 public:
     PathsCollection(
-        const NodeUUID &sourceUUID,
-        const NodeUUID &destinationUUID);
+        BaseAddress::Shared destinationAddress);
 
     void add(
-        Path &path);
+        Path::Shared &path);
 
     void resetCurrentPath();
 
@@ -29,9 +28,8 @@ public:
     size_t count() const;
 
 private:
-    NodeUUID mSourceNode;
-    NodeUUID mDestinationNode;
-    vector<vector<NodeUUID>> mPaths;
+    BaseAddress::Shared mDestinationNode;
+    vector<Path::Shared> mPaths;
     size_t mCurrentPath;
 };
 

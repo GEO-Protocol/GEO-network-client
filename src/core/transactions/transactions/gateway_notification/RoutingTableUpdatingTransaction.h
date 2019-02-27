@@ -13,7 +13,6 @@ public:
 
 public:
     RoutingTableUpdatingTransaction(
-        const NodeUUID &nodeUUID,
         RoutingTableResponseMessage::Shared message,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         EquivalentsCyclesSubsystemsRouter *equivalentsCyclesSubsystemsRouter,

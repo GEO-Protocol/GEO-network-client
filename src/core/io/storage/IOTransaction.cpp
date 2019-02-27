@@ -5,7 +5,6 @@ IOTransaction::IOTransaction(
     TrustLineHandler *trustLineHandler,
     HistoryStorage *historyStorage,
     TransactionsHandler *transactionHandler,
-    BlackListHandler *blackListHandler,
     OwnKeysHandler *ownKeysHandler,
     ContractorKeysHandler *contractorKeysHandler,
     AuditHandler *auditHandler,
@@ -13,13 +12,15 @@ IOTransaction::IOTransaction(
     OutgoingPaymentReceiptHandler *outgoingPaymentReceiptHandler,
     PaymentKeysHandler *paymentKeysHandler,
     PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler,
+    PaymentTransactionsHandler *paymentTransactionsHandler,
+    ContractorsHandler *contractorsHandler,
+    AddressHandler *addressHandler,
     Logger &logger) :
 
     mDBConnection(dbConnection),
     mTrustLineHandler(trustLineHandler),
     mHistoryStorage(historyStorage),
     mTransactionHandler(transactionHandler),
-    mBlackListHandler(blackListHandler),
     mOwnKeysHandler(ownKeysHandler),
     mContractorKeysHandler(contractorKeysHandler),
     mAuditHandler(auditHandler),
@@ -27,6 +28,9 @@ IOTransaction::IOTransaction(
     mOutgoingPaymentReceiptHandler(outgoingPaymentReceiptHandler),
     mPaymentKeysHandler(paymentKeysHandler),
     mPaymentParticipantsVotesHandler(paymentParticipantsVotesHandler),
+    mPaymentTransactionsHandler(paymentTransactionsHandler),
+    mContractorsHandler(contractorsHandler),
+    mAddressHandler(addressHandler),
     mIsTransactionBegin(true),
     mLog(logger)
 {
@@ -128,6 +132,33 @@ PaymentParticipantsVotesHandler* IOTransaction::paymentParticipantsVotesHandler(
     return mPaymentParticipantsVotesHandler;
 }
 
+PaymentTransactionsHandler* IOTransaction::paymentTransactionsHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::paymentTransactionsHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mPaymentTransactionsHandler;
+}
+
+ContractorsHandler* IOTransaction::contractorsHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::contractorsHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mContractorsHandler;
+}
+
+AddressHandler* IOTransaction::addressHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::addressHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mAddressHandler;
+}
+
 void IOTransaction::commit()
 {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
@@ -214,12 +245,4 @@ void IOTransaction::beginTransactionQuery() {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "transaction begin";
 #endif
-}
-
-BlackListHandler *IOTransaction::blackListHandler() {
-    if (!mIsTransactionBegin) {
-        throw IOError("IOTransaction::historyStorage: "
-                          "transaction was rollback, it can't be use now");
-    }
-    return mBlackListHandler;
 }

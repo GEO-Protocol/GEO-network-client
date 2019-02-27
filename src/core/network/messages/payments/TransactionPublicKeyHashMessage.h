@@ -14,14 +14,14 @@ public:
 public:
     TransactionPublicKeyHashMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const PaymentNodeID paymentNodeID,
         const lamport::KeyHash::Shared transactionPublicKeyHash);
 
     TransactionPublicKeyHashMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const PaymentNodeID paymentNodeID,
         const lamport::KeyHash::Shared transactionPublicKeyHash,
@@ -43,7 +43,7 @@ public:
 
     const lamport::Signature::Shared signature() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     PaymentNodeID mPaymentNodeID;

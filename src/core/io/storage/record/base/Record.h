@@ -3,6 +3,7 @@
 
 #include "../../../../common/Types.h"
 #include "../../../../transactions/transactions/base/TransactionUUID.h"
+#include "../../../../contractors/Contractor.h"
 #include "../../../../common/time/TimeUtils.h"
 
 class Record {
@@ -12,7 +13,8 @@ public:
 public:
     enum RecordType {
         TrustLineRecordType = 1,
-        PaymentRecordType
+        PaymentRecordType,
+        PaymentAdditionalRecordType,
     };
 
 public:
@@ -26,30 +28,27 @@ public:
 
     const DateTime timestamp() const;
 
-    const NodeUUID contractorUUID() const;
+    Contractor::Shared contractor() const;
+
+    virtual pair<BytesShared, size_t> serializedHistoryRecordBody() const = 0;
 
 protected:
-    Record();
+    Record(
+        const Record::RecordType recordType,
+        const TransactionUUID &operationUUID,
+        Contractor::Shared contractor);
 
     Record(
         const Record::RecordType recordType,
         const TransactionUUID &operationUUID,
-        const NodeUUID &contractorUUID);
-
-    Record(
-        const Record::RecordType recordType,
-        const TransactionUUID &operationUUID,
-        const NodeUUID &contractorUUID,
+        Contractor::Shared contractor,
         const GEOEpochTimestamp geoEpochTimestamp);
 
-public:
-    static const size_t kOperationUUIDBytesSize = 16;
-
-private:
+protected:
     RecordType mRecordType;
     TransactionUUID mOperationUUID;
     DateTime mTimestamp;
-    NodeUUID mContractorUUID;
+    Contractor::Shared mContractor;
 };
 
 #endif //GEO_NETWORK_CLIENT_RECORD_H

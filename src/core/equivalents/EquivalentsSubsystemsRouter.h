@@ -8,6 +8,7 @@
 #include "../topology/cashe/MaxFlowCacheManager.h"
 #include "../paths/PathsManager.h"
 #include "../delayed_tasks/GatewayNotificationAndRoutingTablesDelayedTask.h"
+#include "../interface/events_interface/interface/EventsInterface.h"
 
 #include <map>
 
@@ -21,8 +22,10 @@ public:
 
 public:
     EquivalentsSubsystemsRouter(
-        NodeUUID &nodeUUID,
         StorageHandler *storageHandler,
+        Keystore *keystore,
+        ContractorsManager *contractorsManager,
+        EventsInterface *eventsInterface,
         as::io_service &ioService,
         vector<SerializedEquivalent> &equivalentsIAmGateway,
         Logger &logger);
@@ -50,6 +53,12 @@ public:
     void initNewEquivalent(
         const SerializedEquivalent equivalent);
 
+    set<ContractorID> contractorsShouldBePinged() const;
+
+    void clearContractorsShouldBePinged();
+
+    void sendTopologyEvent() const;
+
 #ifdef TESTS
     void setMeAsGateway();
 #endif
@@ -75,10 +84,12 @@ private:
     void onGatewayNotificationSlot();
 
 private:
-    NodeUUID mNodeUUID;
     map<SerializedEquivalent, bool> mIAmGateways;
     as::io_service &mIOService;
     StorageHandler *mStorageHandler;
+    Keystore *mKeysStore;
+    ContractorsManager *mContractorsManager;
+    EventsInterface *mEventsInterface;
     Logger &mLogger;
     vector<SerializedEquivalent> mEquivalents;
     map<SerializedEquivalent, unique_ptr<TrustLinesManager>> mTrustLinesManagers;
@@ -88,6 +99,8 @@ private:
     map<SerializedEquivalent, unique_ptr<MaxFlowCacheManager>> mMaxFlowCacheManagers;
     map<SerializedEquivalent, unique_ptr<PathsManager>> mPathsManagers;
     unique_ptr<GatewayNotificationAndRoutingTablesDelayedTask> mGatewayNotificationAndRoutingTablesDelayedTask;
+
+    set<ContractorID> mContractorsShouldBePinged;
 };
 
 

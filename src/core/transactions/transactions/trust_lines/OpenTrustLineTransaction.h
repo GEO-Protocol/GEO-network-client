@@ -1,39 +1,55 @@
 #ifndef GEO_NETWORK_CLIENT_OPENTRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_OPENTRUSTLINETRANSACTION_H
 
-#include "base/BaseTrustLineTransaction.h"
-#include "../../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
+#include "../base/BaseTransaction.h"
+#include "../../../interface/commands_interface/commands/trust_lines/InitTrustLineCommand.h"
+#include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../contractors/ContractorsManager.h"
+#include "../../../interface/events_interface/interface/EventsInterface.h"
+#include "../../../subsystems_controller/TrustLinesInfluenceController.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
-#include "../../../network/messages/trust_lines/SetIncomingTrustLineInitialMessage.h"
 
-class OpenTrustLineTransaction : public BaseTrustLineTransaction {
+#include "../../../network/messages/trust_lines/TrustLineInitialMessage.h"
+#include "../../../network/messages/trust_lines/TrustLineConfirmationMessage.h"
+#include "../../../network/messages/general/PingMessage.h"
+
+class OpenTrustLineTransaction : public BaseTransaction {
 
 public:
     typedef shared_ptr<OpenTrustLineTransaction> Shared;
 
 public:
     OpenTrustLineTransaction(
-        const NodeUUID &nodeUUID,
-        SetOutgoingTrustLineCommand::Shared command,
+        InitTrustLineCommand::Shared command,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        SubsystemsController *subsystemsController,
-        Keystore *keystore,
+        EventsInterface *eventsInterface,
         bool iAmGateway,
+        SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger)
-    noexcept;
+        Logger &logger);
 
     OpenTrustLineTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
+        ContractorID contractorID,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Keystore *keystore,
+        EventsInterface *eventsInterface,
+        bool iAmGateway,
+        SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
     TransactionResult::SharedConst run();
+
+protected:
+    enum Stages {
+        Initialization = 1,
+        NextAttempt = 2,
+        ResponseProcessing = 3,
+    };
 
 protected:
     TransactionResult::SharedConst resultOK();
@@ -55,17 +71,26 @@ protected: // trust lines history shortcuts
 private:
     TransactionResult::SharedConst runInitializationStage();
 
+    TransactionResult::SharedConst runNextAttemptStage();
+
     TransactionResult::SharedConst runResponseProcessingStage();
 
-    TransactionResult::SharedConst runRecoveryStage();
-
-    TransactionResult::SharedConst runReceiveNextKeyStage();
-
-    pair<BytesShared, size_t> serializeToBytes() const override;
+protected:
+    // these constants should be the same as in AcceptTrustLineTransaction
+    static const uint32_t kWaitMillisecondsForResponse = 20000;
+    static const uint16_t kMaxCountSendingAttempts = 3;
 
 protected:
-    SetOutgoingTrustLineCommand::Shared mCommand;
-    TrustLineAmount mAmount;
+    InitTrustLineCommand::Shared mCommand;
+    ContractorID mContractorID;
+    ContractorsManager *mContractorsManager;
+    TrustLinesManager *mTrustLines;
+    StorageHandler *mStorageHandler;
+    EventsInterface *mEventsInterface;
+
+    uint16_t mCountSendingAttempts;
+
+    TrustLinesInfluenceController *mTrustLinesInfluenceController;
     SubsystemsController *mSubsystemsController;
     bool mIAmGateway;
 };

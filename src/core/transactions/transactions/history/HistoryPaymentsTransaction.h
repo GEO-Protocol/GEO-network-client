@@ -15,12 +15,9 @@ public:
 
 public:
     HistoryPaymentsTransaction(
-        NodeUUID &nodeUUID,
         HistoryPaymentsCommand::Shared command,
         StorageHandler *storageHandler,
         Logger &logger);
-
-    HistoryPaymentsCommand::Shared command() const;
 
     TransactionResult::SharedConst run();
 

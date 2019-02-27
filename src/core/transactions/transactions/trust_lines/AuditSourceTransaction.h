@@ -10,9 +10,9 @@ public:
 
 public:
     AuditSourceTransaction(
-        const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -20,8 +20,9 @@ public:
         Logger &logger);
 
     AuditSourceTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
+        const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
+        ContractorID contractorID,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -34,9 +35,14 @@ protected: // log
     const string logHeader() const;
 
 private:
-    TransactionResult::SharedConst runRecoveryStage();
+    TransactionResult::SharedConst runInitializationStage();
 
-    pair<BytesShared, size_t> serializeToBytes() const override;
+    TransactionResult::SharedConst runNextAttemptStage();
+
+    TransactionResult::SharedConst runResponseProcessingStage();
+
+private:
+    uint16_t mCountSendingAttempts;
 };
 
 

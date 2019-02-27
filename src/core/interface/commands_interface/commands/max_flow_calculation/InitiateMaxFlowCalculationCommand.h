@@ -1,8 +1,8 @@
 #ifndef GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONCOMMAND_H
 #define GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONCOMMAND_H
 
-
 #include "../BaseUserCommand.h"
+#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/exceptions/ValueError.h"
 
 class InitiateMaxFlowCalculationCommand : public BaseUserCommand {
@@ -17,7 +17,7 @@ public:
 
     static const string &identifier();
 
-    const vector<NodeUUID> &contractors() const;
+    const vector<BaseAddress::Shared> &contractorAddresses() const;
 
     const SerializedEquivalent equivalent() const;
 
@@ -26,7 +26,7 @@ public:
 
 private:
     size_t mContractorsCount;
-    vector<NodeUUID> mContractors;
+    vector<BaseAddress::Shared> mContractorAddresses;
     SerializedEquivalent mEquivalent;
 };
 

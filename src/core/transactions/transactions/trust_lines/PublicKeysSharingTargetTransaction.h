@@ -1,17 +1,27 @@
 #ifndef GEO_NETWORK_CLIENT_PUBLICKEYSSHARINGTARGETTRANSACTION_H
 #define GEO_NETWORK_CLIENT_PUBLICKEYSSHARINGTARGETTRANSACTION_H
 
-#include "base/BaseTrustLineTransaction.h"
+#include "../base/BaseTransaction.h"
+#include "../../../contractors/ContractorsManager.h"
+#include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../crypto/keychain.h"
+#include "../../../crypto/lamportkeys.h"
 
-class PublicKeysSharingTargetTransaction : public BaseTrustLineTransaction {
+#include "../../../subsystems_controller/TrustLinesInfluenceController.h"
+
+#include "../../../network/messages/trust_lines/PublicKeysSharingInitMessage.h"
+#include "../../../network/messages/trust_lines/PublicKeyMessage.h"
+#include "../../../network/messages/trust_lines/PublicKeyHashConfirmation.h"
+
+class PublicKeysSharingTargetTransaction : public BaseTransaction {
 
 public:
     typedef shared_ptr<PublicKeysSharingTargetTransaction> Shared;
 
 public:
     PublicKeysSharingTargetTransaction(
-        const NodeUUID &nodeUUID,
-        PublicKeyMessage::Shared message,
+        PublicKeysSharingInitMessage::Shared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -20,11 +30,45 @@ public:
 
     TransactionResult::SharedConst run();
 
+protected:
+    enum Stages {
+        Initialization = 1,
+        NextKeyProcessing = 2,
+    };
+
 protected: // log
     const string logHeader() const;
 
 private:
+    TransactionResult::SharedConst runPublicKeyReceiverInitStage();
+
     TransactionResult::SharedConst runReceiveNextKeyStage();
+
+    TransactionResult::SharedConst runProcessKey(
+        IOTransaction::Shared ioTransaction);
+
+    TransactionResult::SharedConst sendKeyErrorConfirmation(
+        ConfirmationMessage::OperationState errorState);
+
+protected:
+    // these constants should be the same as in PublicKeysSharingSourceTransaction
+    static const uint32_t kWaitMillisecondsForResponse = 20000;
+    static const uint16_t kMaxCountSendingAttempts = 3;
+
+private:
+    ContractorsManager *mContractorsManager;
+    TrustLinesManager *mTrustLines;
+    StorageHandler *mStorageHandler;
+    Keystore *mKeysStore;
+
+    ContractorID mContractorID;
+    string mSenderIncomingIP;
+    vector<BaseAddress::Shared> mContractorAddresses;
+    KeyNumber mCurrentKeyNumber;
+    lamport::PublicKey::Shared mCurrentPublicKey;
+    KeysCount mContractorKeysCount;
+
+    TrustLinesInfluenceController *mTrustLinesInfluenceController;
 };
 
 

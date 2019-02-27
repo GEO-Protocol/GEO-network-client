@@ -75,8 +75,7 @@ public:
 
     lamport::PublicKey::Shared generateAndSaveKeyPairForPaymentTransaction(
         IOTransaction::Shared ioTransaction,
-        const TransactionUUID &transactionUUID,
-        const NodeUUID &nodeUUID);
+        const TransactionUUID &transactionUUID);
 
     lamport::Signature::Shared signPaymentTransaction(
         IOTransaction::Shared ioTransaction,
@@ -196,7 +195,8 @@ public:
         IOTransaction::Shared ioTransaction);
 
     bool allContractorKeysPresent(
-        IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction,
+        KeysCount contractorKeysCount=kDefaultKeysSetSize);
 
     bool ownKeysCriticalCount(
         IOTransaction::Shared ioTransaction);
@@ -257,7 +257,7 @@ public:
         const TrustLineAmount &amount,
         const Signature::Shared contractorSignature);
 
-    void saveAudit(
+    void saveFullAudit(
         IOTransaction::Shared ioTransaction,
         const AuditNumber auditNumber,
         const KeyNumber ownKeyNumber,
@@ -267,6 +267,33 @@ public:
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);
+
+    void saveOwnAuditPart(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber,
+        const KeyNumber ownKeyNumber,
+        const lamport::Signature::Shared ownSignature,
+        const TrustLineAmount &incomingAmount,
+        const TrustLineAmount &outgoingAmount,
+        const TrustLineBalance &balance);
+
+    void saveContractorAuditPart(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber,
+        const KeyNumber contractorKeyNumber,
+        const lamport::Signature::Shared contractorSignature);
+
+    pair<lamport::Signature::Shared, KeyNumber> getSignatureAndKeyNumberForPendingAudit(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber);
+
+    TrustLineAmount incomingCommittedReceiptsAmountsSum(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber);
+
+    TrustLineAmount outgoingCommittedReceiptsAmountsSum(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber);
 
     AuditRecord::Shared actualFullAudit(
         IOTransaction::Shared ioTransaction);
@@ -315,6 +342,9 @@ public:
         IOTransaction::Shared ioTransaction,
         vector<ReceiptRecord::Shared> contractorIncomingReceipts,
         vector<ReceiptRecord::Shared> contractorOutgoingReceipts);
+
+    pair<lamport::Signature::Shared, KeyNumber> getCurrentAuditSignatureAndKeyNumber(
+        IOTransaction::Shared ioTransaction);
 
 protected:
     /**

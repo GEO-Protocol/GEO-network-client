@@ -2,30 +2,44 @@
 
 GetTrustLinesCommand::GetTrustLinesCommand(
     const CommandUUID &uuid,
-    const string &commandBuffer)
-    noexcept:
+    const string &commandBuffer):
+
 
     BaseUserCommand(
         uuid,
         identifier())
 {
-    static const auto minCommandLength = 1;
+    auto check = [&](auto &ctx) {
+        if(_attr(ctx) == kCommandsSeparator) {
+            throw ValueError("GetTrustLinesCommand: there is no input ");
+        }
+    };
+    auto mfrom_add = [&](auto &ctx){
+        mFrom = _attr(ctx);
+    };
+    auto mcount_add = [&](auto &ctx) {
+        mCount = _attr(ctx);
+    };
+    auto mequivalent_add = [&](auto &ctx) {
+        mEquivalent = _attr(ctx);
+    };
 
-    if (commandBuffer.size() < minCommandLength) {
-        throw ValueError(
-                "GetTrustLinesCommand: can't parse command. "
-                    "Received command is to short.");
-    }
-
-    string equivalentStr = commandBuffer.substr(
-        0,
-        commandBuffer.size() - 1);
     try {
-        mEquivalent = (uint32_t)std::stoul(equivalentStr);
-    } catch (...) {
-        throw ValueError(
-                "GetTrustLinesCommand: can't parse command. "
-                    "Error occurred while parsing  'equivalent' token.");
+        parse(
+            commandBuffer.begin(),
+            commandBuffer.end(),
+            char_[check]);
+        parse(
+            commandBuffer.begin(),
+            commandBuffer.end(), (
+                *(int_[mfrom_add])
+                > char_(kTokensSeparator)
+                > *(int_[mcount_add])
+                > char_(kTokensSeparator)
+                > *(int_[mequivalent_add])
+                > eol));
+    } catch(...) {
+        throw ValueError("GetTrustLinesCommand: can't parse command");
     }
 }
 
@@ -33,6 +47,16 @@ const string &GetTrustLinesCommand::identifier()
 {
     static const string kIdentifier = "GET:contractors/trust-lines";
     return kIdentifier;
+}
+
+const size_t GetTrustLinesCommand::from() const
+{
+    return mFrom;
+}
+
+const size_t GetTrustLinesCommand::count() const
+{
+    return mCount;
 }
 
 const SerializedEquivalent GetTrustLinesCommand::equivalent() const

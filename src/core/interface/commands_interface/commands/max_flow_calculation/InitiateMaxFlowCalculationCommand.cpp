@@ -8,52 +8,66 @@ InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
         uuid,
         identifier())
 {
-    const auto minCommandLength = NodeUUID::kHexSize + 2;
-    if (command.size() < minCommandLength) {
-        throw ValueError(
-                "InitiateMaxFlowCalculationCommand: can't parse command. "
-                    "Received command is to short.");
-    }
-    size_t tokenSeparatorPos = command.find(kTokensSeparator);
-    string contractorsCountStr = command.substr(
-        0,
-        tokenSeparatorPos);
-    try {
-        mContractorsCount = std::stoul(contractorsCountStr);
-    } catch (...) {
-        throw ValueError(
-                "InitiateMaxFlowCalculationCommand: can't parse command. "
-                    "Error occurred while parsing  'count contractors' token.");
-    }
-    mContractors.reserve(mContractorsCount);
-    size_t contractorStartPoint = tokenSeparatorPos + 1;
-    for (size_t idx = 0; idx < mContractorsCount; idx++) {
-        try {
-            string hexUUID = command.substr(
-                contractorStartPoint,
-                NodeUUID::kHexSize);
-            mContractors.push_back(
-                boost::lexical_cast<uuids::uuid>(
-                    hexUUID));
-            contractorStartPoint += NodeUUID::kHexSize + 1;
-        } catch (...) {
-            throw ValueError(
-                    "InitiateMaxFlowCalculationCommand: can't parse command. "
-                        "Error occurred while parsing 'Contractor UUID' token.");
+    std::string address;
+    uint32_t addressType, equivalentID;
+    auto check = [&](auto &ctx) {
+        if(_attr(ctx) == kCommandsSeparator) {
+            throw ValueError("InitiateMaxFlowCalculationCommand: there is no input ");
         }
-    }
+    };
+    auto parserType = [&](auto &ctx) {
+        addressType = _attr(ctx);
+    };
+    auto address_add = [&](auto &ctx) {
+        address += _attr(ctx);
+    };
+    auto address_number_add = [&](auto &ctx) {
+        address += std::to_string(_attr(ctx));
+    };
+    auto address_Count = [&](auto &ctx) {
+        mContractorsCount = _attr(ctx);
+    };
+    auto address_vector = [&](auto &ctx) {
+        switch (addressType) {
+            case BaseAddress::IPv4_IncludingPort: {
+                mContractorAddresses.push_back(
+                    make_shared<IPv4WithPortAddress>(
+                        address));
+                break;
+            }
+            default:
+                throw ValueError("InitiateMaxFlowCalculationCommand: can't parse command. "
+                    "Error occurred while parsing 'Contractor Address' token.");
+        }
+        address.erase();
+    };
+    auto equivalentID_add = [&](auto &ctx) {
+        equivalentID = _attr(ctx);
+    };
 
-    size_t equivalentStartPoint = contractorStartPoint;
-    string equivalentStr = command.substr(
-        equivalentStartPoint,
-        command.size() - equivalentStartPoint - 1);
     try {
-        mEquivalent = (uint32_t)std::stoul(equivalentStr);
-    } catch (...) {
-        throw ValueError(
-                "InitiateMaxFlowCalculationFullyCommand: can't parse command. "
-                    "Error occurred while parsing  'equivalent' token.");
+        parse(
+            command.begin(),
+            command.end(),
+            char_[check]);
+        parse(
+            command.begin(),
+            command.end(),
+            *(int_[address_Count]-char_(kTokensSeparator)) > char_(kTokensSeparator));
+        mContractorAddresses.reserve(mContractorsCount);
+        parse(
+            command.begin(),
+            command.end(), (
+                *(int_[address_Count]) > char_(kTokensSeparator)
+                > repeat(mContractorsCount)[*(int_[parserType] - char_(kTokensSeparator)) > char_(kTokensSeparator)
+                > repeat(3)[int_[address_number_add]> char_('.') [address_add]]
+                > int_[address_number_add] > char_(':') [address_add]
+                > int_[address_number_add] > char_(kTokensSeparator) [address_vector]]
+                > +(int_[equivalentID_add]) > eol));
+    } catch(...) {
+        throw ValueError("InitTrustLineCommand: can't parse command.");
     }
+    mEquivalent = equivalentID;
 }
 
 const string &InitiateMaxFlowCalculationCommand::identifier()
@@ -62,9 +76,9 @@ const string &InitiateMaxFlowCalculationCommand::identifier()
     return identifier;
 }
 
-const vector<NodeUUID>& InitiateMaxFlowCalculationCommand::contractors() const
+const vector<BaseAddress::Shared>& InitiateMaxFlowCalculationCommand::contractorAddresses() const
 {
-    return mContractors;
+    return mContractorAddresses;
 }
 
 const SerializedEquivalent InitiateMaxFlowCalculationCommand::equivalent() const

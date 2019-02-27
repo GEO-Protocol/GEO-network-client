@@ -9,15 +9,17 @@ StorageHandler::StorageHandler(
 
     mDirectory(directory),
     mDataBaseName(dataBaseName),
+    mContractorsHandler(connection(dataBaseName, directory), kContractorsTableName, logger),
+    mAddressHandler(connection(dataBaseName, directory), kContractorAddressesTableName, logger),
     mTrustLineHandler(connection(dataBaseName, directory), kTrustLineTableName, logger),
     mTransactionHandler(connection(dataBaseName, directory), kTransactionTableName, logger),
     mHistoryStorage(connection(dataBaseName, directory), kHistoryMainTableName, kHistoryAdditionalTableName, logger),
-    mBlackListHandler(connection(dataBaseName, directory), kBlackListTableName, logger),
     mOwnKeysHandler(connection(dataBaseName, directory), kOwnKeysTableName, logger),
     mContractorKeysHandler(connection(dataBaseName, directory), kContractorKeysTableName, logger),
     mAuditHandler(connection(dataBaseName, directory), kAuditTableName, logger),
     mIncomingPaymentReceiptHandler(connection(dataBaseName, directory), kIncomingReceiptTableName, logger),
     mOutgoingPaymentReceiptHandler(connection(dataBaseName, directory), kOutgoingReceiptTableName, logger),
+    mPaymentTransactionsHandler(connection(dataBaseName, directory), kPaymentTransactionsTableName, logger),
     mPaymentKeysHandler(connection(dataBaseName, directory), kPaymentKeysTableName, logger),
     mPaymentParticipantsVotesHandler(connection(dataBaseName, directory), kPaymentParticipantsVotesTableName, logger),
     mLog(logger)
@@ -79,7 +81,6 @@ IOTransaction::Shared StorageHandler::beginTransaction()
         &mTrustLineHandler,
         &mHistoryStorage,
         &mTransactionHandler,
-        &mBlackListHandler,
         &mOwnKeysHandler,
         &mContractorKeysHandler,
         &mAuditHandler,
@@ -87,6 +88,9 @@ IOTransaction::Shared StorageHandler::beginTransaction()
         &mOutgoingPaymentReceiptHandler,
         &mPaymentKeysHandler,
         &mPaymentParticipantsVotesHandler,
+        &mPaymentTransactionsHandler,
+        &mContractorsHandler,
+        &mAddressHandler,
         mLog);
 }
 

@@ -2,12 +2,12 @@
 
 MaxFlowCalculationConfirmationMessage::MaxFlowCalculationConfirmationMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
     const ConfirmationID confirmationID) :
 
     SenderMessage(
         equivalent,
-        senderUUID),
+        senderAddresses),
     mConfirmationID(confirmationID)
 {}
 
@@ -66,7 +66,6 @@ pair<BytesShared, size_t> MaxFlowCalculationConfirmationMessage::serializeToByte
 }
 
 const size_t MaxFlowCalculationConfirmationMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
     const auto kOffset =
         SenderMessage::kOffsetToInheritedBytes()

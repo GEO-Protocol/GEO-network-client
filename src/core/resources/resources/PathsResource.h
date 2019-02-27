@@ -17,7 +17,6 @@ public:
     PathsCollection::Shared pathCollection() const;
 
 private:
-
     PathsCollection::Shared mPathsCollection;
 };
 

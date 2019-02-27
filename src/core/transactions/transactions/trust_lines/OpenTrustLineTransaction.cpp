@@ -1,124 +1,74 @@
 #include "OpenTrustLineTransaction.h"
 
 OpenTrustLineTransaction::OpenTrustLineTransaction(
-    const NodeUUID &nodeUUID,
-    SetOutgoingTrustLineCommand::Shared command,
+    InitTrustLineCommand::Shared command,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    SubsystemsController *subsystemsController,
-    Keystore *keystore,
+    EventsInterface *eventsInterface,
     bool iAmGateway,
-    TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger)
-    noexcept :
-
-    BaseTrustLineTransaction(
-        BaseTransaction::OpenTrustLineTransaction,
-        nodeUUID,
-        command->equivalent(),
-        command->contractorUUID(),
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger),
-    mCommand(command),
-    mSubsystemsController(subsystemsController),
-    mIAmGateway(iAmGateway)
-{
-    mAmount = command->amount();
-    mAuditNumber = TrustLine::kInitialAuditNumber;
-    mCurrentKeyNumber = 0;
-}
-
-OpenTrustLineTransaction::OpenTrustLineTransaction(
-    BytesShared buffer,
-    const NodeUUID &nodeUUID,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    Keystore *keystore,
+    SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
 
-    BaseTrustLineTransaction(
-        buffer,
-        nodeUUID,
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger)
+    BaseTransaction(
+        BaseTransaction::OpenTrustLineTransaction,
+        command->equivalent(),
+        logger),
+    mCommand(command),
+    mCountSendingAttempts(0),
+    mContractorsManager(contractorsManager),
+    mTrustLines(manager),
+    mStorageHandler(storageHandler),
+    mEventsInterface(eventsInterface),
+    mSubsystemsController(subsystemsController),
+    mTrustLinesInfluenceController(trustLinesInfluenceController),
+    mIAmGateway(iAmGateway)
 {
-    auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
-    mStep = Stages::Recovery;
+    mStep = Initialization;
+}
 
-    memcpy(
-        mContractorUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
+OpenTrustLineTransaction::OpenTrustLineTransaction(
+    const SerializedEquivalent equivalent,
+    ContractorID contractorID,
+    ContractorsManager *contractorsManager,
+    TrustLinesManager *manager,
+    StorageHandler *storageHandler,
+    EventsInterface *eventsInterface,
+    bool iAmGateway,
+    SubsystemsController *subsystemsController,
+    TrustLinesInfluenceController *trustLinesInfluenceController,
+    Logger &logger) :
 
-    vector<byte> amountBytes(
-        buffer.get() + bytesBufferOffset,
-        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-    mAmount = bytesToTrustLineAmount(amountBytes);
-
-    mAuditNumber = TrustLine::kInitialAuditNumber;
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        bytesBufferOffset += kTrustLineAmountBytesCount;
-
-        auto *keyNumber = new (buffer.get() + bytesBufferOffset) KeyNumber;
-        mCurrentKeyNumber = (KeyNumber) *keyNumber;
-    }
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
-        bytesBufferOffset += kTrustLineAmountBytesCount;
-
-        // todo signature can be taken from storage
-        auto signature = make_shared<lamport::Signature>(
-            buffer.get() + bytesBufferOffset);
-        bytesBufferOffset += lamport::Signature::signatureSize();
-
-        KeyNumber keyNumber;
-        memcpy(
-            &keyNumber,
-            buffer.get() + bytesBufferOffset,
-            sizeof(KeyNumber));
-
-        mOwnSignatureAndKeyNumber = make_pair(
-            signature,
-            keyNumber);
-    }
+    BaseTransaction(
+        BaseTransaction::OpenTrustLineTransaction,
+        equivalent,
+        logger),
+    mContractorID(contractorID),
+    mCountSendingAttempts(0),
+    mContractorsManager(contractorsManager),
+    mTrustLines(manager),
+    mStorageHandler(storageHandler),
+    mEventsInterface(eventsInterface),
+    mSubsystemsController(subsystemsController),
+    mTrustLinesInfluenceController(trustLinesInfluenceController),
+    mIAmGateway(iAmGateway)
+{
+    mStep = NextAttempt;
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::run()
 {
     info() << "step " << mStep;
     switch (mStep) {
-        case Stages::TrustLineInitialization: {
+        case Stages::Initialization: {
             return runInitializationStage();
         }
-        case Stages::TrustLineResponseProcessing: {
+        case Stages::NextAttempt: {
+            return runNextAttemptStage();
+        }
+        case Stages::ResponseProcessing: {
             return runResponseProcessingStage();
-        }
-        case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitializationStage();
-        }
-        case Stages::NextKeyProcessing: {
-            return runPublicKeysSendNextKeyStage();
-        }
-        case Stages::KeysSharingTargetNextKey: {
-            return runReceiveNextKeyStage();
-        }
-        case Stages::AuditInitialization: {
-            return runAuditInitializationStage();
-        }
-        case Stages::AuditResponseProcessing: {
-            return runAuditResponseProcessingStage();
-        }
-        case Stages::Recovery: {
-            return runRecoveryStage();
         }
         default:
             throw ValueError(logHeader() + "::run: "
@@ -132,196 +82,233 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
         debug() << "It is forbidden run trust line transactions";
         return resultForbiddenRun();
     }
-    info() << "Try open TL to " << mContractorUUID;
-
-    if (mContractorUUID == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
-        return resultProtocolError();
+    info() << "Try init TL to Contractor on addresses:";
+    for (const auto &address : mCommand->contractorAddresses()) {
+        info() << address->fullAddress();
     }
-
-    if (mTrustLines->trustLineIsPresent(mContractorUUID)) {
-        warning() << "Trust line already present.";
-        return resultProtocolError();
-    }
-    if (mAmount == 0) {
-        warning() << "Can't establish trust line with zero amount.";
+    if (mCommand->contractorAddresses().empty()) {
+        warning() << "Contractor addresses are empty";
         return resultProtocolError();
     }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
-    mTrustLines->open(
-        mContractorUUID,
-        mAmount,
-        ioTransaction);
-    info() << "Outgoing trust line to the node " << mContractorUUID
-           << " successfully initialised with " << mAmount;
+    try {
+        mContractorID = mContractorsManager->getContractorID(
+            ioTransaction,
+            mCommand->contractorAddresses());
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        error() << "Error during getting ContractorID. Details: " << e.what();
+        return resultUnexpectedError();
+    }
+    info() << "Try init TL to " << mContractorID;
+
+    if (mTrustLines->trustLineIsPresent(mContractorID)) {
+        if (mTrustLines->trustLineState(mContractorID) != TrustLine::Archived) {
+            warning() << "Trust line already present.";
+            return resultProtocolError();
+        } else {
+            info() << "Reopening of archived TL";
+        }
+    }
 
     try {
-        auto bytesAndCount = serializeToBytes();
-        info() << "Transaction serialized";
-        ioTransaction->transactionHandler()->saveRecord(
-            currentTransactionUUID(),
-            bytesAndCount.first,
-            bytesAndCount.second);
-        info() << "Transaction saved";
+        if (mTrustLines->trustLineIsPresent(mContractorID)) {
+            mTrustLines->setTrustLineState(
+                mContractorID,
+                TrustLine::Init,
+                ioTransaction);
+            info() << "TrustLine to the node " << mContractorID
+                   << " successfully reinitialised.";
+        } else {
+            mTrustLines->open(
+                mContractorID,
+                ioTransaction);
+            info() << "TrustLine to the node " << mContractorID
+                   << " successfully initialised.";
+        }
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(
+            BaseTransaction::OpenTrustLineTransaction);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceInitializationStage(
+            BaseTransaction::OpenTrustLineTransaction);
 #endif
 
     } catch (IOError &e) {
         ioTransaction->rollback();
         mTrustLines->removeTrustLine(
-            mContractorUUID);
+            mContractorID);
         error() << "Error during saving TA. Details: " << e.what();
         return resultUnexpectedError();
     }
 
-    // Notifying remote node about trust line state changed.
-    // Network communicator knows, that this message must be forced to be delivered,
-    // so the TA itself might finish without any response from the remote node.
-    sendMessage<SetIncomingTrustLineInitialMessage>(
-        mContractorUUID,
+    sendMessage<TrustLineInitialMessage>(
+        mContractorID,
         mEquivalent,
-        mNodeUUID,
+        // todo : this field is unuseful, because we don't know our id on contractor side
+        // use different type of messages hierarchy
+        0,
+        mContractorsManager->ownAddresses(),
         mTransactionUUID,
-        mContractorUUID,
-        mAmount,
+        mContractorID,
         mIAmGateway);
+    mCountSendingAttempts++;
+    info() << "Message with TL opening request was sent";
 
-    mStep = TrustLineResponseProcessing;
+    mStep = ResponseProcessing;
     return resultOK();
+}
+
+TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
+{
+    info() << "runNextAttemptStage";
+    if (!mSubsystemsController->isRunTrustLineTransactions()) {
+        debug() << "It is forbidden run trust line transactions";
+        return resultDone();
+    }
+    info() << "Try init TL to " << mContractorID;
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
+        return resultProtocolError();
+    }
+
+    if (!mTrustLines->trustLineIsPresent(mContractorID)) {
+        warning() << "Trust line is absent.";
+        return resultDone();
+    }
+
+    if (mTrustLines->trustLineState(mContractorID) != TrustLine::Init) {
+        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
+        return resultDone();
+    }
+
+    processPongMessage(mContractorID);
+
+#ifdef TESTS
+    mTrustLinesInfluenceController->testThrowExceptionOnSourceResumingStage(
+        BaseTransaction::OpenTrustLineTransaction);
+    mTrustLinesInfluenceController->testTerminateProcessOnSourceResumingStage(
+        BaseTransaction::OpenTrustLineTransaction);
+#endif
+
+    sendMessage<TrustLineInitialMessage>(
+        mContractorID,
+        mEquivalent,
+        // todo : this field is useless, because we don't know our id on contractor side
+        // use different type of messages hierarchy
+        0,
+        mContractorsManager->ownAddresses(),
+        mTransactionUUID,
+        mContractorID,
+        mIAmGateway);
+    mCountSendingAttempts++;
+    info() << "Message with TL opening request was sent";
+
+    mStep = ResponseProcessing;
+    return resultWaitForMessageTypes(
+        {Message::TrustLines_Confirmation},
+        kWaitMillisecondsForResponse);
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingStage()
 {
     if (mContext.empty()) {
-        warning() << "Contractor don't send response. Transaction will be closed, and wait for message";
+        warning() << "Contractor don't send response.";
+        if (mCountSendingAttempts < kMaxCountSendingAttempts) {
+            sendMessage<TrustLineInitialMessage>(
+                mContractorID,
+                mEquivalent,
+                // todo : this field is useless, because we don't know our id on contractor side
+                // use different type of messages hierarchy
+                0,
+                mContractorsManager->ownAddresses(),
+                mTransactionUUID,
+                mContractorID,
+                mIAmGateway);
+            mCountSendingAttempts++;
+            info() << "Send message " << mCountSendingAttempts << " times";
+            return resultWaitForMessageTypes(
+                {Message::TrustLines_Confirmation},
+                kWaitMillisecondsForResponse);
+        }
+        info() << "Transaction will be closed and send ping";
+        // contractor don't have info about current node yet, that's why we send contractorID on our side
+        // and contractor will return this id for pong identifying on address included in message
+        sendMessage<PingMessage>(
+            mContractorID,
+            0,
+            mContractorID,
+            mContractorsManager->selfContractor()->addresses());
         return resultDone();
     }
     auto message = popNextMessage<TrustLineConfirmationMessage>();
-    info() << "contractor " << message->senderUUID << " send response on opening TL. gateway: " << message->isContractorGateway();
-    if (message->senderUUID != mContractorUUID) {
+    info() << "contractor " << message->idOnReceiverSide << " send response on opening TL. gateway: " << message->isContractorGateway();
+    // todo : check if sender is correct, this not work now, because contractor don't send idOnSenderSide
+    if (message->idOnReceiverSide != mContractorID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+    if (!mTrustLines->trustLineIsPresent(mContractorID)) {
         error() << "Something wrong, because TL must be created";
         // todo : need correct reaction
         return resultDone();
     }
+
     auto ioTransaction = mStorageHandler->beginTransaction();
     if (message->state() != ConfirmationMessage::OK) {
         warning() << "Contractor didn't accept opening TL. Response code: " << message->state();
         mTrustLines->removeTrustLine(
-            mContractorUUID,
+            mContractorID,
             ioTransaction);
-        // delete this transaction from storage
-        ioTransaction->transactionHandler()->deleteRecord(
-            currentTransactionUUID());
-        processConfirmationMessage(message);
         return resultDone();
     }
 
-#ifdef TESTS
-    mTrustLinesInfluenceController->testThrowExceptionOnTLProcessingResponseStage();
-    mTrustLinesInfluenceController->testTerminateProcessOnTLProcessingResponseStage();
-#endif
-
     try {
+        mContractorsManager->setIDOnContractorSide(
+            ioTransaction,
+            mContractorID,
+            message->contractorID());
+        info() << "Our id on contractor side " << message->contractorID();
         mTrustLines->setTrustLineState(
-            mContractorUUID,
-            TrustLine::KeysPending,
+            mContractorID,
+            TrustLine::Active,
             ioTransaction);
         if (message->isContractorGateway()) {
             mTrustLines->setContractorAsGateway(
                 ioTransaction,
-                mContractorUUID,
+                mContractorID,
                 true);
         }
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceProcessingResponseStage(
+            BaseTransaction::OpenTrustLineTransaction);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceProcessingResponseStage(
+            BaseTransaction::OpenTrustLineTransaction);
+#endif
+
         populateHistory(
             ioTransaction,
             TrustLineRecord::Opening);
     } catch (IOError &e) {
         ioTransaction->rollback();
-        error() << "Attempt to process confirmation from contractor " << mContractorUUID << " failed. "
+        error() << "Attempt to process confirmation from contractor " << mContractorID << " failed. "
                 << "IO transaction can't be completed. Details are: " << e.what();
         throw e;
     }
 
-    processConfirmationMessage(message);
-    mStep = KeysSharingInitialization;
-    return resultAwakeAsFastAsPossible();
-}
+    try {
+        mEventsInterface->writeEvent(
+            Event::initTrustLineEvent(
+                mContractorsManager->selfContractor()->mainAddress(),
+                mContractorsManager->contractorMainAddress(mContractorID)));
+    } catch (std::exception &e) {
+        warning() << "Can't write init TL event " << e.what();
+    }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::runRecoveryStage()
-{
-    info() << "Recovery";
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
-        warning() << "Trust line is absent";
-        return resultDone();
-    }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Init) {
-        info() << "Init state";
-        mTrustLines->setOutgoing(
-            mContractorUUID,
-            mAmount);
-        mStep = TrustLineResponseProcessing;
-        return runResponseProcessingStage();
-    }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        info() << "Keys pending state, current key number " << mCurrentKeyNumber;
-        auto keyChain = mKeysStore->keychain(mTrustLines->trustLineID(mContractorUUID));
-        auto ioTransaction = mStorageHandler->beginTransaction();
-        try {
-            if (keyChain.contractorKeysPresent(ioTransaction)) {
-                mStep = KeysSharingTargetNextKey;
-            } else if (mCurrentKeyNumber >= TrustLineKeychain::kDefaultKeysSetSize) {
-                mStep = KeysSharingTargetNextKey;
-            } else {
-                mCurrentPublicKey = keyChain.publicKey(
-                    ioTransaction,
-                    mCurrentKeyNumber);
-                if (mCurrentPublicKey == nullptr) {
-                    warning() << "Can't get own public key with number " << mCurrentKeyNumber;
-                    return resultDone();
-                }
-                mStep = NextKeyProcessing;
-            }
-        } catch (IOError &e) {
-            ioTransaction->rollback();
-            error() << "Can't get own public key from storage. Details: " << e.what();
-            return resultDone();
-        }
-        mTrustLines->setOutgoing(
-            mContractorUUID,
-            mAmount);
-        return resultAwakeAsFastAsPossible();
-    }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
-        info() << "Audit state";
-        mTrustLines->setOutgoing(
-            mContractorUUID,
-            mAmount);
-        mStep = AuditResponseProcessing;
-        return runAuditResponseProcessingStage();
-    }
-    warning() << "Invalid TL state: " << mTrustLines->trustLineState(mContractorUUID);
+    publicKeysSharingSignal(mContractorID, mEquivalent);
     return resultDone();
-}
-
-TransactionResult::SharedConst OpenTrustLineTransaction::runReceiveNextKeyStage()
-{
-    info() << "runReceiveNextKeyStage";
-    if (mContext.empty()) {
-        warning() << "No next public key message received. Transaction will be closed, and wait for message";
-        return resultDone();
-    }
-    auto message = popNextMessage<PublicKeyMessage>();
-    mCurrentPublicKey = message->publicKey();
-    mCurrentKeyNumber = message->number();
-    return runPublicKeyReceiverStage();
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::resultOK()
@@ -350,72 +337,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::resultUnexpectedError()
         mCommand->responseUnexpectedError());
 }
 
-pair<BytesShared, size_t> OpenTrustLineTransaction::serializeToBytes() const
-{
-    const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
-    size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize
-                        + kTrustLineAmountBytesCount;
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        bytesCount += sizeof(KeyNumber);
-    }
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
-        bytesCount += lamport::PublicKey::keySize()
-                      + sizeof(KeyNumber);
-    }
-
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    dataBytesOffset += parentBytesAndCount.second;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize);
-    dataBytesOffset += NodeUUID::kBytesSize;
-
-    vector<byte> buffer = trustLineAmountToBytes(mAmount);
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        buffer.data(),
-        buffer.size());
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        dataBytesOffset += kTrustLineAmountBytesCount;
-
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &mCurrentKeyNumber,
-            sizeof(KeyNumber));
-    }
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
-        dataBytesOffset += kTrustLineAmountBytesCount;
-
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            mOwnSignatureAndKeyNumber.first->data(),
-            lamport::Signature::signatureSize());
-        dataBytesOffset += lamport::Signature::signatureSize();
-
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &mOwnSignatureAndKeyNumber.second,
-            sizeof(KeyNumber));
-    }
-
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
-}
-
 const string OpenTrustLineTransaction::logHeader() const
     noexcept
 {
@@ -432,8 +353,8 @@ void OpenTrustLineTransaction::populateHistory(
     auto record = make_shared<TrustLineRecord>(
         mTransactionUUID,
         operationType,
-        mContractorUUID,
-        mAmount);
+        mContractorsManager->contractor(mContractorID),
+        0);
 
     ioTransaction->historyStorage()->saveTrustLineRecord(
         record,

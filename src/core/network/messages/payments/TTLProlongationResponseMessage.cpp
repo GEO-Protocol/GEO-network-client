@@ -2,13 +2,13 @@
 
 TTLProlongationResponseMessage::TTLProlongationResponseMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const OperationState state) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID),
     mState(state)
 {}
@@ -29,12 +29,7 @@ const TTLProlongationResponseMessage::OperationState TTLProlongationResponseMess
     return mState;
 }
 
-/**
- *
- * @throws bad_alloc;
- */
 pair<BytesShared, size_t> TTLProlongationResponseMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 

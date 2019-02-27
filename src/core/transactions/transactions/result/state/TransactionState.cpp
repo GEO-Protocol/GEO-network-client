@@ -147,6 +147,26 @@ TransactionState::SharedConst TransactionState::waitForResourcesTypes(
     return const_pointer_cast<const TransactionState>(state);
 }
 
+TransactionState::SharedConst TransactionState::waitForResourcesAndMessagesTypes(
+    vector<BaseResource::ResourceType> &&requiredResourcesType,
+    vector<Message::MessageType> &&requiredMessageType,
+    uint32_t noLongerThanMilliseconds)
+{
+    TransactionState::Shared state;
+    if (noLongerThanMilliseconds == 0) {
+        state = const_pointer_cast<TransactionState> (TransactionState::exit());
+
+    } else {
+        state = const_pointer_cast<TransactionState> (TransactionState::awakeAfterMilliseconds(
+            noLongerThanMilliseconds));
+    }
+
+    state->mRequiredResourcesTypes = requiredResourcesType;
+    state->mRequiredMessageTypes = requiredMessageType;
+
+    return const_pointer_cast<const TransactionState>(state);
+}
+
 TransactionState::SharedConst TransactionState::continueWithPreviousState()
 {
     TransactionState::Shared state;

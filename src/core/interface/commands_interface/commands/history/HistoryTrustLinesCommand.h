@@ -3,7 +3,6 @@
 
 #include "../BaseUserCommand.h"
 #include "../../../../common/exceptions/ValueError.h"
-#include "../../../../common/time/TimeUtils.h"
 
 class HistoryTrustLinesCommand : public BaseUserCommand {
 

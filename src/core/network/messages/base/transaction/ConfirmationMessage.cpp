@@ -2,13 +2,24 @@
 
 ConfirmationMessage::ConfirmationMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const OperationState state) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
+        transactionUUID),
+    mState(state)
+{}
+
+ConfirmationMessage::ConfirmationMessage(
+    const SerializedEquivalent equivalent,
+    ContractorID idOnReceiverSide,
+    const TransactionUUID &transactionUUID,
+    const OperationState state) :
+
+    TransactionMessage(
+        equivalent,
+        idOnReceiverSide,
         transactionUUID),
     mState(state)
 {}
@@ -35,7 +46,6 @@ const ConfirmationMessage::OperationState ConfirmationMessage::state() const
 }
 
 pair<BytesShared, size_t> ConfirmationMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
@@ -63,9 +73,8 @@ pair<BytesShared, size_t> ConfirmationMessage::serializeToBytes() const
 }
 
 const size_t ConfirmationMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
-    static const auto kOffset =
+    const auto kOffset =
         TransactionMessage::kOffsetToInheritedBytes()
         + sizeof(SerializedOperationState);
 

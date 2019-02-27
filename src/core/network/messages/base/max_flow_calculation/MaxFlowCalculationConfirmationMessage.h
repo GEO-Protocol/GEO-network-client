@@ -11,7 +11,7 @@ public:
 public:
     MaxFlowCalculationConfirmationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> senderAddresses,
         const ConfirmationID confirmationID);
 
     MaxFlowCalculationConfirmationMessage(
@@ -24,11 +24,10 @@ public:
 
     const ConfirmationID confirmationID() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
-    virtual const size_t kOffsetToInheritedBytes() const
-        noexcept;
+    virtual const size_t kOffsetToInheritedBytes() const override;
 
 private:
     ConfirmationID mConfirmationID;

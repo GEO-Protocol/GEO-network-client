@@ -1,57 +1,88 @@
 #include "CyclesSixNodesReceiverTransaction.h"
 
 CyclesSixNodesReceiverTransaction::CyclesSixNodesReceiverTransaction(
-    const NodeUUID &nodeUUID,
     CyclesSixNodesInBetweenMessage::Shared message,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     Logger &logger) :
     BaseTransaction(
-        BaseTransaction::TransactionType::Cycles_SixNodesReceiverTransaction,
-        nodeUUID,
+        BaseTransaction::Cycles_SixNodesReceiverTransaction,
         message->equivalent(),
         logger),
+    mContractorsManager(contractorsManager),
     mTrustLinesManager(manager),
     mInBetweenNodeTopologyMessage(message)
 {}
 
 TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
 {
-    vector<NodeUUID> path = mInBetweenNodeTopologyMessage->Path();
-    if (!mTrustLinesManager->trustLineIsActive(path.back())) {
-        warning() << "TL with previous node " << path.back() << " is not active";
+    info() << "Neighbor " << mInBetweenNodeTopologyMessage->idOnReceiverSide << " sent request";
+    auto contractorID = mInBetweenNodeTopologyMessage->idOnReceiverSide;
+    if (!mContractorsManager->contractorPresent(contractorID)) {
+        warning() << "There is no contractor " << contractorID;
         return resultDone();
     }
-    // Direction has mirror sign for initiator node and receiver node.
-    // Direction is calculated based on initiator node
-    TrustLineBalance maxFlow = (-1) *  mTrustLinesManager->balance(path.back());
+    vector<BaseAddress::Shared> path = mInBetweenNodeTopologyMessage->path();
+    if (!mTrustLinesManager->trustLineIsActive(contractorID)) {
+        warning() << "TL with previous node " << contractorID << " is not active";
+        return resultDone();
+    }
+
+    auto contractorBalance = mTrustLinesManager->balance(contractorID);
 
     //  If balance to previous node equal zero finish transaction
-    if (maxFlow == TrustLine::kZeroBalance())
+    if (contractorBalance == TrustLine::kZeroBalance()) {
         return resultDone();
-    auto kFirstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
+    }
+    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(
+        contractorBalance < TrustLine::kZeroBalance());
+    if (firstLevelNodes.empty()) {
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+        debug() << "No suitable firstLevelNodes";
+#endif
+        return resultDone();
+    }
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+    stringstream ss;
+    ss << "suitable neighbors: ";
+    for(const auto &neighborID: firstLevelNodes) {
+        ss << neighborID << " ";
+    }
+    debug() << ss.str();
+#endif
+
     //  Update message path and send to next level nodes
     const auto kCurrentDepth = (SerializedPathLengthSize)path.size();
-#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
-    info() << "current depth: " << to_string(kCurrentDepth);
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+    info() << "current depth: " << (uint16_t)kCurrentDepth;
 #endif
-    if ((kCurrentDepth==1)) {
-        mInBetweenNodeTopologyMessage->addNodeToPath(mNodeUUID);
-        for(const auto &kNodeUUIDAndBalance: kFirstLevelNodes) {
+    if (kCurrentDepth == 1) {
+        mInBetweenNodeTopologyMessage->addNodeToPath(
+            mContractorsManager->ownAddresses().at(0));
+        for(const auto &neighborID: firstLevelNodes) {
             sendMessage(
-                kNodeUUIDAndBalance,
+                neighborID,
                 mInBetweenNodeTopologyMessage);
+            info() << "send request message to neighbor " << neighborID;
         }
     }
-    else if (kCurrentDepth==2){
-        path.push_back(mNodeUUID);
+    else if (kCurrentDepth == 2) {
+        path.push_back(
+            mContractorsManager->ownAddresses().at(0));
+        vector<BaseAddress::Shared> boundaryNodes;
+        for (const auto &neighborID: firstLevelNodes) {
+            boundaryNodes.push_back(
+                mContractorsManager->contractorMainAddress(neighborID));
+        }
         sendMessage<CyclesSixNodesBoundaryMessage>(
             path.front(),
             mEquivalent,
             path,
-            kFirstLevelNodes);
+            boundaryNodes);
+        info() << "send response message to " << path.front()->fullAddress();
     }
     else {
-        warning() << "Wrong path size " << to_string(kCurrentDepth);
+        warning() << "Wrong path size " << (uint16_t)kCurrentDepth;
     }
     return resultDone();
 }

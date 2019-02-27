@@ -3,13 +3,50 @@
 
 TransactionMessage::TransactionMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID)
     noexcept :
 
     SenderMessage(
         equivalent,
-        senderUUID),
+        0),
+    mTransactionUUID(transactionUUID)
+{}
+
+TransactionMessage::TransactionMessage(
+    const SerializedEquivalent equivalent,
+    ContractorID idOnReceiverSide,
+    vector<BaseAddress::Shared> &senderAddresses,
+    const TransactionUUID &transactionUUID)
+    noexcept:
+
+    SenderMessage(
+        equivalent,
+        idOnReceiverSide,
+        senderAddresses),
+    mTransactionUUID(transactionUUID)
+{}
+
+TransactionMessage::TransactionMessage(
+    const SerializedEquivalent equivalent,
+    vector<BaseAddress::Shared> &senderAddresses,
+    const TransactionUUID &transactionUUID)
+    noexcept:
+
+    SenderMessage(
+        equivalent,
+        senderAddresses),
+    mTransactionUUID(transactionUUID)
+{}
+
+TransactionMessage::TransactionMessage(
+    const SerializedEquivalent equivalent,
+    ContractorID idOnReceiverSide,
+    const TransactionUUID &transactionUUID)
+    noexcept:
+
+    SenderMessage(
+        equivalent,
+        idOnReceiverSide),
     mTransactionUUID(transactionUUID)
 {}
 
@@ -72,9 +109,8 @@ pair<BytesShared, size_t> TransactionMessage::serializeToBytes() const
 }
 
 const size_t TransactionMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
-    static const auto kOffset =
+    const auto kOffset =
           SenderMessage::kOffsetToInheritedBytes()
         + TransactionUUID::kBytesSize;
 

@@ -4,16 +4,17 @@ set(SOURCE_FILES
         GetFirstLevelContractorsTransaction.h
         GetFirstLevelContractorsTransaction.cpp
 
-        GetFirstLevelContractorsBalancesTransaction.h
-        GetFirstLevelContractorsBalancesTransaction.cpp
+        GetTrustLinesListTransaction.h
+        GetTrustLinesListTransaction.cpp
 
-        GetFirstLevelContractorBalanceTransaction.h
-        GetFirstLevelContractorBalanceTransaction.cpp
+        GetTrustLineByIDTransaction.h
+        GetTrustLineByIDTransaction.cpp
+        GetTrustLineByAddressTransaction.h
+        GetTrustLineByAddressTransaction.cpp
 
         GetEquivalentListTransaction.h
         GetEquivalentListTransaction.cpp)
 
 add_library(transactions__trustlines_list ${SOURCE_FILES})
 target_link_libraries(transactions__trustlines_list
-        transactions__base
-        interface__commands)
+        transactions__base)

@@ -11,9 +11,24 @@ public:
     typedef shared_ptr<InitiateMaxFlowCalculationMessage> Shared;
 
 public:
-    using SenderMessage::SenderMessage;
+    InitiateMaxFlowCalculationMessage(
+        const SerializedEquivalent equivalent,
+        vector<BaseAddress::Shared> &senderAddresses,
+        bool isSenderGateway)
+        noexcept;
+
+    InitiateMaxFlowCalculationMessage(
+        BytesShared buffer)
+        noexcept;
+
+    bool isSenderGateway() const;
 
     const MessageType typeID() const;
+
+    pair<BytesShared, size_t> serializeToBytes() const override;
+
+private:
+    bool mIsSenderGateway;
 };
 
 

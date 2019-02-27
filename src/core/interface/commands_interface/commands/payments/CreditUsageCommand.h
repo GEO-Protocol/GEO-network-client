@@ -3,11 +3,11 @@
 
 #include "../BaseUserCommand.h"
 
+#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
 #include "../../../../common/exceptions/ValueError.h"
 #include "../../../../common/exceptions/MemoryError.h"
-
 
 class CreditUsageCommand:
     public BaseUserCommand {
@@ -24,18 +24,18 @@ public:
 
     const TrustLineAmount& amount() const;
 
-    const NodeUUID& contractorUUID() const;
+    vector<BaseAddress::Shared> contractorAddresses() const;
 
     const SerializedEquivalent equivalent() const;
 
 public:
     // Results handlers
-    CommandResult::SharedConst responseNoConsensus() const;
     CommandResult::SharedConst responseOK(
         string &transactionUUID) const;
 
 private:
-    NodeUUID mContractorUUID;
+    size_t mContractorAddressesCount;
+    vector<BaseAddress::Shared> mContractorAddresses;
     TrustLineAmount mAmount;
     SerializedEquivalent mEquivalent;
 };

@@ -2,14 +2,14 @@
 
 CoordinatorCycleReservationResponseMessage::CoordinatorCycleReservationResponseMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const ResponseCycleMessage::OperationState state,
     const TrustLineAmount& reservedAmount):
 
     ResponseCycleMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID,
         state),
     mAmountReserved(reservedAmount)
@@ -37,7 +37,6 @@ const TrustLineAmount& CoordinatorCycleReservationResponseMessage::amountReserve
 }
 
 pair<BytesShared, size_t> CoordinatorCycleReservationResponseMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = ResponseCycleMessage::serializeToBytes();
     auto serializedAmount = trustLineAmountToBytes(mAmountReserved);

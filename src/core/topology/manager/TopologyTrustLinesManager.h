@@ -1,15 +1,13 @@
 #ifndef GEO_NETWORK_CLIENT_TOPOLOGYTRUSTLINESMANAGER_H
 #define GEO_NETWORK_CLIENT_TOPOLOGYTRUSTLINESMANAGER_H
 
-#include "../../common/NodeUUID.h"
 #include "TopologyTrustLineWithPtr.h"
+#include "../../contractors/addresses/BaseAddress.h"
 #include "../../common/time/TimeUtils.h"
 #include "../../logger/Logger.h"
 
 #include <set>
-#include <unordered_set>
 #include <unordered_map>
-#include <boost/functional/hash.hpp>
 
 class TopologyTrustLinesManager {
 
@@ -20,14 +18,13 @@ public:
     TopologyTrustLinesManager(
         const SerializedEquivalent equivalent,
         bool iAmGateway,
-        NodeUUID &nodeUUID,
         Logger &logger);
 
     void addTrustLine(
         TopologyTrustLine::Shared trustLine);
 
     TrustLineWithPtrHashSet trustLinePtrsSet(
-        const NodeUUID &nodeUUID);
+        ContractorID nodeID);
 
     void resetAllUsedAmounts();
 
@@ -46,23 +43,34 @@ public:
     bool preventDeleting() const;
 
     void addUsedAmount(
-        const NodeUUID &sourceUUID,
-        const NodeUUID &targetUUID,
+        ContractorID sourceID,
+        ContractorID targetID,
         const TrustLineAmount &amount);
 
     void makeFullyUsed(
-        const NodeUUID &sourceUUID,
-        const NodeUUID &targetUUID);
+        ContractorID sourceID,
+        ContractorID targetID);
 
-    set<NodeUUID> neighborsOf(
-        const NodeUUID &sourceUUID);
+    void addGateway(
+        ContractorID gateway);
 
-    void addGateway(const NodeUUID &gateway);
-
-    const set<NodeUUID> gateways() const;
+    const set<ContractorID> gateways() const;
 
     void makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
-        const NodeUUID &exceptedNode);
+        ContractorID exceptedNode);
+
+    const TrustLineAmount& flowAmount(
+        ContractorID source,
+        ContractorID destination);
+
+    ContractorID getID(
+        BaseAddress::Shared address);
+
+    BaseAddress::Shared getAddressByID(
+        ContractorID nodeID) const;
+
+public:
+    static const ContractorID kCurrentNodeID = 0;
 
 private:
     static const byte kResetTrustLinesHours = 0;
@@ -91,17 +99,20 @@ private:
 
 private:
     LoggerStream info() const;
+
     LoggerStream debug() const;
 
     const string logHeader() const;
 
 private:
-    unordered_map<NodeUUID, TrustLineWithPtrHashSet*, boost::hash<boost::uuids::uuid>> msTrustLines;
+    unordered_map<ContractorID, TrustLineWithPtrHashSet*> msTrustLines;
     map<DateTime, TopologyTrustLineWithPtr*> mtTrustLines;
+    vector<pair<BaseAddress::Shared, ContractorID>> mParticipantsAddresses;
+    ContractorID mHigherFreeID;
     SerializedEquivalent mEquivalent;
     Logger &mLog;
     bool mPreventDeleting;
-    set<NodeUUID> mGateways;
+    set<ContractorID> mGateways;
     DateTime mLastTrustLineTimeAdding;
 };
 

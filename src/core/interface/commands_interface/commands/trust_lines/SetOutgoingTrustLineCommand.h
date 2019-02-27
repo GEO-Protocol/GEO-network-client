@@ -6,7 +6,6 @@
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../../../common/exceptions/ValueError.h"
 
-
 using namespace std;
 
 /**
@@ -30,7 +29,7 @@ public:
     static const string &identifier()
         noexcept;
 
-    const NodeUUID &contractorUUID() const
+    const ContractorID contractorID() const
         noexcept;
 
     const TrustLineAmount &amount() const
@@ -40,7 +39,7 @@ public:
         noexcept;
 
 private:
-    NodeUUID mContractorUUID;
+    ContractorID mContractorID;
     TrustLineAmount mAmount;
     SerializedEquivalent mEquivalent;
 };

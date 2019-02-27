@@ -9,9 +9,25 @@ public:
     typedef shared_ptr<MaxFlowCalculationTargetSndLevelMessage> Shared;
 
 public:
-    using MaxFlowCalculationMessage::MaxFlowCalculationMessage;
+    MaxFlowCalculationTargetSndLevelMessage(
+        const SerializedEquivalent equivalent,
+        ContractorID idOnReceiverSide,
+        vector<BaseAddress::Shared> targetAddresses,
+        bool isTargetGateway)
+        noexcept;
+
+    MaxFlowCalculationTargetSndLevelMessage(
+        BytesShared buffer)
+        noexcept;
+
+    bool isTargetGateway() const;
 
     const MessageType typeID() const;
+
+    pair<BytesShared, size_t> serializeToBytes() const override;
+
+private:
+    bool mIsTargetGateway;
 };
 
 

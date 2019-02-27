@@ -2,8 +2,8 @@
 
 BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     const TransactionType type,
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
     TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
@@ -12,9 +12,9 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
 
     BaseTransaction(
         type,
-        nodeUUID,
         equivalent,
         logger),
+    mContractorsManager(contractorsManager),
     mTrustLinesManager(trustLinesManager),
     mTopologyTrustLineManager(topologyTrustLineManager),
     mTopologyCacheManager(topologyCacheManager),
@@ -24,8 +24,8 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
 BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID,
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
     TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
@@ -35,9 +35,9 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     BaseTransaction(
         type,
         transactionUUID,
-        nodeUUID,
         equivalent,
         logger),
+    mContractorsManager(contractorsManager),
     mTrustLinesManager(trustLinesManager),
     mTopologyTrustLineManager(topologyTrustLineManager),
     mTopologyCacheManager(topologyCacheManager),
@@ -68,44 +68,58 @@ void BaseCollectTopologyTransaction::fillTopology()
         if (mContext.at(0)->typeID() == Message::MaxFlow_ResultMaxFlowCalculation) {
             const auto kMessage = popNextMessage<ResultMaxFlowCalculationMessage>();
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-            info() << "Sender " << kMessage->senderUUID << " common";
+            info() << "Sender " << kMessage->senderAddresses.at(0)->fullAddress() << " common";
+            info() << "Outgoing flows: " << kMessage->outgoingFlows().size();
+            info() << "Incoming flows: " << kMessage->incomingFlows().size();
             info() << "ConfirmationID " << kMessage->confirmationID();
 #endif
+            auto senderID = mTopologyTrustLineManager->getID(kMessage->senderAddresses.at(0));
             for (auto const &outgoingFlow : kMessage->outgoingFlows()) {
+                auto targetID = mTopologyTrustLineManager->getID(outgoingFlow.first);
                 mTopologyTrustLineManager->addTrustLine(
                     make_shared<TopologyTrustLine>(
-                        kMessage->senderUUID,
-                        outgoingFlow.first,
+                        senderID,
+                        targetID,
                         outgoingFlow.second));
             }
             for (auto const &incomingFlow : kMessage->incomingFlows()) {
+                auto sourceID = mTopologyTrustLineManager->getID(incomingFlow.first);
                 mTopologyTrustLineManager->addTrustLine(
                     make_shared<TopologyTrustLine>(
-                        incomingFlow.first,
-                        kMessage->senderUUID,
+                        sourceID,
+                        senderID,
                         incomingFlow.second));
             }
         }
         else if (mContext.at(0)->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
             const auto kMessage = popNextMessage<ResultMaxFlowCalculationGatewayMessage>();
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-            info() << "Sender " << kMessage->senderUUID << " gateway";
+            info() << "Sender " << kMessage->senderAddresses.at(0)->fullAddress() << " gateway";
+            info() << "Outgoing flows: " << kMessage->outgoingFlows().size();
+            info() << "Incoming flows: " << kMessage->incomingFlows().size();
+            info() << "ConfirmationID " << kMessage->confirmationID();
 #endif
-            mTopologyTrustLineManager->addGateway(kMessage->senderUUID);
+            auto senderID = mTopologyTrustLineManager->getID(kMessage->senderAddresses.at(0));
+            mTopologyTrustLineManager->addGateway(senderID);
             for (auto const &outgoingFlow : kMessage->outgoingFlows()) {
+                auto targetID = mTopologyTrustLineManager->getID(outgoingFlow.first);
                 mTopologyTrustLineManager->addTrustLine(
                     make_shared<TopologyTrustLine>(
-                        kMessage->senderUUID,
-                        outgoingFlow.first,
+                        senderID,
+                        targetID,
                         outgoingFlow.second));
             }
             for (auto const &incomingFlow : kMessage->incomingFlows()) {
+                auto sourceID = mTopologyTrustLineManager->getID(incomingFlow.first);
                 mTopologyTrustLineManager->addTrustLine(
                     make_shared<TopologyTrustLine>(
-                        incomingFlow.first,
-                        kMessage->senderUUID,
+                        sourceID,
+                        senderID,
                         incomingFlow.second));
             }
+
+            mGateways.insert(
+                senderID);
         }
         else {
             warning() << "Invalid message type in context during fill topology";

@@ -1,58 +1,69 @@
 #include "CyclesThreeNodesReceiverTransaction.h"
 
 CyclesThreeNodesReceiverTransaction::CyclesThreeNodesReceiverTransaction(
-    const NodeUUID &nodeUUID,
     CyclesThreeNodesBalancesRequestMessage::Shared message,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::Cycles_ThreeNodesReceiverTransaction,
+        BaseTransaction::Cycles_ThreeNodesReceiverTransaction,
         message->transactionUUID(),
-        nodeUUID,
         message->equivalent(),
         logger),
+    mContractorsManager(contractorsManager),
     mTrustLinesManager(manager),
     mRequestMessage(message)
 {}
 
 TransactionResult::SharedConst CyclesThreeNodesReceiverTransaction::run()
 {
-    if (!mTrustLinesManager->trustLineIsActive(mRequestMessage->senderUUID)) {
-        warning() << "TL with requested node " << mRequestMessage->senderUUID << " is not active";
+    info() << "Neighbor " << mRequestMessage->idOnReceiverSide << " send request with "
+           << mRequestMessage->neighbors().size() << " nodes to check";
+    if (!mTrustLinesManager->trustLineIsActive(mRequestMessage->idOnReceiverSide)) {
+        warning() << "TL with requested node " << mRequestMessage->idOnReceiverSide << " is not active";
         return resultDone();
     }
     const auto kNeighbors = mRequestMessage->neighbors();
-    const auto kContractorBalance = mTrustLinesManager->balance(mRequestMessage->senderUUID);
+    const auto kContractorBalance = mTrustLinesManager->balance(mRequestMessage->idOnReceiverSide);
 
     if (kContractorBalance == TrustLine::kZeroBalance()) {
         return resultDone();
     }
 
-    vector<NodeUUID> commonNeighbors;
+    vector<BaseAddress::Shared> commonNeighbors;
 
     bool searchDebtors = true;
     if (kContractorBalance > TrustLine::kZeroBalance())
         searchDebtors = false;
 
     TrustLineBalance stepNodeBalance;
-    for (const auto &kNodeUUID: kNeighbors) {
-        if (!mTrustLinesManager->trustLineIsActive(kNodeUUID)) {
+    for (const auto &kNodeAddress: kNeighbors) {
+        auto neighborID = mContractorsManager->contractorIDByAddress(kNodeAddress);
+        if (neighborID == ContractorsManager::kNotFoundContractorID) {
+            warning() << "There is no neighbor with address " << kNodeAddress->fullAddress();
             continue;
         }
-        stepNodeBalance = mTrustLinesManager->balance(kNodeUUID);
+        if (!mTrustLinesManager->trustLineIsActive(neighborID)) {
+            continue;
+        }
+        stepNodeBalance = mTrustLinesManager->balance(neighborID);
         if ((searchDebtors and stepNodeBalance > TrustLine::kZeroBalance())
             or (not searchDebtors and (stepNodeBalance < TrustLine::kZeroBalance())))
             commonNeighbors.push_back(
-                kNodeUUID);
+                kNodeAddress);
     }
-    if (!commonNeighbors.empty())
+    if (!commonNeighbors.empty()) {
         sendMessage<CyclesThreeNodesBalancesResponseMessage>(
-            mRequestMessage->senderUUID,
+            mRequestMessage->idOnReceiverSide,
             mEquivalent,
-            mNodeUUID,
+            mContractorsManager->idOnContractorSide(
+                mRequestMessage->idOnReceiverSide),
             currentTransactionUUID(),
             commonNeighbors);
+    } else {
+        info() << "There are no suitable nodes";
+    }
     return resultDone();
 }
 

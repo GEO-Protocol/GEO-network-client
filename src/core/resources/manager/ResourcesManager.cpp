@@ -1,20 +1,26 @@
 #include "ResourcesManager.h"
 
 void ResourcesManager::putResource(
-    BaseResource::Shared resource) {
-
+    BaseResource::Shared resource)
+{
     attachResourceSignal(
         resource);
 }
 
 void ResourcesManager::requestPaths(
     const TransactionUUID &transactionUUID,
-    const NodeUUID &contractorUUID,
-    const SerializedEquivalent equivalent) const {
-
+    BaseAddress::Shared contractorAddress,
+    const SerializedEquivalent equivalent) const
+{
     requestPathsResourcesSignal(
         transactionUUID,
-        contractorUUID,
+        contractorAddress,
         equivalent);
+}
 
+void ResourcesManager::requestObservingBlockNumber(
+    const TransactionUUID &transactionUUID)
+{
+    requestObservingBlockNumberSignal(
+        transactionUUID);
 }

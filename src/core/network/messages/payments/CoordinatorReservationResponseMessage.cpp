@@ -3,7 +3,7 @@
 
 CoordinatorReservationResponseMessage::CoordinatorReservationResponseMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const PathID& pathID,
     const ResponseMessage::OperationState state,
@@ -11,7 +11,7 @@ CoordinatorReservationResponseMessage::CoordinatorReservationResponseMessage(
 
     ResponseMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID,
         pathID,
         state),
@@ -40,7 +40,6 @@ const TrustLineAmount&CoordinatorReservationResponseMessage::amountReserved() co
 }
 
 pair<BytesShared, size_t> CoordinatorReservationResponseMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = ResponseMessage::serializeToBytes();
     auto serializedAmount = trustLineAmountToBytes(mAmountReserved);

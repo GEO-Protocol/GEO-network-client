@@ -12,7 +12,7 @@ public:
     using CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage;
 
     const MessageType typeID() const {
-        return Message::MessageType::Cycles_SixNodesBoundary;
+        return Message::Cycles_SixNodesBoundary;
     };
 };
 

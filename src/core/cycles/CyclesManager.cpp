@@ -2,14 +2,12 @@
 
 CyclesManager::CyclesManager(
     const SerializedEquivalent equivalent,
-    const NodeUUID &nodeUUID,
     TransactionsScheduler *transactionsScheduler,
     as::io_service &ioService,
     Logger &logger,
     SubsystemsController *subsystemsController) :
 
     mEquivalent(equivalent),
-    mNodeUUID(nodeUUID),
     mTransactionScheduler(transactionsScheduler),
     mIOService(ioService),
     mLog(logger),
@@ -56,26 +54,26 @@ CyclesManager::CyclesManager(
 }
 
 void CyclesManager::addCycle(
-    Path::ConstShared cycle)
+    Path::Shared cycle)
 {
     if (!mSubsystemsController->isRunCycleClosingTransactions()) {
         debug() << "Adding cycles is forbidden";
         return;
     }
     switch (cycle->length()) {
-        case 4:
+        case 2:
             debug() << "add three nodes cycle";
             mThreeNodesCycles.push_back(cycle);
             break;
-        case 5:
+        case 3:
             debug() << "add four nodes cycle";
             mFourNodesCycles.push_back(cycle);
             break;
-        case 6:
+        case 4:
             debug() << "add five nodes cycle";
             mFiveNodesCycles.push_back(cycle);
             break;
-        case 7:
+        case 5:
             debug() << "add six nodes cycle";
             mSixNodesCycles.push_back(cycle);
             break;
@@ -128,7 +126,7 @@ void CyclesManager::closeOneCycle(
     mIsCycleInProcess = false;
 }
 
-vector<Path::ConstShared>* CyclesManager::cyclesVector(
+vector<Path::Shared>* CyclesManager::cyclesVector(
     CycleClosingState currentCycleClosingState)
 {
     switch (currentCycleClosingState) {
@@ -202,17 +200,15 @@ bool CyclesManager::isChallengerTransactionWinReservation(
     BasePaymentTransaction::Shared reservedTransaction)
 {
     debug() << "isChallengerTransactionWinReservation challenger: " << challengerTransaction->currentTransactionUUID()
-            << " nodeUUID: " << challengerTransaction->currentNodeUUID()
             << " transaction type: " << challengerTransaction->transactionType()
             << " votesCheckingStage: " << challengerTransaction->isCommonVotesCheckingStage()
             << " cycle length: " << to_string(challengerTransaction->cycleLength())
-            << " coordinator: " << challengerTransaction->coordinatorUUID();
+            << " coordinator: " << challengerTransaction->coordinatorAddress()->fullAddress();
     debug() << "isChallengerTransactionWinReservation reserved: " << reservedTransaction->currentTransactionUUID()
-            << " nodeUUID: " << challengerTransaction->currentNodeUUID()
             << " transaction type: " << reservedTransaction->transactionType()
             << " votesCheckingStage: " << reservedTransaction->isCommonVotesCheckingStage()
             << " cycle length: " << to_string(reservedTransaction->cycleLength())
-            << " coordinator: " << reservedTransaction->coordinatorUUID();
+            << " coordinator: " << reservedTransaction->coordinatorAddress()->fullAddress();
     if (reservedTransaction->transactionType() != BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction
         && reservedTransaction->transactionType() != BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction) {
         debug() << "isChallengerTransactionWinReservation false: reserved is not cycle transaction";
@@ -228,8 +224,9 @@ bool CyclesManager::isChallengerTransactionWinReservation(
         return challengerTransaction->cycleLength() > reservedTransaction->cycleLength();
     }
     debug() << "isChallengerTransactionWinReservation "
-            << (challengerTransaction->coordinatorUUID() > reservedTransaction->coordinatorUUID()) << " on coordinatorUUIDs";
-    return challengerTransaction->coordinatorUUID() > reservedTransaction->coordinatorUUID();
+            << (challengerTransaction->coordinatorAddress()->fullAddress() > reservedTransaction->coordinatorAddress()->fullAddress())
+            << " on coordinatorUUIDs";
+    return challengerTransaction->coordinatorAddress()->fullAddress() > reservedTransaction->coordinatorAddress()->fullAddress();
 }
 
 bool CyclesManager::resolveReservationConflict(
@@ -247,7 +244,8 @@ bool CyclesManager::resolveReservationConflict(
     if (isChallengerTransactionWinReservation(
             challengerTransaction,
             reservedTransaction)) {
-        reservedTransaction->setRollbackByOtherTransactionStage();
+        reservedTransaction->setTransactionState(
+            BasePaymentTransaction::Common_RollbackByOtherTransaction);
         mTransactionScheduler->postponeTransaction(
             reservedTransaction,
             kPostponingRollbackTransactionTimeMSec);
@@ -262,7 +260,7 @@ bool CyclesManager::isTransactionStillAlive(
     debug() << "isTransactionStillAlive: " << transactionUUID;
     try {
         mTransactionScheduler->cycleClosingTransactionByUUID(
-                transactionUUID);
+            transactionUUID);
         debug() << "Still alive";
         return true;
     } catch (NotFoundError &e) {
@@ -272,8 +270,8 @@ bool CyclesManager::isTransactionStillAlive(
 }
 
 void CyclesManager::addClosedTrustLine(
-    const NodeUUID &source,
-    const NodeUUID &destination)
+    BaseAddress::Shared source,
+    BaseAddress::Shared destination)
 {
     mClosedTrustLines.insert(
         make_pair(utc_now(),
@@ -283,18 +281,18 @@ void CyclesManager::addClosedTrustLine(
 }
 
 void CyclesManager::addOfflineNode(
-    const NodeUUID &nodeUUID)
+    BaseAddress::Shared nodeAddress)
 {
     mOfflineNodes.insert(
         make_pair(
             utc_now(),
-            nodeUUID));
+            nodeAddress));
 }
 
 void CyclesManager::removeCyclesWithClosedTrustLine(
-    const NodeUUID &sourceClosed,
-    const NodeUUID &destinationClosed,
-    vector<Path::ConstShared> &cycles)
+    BaseAddress::Shared sourceClosed,
+    BaseAddress::Shared destinationClosed,
+    vector<Path::Shared> &cycles)
 {
     auto itCycle = cycles.begin();
     while (itCycle != cycles.end()) {
@@ -310,8 +308,8 @@ void CyclesManager::removeCyclesWithClosedTrustLine(
 }
 
 void CyclesManager::removeCyclesWithOfflineNode(
-    const NodeUUID &offlineNode,
-    vector<Path::ConstShared> &cycles)
+    BaseAddress::Shared offlineNode,
+    vector<Path::Shared> &cycles)
 {
     auto itCycle = cycles.begin();
     while (itCycle != cycles.end()) {
@@ -415,10 +413,13 @@ void CyclesManager::updateOfflineNodesAndClosedTLLists(
 
 uint32_t CyclesManager::randomInitializer() const
 {
+    NodeUUID randomInitializator;
     uint32_t result = 0;
     for (int i=0; i < NodeUUID::kBytesSize; i++) {
         result = result << 2;
-        result |= (mNodeUUID.data[i] & 0x3);
+        byte tmp = (byte)(randomInitializator.data[i] * mEquivalent);
+        result |= (tmp & 0x3);
+
     }
     return result;
 }

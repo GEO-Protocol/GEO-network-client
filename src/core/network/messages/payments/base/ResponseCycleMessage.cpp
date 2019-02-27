@@ -2,13 +2,13 @@
 
 ResponseCycleMessage::ResponseCycleMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const OperationState state) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID),
     mState(state)
 {}
@@ -30,18 +30,12 @@ const ResponseCycleMessage::OperationState ResponseCycleMessage::state() const
 }
 
 const size_t ResponseCycleMessage::kOffsetToInheritedBytes() const
-    noexcept
 {
     return TransactionMessage::kOffsetToInheritedBytes()
            + sizeof(SerializedOperationState);
 }
 
-/**
- *
- * @throws bad_alloc;
- */
 pair<BytesShared, size_t> ResponseCycleMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 

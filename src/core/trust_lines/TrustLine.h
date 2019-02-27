@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_TRUSTLINE_H
 
 #include "../common/Types.h"
-#include "../common/NodeUUID.h"
 #include "../common/memory/MemoryUtils.h"
 #include "../common/multiprecision/MultiprecisionUtils.h"
 
@@ -16,8 +15,6 @@
 
 using namespace std;
 
-// todo: tests?
-// todo: hsc: review the tests.
 class TrustLine {
 public:
     typedef shared_ptr<TrustLine> Shared;
@@ -27,31 +24,23 @@ public:
 public:
     enum TrustLineState {
         Init = 1,
-        Modify = 2,
-        KeysPending = 3,
-        AuditPending = 4,
-        Active = 5,
-        Archived = 6,
-        Conflict = 7,
-        ConflictResolving = 8,
+        Active = 2,
+        AuditPending = 3,
+        Archived = 4,
+        Conflict = 5,
+        ConflictResolving = 6,
     };
 
 public:
     TrustLine(
-        const NodeUUID &nodeUUID,
         const TrustLineID trustLineID,
-        const TrustLineAmount &incomingAmount,
-        const TrustLineAmount &outgoingAmount,
-        const TrustLineBalance &nodeBalance,
-        bool isContractorGateway,
-        TrustLineState state = Init,
-        AuditNumber auditNumber = kInitialAuditNumber);
-
-    TrustLine(
-        const NodeUUID &nodeUUID,
-        const TrustLineID trustLineID,
+        const ContractorID contractorID,
         bool isContractorGateway,
         TrustLineState state);
+
+    TrustLine(
+        const ContractorID contractorID,
+        const TrustLineID trustLineID);
 
     void setIncomingTrustAmount(
         const TrustLineAmount &amount);
@@ -68,7 +57,7 @@ public:
     void acceptPayment(
         const TrustLineAmount &amount);
 
-    const NodeUUID& contractorNodeUUID() const;
+    const ContractorID contractorID() const;
 
     const TrustLineAmount& incomingTrustAmount() const;
 
@@ -111,6 +100,16 @@ public:
     void setContractorAsGateway(
         bool contractorAsGateway);
 
+    void setIsOwnKeysPresent(
+        bool isOwnKeysPresent);
+
+    bool isOwnKeysPresent() const;
+
+    bool isContractorKeysPresent() const;
+
+    void setIsContractorKeysPresent(
+        bool isContractorKeysPresent);
+
     static const TrustLineBalance& kZeroBalance();
 
     static const TrustLineAmount& kZeroAmount();
@@ -127,7 +126,7 @@ public:
     static const AuditNumber kInitialAuditNumber = 0;
 
 private:
-    NodeUUID mContractorNodeUUID;
+    ContractorID mContractorID;
     TrustLineID mID;
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;
@@ -137,6 +136,8 @@ private:
     bool mIsContractorGateway;
     TrustLineState mState;
     AuditNumber mCurrentAudit;
+    bool mIsOwnKeysPresent;
+    bool mIsContractorKeysPresent;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINE_H

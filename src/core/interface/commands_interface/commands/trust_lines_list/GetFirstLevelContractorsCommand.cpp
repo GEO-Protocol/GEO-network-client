@@ -2,30 +2,32 @@
 
 GetFirstLevelContractorsCommand::GetFirstLevelContractorsCommand(
     const CommandUUID &uuid,
-    const string& commandBuffer)
-    noexcept:
+    const string& commandBuffer):
 
     BaseUserCommand(
         uuid,
         identifier())
 {
-    static const auto minCommandLength = 1;
+    auto check = [&](auto &ctx) {
+        if(_attr(ctx) == kCommandsSeparator) {
+            throw ValueError("GetFirstLevelContractorsCommand: there is no input ");
+        }
+    };
+    auto equivalent_add = [&](auto &ctx) {
+        mEquivalent = _attr(ctx);
+    };
 
-    if (commandBuffer.size() < minCommandLength) {
-        throw ValueError(
-                "GetFirstLevelContractorsCommand: can't parse command. "
-                    "Received command is to short.");
-    }
-
-    string equivalentStr = commandBuffer.substr(
-        0,
-        commandBuffer.size() - 1);
     try {
-        mEquivalent = (uint32_t)std::stoul(equivalentStr);
+        parse(
+            commandBuffer.begin(),
+            commandBuffer.end(),
+            char_[check]);
+        parse(
+            commandBuffer.begin(),
+            commandBuffer.end(),
+            *(int_[equivalent_add]) > kCommandsSeparator);
     } catch (...) {
-        throw ValueError(
-                "GetFirstLevelContractorsCommand: can't parse command. "
-                    "Error occurred while parsing  'equivalent' token.");
+        throw ValueError("GetFirstLevelContractorsCommand: can't parse command");
     }
 }
 

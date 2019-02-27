@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_GATEWAYNOTIFICATIONSENDERTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
+#include "../../../contractors/ContractorsManager.h"
 #include "../../../equivalents/EquivalentsSubsystemsRouter.h"
 #include "../../../equivalents/EquivalentsCyclesSubsystemsRouter.h"
 #include "../../../network/messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
@@ -16,7 +17,7 @@ public:
 
 public:
     GatewayNotificationSenderTransaction(
-        const NodeUUID &nodeUUID,
+        ContractorsManager *contractorsManager,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         EquivalentsCyclesSubsystemsRouter *equivalentsCyclesSubsystemsRouter,
         Logger &logger);
@@ -38,10 +39,10 @@ protected:
 
 private:
     static const uint32_t kCollectingRoutingTablesMilliseconds = 6000;
-    static const uint16_t kCountNeighborsPerOneStep = 15;
+    static const uint16_t kCountNeighborsPerOneStep = 20;
     static const uint32_t kHoursBetweenSteps = 0;
-    static const uint32_t kMinutesBetweenSteps = 1;
-    static const uint32_t kSecondsBetweenSteps = 0;
+    static const uint32_t kMinutesBetweenSteps = 0;
+    static const uint32_t kSecondsBetweenSteps = 30;
     static const uint32_t kHoursMax = 2;
     static const uint32_t kMinutesMax = 0;
     static const uint32_t kSecondsMax = 0;
@@ -63,11 +64,12 @@ private:
     }
 
 private:
+    ContractorsManager *mContractorsManager;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     EquivalentsCyclesSubsystemsRouter *mEquivalentsCyclesSubsystemsRouter;
-    set<NodeUUID> allNeighborsRequestShouldBeSend;
-    set<NodeUUID> allNeighborsRequestAlreadySent;
-    set<NodeUUID> allNeighborsResponseReceive;
+    set<ContractorID> allNeighborsRequestShouldBeSend;
+    set<ContractorID> allNeighborsRequestAlreadySent;
+    set<ContractorID> allNeighborsResponseReceive;
     vector<SerializedEquivalent> mGatewaysEquivalents;
     DateTime mTransactionStarted;
     DateTime mPreviousStepStarted;

@@ -57,7 +57,8 @@ IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
         -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
-        #-DDEBUG_LOG_CYCLES_BUILDING_POCESSING
+        -DDEBUG_LOG_CYCLES_BUILDING_POCESSING
+        -DDEBUG_LOG_OBSEVING_HANDLER
     )
 
 ENDIF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
@@ -68,6 +69,8 @@ IF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
 ENDIF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
 
 IF (${BUILD_CONFIGURATION} MATCHES "TESTS")
+    add_subdirectory(src/tests)
+
     add_definitions(
         -DTESTS
         -DINTERNAL_ARGUMENTS_VALIDATION
@@ -89,11 +92,12 @@ IF (${BUILD_CONFIGURATION} MATCHES "TESTS")
         # Transactions
         -DDEBUG_LOG_TRUST_LINES_PROCESSING
         -DDEBUG_LOG_ROUTING_TABLES_PROCESSING
-        #-DDEBUG_LOG_MAX_FLOW_CALCULATION
+        -DDEBUG_LOG_MAX_FLOW_CALCULATION
         -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
-        #-DDEBUG_LOG_CYCLES_BUILDING_POCESSING
+        -DDEBUG_LOG_CYCLES_BUILDING_POCESSING
+        -DDEBUG_LOG_OBSEVING_HANDLER
     )
 
     set(CMAKE_BUILD_TYPE "Release")
@@ -151,6 +155,8 @@ add_subdirectory(src/core/cycles)
 add_subdirectory(src/core/subsystems_controller)
 add_subdirectory(src/core/equivalents)
 add_subdirectory(src/core/crypto)
+add_subdirectory(src/core/contractors)
+add_subdirectory(src/core/observing)
 
 
 #
@@ -166,7 +172,6 @@ set(SOURCE_FILES
 
         # libs
         src/libs/json/json.h)
-
 add_executable(geo_network_client ${SOURCE_FILES})
 
 target_link_libraries(geo_network_client
@@ -185,7 +190,7 @@ target_link_libraries(geo_network_client
 
         interface__commands
         interface__results
-        interface__visual
+        interface__events
 
         paths
         trust_lines
@@ -196,4 +201,7 @@ target_link_libraries(geo_network_client
         cycles
         subsystems_controller
         equivalents
-        crypto)
+        crypto
+
+        contractors
+        observing)

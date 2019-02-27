@@ -1,24 +1,17 @@
 #include "TotalBalancesTransaction.h"
 
 TotalBalancesTransaction::TotalBalancesTransaction(
-    NodeUUID &nodeUUID,
     TotalBalancesCommand::Shared command,
     TrustLinesManager *manager,
     Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::TotalBalancesTransactionType,
-        nodeUUID,
         command->equivalent(),
         logger),
     mCommand(command),
     mTrustLinesManager(manager)
 {}
-
-TotalBalancesCommand::Shared TotalBalancesTransaction::command() const
-{
-    return mCommand;
-}
 
 TransactionResult::SharedConst TotalBalancesTransaction::run()
 {
@@ -28,19 +21,17 @@ TransactionResult::SharedConst TotalBalancesTransaction::run()
     TrustLineAmount totalTrustUsedBySelf = 0;
 
     // if contractor is gateway, than outgoing trust amount is equal balance on this TL
-    for (auto &nodeUUIDAndTrustLine : mTrustLinesManager->trustLines()) {
-        if (find(mCommand->gateways().begin(),
-                 mCommand->gateways().end(),
-                 nodeUUIDAndTrustLine.first) == mCommand->gateways().end()) {
-            totalOutgoingTrust += nodeUUIDAndTrustLine.second->outgoingTrustAmount();
+    for (auto &nodeIDAndTrustLine : mTrustLinesManager->trustLines()) {
+        if (!nodeIDAndTrustLine.second->isContractorGateway()) {
+            totalOutgoingTrust += nodeIDAndTrustLine.second->outgoingTrustAmount();
         } else {
-            auto totalOutgoingTrustUsedShared = nodeUUIDAndTrustLine.second->usedAmountByContractor();
+            auto totalOutgoingTrustUsedShared = nodeIDAndTrustLine.second->usedAmountByContractor();
             totalOutgoingTrust += *totalOutgoingTrustUsedShared.get();
         }
-        totalIncomingTrust += nodeUUIDAndTrustLine.second->incomingTrustAmount();
-        auto totalOutgoingTrustUsedShared = nodeUUIDAndTrustLine.second->usedAmountByContractor();
+        totalIncomingTrust += nodeIDAndTrustLine.second->incomingTrustAmount();
+        auto totalOutgoingTrustUsedShared = nodeIDAndTrustLine.second->usedAmountByContractor();
         totalTrustUsedByContractor += *totalOutgoingTrustUsedShared.get();
-        auto totalIncomingTrustUsedShared = nodeUUIDAndTrustLine.second->usedAmountBySelf();
+        auto totalIncomingTrustUsedShared = nodeIDAndTrustLine.second->usedAmountBySelf();
         totalTrustUsedBySelf += *totalIncomingTrustUsedShared.get();
     }
 
@@ -69,6 +60,6 @@ TransactionResult::SharedConst TotalBalancesTransaction::resultOk(
 const string TotalBalancesTransaction::logHeader() const
 {
     stringstream s;
-    s << "[TotalBalancesTA: " << currentNodeUUID() << " " << mEquivalent << "]";
+    s << "[TotalBalancesTA: " << currentTransactionUUID() << " " << mEquivalent << "]";
     return s.str();
 }

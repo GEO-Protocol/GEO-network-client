@@ -1,12 +1,12 @@
 #ifndef GEO_NETWORK_CLIENT_ROUTINGTABLESBLUERAYEDITION_H
 #define GEO_NETWORK_CLIENT_ROUTINGTABLESBLUERAYEDITION_H
 
-#include "../common/NodeUUID.h"
+#include "../contractors/addresses/BaseAddress.h"
 #include "../logger/Logger.h"
 #include "../common/Types.h"
 
 #include <map>
-#include <set>
+#include <vector>
 
 class RoutingTableManager {
 
@@ -16,13 +16,16 @@ public:
         Logger &logger);
 
     void updateMapAddSeveralNeighbors(
-        const NodeUUID &firstLevelContractor,
-        set<NodeUUID> secondLevelContractors);
+        ContractorID firstLevelContractor,
+        vector<BaseAddress::Shared> secondLevelContractors);
 
     void clearMap();
 
-    set<NodeUUID> secondLevelContractorsForNode(
-        const NodeUUID &contractorUUID);
+    vector<BaseAddress::Shared> secondLevelContractorsForNode(
+        ContractorID contractorID);
+
+    // TODO remove after testing
+    void printRT();
 
 protected:
     string logHeader() const;
@@ -37,7 +40,7 @@ protected:
 
 protected:
     SerializedEquivalent mEquivalent;
-    map<NodeUUID, set<NodeUUID>> mRoutingTable;
+    map<ContractorID, vector<BaseAddress::Shared>> mRoutingTable;
     Logger &mLog;
 };
 

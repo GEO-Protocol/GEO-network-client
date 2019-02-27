@@ -2,27 +2,27 @@
 
 FinalAmountsConfigurationResponseMessage::FinalAmountsConfigurationResponseMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const OperationState state) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID),
     mState(state)
 {}
 
 FinalAmountsConfigurationResponseMessage::FinalAmountsConfigurationResponseMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID& senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID& transactionUUID,
     const OperationState state,
     const lamport::PublicKey::Shared publicKey) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID),
     mState(state),
     mPublicKey(publicKey)
@@ -55,12 +55,7 @@ const lamport::PublicKey::Shared FinalAmountsConfigurationResponseMessage::publi
     return mPublicKey;
 }
 
-/**
- *
- * @throws bad_alloc;
- */
 pair<BytesShared, size_t> FinalAmountsConfigurationResponseMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 

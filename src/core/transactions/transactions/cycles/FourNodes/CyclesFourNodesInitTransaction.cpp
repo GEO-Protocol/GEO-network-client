@@ -1,23 +1,23 @@
 #include "CyclesFourNodesInitTransaction.h"
 
 CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
-    const NodeUUID &nodeUUID,
-    const NodeUUID &contractorUUID,
+    ContractorID contractorID,
     const SerializedEquivalent equivalent,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     RoutingTableManager *routingTable,
     CyclesManager *cyclesManager,
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::Cycles_FourNodesInitTransaction,
-        nodeUUID,
+        BaseTransaction::Cycles_FourNodesInitTransaction,
         equivalent,
         logger),
+    mContractorsManager(contractorsManager),
     mTrustLinesManager(manager),
     mCyclesManager(cyclesManager),
     mRoutingTable(routingTable),
-    mContractorUUID(contractorUUID)
+    mContractorID(contractorID)
 {}
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::run()
@@ -38,17 +38,17 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::run()
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAndSendMessageStage()
 {
-    debug() << "runCollectDataAndSendMessageStage; creditor is " << mContractorUUID;
-    if (!mTrustLinesManager->trustLineIsActive(mContractorUUID)) {
+    debug() << "runCollectDataAndSendMessageStage to " << mContractorID;
+    if (!mTrustLinesManager->trustLineIsActive(mContractorID)) {
         warning() << "TL with creditor is not active";
         return resultDone();
     }
-    const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
+    const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorID);
     if (kBalanceToContractor == TrustLine::kZeroBalance()) {
         return resultDone();
     }
 
-    vector<NodeUUID> suitableNeighbors;
+    vector<ContractorID> suitableNeighbors;
     if (kBalanceToContractor < TrustLine::kZeroBalance()) {
         suitableNeighbors = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
         mNegativeContractorBalance = true;
@@ -58,7 +58,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
     }
 
     auto creditorNeighbors = mRoutingTable->secondLevelContractorsForNode(
-        mContractorUUID);
+        mContractorID);
 
     bool sendMessageToAtLeastOneNode = false;
     for (const auto &creditorNodeNeighbor : creditorNeighbors) {
@@ -70,17 +70,17 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
                 sendMessage<CyclesFourNodesNegativeBalanceRequestMessage>(
                     creditorNodeNeighbor,
                     mEquivalent,
-                    mNodeUUID,
+                    mContractorsManager->ownAddresses(),
                     currentTransactionUUID(),
-                    mContractorUUID,
+                    mContractorsManager->contractorMainAddress(mContractorID),
                     commonNodes);
             } else {
                 sendMessage<CyclesFourNodesPositiveBalanceRequestMessage>(
                     creditorNodeNeighbor,
                     mEquivalent,
-                    mNodeUUID,
+                    mContractorsManager->ownAddresses(),
                     currentTransactionUUID(),
-                    mContractorUUID,
+                    mContractorsManager->contractorMainAddress(mContractorID),
                     commonNodes);
             }
             sendMessageToAtLeastOneNode = true;
@@ -106,14 +106,21 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
         return resultDone();
     }
 
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+    vector<Path::ConstShared> resultCycles;
+#endif
     while (!mContext.empty()) {
         const auto kMessage = popNextMessage<CyclesFourNodesBalancesResponseMessage>();
-        auto sender = kMessage->senderUUID;
+        auto senderAddress = kMessage->senderAddresses.at(0);
         for (const auto &suitableNode : kMessage->suitableNodes()) {
-            vector<NodeUUID> stepPath = {
+            if (mContractorsManager->contractorIDByAddress(suitableNode) == ContractorsManager::kNotFoundContractorID) {
+                warning() << "Suitable node " << suitableNode->fullAddress() << " is not a neighbor";
+                continue;
+            }
+            vector<BaseAddress::Shared> stepPath = {
                 suitableNode,
-                sender,
-                mContractorUUID
+                senderAddress,
+                mContractorsManager->contractorMainAddress(mContractorID)
             };
 
             if (!mNegativeContractorBalance) {
@@ -123,25 +130,36 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
             }
 
             const auto cyclePath = make_shared<Path>(
-                mNodeUUID,
-                mNodeUUID,
                 stepPath);
             mCyclesManager->addCycle(
                 cyclePath);
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+            resultCycles.push_back(cyclePath);
+#endif
         }
     }
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+    debug() << "ResultCyclesCount " << resultCycles.size();
+    for (auto &cyclePath: resultCycles) {
+        debug() << "CyclePath " << cyclePath->toString();
+    }
+#endif
     mCyclesManager->closeOneCycle();
     return resultDone();
 }
 
-vector<NodeUUID> CyclesFourNodesInitTransaction::getCommonNodes(
-    const NodeUUID &creditorNeighborNode,
-    vector<NodeUUID> currentNodeSuitableNeighbors)
+vector<BaseAddress::Shared> CyclesFourNodesInitTransaction::getCommonNodes(
+    BaseAddress::Shared creditorNeighborNode,
+    vector<ContractorID> currentNodeSuitableNeighbors)
 {
-    vector<NodeUUID> result;
+    vector<BaseAddress::Shared> result;
     for (const auto &suitableNeighbor : currentNodeSuitableNeighbors) {
-        if (mRoutingTable->secondLevelContractorsForNode(suitableNeighbor).count(creditorNeighborNode) != 0) {
-            result.push_back(suitableNeighbor);
+        for (const auto &secondLevelNeighbor : mRoutingTable->secondLevelContractorsForNode(suitableNeighbor)) {
+            if (secondLevelNeighbor == creditorNeighborNode) {
+                result.push_back(
+                    mContractorsManager->contractorMainAddress(
+                        suitableNeighbor));
+            }
         }
     }
     return result;

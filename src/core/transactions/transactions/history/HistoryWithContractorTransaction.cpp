@@ -1,30 +1,24 @@
 #include "HistoryWithContractorTransaction.h"
 
 HistoryWithContractorTransaction::HistoryWithContractorTransaction(
-    NodeUUID &nodeUUID,
     HistoryWithContractorCommand::Shared command,
     StorageHandler *storageHandler,
     Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::HistoryWithContractorTransactionType,
-        nodeUUID,
         command->equivalent(),
         logger),
     mCommand(command),
     mStorageHandler(storageHandler)
 {}
 
-HistoryWithContractorCommand::Shared HistoryWithContractorTransaction::command() const
-{
-    return mCommand;
-}
-
 TransactionResult::SharedConst HistoryWithContractorTransaction::run()
 {
     auto ioTransaction = mStorageHandler->beginTransaction();
+    auto contractorAddresses = mCommand->contractorAddresses();
     auto const resultRecords = ioTransaction->historyStorage()->recordsWithContractor(
-        mCommand->contractorUUID(),
+        contractorAddresses,
         mCommand->equivalent(),
         mCommand->historyCount(),
         mCommand->historyFrom());
@@ -48,7 +42,7 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
             auto paymentRecord = static_pointer_cast<PaymentRecord>(kRecord);
             // Formatting operation type
             const auto kOperationType = paymentRecord->paymentOperationType();
-            string formattedOperationType = "";
+            string formattedOperationType;
             if (kOperationType == PaymentRecord::IncomingPaymentType) {
                 formattedOperationType = "incoming";
 
@@ -58,15 +52,15 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
             } else {
                 throw RuntimeError(
                         "HistoryWithContractorTransaction::resultOk: "
-                                "unexpected payment operation type occured.");
+                                "unexpected payment operation type occurred.");
             }
 
-            stream << kTokensSeparator << formattedRecordType << kTokensSeparator;
-            stream << paymentRecord->operationUUID() << kTokensSeparator;
-            stream << kUnixTimestampMicrosec << kTokensSeparator;
-            stream << formattedOperationType << kTokensSeparator;
-            stream << paymentRecord->amount() << kTokensSeparator;
-            stream << paymentRecord->balanceAfterOperation();
+            stream << kTokensSeparator << formattedRecordType
+                   << kTokensSeparator << paymentRecord->operationUUID()
+                   << kTokensSeparator << kUnixTimestampMicrosec
+                   << kTokensSeparator << formattedOperationType
+                   << kTokensSeparator << paymentRecord->amount()
+                   << kTokensSeparator << paymentRecord->balanceAfterOperation();
 
         } else if (kRecord->isTrustLineRecord()) {
             formattedRecordType = "trustline";
@@ -74,7 +68,7 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
 
             // Formatting operation type
             const auto kOperationType = trustLineRecord->trustLineOperationType();
-            string formattedOperationType = "";
+            string formattedOperationType;
             if (kOperationType == TrustLineRecord::Opening) {
                 formattedOperationType = "opening";
 
@@ -102,17 +96,17 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
             } else {
                 throw RuntimeError(
                         "HistoryWithContractorTransaction::resultOk: "
-                            "unexpected trust line operation type occured.");
+                            "unexpected trust line operation type occurred.");
             }
 
-            stream << kTokensSeparator << formattedRecordType << kTokensSeparator;
-            stream << trustLineRecord->operationUUID() << kTokensSeparator;
-            stream << kUnixTimestampMicrosec << kTokensSeparator;
-            stream << formattedOperationType << kTokensSeparator;
-            stream << trustLineRecord->amount();
+            stream << kTokensSeparator << formattedRecordType
+                   << kTokensSeparator << trustLineRecord->operationUUID()
+                   << kTokensSeparator << kUnixTimestampMicrosec
+                   << kTokensSeparator << formattedOperationType
+                   << kTokensSeparator << trustLineRecord->amount();
         } else {
             throw ValueError("HistoryWithContractorTransaction::resultOk: "
-                                 "unexpected record type occured.");
+                                 "unexpected record type occurred.");
         }
     }
 

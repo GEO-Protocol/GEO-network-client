@@ -2,13 +2,25 @@
 
 PublicKeyMessage::PublicKeyMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     const KeyNumber number,
     const lamport::PublicKey::Shared publicKey):
     TransactionMessage(
         equivalent,
-        senderUUID,
+        transactionUUID),
+    mNumber(number),
+    mPublicKey(publicKey)
+{}
+
+PublicKeyMessage::PublicKeyMessage(
+    const SerializedEquivalent equivalent,
+    ContractorID idOnSenderSide,
+    const TransactionUUID &transactionUUID,
+    const KeyNumber number,
+    const lamport::PublicKey::Shared publicKey):
+    TransactionMessage(
+        equivalent,
+        idOnSenderSide,
         transactionUUID),
     mNumber(number),
     mPublicKey(publicKey)
@@ -47,11 +59,6 @@ const lamport::PublicKey::Shared PublicKeyMessage::publicKey() const
     return mPublicKey;
 }
 
-const bool PublicKeyMessage::isAddToConfirmationRequiredMessagesHandler() const
-{
-    return true;
-}
-
 const bool PublicKeyMessage::isCheckCachedResponse() const
 {
     return true;
@@ -88,4 +95,13 @@ pair<BytesShared, size_t> PublicKeyMessage::serializeToBytes() const
     return make_pair(
         buffer,
         kBufferSize);
+}
+
+const size_t PublicKeyMessage::kOffsetToInheritedBytes() const
+{
+    const auto kOffset =
+            TransactionMessage::kOffsetToInheritedBytes()
+            + sizeof(KeyNumber)
+            + mPublicKey->keySize();
+    return kOffset;
 }

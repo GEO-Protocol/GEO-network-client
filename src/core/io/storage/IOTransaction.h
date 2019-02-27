@@ -5,7 +5,6 @@
 #include "TrustLineHandler.h"
 #include "HistoryStorage.h"
 #include "TransactionsHandler.h"
-#include "BlackListHandler.h"
 
 #include "OwnKeysHandler.h"
 #include "ContractorKeysHandler.h"
@@ -14,6 +13,10 @@
 #include "OutgoingPaymentReceiptHandler.h"
 #include "PaymentKeysHandler.h"
 #include "PaymentParticipantsVotesHandler.h"
+#include "PaymentTransactionsHandler.h"
+
+#include "ContractorsHandler.h"
+#include "AddressHandler.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -28,7 +31,6 @@ public:
         TrustLineHandler *trustLinesHandler,
         HistoryStorage *historyStorage,
         TransactionsHandler *transactionHandler,
-        BlackListHandler *blackListHandler,
         OwnKeysHandler *ownKeysHandler,
         ContractorKeysHandler *contractorKeysHandler,
         AuditHandler *auditHandler,
@@ -36,6 +38,9 @@ public:
         OutgoingPaymentReceiptHandler *outgoingPaymentReceiptHandler,
         PaymentKeysHandler *paymentKeysHandler,
         PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler,
+        PaymentTransactionsHandler *paymentTransactionsHandler,
+        ContractorsHandler *contractorsHandler,
+        AddressHandler *addressHandler,
         Logger &logger);
 
     ~IOTransaction();
@@ -45,8 +50,6 @@ public:
     HistoryStorage *historyStorage();
 
     TransactionsHandler *transactionHandler();
-
-    BlackListHandler *blackListHandler();
 
     OwnKeysHandler *ownKeysHandler();
 
@@ -61,6 +64,12 @@ public:
     PaymentKeysHandler *paymentKeysHandler();
 
     PaymentParticipantsVotesHandler *paymentParticipantsVotesHandler();
+
+    PaymentTransactionsHandler *paymentTransactionsHandler();
+
+    ContractorsHandler *contractorsHandler();
+
+    AddressHandler *addressHandler();
 
     void rollback();
 
@@ -81,7 +90,6 @@ private:
     TrustLineHandler *mTrustLineHandler;
     HistoryStorage *mHistoryStorage;
     TransactionsHandler *mTransactionHandler;
-    BlackListHandler *mBlackListHandler;
 
     OwnKeysHandler *mOwnKeysHandler;
     ContractorKeysHandler *mContractorKeysHandler;
@@ -90,6 +98,10 @@ private:
     OutgoingPaymentReceiptHandler *mOutgoingPaymentReceiptHandler;
     PaymentKeysHandler *mPaymentKeysHandler;
     PaymentParticipantsVotesHandler *mPaymentParticipantsVotesHandler;
+    PaymentTransactionsHandler *mPaymentTransactionsHandler;
+
+    ContractorsHandler *mContractorsHandler;
+    AddressHandler *mAddressHandler;
 
     bool mIsTransactionBegin;
     Logger &mLog;

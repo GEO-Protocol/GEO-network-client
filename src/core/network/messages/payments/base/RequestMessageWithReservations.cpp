@@ -2,13 +2,13 @@
 
 RequestMessageWithReservations::RequestMessageWithReservations(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> &senderAddresses,
     const TransactionUUID &transactionUUID,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig) :
 
     TransactionMessage(
         equivalent,
-        senderUUID,
+        senderAddresses,
         transactionUUID),
 
     mFinalAmountsConfiguration(finalAmountsConfig)
@@ -48,12 +48,7 @@ const vector<pair<PathID, ConstSharedTrustLineAmount>>& RequestMessageWithReserv
     return mFinalAmountsConfiguration;
 }
 
-/*!
- *
- * Throws bad_alloc;
- */
 pair<BytesShared, size_t> RequestMessageWithReservations::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount =
@@ -100,7 +95,6 @@ pair<BytesShared, size_t> RequestMessageWithReservations::serializeToBytes() con
 }
 
 const size_t RequestMessageWithReservations::kOffsetToInheritedBytes() const
-    noexcept
 {
     auto kOffset =
             TransactionMessage::kOffsetToInheritedBytes()

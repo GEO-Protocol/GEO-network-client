@@ -18,7 +18,7 @@ OwnKeysHandler::OwnKeysHandler(
                    "number INTEGER NOT NULL, "
                    "is_valid INTEGER NOT NULL DEFAULT 1, "
                    "FOREIGN KEY(trust_line_id) REFERENCES trust_lines(id) ON DELETE CASCADE ON UPDATE CASCADE);";
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -32,7 +32,7 @@ OwnKeysHandler::OwnKeysHandler(
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_hash_idx on " + mTableName + "(hash);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::creating  index for Hash: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -46,7 +46,7 @@ OwnKeysHandler::OwnKeysHandler(
 
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
             + "_trust_line_id_idx on " + mTableName + "(trust_line_id);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::creating  index for Trust Line ID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -71,7 +71,7 @@ void OwnKeysHandler::saveKey(
                    "(hash, trust_line_id, public_key, private_key, number) "
                            "VALUES (?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
                               "Bad query; sqlite error: " + to_string(rc));
@@ -136,7 +136,7 @@ pair<lamport::PrivateKey*, KeyNumber> OwnKeysHandler::nextAvailableKey(
     string query = "SELECT private_key, number FROM " + mTableName
                    + " WHERE trust_line_id = ? AND is_valid = 1 ORDER BY number ASC LIMIT 1;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::nextAvailableKey: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -171,7 +171,7 @@ void OwnKeysHandler::invalidKey(
 {
     string query = "UPDATE " + mTableName + " SET is_valid = 0, private_key = ? WHERE trust_line_id = ? AND number = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::invalidKey: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -212,7 +212,7 @@ void OwnKeysHandler::invalidKeyByHash(
 {
     string query = "UPDATE " + mTableName + " SET is_valid = 0, private_key = ? WHERE trust_line_id = ? AND hash = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::invalidKeyByHash: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -253,7 +253,7 @@ const lamport::PublicKey::Shared OwnKeysHandler::getPublicKey(
     string query = "SELECT public_key FROM  " + mTableName
                    + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::getPublicKey: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -291,7 +291,7 @@ const lamport::PublicKey::Shared OwnKeysHandler::getPublicKeyByHash(
     string query = "SELECT public_key FROM  " + mTableName
                    + " WHERE trust_line_id = ? AND hash = ? AND is_valid = 1;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::getPublicKeyByHash: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -329,7 +329,7 @@ const lamport::KeyHash::Shared OwnKeysHandler::getPublicKeyHash(
     string query = "SELECT hash FROM  " + mTableName
                    + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::getPublicKeyHash: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -360,12 +360,42 @@ const lamport::KeyHash::Shared OwnKeysHandler::getPublicKeyHash(
     }
 }
 
+const KeyNumber OwnKeysHandler::getKeyNumberByHash(
+    const lamport::KeyHash::Shared keyHash)
+{
+    string query = "SELECT number FROM  " + mTableName + " WHERE hash = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::getKeyNumberByHash: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 1, keyHash->data(), (int) lamport::KeyHash::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::getKeyNumberByHash: "
+                          "Bad binding of Hash; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        auto result = (KeyNumber)sqlite3_column_int(stmt, 0);
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        return result;
+    } else {
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        throw NotFoundError("OwnKeysHandler::getKeyNumberByHash: "
+                                "There are now records with requested hash");
+    }
+}
+
 KeysCount OwnKeysHandler::availableKeysCnt(
     const TrustLineID trustLineID)
 {
     string queryCount = "SELECT count(*) FROM " + mTableName + " WHERE trust_line_id = ? AND is_valid = 1";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::availableKeysCnt: "
                           "Bad count query; sqlite error: " + to_string(rc));
@@ -387,7 +417,7 @@ void OwnKeysHandler::removeUnusedKeys(
 {
     string queryCount = "DELETE FROM " + mTableName + " WHERE trust_line_id = ? AND is_valid = 1";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::removeUnusedKeys: "
                           "Bad count query; sqlite error: " + to_string(rc));

@@ -2,13 +2,13 @@
 #define GEO_NETWORK_CLIENT_GETFOURNODESNEIGHBORBALANCESTRANSACTION_H
 
 #include "../../base/BaseTransaction.h"
+#include "../../../../contractors/ContractorsManager.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../cycles/CyclesManager.h"
 #include "../../../../cycles/RoutingTableManager.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesNegativeBalanceRequestMessage.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesPositiveBalanceRequestMessage.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
-#include "../../../../paths/lib/Path.h"
 
 #include <set>
 
@@ -17,9 +17,9 @@ class CyclesFourNodesInitTransaction :
 
 public:
     CyclesFourNodesInitTransaction(
-        const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         RoutingTableManager *routingTable,
         CyclesManager *cyclesManager,
@@ -40,12 +40,16 @@ protected:
 protected:
     const string logHeader() const;
 
-    vector<NodeUUID> getCommonNodes(
-        const NodeUUID &creditorNeighborNode,
-        vector<NodeUUID> currentNodeSuitableNeighbors);
+    vector<BaseAddress::Shared> getCommonNodes(
+        BaseAddress::Shared creditorNeighborNode,
+        vector<ContractorID> currentNodeSuitableNeighbors);
 
 protected:
-    NodeUUID mContractorUUID;
+    static const uint16_t mkWaitingForResponseTime = 3000;
+
+protected:
+    ContractorID mContractorID;
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     CyclesManager *mCyclesManager;
     RoutingTableManager *mRoutingTable;

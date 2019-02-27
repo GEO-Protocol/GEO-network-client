@@ -22,7 +22,6 @@ public:
 
     void saveOwnKey(
         const TransactionUUID &transactionUUID,
-        const NodeUUID &ownNodeUUID,
         const PublicKey::Shared publicKey,
         const PrivateKey *privateKey);
 

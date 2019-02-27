@@ -2,9 +2,12 @@
 
 ConfirmationCachedResponseMessage::ConfirmationCachedResponseMessage(
     TransactionMessage::Shared cachedMessage,
-    Message::MessageType incomingMessageTypeFilter):
+    Message::MessageType incomingMessageTypeFilter,
+    uint32_t cacheLivingTimeSeconds):
     mCachedMessage(cachedMessage),
-    mIncomingMessageTypeFilter(incomingMessageTypeFilter)
+    mIncomingMessageTypeFilter(incomingMessageTypeFilter),
+    mCacheLivingTimeSeconds(cacheLivingTimeSeconds),
+    mTimeCreated(utc_now())
 {}
 
 TransactionMessage::Shared ConfirmationCachedResponseMessage::getCachedMessage(
@@ -13,9 +16,11 @@ TransactionMessage::Shared ConfirmationCachedResponseMessage::getCachedMessage(
     if (incomingMessage->typeID() != mIncomingMessageTypeFilter) {
         return nullptr;
     }
-    if (incomingMessage->typeID() == Message::TrustLines_SetIncoming or
-            incomingMessage->typeID() == Message::TrustLines_CloseOutgoing or
-            incomingMessage->typeID() == Message::TrustLines_SetIncomingInitial) {
+    if (incomingMessage->typeID() == Message::TrustLines_Initial) {
+        if (incomingMessage->transactionUUID() == mCachedMessage->transactionUUID()) {
+            return mCachedMessage;
+        }
+    } else if (incomingMessage->typeID() == Message::TrustLines_PublicKeysSharingInit) {
         if (incomingMessage->transactionUUID() == mCachedMessage->transactionUUID()) {
             return mCachedMessage;
         }
@@ -34,4 +39,15 @@ TransactionMessage::Shared ConfirmationCachedResponseMessage::getCachedMessage(
         }
     }
     return nullptr;
+}
+
+bool ConfirmationCachedResponseMessage::isLegacyCache() const
+{
+    auto duration = Duration(0, 0, mCacheLivingTimeSeconds);
+    return utc_now() - mTimeCreated > duration;
+}
+
+const DateTime ConfirmationCachedResponseMessage::legacyDateTime()
+{
+    return mTimeCreated + boost::posix_time::seconds(mCacheLivingTimeSeconds);
 }

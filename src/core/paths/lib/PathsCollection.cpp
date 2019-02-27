@@ -1,22 +1,19 @@
 ﻿#include "PathsCollection.h"
 
 PathsCollection::PathsCollection(
-    const NodeUUID &sourceUUID,
-    const NodeUUID &destinationUUID) :
-
-    mSourceNode(sourceUUID),
-    mDestinationNode(destinationUUID),
+    BaseAddress::Shared destinationAddress) :
+    mDestinationNode(destinationAddress),
     mCurrentPath(0)
 {}
 
 void PathsCollection::add(
-    Path &path)
+        Path::Shared &path)
 {
-    if (path.sourceUUID() != mSourceNode || path.destinationUUID() != mDestinationNode) {
+    if (path->length() > 5) {
         throw ValueError("PathsCollection::add "
-                             "Added path differs from current collection");
+                             "Added path is too long");
     }
-    mPaths.push_back(path.intermediateUUIDs());
+    mPaths.push_back(path);
 }
 
 void PathsCollection::resetCurrentPath()
@@ -36,10 +33,7 @@ Path::Shared PathsCollection::nextPath()
                                  "no paths are available");
     }
     mCurrentPath++;
-    return make_shared<Path>(
-        mSourceNode,
-        mDestinationNode,
-        mPaths.at(mCurrentPath - 1));
+    return mPaths.at(mCurrentPath - 1);
 }
 
 size_t PathsCollection::count() const

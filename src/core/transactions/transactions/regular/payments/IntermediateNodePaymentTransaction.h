@@ -12,23 +12,27 @@ public:
 
 public:
     IntermediateNodePaymentTransaction(
-        const NodeUUID &currentNodeUUID,
         IntermediateNodeReservationRequestMessage::ConstShared message,
+        bool iAmGateway,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
 
     IntermediateNodePaymentTransaction(
         BytesShared buffer,
-        const NodeUUID &nodeUUID,
+        bool iAmGateway,
+        ContractorsManager *contractorsManager,
         TrustLinesManager* trustLines,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
         SubsystemsController *subsystemsController);
@@ -37,9 +41,9 @@ public:
         noexcept;
 
     /**
-     * @return UUID of coordinator node of current transaction
+     * @return Address of coordinator node of current transaction
      */
-    const NodeUUID& coordinatorUUID() const;
+    BaseAddress::Shared coordinatorAddress() const override;
 
 protected:
     /**
@@ -74,12 +78,6 @@ protected:
      */
     TransactionResult::SharedConst runReservationProlongationStage();
 
-    /**
-     * reaction on response TTL message from coordinator
-     * before receiving participants votes message
-     */
-    TransactionResult::SharedConst runClarificationOfTransactionBeforeVoting();
-
     TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
 
     /**
@@ -91,13 +89,7 @@ protected:
 
     TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
 
-    TransactionResult::SharedConst runClarificationOfTransactionDuringFinalAmountsClarification();
-
-    /**
-     * reaction on response TTL message from coordinator
-     * after receiving participants votes message
-     */
-    TransactionResult::SharedConst runClarificationOfTransactionDuringVoting();
+    TransactionResult::SharedConst runCheckObservingBlockNumber();
 
     /**
      * reaction on receiving participants votes message firstly
@@ -112,7 +104,6 @@ protected:
     // Therefore this methods are overridden.
     TransactionResult::SharedConst approve();
 
-protected:
     /**
      * reduce amount reservations (incoming and outgoing) on specified path
      * @param pathID id of path on which amount will be reduced
@@ -136,6 +127,19 @@ protected:
      */
     bool checkReservationsDirections() const;
 
+    TransactionResult::SharedConst sendErrorMessageOnCoordinatorRequest(
+        ResponseMessage::OperationState errorState);
+
+    TransactionResult::SharedConst sendErrorMessageOnPreviousNodeRequest(
+        BaseAddress::Shared previousNode,
+        PathID pathID,
+        ResponseMessage::OperationState errorState);
+
+    TransactionResult::SharedConst sendErrorMessageOnNextNodeResponse(
+        ResponseMessage::OperationState errorState);
+
+    void sendErrorMessageOnFinalAmountsConfiguration();
+
     const string logHeader() const;
 
 protected:
@@ -143,8 +147,7 @@ protected:
     IntermediateNodeReservationRequestMessage::ConstShared mMessage;
 
     TrustLineAmount mLastReservedAmount;
-    // UUID of coordinator node
-    NodeUUID mCoordinator;
+    Contractor::Shared mCoordinator;
     // id of path, which was processed last
     PathID mLastProcessedPath;
 };

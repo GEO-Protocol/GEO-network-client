@@ -24,7 +24,8 @@ public:
 public:
     ParticipantsVotesMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        // todo : use &
+        vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
         map<PaymentNodeID, lamport::Signature::Shared> &participantsSignatures);
 
@@ -35,8 +36,7 @@ public:
 
     const map<PaymentNodeID, lamport::Signature::Shared>& participantsSignatures() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     map<PaymentNodeID, lamport::Signature::Shared> mParticipantsSignatures;

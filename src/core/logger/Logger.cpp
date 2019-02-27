@@ -56,10 +56,7 @@ LoggerStream::LoggerStream(
 {}
 
 
-Logger::Logger(
-    const NodeUUID &nodeUUID):
-
-    mNodeUUID(nodeUUID),
+Logger::Logger():
     mOperationLogFileName("operations.log"),
     mOperationsLogFileLinesNumber(0)
 {

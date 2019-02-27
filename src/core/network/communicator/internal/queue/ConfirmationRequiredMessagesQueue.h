@@ -3,13 +3,7 @@
 
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
-#include "../../../messages/trust_lines/SetIncomingTrustLineMessage.h"
-#include "../../../messages/trust_lines/SetIncomingTrustLineInitialMessage.h"
-#include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 #include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
-#include "../../../messages/trust_lines/AuditMessage.h"
-#include "../../../messages/trust_lines/PublicKeyMessage.h"
-#include "../../../messages/trust_lines/ConflictResolverMessage.h"
 
 #include <boost/signals2.hpp>
 
@@ -26,14 +20,14 @@ public:
     typedef shared_ptr<ConfirmationRequiredMessagesQueue> Shared;
 
 public:
-    signals::signal<void(const NodeUUID&, const SerializedEquivalent, Message::SerializedType)> signalRemoveMessageFromStorage;
+    signals::signal<void(ContractorID, const SerializedEquivalent, Message::SerializedType)> signalRemoveMessageFromStorage;
 
-    signals::signal<void(const NodeUUID&, TransactionMessage::Shared)> signalSaveMessageToStorage;
+    signals::signal<void(ContractorID, TransactionMessage::Shared)> signalSaveMessageToStorage;
 
 public:
     ConfirmationRequiredMessagesQueue(
         const SerializedEquivalent equivalent,
-        const NodeUUID &contractorUUID)
+        ContractorID contractorID)
         noexcept;
 
     /**
@@ -82,30 +76,14 @@ protected: // messages handlers
      * Removes all messages of type "SetIncomingTrustLineMessage" with contractor UUID = "contractorUUID",
      * to prevent messages order collision.
      */
-    void updateTrustLineNotificationInTheQueue(
-        TransactionMessage::Shared message);
-
-    void updateTrustLineInitialNotificationInTheQueue(
-        TransactionMessage::Shared message);
-
-    void updateTrustLineCloseNotificationInTheQueue(
-        TransactionMessage::Shared message);
-
+    // todo : actually now only GatewayNotification go to the ConfirmationRequiredMessagesHandler
+    // and it doesn't save in storage
     void updateGatewayNotificationInTheQueue(
         TransactionMessage::Shared message);
 
-    void updateAuditInTheQueue(
-        TransactionMessage::Shared message);
-
-    void updatePublicKeyInTheQueue(
-        TransactionMessage::Shared message);
-
-    void updateConflictResolverInTheQueue(
-        TransactionMessage::Shared message);
-
 protected:
-    // Stores messages queue by the transaction UUID.
-    // Transaction UUID is used as key to be able to remove messages from the queue,
+    // Stores messages queue by the transactionUUID.
+    // TransactionUUID is used as key to be able to remove messages from the queue,
     // when appropriate confirmation would be received.
     //
     // Map is used because current GCC realisation of map is faster than unordered_map,
@@ -120,7 +98,7 @@ protected:
     // On each sending attempt this timeout must be increased by the mNextTimeoutSeconds.
     DateTime mNextSendingAttemptDateTime;
 
-    NodeUUID mContractorUUID;
+    ContractorID mContractorID;
     SerializedEquivalent mEquivalent;
 };
 

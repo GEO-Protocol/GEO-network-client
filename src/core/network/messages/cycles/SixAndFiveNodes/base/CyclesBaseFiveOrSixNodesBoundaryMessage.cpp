@@ -2,11 +2,13 @@
 
 CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(
     const SerializedEquivalent equivalent,
-    vector<NodeUUID>& path,
-    vector<NodeUUID>& boundaryNodes) :
+    vector<BaseAddress::Shared>& path,
+    vector<BaseAddress::Shared>& boundaryNodes) :
 
     CycleBaseFiveOrSixNodesInBetweenMessage(
         equivalent,
+        // todo : this parameter is not useful, need message hierarchy changing
+        0,
         path),
     mBoundaryNodes(boundaryNodes)
 {}
@@ -25,23 +27,25 @@ CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage
         sizeof(SerializedRecordsCount));
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     //    Parse boundary nodes
-    for (SerializedRecordNumber i=1; i<=boundaryNodesCount; i++){
-        NodeUUID stepNodeUUID(buffer.get() + bytesBufferOffset);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        mBoundaryNodes.push_back(stepNodeUUID);
+    for (SerializedRecordNumber idx = 0; idx < boundaryNodesCount; idx++){
+        auto stepAddress = deserializeAddress(
+            buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += stepAddress->serializedSize();
+        mBoundaryNodes.push_back(stepAddress);
     }
 }
 
 pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBytes();
 
-    SerializedRecordsCount boundaryNodesCount = (SerializedRecordsCount) mBoundaryNodes.size();
+    auto boundaryNodesCount = (SerializedRecordsCount) mBoundaryNodes.size();
     size_t bytesCount =
         parentBytesAndCount.second +
-        (NodeUUID::kBytesSize) * boundaryNodesCount +
         sizeof(SerializedRecordsCount);
+    for (const auto &address : mBoundaryNodes) {
+        bytesCount += address->serializedSize();
+    }
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     // for parent node
@@ -57,20 +61,22 @@ pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBy
         &boundaryNodesCount,
         sizeof(SerializedRecordsCount));
     dataBytesOffset += sizeof(SerializedRecordsCount);
-    vector<byte> stepObligationFlow;
-    for(const auto &kNodeUUID: mBoundaryNodes){
+
+    for(const auto &address: mBoundaryNodes){
+        auto serializedAddress = address->serializeToBytes();
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            &kNodeUUID,
-            NodeUUID::kBytesSize);
-        dataBytesOffset += NodeUUID::kBytesSize;
+            serializedAddress.get(),
+            address->serializedSize());
+        dataBytesOffset += address->serializedSize();
     }
+
     return make_pair(
         dataBytesShared,
         bytesCount);
 }
 
-const vector<NodeUUID> CyclesBaseFiveOrSixNodesBoundaryMessage::BoundaryNodes() const
+vector<BaseAddress::Shared> CyclesBaseFiveOrSixNodesBoundaryMessage::BoundaryNodes() const
 {
     return mBoundaryNodes;
 }

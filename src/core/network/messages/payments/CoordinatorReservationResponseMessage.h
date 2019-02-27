@@ -18,7 +18,7 @@ public:
     // (true if amount > 0)
     CoordinatorReservationResponseMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const PathID &pathID,
         const OperationState state,
@@ -29,8 +29,7 @@ public:
 
     const TrustLineAmount& amountReserved() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
     const MessageType typeID() const;

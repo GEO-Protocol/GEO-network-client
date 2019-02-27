@@ -1,13 +1,13 @@
 #include "GatewayNotificationMessage.h"
 
 GatewayNotificationMessage::GatewayNotificationMessage(
-    const NodeUUID& senderUUID,
+    ContractorID idOnReceiverSide,
     const TransactionUUID& transactionUUID,
     const vector<SerializedEquivalent> gatewayEquivalents) :
 
     TransactionMessage(
         0,
-        senderUUID,
+        idOnReceiverSide,
         transactionUUID),
     mGatewayEquivalents(gatewayEquivalents)
 {}
@@ -19,7 +19,7 @@ GatewayNotificationMessage::GatewayNotificationMessage(
 {
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
-    SerializedRecordsCount *equivalentGatewaysCount = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
+    auto *equivalentGatewaysCount = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
     bytesBufferOffset += sizeof(SerializedRecordsCount);
     //-----------------------------------------------------
     mGatewayEquivalents.reserve(*equivalentGatewaysCount);
@@ -59,7 +59,7 @@ pair<BytesShared, size_t> GatewayNotificationMessage::serializeToBytes() const
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
-    SerializedRecordsCount equivalentGatewaysCount = (SerializedRecordsCount)mGatewayEquivalents.size();
+    auto equivalentGatewaysCount = (SerializedRecordsCount)mGatewayEquivalents.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &equivalentGatewaysCount,

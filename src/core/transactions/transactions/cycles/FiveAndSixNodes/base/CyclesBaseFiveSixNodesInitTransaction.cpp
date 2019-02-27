@@ -2,17 +2,17 @@
 
 CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(
     const TransactionType type,
-    const NodeUUID &nodeUUID,
     const SerializedEquivalent equivalent,
-    TrustLinesManager *manager,
+    ContractorsManager *contractorsManager,
+    TrustLinesManager *trustLinesManager,
     CyclesManager *cyclesManager,
     Logger &logger) :
     BaseTransaction(
         type,
-        nodeUUID,
         equivalent,
         logger),
-    mTrustLinesManager(manager),
+    mContractorsManager(contractorsManager),
+    mTrustLinesManager(trustLinesManager),
     mCyclesManager(cyclesManager)
 {}
 

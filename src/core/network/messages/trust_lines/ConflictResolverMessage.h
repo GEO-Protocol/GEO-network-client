@@ -13,7 +13,7 @@ public:
 public:
     ConflictResolverMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        ContractorID idOnReceiverSide,
         const TransactionUUID &transactionUUID,
         AuditRecord::Shared auditRecord,
         vector<ReceiptRecord::Shared> &incomingReceipts,
@@ -34,8 +34,7 @@ public:
 
     const bool isCheckCachedResponse() const override;
 
-    pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc);
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     AuditRecord::Shared mAuditRecord;

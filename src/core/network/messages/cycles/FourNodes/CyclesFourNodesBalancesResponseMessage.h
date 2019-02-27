@@ -14,21 +14,20 @@ public:
 public:
     CyclesFourNodesBalancesResponseMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
-        vector<NodeUUID> &suitableNodes);
+        vector<BaseAddress::Shared> &suitableNodes);
 
     CyclesFourNodesBalancesResponseMessage(
         BytesShared buffer);
 
-    virtual pair<BytesShared, size_t> serializeToBytes()const
-        throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes()const override;
 
     const MessageType typeID() const;
 
-    vector<NodeUUID> suitableNodes() const;
+    vector<BaseAddress::Shared> suitableNodes() const;
 
 protected:
-    vector<NodeUUID> mSuitableNodes;
+    vector<BaseAddress::Shared> mSuitableNodes;
 };
 #endif //GEO_NETWORK_CLIENT_FOURNODESBALANCESRESPONSEMESSAGE_H

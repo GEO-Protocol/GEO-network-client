@@ -15,9 +15,9 @@ public:
 public:
     ResultMaxFlowCalculationMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID& senderUUID,
-        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
-        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows);
+        vector<BaseAddress::Shared> senderAddresses,
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &outgoingFlows,
+        vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> &incomingFlows);
 
     ResultMaxFlowCalculationMessage(
         BytesShared buffer);
@@ -26,16 +26,15 @@ public:
 
     const bool isAddToConfirmationNotStronglyRequiredMessagesHandler() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
-    const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
+    const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> outgoingFlows() const;
 
-    const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
+    const vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> incomingFlows() const;
 
 private:
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> mOutgoingFlows;
-    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> mIncomingFlows;
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> mOutgoingFlows;
+    vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> mIncomingFlows;
 };
 
 

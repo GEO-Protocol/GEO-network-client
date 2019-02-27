@@ -22,7 +22,6 @@ public:
 
     CommunicatorMessagesQueueHandler *communicatorMessagesQueueHandler();
 
-
     void rollback();
 
 private:

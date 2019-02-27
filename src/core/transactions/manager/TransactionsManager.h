@@ -2,54 +2,8 @@
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
 #include "../scheduler/TransactionsScheduler.h"
-
-#include "../../common/NodeUUID.h"
-#include "../../common/memory/MemoryUtils.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
-#include "../../equivalents/EquivalentsSubsystemsRouter.h"
-#include "../../equivalents/EquivalentsCyclesSubsystemsRouter.h"
-#include "../../io/storage/StorageHandler.h"
-#include "../../logger/Logger.h"
-#include "../../subsystems_controller/SubsystemsController.h"
-#include "../../subsystems_controller/TrustLinesInfluenceController.h"
-#include "../../interface/visual_interface/interface/VisualInterface.h"
-#include "../../interface/visual_interface/visual/VisualResult.h"
-#include "../../crypto/keychain.h"
-
-/*
- * Interface commands
- */
-#include "../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
-#include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
-#include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
-#include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h"
-#include "../../interface/commands_interface/commands/total_balances/TotalBalancesCommand.h"
-#include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
-#include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
-#include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
-#include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
-#include "../../interface/commands_interface/commands/history/HistoryWithContractorCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLineCommand.h"
-#include "../../interface/commands_interface/commands/blacklist/AddNodeToBlackListCommand.h"
-#include "../../interface/commands_interface/commands/blacklist/CheckIfNodeInBlackListCommand.h"
-#include "../../interface/commands_interface/commands/blacklist/RemoveNodeFromBlackListCommand.h"
-#include "../../interface/commands_interface/commands/blacklist/GetBlackListCommand.h"
-#include "../../interface/commands_interface/commands/transactions/PaymentTransactionByCommandUUIDCommand.h"
-
-/*
- * Network messages
- */
-#include "../../network/messages/Message.hpp"
-#include "../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
-#include "../../network/messages/cycles/FourNodes/CyclesFourNodesNegativeBalanceRequestMessage.h"
-#include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
-#include "../../network/messages/payments/VotesStatusRequestMessage.hpp"
-
-#include "../../resources/manager/ResourcesManager.h"
-#include "../../resources/resources/BaseResource.h"
+#include "../../interface/events_interface/interface/EventsInterface.h"
 
 /*
  * Transactions
@@ -57,15 +11,14 @@
 #include "../transactions/trust_lines/OpenTrustLineTransaction.h"
 #include "../transactions/trust_lines/AcceptTrustLineTransaction.h"
 #include "../transactions/trust_lines/SetOutgoingTrustLineTransaction.h"
-#include "../transactions/trust_lines/SetIncomingTrustLineTransaction.h"
 #include "../transactions/trust_lines/CloseIncomingTrustLineTransaction.h"
-#include "../transactions/trust_lines/CloseOutgoingTrustLineTransaction.h"
 #include "../transactions/trust_lines/PublicKeysSharingSourceTransaction.h"
 #include "../transactions/trust_lines/PublicKeysSharingTargetTransaction.h"
 #include "../transactions/trust_lines/AuditSourceTransaction.h"
 #include "../transactions/trust_lines/AuditTargetTransaction.h"
 #include "../transactions/trust_lines/ConflictResolverInitiatorTransaction.h"
 #include "../transactions/trust_lines/ConflictResolverContractorTransaction.h"
+#include "../transactions/trust_lines/CheckTrustLineTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -82,7 +35,6 @@
 #include "../transactions/regular/payments/VotesStatusResponsePaymentTransaction.h"
 #include "../transactions/regular/payments/CycleCloserInitiatorTransaction.h"
 #include "../transactions/regular/payments/CycleCloserIntermediateNodeTransaction.h"
-
 
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationFullyTransaction.h"
@@ -101,15 +53,10 @@
 #include "../transactions/history/HistoryWithContractorTransaction.h"
 
 #include "../transactions/trustlines_list/GetFirstLevelContractorsTransaction.h"
-#include "../transactions/trustlines_list/GetFirstLevelContractorsBalancesTransaction.h"
-#include "../transactions/trustlines_list/GetFirstLevelContractorBalanceTransaction.h"
+#include "../transactions/trustlines_list/GetTrustLinesListTransaction.h"
+#include "../transactions/trustlines_list/GetTrustLineByAddressTransaction.h"
+#include "../transactions/trustlines_list/GetTrustLineByIDTransaction.h"
 #include "../transactions/trustlines_list/GetEquivalentListTransaction.h"
-
-#include "../transactions/blacklist/AddNodeToBlackListTransaction.h"
-#include "../transactions/blacklist/CheckIfNodeInBlackListTransaction.h"
-#include "../transactions/blacklist/RemoveNodeFromBlackListTransaction.h"
-#include "../transactions/blacklist/GetBlackListTransaction.h"
-
 
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
 
@@ -119,7 +66,8 @@
 #include "../transactions/gateway_notification/GatewayNotificationReceiverTransaction.h"
 #include "../transactions/gateway_notification/RoutingTableUpdatingTransaction.h"
 
-#include "../transactions/no_equivalent/NoEquivalentTransaction.h"
+#include "../transactions/general/NoEquivalentTransaction.h"
+#include "../transactions/general/PongReactionTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -132,22 +80,28 @@ namespace signals = boost::signals2;
 
 class TransactionsManager {
 public:
-    signals::signal<void(Message::Shared, const NodeUUID&)> transactionOutgoingMessageReadySignal;
+    signals::signal<void(Message::Shared, const ContractorID)> transactionOutgoingMessageReadySignal;
+    signals::signal<void(Message::Shared, BaseAddress::Shared)> transactionOutgoingMessageToAddressReadySignal;
     signals::signal<void(
             TransactionMessage::Shared,
-            const NodeUUID&,
-            Message::MessageType)> transactionOutgoingMessageWithCachingReadySignal;
-    signals::signal<void(ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
+            ContractorID,
+            Message::MessageType,
+            uint32_t)> transactionOutgoingMessageWithCachingReadySignal;
+    signals::signal<void(ObservingClaimAppendRequestMessage::Shared)> observingClaimSignal;
+    signals::signal<void(ConfirmationMessage::Shared)> processConfirmationMessageSignal;
+    signals::signal<void(ContractorID)> processPongMessageSignal;
+    signals::signal<void(TransactionUUID, BlockNumber)> observingTransactionCommittedSignal;
 
 public:
     TransactionsManager(
-        NodeUUID &nodeUUID,
         as::io_service &IOService,
+        ContractorsManager *contractorsManager,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         ResourcesManager *ResourcesManager,
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        EventsInterface *eventsInterface,
         Logger &logger,
         SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController);
@@ -162,20 +116,33 @@ public:
     void attachResourceToTransaction(
         BaseResource::Shared resource);
 
-    void activateVisualInterface();
-
-    void deactivateVisualInterface();
+    void allowPaymentTransactionsDueToObserving(
+        bool allowPaymentTransactions);
 
     /*
      * Find paths transactions
      */
     void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
-        const NodeUUID &destinationNodeUUID,
+        BaseAddress::Shared destinationNodeAddress,
         const SerializedEquivalent equivalent);
 
-protected:
-    void loadTransactionsFromStorage();
+    void launchPaymentTransactionAfterGettingObservingSignatures(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber,
+        map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures);
+
+    void launchPaymentTransactionForObservingRejecting(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
+
+    void launchPaymentTransactionForObservingUncertainStage(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
+
+    void launchCancelingPaymentTransaction(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maximalClaimingBlockNumber);
 
 protected: // Transactions
     /*
@@ -186,27 +153,27 @@ protected: // Transactions
      * Starts transaction that would processes locally received command
      * and try to set outgoing trust line to the remote node.
      */
+    void launchInitTrustLineTransaction(
+        InitTrustLineCommand::Shared command);
+
     void launchSetOutgoingTrustLineTransaction(
         SetOutgoingTrustLineCommand::Shared command);
 
     void launchCloseIncomingTrustLineTransaction(
         CloseIncomingTrustLineCommand::Shared command);
 
+    void launchPublicKeysSharingSourceTransaction(
+        ShareKeysCommand::Shared command);
+
     /**
      * Starts transaction that would processes received message
      * and attempts to set incoming trust line from the remote node.
      */
-    void launchSetIncomingTrustLineTransaction(
-        SetIncomingTrustLineMessage::Shared message);
-
     void launchAcceptTrustLineTransaction(
-        SetIncomingTrustLineInitialMessage::Shared message);
-
-    void launchCloseOutgoingTrustLineTransaction(
-        CloseOutgoingTrustLineMessage::Shared message);
+        TrustLineInitialMessage::Shared message);
 
     void launchPublicKeysSharingTargetTransaction(
-        PublicKeyMessage::Shared message);
+        PublicKeysSharingInitMessage::Shared message);
 
     void launchAuditTargetTransaction(
         AuditMessage::Shared message);
@@ -266,7 +233,7 @@ protected: // Transactions
      * Cycles building Transactions
      */
     void launchFourNodesCyclesInitTransaction(
-        const NodeUUID &creditorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent);
 
     void launchFourNodesCyclesResponseTransaction(
@@ -276,7 +243,7 @@ protected: // Transactions
         CyclesFourNodesPositiveBalanceRequestMessage::Shared message);
 
     void launchThreeNodesCyclesInitTransaction(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent);
 
     void launchThreeNodesCyclesResponseTransaction(
@@ -324,26 +291,14 @@ protected: // Transactions
     void launchGetTrustLinesTransaction(
         GetTrustLinesCommand::Shared command);
 
-    void launchGetTrustLineTransaction(
-        GetTrustLineCommand::Shared command);
+    void launchGetTrustLineByAddressTransaction(
+        GetTrustLineByAddressCommand::Shared command);
+
+    void launchGetTrustLineByIDTransaction(
+        GetTrustLineByIDCommand::Shared command);
 
     void launchGetEquivalentListTransaction(
         EquivalentListCommand::Shared command);
-
-    /*
-     * BlackList
-     */
-    void launchAddNodeToBlackListTransaction(
-        AddNodeToBlackListCommand::Shared command);
-
-    void launchCheckIfNodeInBlackListTransaction(
-        CheckIfNodeInBlackListCommand::Shared command);
-
-    void launchRemoveNodeFromBlackListTransaction(
-        RemoveNodeFromBlackListCommand::Shared command);
-
-    void launchGetBlackListTransaction(
-        GetBlackListCommand::Shared command);
 
     /*
      * Transaction
@@ -362,6 +317,12 @@ protected: // Transactions
     void launchRoutingTableUpdatingTransaction(
         RoutingTableResponseMessage::Shared message);
 
+    /*
+     * General
+     */
+    void launchPongReactionTransaction(
+        PongMessage::Shared message);
+
 protected:
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(
@@ -370,8 +331,14 @@ protected:
     void subscribeForOutgoingMessages(
         BaseTransaction::SendMessageSignal &signal);
 
+    void subscribeForOutgoingMessagesToAddress(
+        BaseTransaction::SendMessageToAddressSignal &signal);
+
     void subscribeForOutgoingMessagesWithCaching(
         BaseTransaction::SendMessageWithCachingSignal &signal);
+
+    void subscribeForObserving(
+        BasePaymentTransaction::Shared transaction);
 
     void subscribeForCommandResult(
         TransactionsScheduler::CommandResultSignal &signal);
@@ -400,14 +367,20 @@ protected:
     void subscribeForProcessingConfirmationMessage(
         BaseTransaction::ProcessConfirmationMessageSignal &signal);
 
+    void subscribeForProcessingPongMessage(
+        BaseTransaction::ProcessPongMessageSignal &signal);
+
     void subscribeForGatewayNotificationSignal(
         EquivalentsSubsystemsRouter::GatewayNotificationSignal &signal);
 
-    void subscribeForAuditSignal(
-        BasePaymentTransaction::TrustLineAuditSignal &signal);
+    void subscribeForTrustLineActionSignal(
+        BasePaymentTransaction::TrustLineActionSignal &signal);
 
-    void subscribeForPublicKeysSharingSignal(
-        BasePaymentTransaction::PublicKeysSharingSignal &signal);
+    void subscribeForKeysSharingSignal(
+        BaseTransaction::PublicKeysSharingSignal &signal);
+
+    void subscribeForAuditSignal(
+        BaseTransaction::AuditSignal &signal);
 
     // Slots
     void onSubsidiaryTransactionReady(
@@ -415,12 +388,24 @@ protected:
 
     void onTransactionOutgoingMessageReady(
         Message::Shared message,
-        const NodeUUID &contractorUUID);
+        const ContractorID contractorID);
+
+    void onTransactionOutgoingMessageToAddressReady(
+        Message::Shared message,
+        BaseAddress::Shared address);
 
     void onTransactionOutgoingMessageWithCachingReady(
         TransactionMessage::Shared message,
-        const NodeUUID &contractorUUID,
-        Message::MessageType incomingMessageTypeFilter);
+        ContractorID contractorID,
+        Message::MessageType incomingMessageTypeFilter,
+        uint32_t cacheTimeLiving);
+
+    void onObservingClaimReady(
+        ObservingClaimAppendRequestMessage::Shared message);
+
+    void onObservingTransactionCommitted(
+        const TransactionUUID& transactionUUID,
+        BlockNumber maxBlockNumberForClaiming);
 
     void onCommandResultReady(
         CommandResult::SharedConst result);
@@ -429,11 +414,11 @@ protected:
         BaseTransaction::Shared transaction);
 
     void onBuildCycleThreeNodesTransaction(
-        set<NodeUUID> &contractorsUUID,
+        set<ContractorID> &contractorsIDs,
         const SerializedEquivalent equivalent);
 
     void onBuildCycleFourNodesTransaction(
-        set<NodeUUID> &creditors,
+        set<ContractorID> &contractorsIDs,
         const SerializedEquivalent equivalent);
 
     void onBuildCycleFiveNodesTransaction(
@@ -444,7 +429,7 @@ protected:
 
     void onCloseCycleTransaction(
         const SerializedEquivalent equivalent,
-        Path::ConstShared cycle);
+        Path::Shared cycle);
 
     void onTryCloseNextCycleSlot(
         const SerializedEquivalent equivalent);
@@ -452,25 +437,49 @@ protected:
     void onProcessConfirmationMessageSlot(
         ConfirmationMessage::Shared confirmationMessage);
 
+    void onProcessPongMessageSlot(
+        ContractorID contractorID);
+
     void onGatewayNotificationSlot();
 
-    void onAuditOnTrustLineSlot(
-        const NodeUUID &contractorUUID,
+    void onTrustLineActionSlot(
+        ContractorID contractorID,
+        const SerializedEquivalent equivalent,
+        bool isActionInitiator);
+
+    void onPublicKeysSharingSlot(
+        ContractorID contractorID,
         const SerializedEquivalent equivalent);
 
-    void onPublicKeySharingSlot(
-        const NodeUUID &contractorUUID,
+    void onAuditSlot(
+        ContractorID contractorID,
         const SerializedEquivalent equivalent);
 
-protected:
+    void onResumeTransactionSlot(
+        ContractorID contractorID,
+        const SerializedEquivalent equivalent,
+        const BaseTransaction::TransactionType transactionType);
+
+private:
+    void loadTransactionsFromStorage();
+
+    BasePaymentTransaction::Shared deserializePaymentTransaction(
+        BytesShared buffer,
+        BaseTransaction::SerializedTransactionType transactionType,
+        SerializedEquivalent equivalent);
+
     void prepareAndSchedule(
         BaseTransaction::Shared transaction,
         bool regenerateUUID=false,
         bool subsidiaryTransactionSubscribe=false,
         bool outgoingMessagesSubscribe=false);
 
-    bool findSerializedTransactionAndLaunchIt(
-        Message::Shared message);
+    void prepareAndSchedulePostponed(
+        BaseTransaction::Shared transaction,
+        uint32_t millisecondsDelay,
+        bool regenerateUUID=false,
+        bool subsidiaryTransactionSubscribe=false,
+        bool outgoingMessagesSubscribe=false);
 
 protected:
     static string logHeader()
@@ -486,18 +495,19 @@ protected:
     noexcept;
 
 private:
-    NodeUUID &mNodeUUID;
     as::io_service &mIOService;
+    ContractorsManager *mContractorsManager;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     ResourcesManager *mResourcesManager;
     ResultsInterface *mResultsInterface;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
+    EventsInterface *mEventsInterface;
     Logger &mLog;
+    bool isPaymentTransactionsAllowedDueToObserving;
 
     SubsystemsController *mSubsystemsController;
     TrustLinesInfluenceController *mTrustLinesInfluenceController;
-    unique_ptr<VisualInterface> mVisualInterface;
 
     unique_ptr<TransactionsScheduler> mScheduler;
     unique_ptr<EquivalentsCyclesSubsystemsRouter> mEquivalentsCyclesSubsystemsRouter;

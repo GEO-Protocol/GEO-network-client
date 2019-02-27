@@ -1,8 +1,6 @@
 #ifndef GEO_NETWORK_CLIENT_TRUSTLINEHANDLER_H
 #define GEO_NETWORK_CLIENT_TRUSTLINEHANDLER_H
 
-#include "../../common/NodeUUID.h"
-#include "../../common/Types.h"
 #include "../../trust_lines/TrustLine.h"
 #include "../../logger/Logger.h"
 #include "../../common/exceptions/IOError.h"
@@ -24,7 +22,11 @@ public:
         TrustLine::Shared trustLine,
         const SerializedEquivalent equivalent);
 
-    void updateTrustLine(
+    void updateTrustLineState(
+        TrustLine::Shared trustLine,
+        const SerializedEquivalent equivalent);
+
+    void updateTrustLineIsContractorGateway(
         TrustLine::Shared trustLine,
         const SerializedEquivalent equivalent);
 
@@ -32,7 +34,7 @@ public:
         const SerializedEquivalent equivalent);
 
     void deleteTrustLine(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent);
 
     vector<SerializedEquivalent> equivalents();

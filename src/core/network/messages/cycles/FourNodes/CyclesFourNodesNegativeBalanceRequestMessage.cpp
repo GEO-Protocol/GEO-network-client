@@ -2,16 +2,17 @@
 
 CyclesFourNodesNegativeBalanceRequestMessage::CyclesFourNodesNegativeBalanceRequestMessage(
     const SerializedEquivalent equivalent,
-    const NodeUUID &senderUUID,
+    vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
-    const NodeUUID &contractor,
-    vector<NodeUUID> &checkedNodes):
+    BaseAddress::Shared contractorAddress,
+    vector<BaseAddress::Shared> checkedNodes):
 
     TransactionMessage(
         equivalent,
-        senderUUID,
+        0,
+        senderAddresses,
         transactionUUID),
-    mContractorUUID(contractor),
+    mContractorAddress(contractorAddress),
     mCheckedNodes(checkedNodes)
 {}
 
@@ -21,12 +22,10 @@ CyclesFourNodesNegativeBalanceRequestMessage::CyclesFourNodesNegativeBalanceRequ
     TransactionMessage(buffer)
 {
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    // contractorUUID
-    memcpy(
-        mContractorUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
+    // contractorAddress
+    mContractorAddress = deserializeAddress(
+        buffer.get() + bytesBufferOffset);
+    bytesBufferOffset += mContractorAddress->serializedSize();
 
     // checkedNodes
     SerializedRecordsCount checkedNodesCount;
@@ -37,22 +36,24 @@ CyclesFourNodesNegativeBalanceRequestMessage::CyclesFourNodesNegativeBalanceRequ
     bytesBufferOffset += sizeof(SerializedRecordsCount);
 
     for (SerializedRecordNumber i = 1; i <= checkedNodesCount; ++i) {
-        NodeUUID stepNode(buffer.get() + bytesBufferOffset);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        mCheckedNodes.push_back(stepNode);
+        auto stepAddress = deserializeAddress(
+            buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += stepAddress->serializedSize();
+        mCheckedNodes.push_back(stepAddress);
     }
 }
 
 pair<BytesShared, size_t> CyclesFourNodesNegativeBalanceRequestMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     auto debtorsCount = (SerializedRecordsCount)mCheckedNodes.size();
     size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize
-                        + sizeof(SerializedRecordsCount)
-                        + debtorsCount * NodeUUID::kBytesSize;
+                        + mContractorAddress->serializedSize()
+                        + sizeof(SerializedRecordsCount);
+    for (const auto &address : mCheckedNodes) {
+        bytesCount += address->serializedSize();
+    }
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -64,11 +65,12 @@ pair<BytesShared, size_t> CyclesFourNodesNegativeBalanceRequestMessage::serializ
     dataBytesOffset += parentBytesAndCount.second;
 
     // For mContractor
+    auto serializedContractorAddress = mContractorAddress->serializeToBytes();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
-        &mContractorUUID,
-        NodeUUID::kBytesSize);
-    dataBytesOffset += NodeUUID::kBytesSize;
+        serializedContractorAddress.get(),
+        mContractorAddress->serializedSize());
+    dataBytesOffset += mContractorAddress->serializedSize();
 
     // For mCheckedNodes
     memcpy(
@@ -77,12 +79,13 @@ pair<BytesShared, size_t> CyclesFourNodesNegativeBalanceRequestMessage::serializ
         sizeof(SerializedRecordsCount));
     dataBytesOffset += sizeof(SerializedRecordsCount);
 
-    for(auto const &debtor: mCheckedNodes) {
+    for(auto const &address: mCheckedNodes) {
+        auto serializedAddress = address->serializeToBytes();
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            &debtor,
-            NodeUUID::kBytesSize);
-        dataBytesOffset += NodeUUID::kBytesSize;
+            serializedAddress.get(),
+            address->serializedSize());
+        dataBytesOffset += address->serializedSize();
     }
 
     return make_pair(
@@ -95,12 +98,12 @@ const Message::MessageType CyclesFourNodesNegativeBalanceRequestMessage::typeID(
     return Message::MessageType::Cycles_FourNodesNegativeBalanceRequest;
 }
 
-vector<NodeUUID> CyclesFourNodesNegativeBalanceRequestMessage::checkedNodes() const
+vector<BaseAddress::Shared> CyclesFourNodesNegativeBalanceRequestMessage::checkedNodes() const
 {
     return mCheckedNodes;
 }
 
-const NodeUUID CyclesFourNodesNegativeBalanceRequestMessage::contractor() const
+BaseAddress::Shared CyclesFourNodesNegativeBalanceRequestMessage::contractorAddress() const
 {
-    return mContractorUUID;
+    return mContractorAddress;
 }

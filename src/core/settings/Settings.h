@@ -1,7 +1,6 @@
 #ifndef GEO_NETWORK_CLIENT_SETTINGS_H
 #define GEO_NETWORK_CLIENT_SETTINGS_H
 
-#include "../common/NodeUUID.h"
 #include "../common/Types.h"
 
 #include "../common/exceptions/IOError.h"
@@ -14,24 +13,14 @@
 #include <streambuf>
 
 using namespace std;
-using namespace boost::uuids;
 using json = nlohmann::json;
 
 class Settings {
 public:
-    const NodeUUID nodeUUID(
+    vector<pair<string, string>> addresses(
         const json *conf = nullptr) const;
 
-    const string interface(
-        const json *conf = nullptr) const;
-
-    const uint16_t port(
-        const json *conf = nullptr) const;
-
-    const string uuid2addressHost(
-        const json *conf = nullptr) const;
-
-    const uint16_t uuid2addressPort(
+    vector<pair<string, string>> observers(
         const json *conf = nullptr) const;
 
     vector<SerializedEquivalent> iAmGateway(

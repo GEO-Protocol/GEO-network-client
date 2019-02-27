@@ -1,7 +1,6 @@
 #ifndef GEO_NETWORK_CLIENT_HISTORYSTORAGE_H
 #define GEO_NETWORK_CLIENT_HISTORYSTORAGE_H
 
-#include "../../common/NodeUUID.h"
 #include "../../transactions/transactions/base/TransactionUUID.h"
 #include "../../common/Types.h"
 #include "../../logger/Logger.h"
@@ -9,9 +8,9 @@
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/multiprecision/MultiprecisionUtils.h"
 
-#include "record/base/Record.h"
 #include "record/payment/PaymentRecord.h"
 #include "record/trust_line/TrustLineRecord.h"
+#include "record/payment/PaymentAdditionalRecord.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -33,6 +32,10 @@ public:
 
     void savePaymentRecord(
         PaymentRecord::Shared record,
+        const SerializedEquivalent equivalent);
+
+    void savePaymentAdditionalRecord(
+        PaymentAdditionalRecord::Shared record,
         const SerializedEquivalent equivalent);
 
     vector<TrustLineRecord::Shared> allTrustLineRecords(
@@ -60,7 +63,7 @@ public:
     vector<PaymentRecord::Shared> paymentRecordsByCommandUUID(
         const CommandUUID &commandUUID);
 
-    vector<PaymentRecord::Shared> allPaymentAdditionalRecords(
+    vector<PaymentAdditionalRecord::Shared> allPaymentAdditionalRecords(
         const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord,
@@ -74,7 +77,7 @@ public:
         bool isHighBoundaryAmountPresent);
 
     vector<Record::Shared> recordsWithContractor(
-        const NodeUUID &contractorUUID,
+        vector<BaseAddress::Shared> contractorAddresses,
         const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord);
@@ -91,10 +94,6 @@ private:
         PaymentRecord::Shared record,
         const SerializedEquivalent equivalent);
 
-    void savePaymentAdditionalRecord(
-        PaymentRecord::Shared record,
-        const SerializedEquivalent equivalent);
-
     vector<PaymentRecord::Shared> allPaymentRecords(
         const SerializedEquivalent equivalent,
         size_t recordsCount,
@@ -104,7 +103,7 @@ private:
         DateTime timeTo,
         bool isTimeToPresent);
 
-    vector<PaymentRecord::Shared> allPaymentAdditionalRecords(
+    vector<PaymentAdditionalRecord::Shared> allPaymentAdditionalRecords(
         const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord,
@@ -118,19 +117,9 @@ private:
         const SerializedEquivalent equivalent);
 
     vector<Record::Shared> recordsPortionWithContractor(
-        const NodeUUID &contractorUUID,
         const SerializedEquivalent equivalent,
         size_t recordsCount,
         size_t fromRecord);
-
-    pair<BytesShared, size_t> serializedTrustLineRecordBody(
-        TrustLineRecord::Shared);
-
-    pair<BytesShared, size_t> serializedPaymentRecordBody(
-        PaymentRecord::Shared);
-
-    pair<BytesShared, size_t> serializedPaymentAdditionalRecordBody(
-        PaymentRecord::Shared);
 
     TrustLineRecord::Shared deserializeTrustLineRecord(
         sqlite3_stmt *stmt);
@@ -138,7 +127,7 @@ private:
     PaymentRecord::Shared deserializePaymentRecord(
         sqlite3_stmt *stmt);
 
-    PaymentRecord::Shared deserializePaymentAdditionalRecord(
+    PaymentAdditionalRecord::Shared deserializePaymentAdditionalRecord(
         sqlite3_stmt *stmt);
 
     LoggerStream info() const;

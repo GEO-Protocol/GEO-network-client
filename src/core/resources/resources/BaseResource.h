@@ -12,7 +12,8 @@ public:
 
 public:
     enum ResourceType {
-        Paths = 1
+        Paths = 1,
+        ObservingBlockNumber = 2,
     };
 
 public:
@@ -27,7 +28,6 @@ public:
 private:
     ResourceType mType;
     TransactionUUID mTransactionUUID;
-
 };
 
 

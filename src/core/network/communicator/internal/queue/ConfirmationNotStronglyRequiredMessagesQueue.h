@@ -17,7 +17,7 @@ public:
 public:
     ConfirmationNotStronglyRequiredMessagesQueue(
         const SerializedEquivalent equivalent,
-        const NodeUUID &contractorUUID)
+        BaseAddress::Shared contractorAddress)
         noexcept;
 
     /**
@@ -34,6 +34,8 @@ public:
      */
     bool tryProcessConfirmation(
         MaxFlowCalculationConfirmationMessage::Shared confirmationMessage);
+
+    BaseAddress::Shared contractorAddress() const;
 
     /**
      * @returns date time when next sending attempt must be scheduled.
@@ -67,7 +69,7 @@ protected:
     const uint8_t kMaxCountResendingAttempts = 3;
 
 protected:
-    // Stores messages queue bykMessagesDeserializationDelayedSecondsTime the ConfirmationID.
+    BaseAddress::Shared mContractorAddress;
     // ConfirmationID is used as key to be able to remove messages from the queue,
     // when appropriate confirmation would be received.
     //
@@ -83,7 +85,6 @@ protected:
     // On each sending attempt this timeout must be increased by the mNextTimeoutSeconds.
     DateTime mNextSendingAttemptDateTime;
 
-    NodeUUID mContractorUUID;
     SerializedEquivalent mEquivalent;
 
     uint8_t mCountResendingAttempts;

@@ -20,13 +20,13 @@ public:
 public:
     FinalAmountsConfigurationResponseMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const OperationState state);
 
     FinalAmountsConfigurationResponseMessage(
         const SerializedEquivalent equivalent,
-        const NodeUUID &senderUUID,
+        vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
         const OperationState state,
         const lamport::PublicKey::Shared publicKey);
@@ -43,8 +43,7 @@ public:
 protected:
     typedef byte SerializedOperationState;
 
-    pair<BytesShared, size_t> serializeToBytes() const
-    throw (bad_alloc);
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     OperationState mState;

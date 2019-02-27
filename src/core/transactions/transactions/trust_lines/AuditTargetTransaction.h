@@ -3,6 +3,11 @@
 
 #include "base/BaseTrustLineTransaction.h"
 
+#include "../../../topology/manager/TopologyTrustLinesManager.h"
+#include "../../../topology/cashe/TopologyCacheManager.h"
+#include "../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../io/storage/record/trust_line/TrustLineRecord.h"
+
 class AuditTargetTransaction : public BaseTrustLineTransaction {
 
 public:
@@ -10,20 +15,14 @@ public:
 
 public:
     AuditTargetTransaction(
-        const NodeUUID &nodeUUID,
         AuditMessage::Shared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger);
-
-    AuditTargetTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
+        TopologyTrustLinesManager *topologyTrustLinesManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
@@ -33,11 +32,28 @@ protected: // log
     const string logHeader() const;
 
 private:
-    TransactionResult::SharedConst runInitializationStage();
+    void setIncomingTrustLineAmount(
+        IOTransaction::Shared ioTransaction);
 
-    TransactionResult::SharedConst runRecoveryStage();
+    void closeOutgoingTrustLine(
+        IOTransaction::Shared ioTransaction);
 
-    pair<BytesShared, size_t> serializeToBytes() const override;
+    void populateHistory(
+        IOTransaction::Shared ioTransaction,
+        TrustLineRecord::TrustLineOperationType operationType);
+
+private:
+    string mSenderIncomingIP;
+    vector<BaseAddress::Shared> mContractorAddresses;
+
+    AuditMessage::Shared mMessage;
+    TopologyTrustLinesManager *mTopologyTrustLinesManager;
+    TopologyCacheManager *mTopologyCacheManager;
+    MaxFlowCacheManager *mMaxFlowCacheManager;
+
+    TrustLineAmount mPreviousIncomingAmount;
+    TrustLineAmount mPreviousOutgoingAmount;
+    TrustLine::TrustLineState mPreviousState;
 };
 
 

@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_CYCLEFOURNODESRESPONSETRANSACTION_H
 
 #include "../../base/BaseTransaction.h"
+#include "../../../../contractors/ContractorsManager.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesNegativeBalanceRequestMessage.h"
@@ -15,14 +16,14 @@ class CyclesFourNodesReceiverTransaction:
 
 public:
     CyclesFourNodesReceiverTransaction(
-        const NodeUUID &nodeUUID,
         CyclesFourNodesNegativeBalanceRequestMessage::Shared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         Logger &logger);
 
     CyclesFourNodesReceiverTransaction(
-        const NodeUUID &nodeUUID,
         CyclesFourNodesPositiveBalanceRequestMessage::Shared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         Logger &logger);
 
@@ -37,8 +38,10 @@ protected:
 
 protected:
     CyclesFourNodesNegativeBalanceRequestMessage::Shared mRequestMessage;
+    ContractorID mNeighborID;
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     bool mNegativeCycleBalance;
-    vector<NodeUUID> mSuitableNodes;
+    vector<BaseAddress::Shared> mSuitableNodes;
 };
 #endif //GEO_NETWORK_CLIENT_CYCLEFOURNODESRESPONSETRANSACTION_H

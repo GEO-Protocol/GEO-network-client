@@ -22,10 +22,6 @@ int Core::run()
     updateProcessName();
 
     try {
-        if (!mCommunicator->joinUUID2Address(mNodeUUID)) {
-            error() << "Core can't be initialised. Process will now be stopped.";
-            return -1;
-        }
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
 
@@ -60,15 +56,6 @@ int Core::initSubsystems()
         return -1;
     }
 
-    try {
-        mNodeUUID = mSettings->nodeUUID(&conf);
-
-    } catch (RuntimeError &) {
-        // Logger was not initialized yet
-        cerr << utc_now() <<" : ERROR\tCORE\tCan't read UUID of the node from the settings" << endl;
-        return -1;
-    }
-
     vector<SerializedEquivalent>equivalentsOnWhichIAmIsGateway;
     try {
         equivalentsOnWhichIAmIsGateway = mSettings->iAmGateway(&conf);
@@ -83,7 +70,17 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initCommunicator(conf);
+    initCode = initStorageHandler();
+    if (initCode != 0) {
+        return initCode;
+    }
+
+    initCode = initResourcesManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
+    initCode = initCommandsInterface();
     if (initCode != 0) {
         return initCode;
     }
@@ -93,12 +90,22 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initStorageHandler();
+    initCode = initEventsInterface();
     if (initCode != 0) {
         return initCode;
     }
 
-    initCode = initResourcesManager();
+    initCode = initContractorsManager(conf);
+    if (initCode != 0) {
+        return initCode;
+    }
+
+    initCode = initCommunicator();
+    if (initCode != 0) {
+        return initCode;
+    }
+
+    initCode = initObservingHandler(conf);
     if (initCode != 0) {
         return initCode;
     }
@@ -113,13 +120,13 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initEquivalentsSubsystemsRouter(
-        equivalentsOnWhichIAmIsGateway);
+    initCode = initKeysStore();
     if (initCode != 0) {
         return initCode;
     }
 
-    initCode = initKeysStore();
+    initCode = initEquivalentsSubsystemsRouter(
+        equivalentsOnWhichIAmIsGateway);
     if (initCode != 0) {
         return initCode;
     }
@@ -129,7 +136,7 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initCommandsInterface();
+    initCode = initTopologyEventDelayedTask();
     if (initCode != 0) {
         return initCode;
     }
@@ -156,7 +163,7 @@ int Core::initSettings()
 int Core::initLogger()
 {
     try {
-        mLog = make_unique<Logger>(mNodeUUID);
+        mLog = make_unique<Logger>();
         return 0;
 
     } catch (...) {
@@ -165,20 +172,35 @@ int Core::initLogger()
     }
 }
 
-int Core::initCommunicator(
-    const json &conf)
+int Core::initCommunicator()
 {
     try {
         mCommunicator = make_unique<Communicator>(
             mIOService,
-            mSettings->interface(&conf),
-            mSettings->port(&conf),
-            mSettings->uuid2addressHost(&conf),
-            mSettings->uuid2addressPort(&conf),
-            mNodeUUID,
+            mContractorsManager.get(),
             *mLog);
 
         info() << "Network communicator is successfully initialised";
+        return 0;
+
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initObservingHandler(
+    const json &conf)
+{
+    try {
+        mObservingHandler = make_unique<ObservingHandler>(
+            mSettings->observers(&conf),
+            mIOService,
+            mStorageHandler.get(),
+            mResourcesManager.get(),
+            *mLog);
+
+        info() << "Observing handler is successfully initialised";
         return 0;
 
     } catch (const std::exception &e) {
@@ -201,13 +223,29 @@ int Core::initResultsInterface()
     }
 }
 
+int Core::initEventsInterface()
+{
+    try {
+        mEventsInterface = make_unique<EventsInterface>(
+            *mLog);
+        info() << "Events interface is successfully initialised";
+        return 0;
+
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
 int Core::initEquivalentsSubsystemsRouter(
     vector<SerializedEquivalent> equivalentIAmGateway)
 {
     try {
         mEquivalentsSubsystemsRouter = make_unique<EquivalentsSubsystemsRouter>(
-            mNodeUUID,
             mStorageHandler.get(),
+            mKeysStore.get(),
+            mContractorsManager.get(),
+            mEventsInterface.get(),
             mIOService,
             equivalentIAmGateway,
             *mLog);
@@ -236,13 +274,14 @@ int Core::initTransactionsManager()
 {
     try {
         mTransactionsManager = make_unique<TransactionsManager>(
-            mNodeUUID,
             mIOService,
+            mContractorsManager.get(),
             mEquivalentsSubsystemsRouter.get(),
             mResourcesManager.get(),
             mResultsInterface.get(),
             mStorageHandler.get(),
             mKeysStore.get(),
+            mEventsInterface.get(),
             *mLog,
             mSubsystemsController.get(),
             mTrustLinesInfluenceController.get());
@@ -278,6 +317,22 @@ int Core::initStorageHandler()
             "storageDB",
             *mLog);
         info() << "Storage handler is successfully initialised";
+        return 0;
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initContractorsManager(
+    const json &conf)
+{
+    try {
+        mContractorsManager = make_unique<ContractorsManager>(
+            mSettings->addresses(&conf),
+            mStorageHandler.get(),
+            *mLog);
+        info() << "Contractors manager is successfully initialised";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
@@ -325,6 +380,21 @@ int Core::initKeysStore()
     }
 }
 
+int Core::initTopologyEventDelayedTask()
+{
+    try {
+        mTopologyEventDelayedTask = make_unique<TopologyEventDelayedTask>(
+            mIOService,
+            mEquivalentsSubsystemsRouter.get(),
+            *mLog);
+        info() << "Topology Event Delayed Task is successfully initialized";
+        return 0;
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
 void Core::connectCommandsInterfaceSignals ()
 {
     mCommandsInterface->commandReceivedSignal.connect(
@@ -358,17 +428,88 @@ void Core::connectCommunicatorSignals()
             _1,
             _2));
 
+    mTransactionsManager->transactionOutgoingMessageToAddressReadySignal.connect(
+        boost::bind(
+            &Core::onMessageSendToAddressSlot,
+            this,
+            _1,
+            _2));
+
     mTransactionsManager->transactionOutgoingMessageWithCachingReadySignal.connect(
         boost::bind(
             &Core::onMessageSendWithCachingSlot,
             this,
             _1,
             _2,
-            _3));
+            _3,
+            _4));
 
-    mTransactionsManager->ProcessConfirmationMessageSignal.connect(
+    mTransactionsManager->processConfirmationMessageSignal.connect(
         boost::bind(
             &Core::onProcessConfirmationMessageSlot,
+            this,
+            _1));
+
+    mTransactionsManager->processPongMessageSignal.connect(
+        boost::bind(
+            &Core::onProcessPongMessageSlot,
+            this,
+            _1));
+
+    for (const auto &contractorID : mEquivalentsSubsystemsRouter->contractorsShouldBePinged()) {
+        mCommunicator->enqueueContractorWithPostponedSending(
+            contractorID);
+    }
+    mEquivalentsSubsystemsRouter->clearContractorsShouldBePinged();
+}
+
+void Core::connectObservingSignals()
+{
+    mTransactionsManager->observingClaimSignal.connect(
+        boost::bind(
+            &Core::onClaimSendToObserverSlot,
+            this,
+            _1));
+
+    mTransactionsManager->observingTransactionCommittedSignal.connect(
+        boost::bind(
+            &Core::onAddTransactionToObservingCheckingSlot,
+            this,
+            _1,
+            _2));
+
+    mObservingHandler->mParticipantsVotesSignal.connect(
+        boost::bind(
+            &Core::onObservingParticipantsVotesSlot,
+            this,
+            _1,
+            _2,
+            _3));
+
+    mObservingHandler->mRejectTransactionSignal.connect(
+        boost::bind(
+            &Core::onObservingTransactionRejectSlot,
+            this,
+            _1,
+            _2));
+
+    mObservingHandler->mUncertainTransactionSignal.connect(
+        boost::bind(
+            &Core::onObservingTransactionUncertainSlot,
+            this,
+            _1,
+            _2));
+
+    mObservingHandler->mCancelTransactionSignal.connect(
+        boost::bind(
+            &Core::onObservingTransactionCancelingSlot,
+            this,
+            _1,
+            _2));
+
+    mObservingHandler->mAllowPaymentTransactionsSignal.connect(
+        boost::bind(
+            &Core::onObservingAllowPaymentTransactionsSlot,
             this,
             _1));
 }
@@ -383,6 +524,12 @@ void Core::connectResourcesManagerSignals()
             _2,
             _3));
 
+    mResourcesManager->requestObservingBlockNumberSignal.connect(
+        boost::bind(
+            &Core::onObservingBlockNumberRequestSlot,
+            this,
+            _1));
+
     mResourcesManager->attachResourceSignal.connect(
         boost::bind(
             &Core::onResourceCollectedSlot,
@@ -394,6 +541,7 @@ void Core::connectSignalsToSlots()
     connectCommandsInterfaceSignals();
     connectCommunicatorSignals();
     connectResourcesManagerSignals();
+    connectObservingSignals();
 }
 
 void Core::onCommandReceivedSlot (
@@ -407,14 +555,9 @@ void Core::onCommandReceivedSlot (
         auto subsystemsInfluenceCommand = static_pointer_cast<SubsystemsInfluenceCommand>(command);
         mSubsystemsController->setFlags(
             subsystemsInfluenceCommand->flags());
-        if (mSubsystemsController->isWriteVisualResults()) {
-            mTransactionsManager->activateVisualInterface();
-        } else {
-            mTransactionsManager->deactivateVisualInterface();
-        }
 #ifdef TESTS
-        mSubsystemsController->setForbiddenNodeUUID(
-            subsystemsInfluenceCommand->forbiddenNodeUUID());
+        mSubsystemsController->setForbiddenNodeAddress(
+            subsystemsInfluenceCommand->forbiddenNodeAddress());
         mSubsystemsController->setForbiddenAmount(
             subsystemsInfluenceCommand->forbiddenAmount());
         // set node as gateway
@@ -431,10 +574,12 @@ void Core::onCommandReceivedSlot (
     if (command->identifier() == TrustLinesInfluenceCommand::identifier()) {
         auto trustLinesInfluenceCommand = static_pointer_cast<TrustLinesInfluenceCommand>(command);
         mTrustLinesInfluenceController->setFlags(trustLinesInfluenceCommand->flags());
-        mTrustLinesInfluenceController->setForbiddenReceiveMessageType(
-            trustLinesInfluenceCommand->forbiddenReceiveMessageType());
-        mTrustLinesInfluenceController->setCountForbiddenReceivedMessages(
-            trustLinesInfluenceCommand->countForbiddenReceivedMessages());
+        mTrustLinesInfluenceController->setFirstParameter(
+            trustLinesInfluenceCommand->firstParameter());
+        mTrustLinesInfluenceController->setSecondParameter(
+            trustLinesInfluenceCommand->secondParameter());
+        mTrustLinesInfluenceController->setThirdParameter(
+            trustLinesInfluenceCommand->thirdParameter());
         return;
     }
 #endif
@@ -476,10 +621,10 @@ void Core::onMessageReceivedSlot(
 
 void Core::onClearTopologyCacheSlot(
     const SerializedEquivalent equivalent,
-    const NodeUUID &nodeUUID)
+    BaseAddress::Shared nodeAddress)
 {
     try {
-        mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent)->removeCache(nodeUUID);
+        mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent)->removeCache(nodeAddress);
     } catch (NotFoundError &e) {
         error() << "There are no topologyCacheManager for onClearTopologyCacheSlot "
                 "with equivalent " << equivalent << " Details are: " << e.what();
@@ -488,7 +633,7 @@ void Core::onClearTopologyCacheSlot(
 
 void Core::onMessageSendSlot(
     Message::Shared message,
-    const NodeUUID &contractorUUID)
+    const ContractorID contractorID)
 {
 #ifdef TESTS
     if (not mSubsystemsController->isNetworkOn()) {
@@ -501,7 +646,29 @@ void Core::onMessageSendSlot(
     try {
         mCommunicator->sendMessage(
             message,
-            contractorUUID);
+            contractorID);
+
+    } catch (exception &e) {
+        mLog->logException("Core", e);
+    }
+}
+
+void Core::onMessageSendToAddressSlot(
+    Message::Shared message,
+    BaseAddress::Shared address)
+{
+#ifdef TESTS
+    if (not mSubsystemsController->isNetworkOn()) {
+        // Ignore outgoing message in case if network was disabled.
+        debug() << "Ignore send message";
+        return;
+    }
+#endif
+
+    try {
+        mCommunicator->sendMessage(
+            message,
+            address);
 
     } catch (exception &e) {
         mLog->logException("Core", e);
@@ -510,8 +677,9 @@ void Core::onMessageSendSlot(
 
 void Core::onMessageSendWithCachingSlot(
     TransactionMessage::Shared message,
-    const NodeUUID &contractorUUID,
-    Message::MessageType incomingMessageTypeFilter)
+    ContractorID contractorID,
+    Message::MessageType incomingMessageTypeFilter,
+    uint32_t cacheTimeLiving)
 {
 #ifdef TESTS
     if (not mSubsystemsController->isNetworkOn()) {
@@ -524,28 +692,96 @@ void Core::onMessageSendWithCachingSlot(
     try {
         mCommunicator->sendMessageWithCacheSaving(
             message,
-            contractorUUID,
-            incomingMessageTypeFilter);
+            contractorID,
+            incomingMessageTypeFilter,
+            cacheTimeLiving);
 
     } catch (exception &e) {
         mLog->logException("Core", e);
     }
 }
 
+void Core::onClaimSendToObserverSlot(
+    ObservingClaimAppendRequestMessage::Shared message)
+{
+    mObservingHandler->sendClaimRequestToObservers(message);
+}
+
+void Core::onAddTransactionToObservingCheckingSlot(
+    const TransactionUUID& transactionUUID,
+    BlockNumber maxBlockNumberForClaiming)
+{
+    mObservingHandler->addTransactionForChecking(
+        transactionUUID,
+        maxBlockNumberForClaiming);
+}
+
+void Core::onObservingParticipantsVotesSlot(
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber,
+    map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures)
+{
+    mTransactionsManager->launchPaymentTransactionAfterGettingObservingSignatures(
+        transactionUUID,
+        maximalClaimingBlockNumber,
+        participantsSignatures);
+}
+
+void Core::onObservingTransactionRejectSlot(
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber)
+{
+    mTransactionsManager->launchPaymentTransactionForObservingRejecting(
+        transactionUUID,
+        maximalClaimingBlockNumber);
+}
+
+void Core::onObservingTransactionUncertainSlot(
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber)
+{
+    mTransactionsManager->launchPaymentTransactionForObservingUncertainStage(
+        transactionUUID,
+        maximalClaimingBlockNumber);
+}
+
+void Core::onObservingTransactionCancelingSlot(
+    const TransactionUUID &transactionUUID,
+    BlockNumber maximalClaimingBlockNumber)
+{
+    mTransactionsManager->launchCancelingPaymentTransaction(
+        transactionUUID,
+        maximalClaimingBlockNumber);
+}
+
+void Core::onObservingAllowPaymentTransactionsSlot(
+    bool allowPaymentTransactions)
+{
+    mTransactionsManager->allowPaymentTransactionsDueToObserving(
+        allowPaymentTransactions);
+}
+
 void Core::onPathsResourceRequestedSlot(
     const TransactionUUID &transactionUUID,
-    const NodeUUID &destinationNodeUUID,
+    BaseAddress::Shared destinationNodeAddress,
     const SerializedEquivalent equivalent)
 {
     try {
         mTransactionsManager->launchFindPathByMaxFlowTransaction(
             transactionUUID,
-            destinationNodeUUID,
+            destinationNodeAddress,
             equivalent);
 
     } catch (exception &e) {
         mLog->logException("Core", e);
     }
+}
+
+void Core::onObservingBlockNumberRequestSlot(
+    const TransactionUUID &transactionUUID)
+{
+    mObservingHandler->requestActualBlockNumber(
+        transactionUUID);
 }
 
 void Core::onResourceCollectedSlot(
@@ -567,6 +803,13 @@ void Core::onProcessConfirmationMessageSlot(
         confirmationMessage);
 }
 
+void Core::onProcessPongMessageSlot(
+    ContractorID contractorID)
+{
+    mCommunicator->processPongMessage(
+        contractorID);
+}
+
 void Core::writePIDFile()
 {
     try {
@@ -581,7 +824,7 @@ void Core::writePIDFile()
 
 void Core::updateProcessName()
 {
-    const string kProcessName(string("GEO:") + mNodeUUID.stringUUID());
+    const string kProcessName(string("GEO:") + mContractorsManager->selfContractor()->mainAddress()->fullAddress());
     prctl(PR_SET_NAME, kProcessName.c_str());
     strcpy(mCommandDescriptionPtr, kProcessName.c_str());
 }

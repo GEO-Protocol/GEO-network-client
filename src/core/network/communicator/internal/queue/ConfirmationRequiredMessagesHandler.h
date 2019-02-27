@@ -55,7 +55,7 @@ public:
      *
      * This signal would be emitted for each message in the queue.
      */
-    signals::signal<void(pair<NodeUUID, TransactionMessage::Shared>)> signalOutgoingMessageReady;
+    signals::signal<void(pair<ContractorID, TransactionMessage::Shared>)> signalOutgoingMessageReady;
 
 public:
     ConfirmationRequiredMessagesHandler(
@@ -71,11 +71,11 @@ public:
      *
      * (This method might be expended with other messages types).
      *
-     * @param contractorUUID - remote node UUID.
+     * @param contractorID - remote node ID.
      * @param message - message that must be confirmed by the remote node.
      */
     void tryEnqueueMessage(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const Message::Shared message);
 
     /**
@@ -111,18 +111,18 @@ protected:
     void sendPostponedMessages() const;
 
     void addMessageToStorage(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         TransactionMessage::Shared message);
 
     void removeMessageFromStorage(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const SerializedEquivalent equivalent,
         Message::SerializedType messageType);
 
     void deserializeMessages();
 
     void tryEnqueueMessageWithoutConnectingSignalsToSlots(
-        const NodeUUID &contractorUUID,
+        ContractorID contractorID,
         const TransactionMessage::Shared message);
 
     void delayedRescheduleResendingAfterDeserialization();
@@ -138,7 +138,7 @@ protected:
      * Current GCC realisation of the "map" and "unordered_map"
      * makes simple "map" faster up to several thousand of items.
      */
-    map<pair<SerializedEquivalent, NodeUUID>, ConfirmationRequiredMessagesQueue::Shared> mQueues;
+    map<pair<SerializedEquivalent, ContractorID>, ConfirmationRequiredMessagesQueue::Shared> mQueues;
 
     IOService &mIOService;
 

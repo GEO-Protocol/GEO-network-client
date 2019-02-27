@@ -5,11 +5,10 @@
 #include "../../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../../../topology/cashe/TopologyCacheManager.h"
 #include "../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../interface/events_interface/interface/EventsInterface.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
-#include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
+#include "../../../network/messages/trust_lines/AuditMessage.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
-#include "../../../interface/visual_interface/interface/VisualInterface.h"
-#include "../../../interface/visual_interface/visual/VisualResult.h"
 
 
 /**
@@ -32,27 +31,18 @@ public:
 
 public:
     SetOutgoingTrustLineTransaction(
-        const NodeUUID &nodeUUID,
         SetOutgoingTrustLineCommand::Shared command,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
         Keystore *keystore,
-        VisualInterface *visualInterface,
+        EventsInterface *eventsInterface,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger)
         noexcept;
-
-    SetOutgoingTrustLineTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Keystore *keystore,
-        TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger);
 
     TransactionResult::SharedConst run();
 
@@ -62,6 +52,8 @@ protected:
     TransactionResult::SharedConst resultForbiddenRun();
 
     TransactionResult::SharedConst resultProtocolError();
+
+    TransactionResult::SharedConst resultKeysError();
 
     TransactionResult::SharedConst resultUnexpectedError();
 
@@ -79,17 +71,14 @@ private:
 
     TransactionResult::SharedConst runResponseProcessingStage();
 
-    TransactionResult::SharedConst runRecoveryStage();
-
-    pair<BytesShared, size_t> serializeToBytes() const override;
-
-protected:
+private:
     SetOutgoingTrustLineCommand::Shared mCommand;
-    TrustLineAmount mAmount;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
+    EventsInterface *mEventsInterface;
     SubsystemsController *mSubsystemsController;
-    VisualInterface *mVisualInterface;
+
+    uint16_t mCountSendingAttempts;
 
     TrustLineAmount mPreviousOutgoingAmount;
     TrustLine::TrustLineState mPreviousState;

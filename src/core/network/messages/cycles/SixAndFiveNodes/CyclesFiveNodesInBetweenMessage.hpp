@@ -11,7 +11,7 @@ public:
     using CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage;
 
     const MessageType typeID() const {
-        return Message::MessageType::Cycles_FiveNodesMiddleware;
+        return Message::Cycles_FiveNodesMiddleware;
     };
 };
 #endif //GEO_NETWORK_CLIENT_CYCLEFIVENODESINBETWEENMESSAGE_H

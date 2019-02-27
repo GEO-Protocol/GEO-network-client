@@ -4,7 +4,7 @@
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-
+#include "../../../contractors/ContractorsManager.h"
 
 class GetFirstLevelContractorsTransaction :
     public BaseTransaction {
@@ -14,13 +14,10 @@ public:
 
 public:
     GetFirstLevelContractorsTransaction(
-        NodeUUID &nodeUUID,
         GetFirstLevelContractorsCommand::Shared command,
-        TrustLinesManager *manager,
-        Logger &logger)
-    noexcept;
-
-    GetFirstLevelContractorsCommand::Shared command() const;
+        TrustLinesManager *trustLinesManager,
+        ContractorsManager *contractorsManager,
+        Logger &logger);
 
     TransactionResult::SharedConst run();
 
@@ -30,6 +27,7 @@ protected:
 private:
     GetFirstLevelContractorsCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
+    ContractorsManager *mContractorsManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORSTRANSACTION_H

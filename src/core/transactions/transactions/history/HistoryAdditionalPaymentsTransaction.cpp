@@ -1,24 +1,17 @@
 #include "HistoryAdditionalPaymentsTransaction.h"
 
 HistoryAdditionalPaymentsTransaction::HistoryAdditionalPaymentsTransaction(
-    NodeUUID &nodeUUID,
     HistoryAdditionalPaymentsCommand::Shared command,
     StorageHandler *storageHandler,
     Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::HistoryAdditionalPaymentsTransactionType,
-        nodeUUID,
         command->equivalent(),
         logger),
     mCommand(command),
     mStorageHandler(storageHandler)
 {}
-
-HistoryAdditionalPaymentsCommand::Shared HistoryAdditionalPaymentsTransaction::command() const
-{
-    return mCommand;
-}
 
 TransactionResult::SharedConst HistoryAdditionalPaymentsTransaction::run()
 {
@@ -40,7 +33,7 @@ TransactionResult::SharedConst HistoryAdditionalPaymentsTransaction::run()
 }
 
 TransactionResult::SharedConst HistoryAdditionalPaymentsTransaction::resultOk(
-    const vector<PaymentRecord::Shared> &records)
+    const vector<PaymentAdditionalRecord::Shared> &records)
 {
     const auto kUnixEpoch = DateTime(boost::gregorian::date(1970,1,1));
 
@@ -51,15 +44,15 @@ TransactionResult::SharedConst HistoryAdditionalPaymentsTransaction::resultOk(
         const auto kUnixTimestampMicrosec = (kRecord->timestamp() - kUnixEpoch).total_microseconds();
 
         // Formatting operation type
-        const auto kOperationType = kRecord->paymentOperationType();
+        const auto kOperationType = kRecord->operationType();
         string formattedOperationType;
-        if (kOperationType == PaymentRecord::CycleCloserType) {
+        if (kOperationType == PaymentAdditionalRecord::CycleCloserType) {
             formattedOperationType = "cycle_closer";
 
-        } else if (kOperationType == PaymentRecord::CyclerCloserIntermediateType) {
+        } else if (kOperationType == PaymentAdditionalRecord::CycleCloserIntermediateType) {
             formattedOperationType = "cycle_intermediate";
 
-        } else if (kOperationType == PaymentRecord::IntermediatePaymentType) {
+        } else if (kOperationType == PaymentAdditionalRecord::IntermediatePaymentType) {
             formattedOperationType = "intermediate";
 
         } else {

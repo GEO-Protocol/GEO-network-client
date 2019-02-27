@@ -12,10 +12,9 @@ PaymentKeysHandler::PaymentKeysHandler(
     sqlite3_stmt *stmt;
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    " (transaction_uuid BLOB NOT NULL, "
-                   "participant_uuid BLOB NOT NULL, "
                    "public_key BLOB NOT NULL, "
                    "private_key BLOB NOT NULL);";
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::creating table: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -29,7 +28,7 @@ PaymentKeysHandler::PaymentKeysHandler(
 
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
             + "_transaction_uuid_idx on " + mTableName + "(transaction_uuid);";
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::creating  index for TransactionUUID: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -47,15 +46,14 @@ PaymentKeysHandler::PaymentKeysHandler(
 
 void PaymentKeysHandler::saveOwnKey(
     const TransactionUUID &transactionUUID,
-    const NodeUUID &ownNodeUUID,
     const PublicKey::Shared publicKey,
     const PrivateKey *privateKey)
 {
     string query = "INSERT INTO " + mTableName +
-                   "(transaction_uuid, participant_uuid, public_key, private_key) "
-                   "VALUES (?, ?, ?, ?);";
+                   "(transaction_uuid, public_key, private_key) "
+                   "VALUES (?, ?, ?);";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::saveOwnKey: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -64,15 +62,9 @@ void PaymentKeysHandler::saveOwnKey(
                            TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::saveOwnKey: "
-                          "Bad binding of Transaction UUID; sqlite error: " + to_string(rc));
+                          "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 2, ownNodeUUID.data,
-                           NodeUUID::kBytesSize, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentKeysHandler::saveOwnKey: "
-                          "Bad binding of Own Node UUID; sqlite error: " + to_string(rc));
-    }
-    rc = sqlite3_bind_blob(stmt, 3, publicKey->data(),
+    rc = sqlite3_bind_blob(stmt, 2, publicKey->data(),
                            (int)publicKey->keySize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::saveOwnKey: "
@@ -89,7 +81,7 @@ void PaymentKeysHandler::saveOwnKey(
             privateKey->keySize());
     }
     auto g = privateKey->data()->unlockAndInitGuard();
-    rc = sqlite3_bind_blob(stmt, 4, buffer.get(),
+    rc = sqlite3_bind_blob(stmt, 3, buffer.get(),
                        (int) privateKey->keySize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::saveOwnKey: "
@@ -115,7 +107,7 @@ PrivateKey* PaymentKeysHandler::getOwnPrivateKey(
     string query = "SELECT private_key FROM " + mTableName
                    + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::getOwnPrivateKey: "
                           "Bad query; sqlite error: " + to_string(rc));
@@ -123,7 +115,7 @@ PrivateKey* PaymentKeysHandler::getOwnPrivateKey(
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentKeysHandler::getOwnPrivateKey: "
-                          "Bad binding of Transaction UUID; sqlite error: " + to_string(rc));
+                          "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
@@ -136,7 +128,7 @@ PrivateKey* PaymentKeysHandler::getOwnPrivateKey(
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
         throw NotFoundError("PaymentKeysHandler::getOwnPrivateKey: "
-                                "There are now records with requested transaction UUID");
+                                "There are now records with requested transactionUUID");
     }
 }
 

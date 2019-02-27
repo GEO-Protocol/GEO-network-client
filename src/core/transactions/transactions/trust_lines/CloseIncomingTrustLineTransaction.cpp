@@ -1,8 +1,8 @@
 #include "CloseIncomingTrustLineTransaction.h"
 
 CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
-    const NodeUUID &nodeUUID,
     CloseIncomingTrustLineCommand::Shared command,
+    ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     TopologyTrustLinesManager *topologyTrustLinesManager,
@@ -10,155 +10,40 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
     Keystore *keystore,
+    EventsInterface *eventsInterface,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger)
     noexcept :
 
     BaseTrustLineTransaction(
         BaseTransaction::CloseIncomingTrustLineTransactionType,
-        nodeUUID,
         command->equivalent(),
-        command->contractorUUID(),
+        command->contractorID(),
+        contractorsManager,
         manager,
         storageHandler,
         keystore,
         trustLinesInfluenceController,
         logger),
     mCommand(command),
+    mCountSendingAttempts(0),
     mTopologyTrustLinesManager(topologyTrustLinesManager),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
+    mEventsInterface(eventsInterface),
     mSubsystemsController(subsystemsController)
 {
-    mPreviousState = TrustLine::Active;
-    mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
-}
-
-CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
-    const NodeUUID &nodeUUID,
-    SerializedEquivalent equivalent,
-    const NodeUUID &contractorUUID,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    TopologyTrustLinesManager *topologyTrustLinesManager,
-    TopologyCacheManager *topologyCacheManager,
-    MaxFlowCacheManager *maxFlowCacheManager,
-    Keystore *keystore,
-    TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger) :
-    BaseTrustLineTransaction(
-        BaseTransaction::CloseIncomingTrustLineTransactionType,
-        nodeUUID,
-        equivalent,
-        contractorUUID,
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger),
-    mTopologyTrustLinesManager(topologyTrustLinesManager),
-    mTopologyCacheManager(topologyCacheManager),
-    mMaxFlowCacheManager(maxFlowCacheManager)
-{
-    mStep = Stages::AddToBlackList;
-    mAuditNumber = mTrustLines->auditNumber(mContractorUUID) + 1;
-}
-
-CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
-    BytesShared buffer,
-    const NodeUUID &nodeUUID,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    Keystore *keystore,
-    TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger) :
-
-    BaseTrustLineTransaction(
-        buffer,
-        nodeUUID,
-        manager,
-        storageHandler,
-        keystore,
-        trustLinesInfluenceController,
-        logger)
-{
-    auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
-    mStep = Stages::Recovery;
-
-    memcpy(
-        mContractorUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
-
-    auto *trustLineState = new (buffer.get()) TrustLine::SerializedTrustLineState;
-    mPreviousState = (TrustLine::TrustLineState) *trustLineState;
-    bytesBufferOffset += sizeof(TrustLine::SerializedTrustLineState);
-
-    vector<byte> previousAmountBytes(
-        buffer.get() + bytesBufferOffset,
-        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-    mPreviousIncomingAmount = bytesToTrustLineAmount(previousAmountBytes);
-    bytesBufferOffset += kTrustLineAmountBytesCount;
-
-    memcpy(
-        &mAuditNumber,
-        buffer.get() + bytesBufferOffset,
-        sizeof(AuditNumber));
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
-        bytesBufferOffset += sizeof(AuditNumber);
-
-        // todo signature can be taken from storage on recovery stage
-        auto signature = make_shared<lamport::Signature>(
-            buffer.get() + bytesBufferOffset);
-        bytesBufferOffset += lamport::Signature::signatureSize();
-
-        KeyNumber keyNumber;
-        memcpy(
-            &keyNumber,
-            buffer.get() + bytesBufferOffset,
-            sizeof(KeyNumber));
-
-        mOwnSignatureAndKeyNumber = make_pair(
-            signature,
-            keyNumber);
-    }
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        bytesBufferOffset += sizeof(AuditNumber);
-
-        auto *keyNumber = new (buffer.get() + bytesBufferOffset) KeyNumber;
-        mCurrentKeyNumber = (KeyNumber) *keyNumber;
-    }
+    mAuditNumber = mTrustLines->auditNumber(mContractorID) + 1;
 }
 
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
 {
     switch (mStep) {
-        case Stages::TrustLineInitialization: {
+        case Stages::Initialization: {
             return runInitializationStage();
         }
-        case Stages::TrustLineResponseProcessing: {
+        case Stages::ResponseProcessing: {
             return runResponseProcessingStage();
-        }
-        case Stages::AuditInitialization: {
-            return runAuditInitializationStage();
-        }
-        case Stages::AuditResponseProcessing: {
-            return runAuditResponseProcessingStage();
-        }
-        case Stages::KeysSharingInitialization: {
-            return runPublicKeysSharingInitializationStage();
-        }
-        case Stages::NextKeyProcessing: {
-            return runPublicKeysSendNextKeyStage();
-        }
-        case Stages::Recovery: {
-            return runRecoveryStage();
-        }
-        case Stages::AddToBlackList: {
-            return runAddToBlackListStage();
         }
         default:
             throw ValueError(logHeader() + "::run: "
@@ -168,19 +53,20 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
 
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializationStage()
 {
+    info() << "runInitializationStage " << mContractorID;
     if (!mSubsystemsController->isRunTrustLineTransactions()) {
         debug() << "It is forbidden run trust line transactions";
         return resultForbiddenRun();
     }
 
-    if (mContractorUUID == mNodeUUID) {
-        warning() << "Attempt to launch transaction against itself was prevented.";
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
         return resultProtocolError();
     }
 
     try {
-        if (mTrustLines->trustLineState(mContractorUUID) != TrustLine::Active) {
-            warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorUUID);
+        if (mTrustLines->trustLineState(mContractorID) != TrustLine::Active) {
+            warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
             return resultProtocolError();
         }
     } catch (NotFoundError &e) {
@@ -188,58 +74,89 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializat
         return resultProtocolError();
     }
 
-    mPreviousIncomingAmount = mTrustLines->incomingTrustAmount(mContractorUUID);
-    mPreviousState = mTrustLines->trustLineState(mContractorUUID);
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(mContractorID)) {
+        warning() << "There are no own keys";
+        return resultKeysError();
+    }
 
-    // Trust line must be created (or updated) in the internal storage.
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineContractorKeysPresent(mContractorID)) {
+        warning() << "There are no contractor keys";
+        return resultKeysError();
+    }
+
+    mPreviousIncomingAmount = mTrustLines->incomingTrustAmount(mContractorID);
+    mPreviousState = mTrustLines->trustLineState(mContractorID);
+
+    // Trust line must be updated in the internal storage.
     // Also, history record must be written about this operation.
     // Both writes must be done atomically, so the IO transaction is used.
+
+    mTrustLines->closeIncoming(
+        mContractorID);
+
+    mTrustLines->setTrustLineState(
+        mContractorID,
+        TrustLine::AuditPending);
+
+    // remove this TL from Topology TrustLines Manager
+    mTopologyTrustLinesManager->addTrustLine(
+        make_shared<TopologyTrustLine>(
+            0,
+            mContractorID,
+            make_shared<const TrustLineAmount>(0)));
+    mTopologyCacheManager->resetInitiatorCache();
+    mMaxFlowCacheManager->clearCashes();
+    info() << "Incoming trust line from the node " << mContractorID
+           << " successfully closed.";
+
     auto ioTransaction = mStorageHandler->beginTransaction();
+    auto serializedAuditData = getOwnSerializedAuditData();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorID));
+
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        mTrustLines->closeIncoming(
-            mContractorUUID);
+        mOwnSignatureAndKeyNumber = keyChain.sign(
+            ioTransaction,
+            serializedAuditData.first,
+            serializedAuditData.second);
 
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
-            TrustLine::Modify,
-            ioTransaction);
+        keyChain.saveOwnAuditPart(
+            ioTransaction,
+            mAuditNumber,
+            mOwnSignatureAndKeyNumber.second,
+            mOwnSignatureAndKeyNumber.first,
+            mTrustLines->incomingTrustAmount(
+                mContractorID),
+            mTrustLines->outgoingTrustAmount(
+                mContractorID),
+            mTrustLines->balance(
+                mContractorID));
 
-        // remove this TL from Topology TrustLines Manager
-        mTopologyTrustLinesManager->addTrustLine(
-            make_shared<TopologyTrustLine>(
-                mNodeUUID,
-                mContractorUUID,
-                make_shared<const TrustLineAmount>(0)));
-        mTopologyCacheManager->resetInitiatorCache();
-        mMaxFlowCacheManager->clearCashes();
-        info() << "Incoming trust line from the node " << mContractorUUID
-               << " successfully closed.";
+        mTrustLines->setTrustLineAuditNumber(
+            mContractorID,
+            mAuditNumber);
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(
+            BaseTransaction::CloseIncomingTrustLineTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceInitializationStage(
+            BaseTransaction::CloseIncomingTrustLineTransactionType);
 #endif
-
-        auto bytesAndCount = serializeToBytes();
-        info() << "Transaction serialized";
-        ioTransaction->transactionHandler()->saveRecord(
-            currentTransactionUUID(),
-            bytesAndCount.first,
-            bytesAndCount.second);
-        info() << "Transaction saved";
 
     } catch (IOError &e) {
         ioTransaction->rollback();
         // return closed TL
         mTrustLines->setIncoming(
-            mContractorUUID,
+            mContractorID,
             mPreviousIncomingAmount);
         mTrustLines->setTrustLineState(
-            mContractorUUID,
+            mContractorID,
             mPreviousState);
-        warning() << "Attempt to close incoming TL from the node " << mContractorUUID << " failed. "
+        warning() << "Attempt to close incoming TL from the node " << mContractorID << " failed. "
                   << "IO transaction can't be completed. "
                   << "Details are: " << e.what();
 
@@ -249,218 +166,185 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializat
     // Notifying remote node about trust line state changed.
     // Network communicator knows, that this message must be forced to be delivered,
     // so the TA itself might finish without any response from the remote node.
-    sendMessage<CloseOutgoingTrustLineMessage>(
-        mContractorUUID,
+    sendMessage<AuditMessage>(
+        mContractorID,
         mEquivalent,
-        mNodeUUID,
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
-        mContractorUUID);
+        mContractorID,
+        mAuditNumber,
+        mTrustLines->incomingTrustAmount(mContractorID),
+        mTrustLines->outgoingTrustAmount(mContractorID),
+        mOwnSignatureAndKeyNumber.second,
+        mOwnSignatureAndKeyNumber.first);
+    info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
+    mCountSendingAttempts++;
 
-    mStep = TrustLineResponseProcessing;
+    mStep = ResponseProcessing;
     return resultOK();
 }
 
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponseProcessingStage()
 {
     if (mContext.empty()) {
-        warning() << "Contractor don't send response. Transaction will be closed, and wait for message";
+        warning() << "Contractor don't send response.";
+        if (mCountSendingAttempts < kMaxCountSendingAttempts) {
+            sendMessage<AuditMessage>(
+                mContractorID,
+                mEquivalent,
+                mContractorsManager->idOnContractorSide(mContractorID),
+                mTransactionUUID,
+                mContractorID,
+                mAuditNumber,
+                mTrustLines->incomingTrustAmount(mContractorID),
+                mTrustLines->outgoingTrustAmount(mContractorID),
+                mOwnSignatureAndKeyNumber.second,
+                mOwnSignatureAndKeyNumber.first);
+            mCountSendingAttempts++;
+            info() << "Send message " << mCountSendingAttempts << " times";
+            return resultWaitForMessageTypes(
+                {Message::TrustLines_AuditConfirmation},
+                kWaitMillisecondsForResponse);
+        }
+        sendMessage<PingMessage>(
+            mContractorID,
+            0,
+            mContractorID,
+            mContractorsManager->selfContractor()->addresses());
+        info() << "Transaction will be closed and send ping";
         return resultDone();
     }
-    auto message = popNextMessage<TrustLineConfirmationMessage>();
-    info() << "contractor " << message->senderUUID << " confirmed closing incoming TL.";
-    if (message->senderUUID != mContractorUUID) {
+    auto message = popNextMessage<AuditResponseMessage>();
+    info() << "contractor " << message->idOnReceiverSide << " confirmed closing incoming TL.";
+    if (message->idOnReceiverSide != mContractorID) {
         warning() << "Sender is not contractor of this transaction";
         return resultContinuePreviousState();
     }
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
+    if (!mTrustLines->trustLineIsPresent(mContractorID)) {
         warning() << "Something wrong, because TL must be created";
         // todo : need correct reaction
         return resultDone();
     }
+
+    if (message->state() == ConfirmationMessage::ReservationsPresentOnTrustLine) {
+        info() << "Contractor's TL is not ready for audit yet";
+        // message on communicator queue, wait for audit response after reservations committing or cancelling
+        // todo add timeout or count failed attempts for running conflict resolver TA
+        return resultWaitForMessageTypes(
+            {Message::TrustLines_AuditConfirmation},
+            kWaitMillisecondsForResponse);
+    }
+
     auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorID));
+    auto contractorSerializedAuditData = getContractorSerializedAuditData();
     try {
+
+        // todo process ConfirmationMessage::OwnKeysAbsent and ConfirmationMessage::ContractorKeysAbsent
+
         if (message->state() != ConfirmationMessage::OK) {
             warning() << "Contractor didn't accept closing incoming TL. Response code: " << message->state();
-            mTrustLines->setIncoming(
-                mContractorUUID,
-                mPreviousIncomingAmount);
             mTrustLines->setTrustLineState(
-                mContractorUUID,
-                mPreviousState,
+                mContractorID,
+                TrustLine::ConflictResolving,
                 ioTransaction);
-            // delete this transaction from storage
-            ioTransaction->transactionHandler()->deleteRecord(
-                currentTransactionUUID());
-            processConfirmationMessage(message);
+            // todo run conflict resolving TA
             return resultDone();
         }
 
 #ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnTLProcessingResponseStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnTLProcessingResponseStage();
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceProcessingResponseStage(
+            BaseTransaction::CloseIncomingTrustLineTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceProcessingResponseStage(
+            BaseTransaction::CloseIncomingTrustLineTransactionType);
 #endif
 
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
-            TrustLine::AuditPending,
-            ioTransaction);
+        if (!keyChain.checkSign(
+                ioTransaction,
+                contractorSerializedAuditData.first,
+                contractorSerializedAuditData.second,
+                message->signature(),
+                message->keyNumber())) {
+            warning() << "Contractor didn't sign message correct by key number " << message->keyNumber();
+            mTrustLines->setTrustLineState(
+                mContractorID,
+                TrustLine::ConflictResolving,
+                ioTransaction);
+            // todo run conflict resolver TA
+            return resultDone();
+        }
+
+        keyChain.saveContractorAuditPart(
+            ioTransaction,
+            mAuditNumber,
+            message->keyNumber(),
+            message->signature());
+
+        mTrustLines->resetTrustLineTotalReceiptsAmounts(
+            mContractorID);
+        if (mTrustLines->isTrustLineEmpty(mContractorID) and
+                mAuditNumber > TrustLine::kInitialAuditNumber + 1) {
+            mTrustLines->setTrustLineState(
+                mContractorID,
+                TrustLine::Archived,
+                ioTransaction);
+            keyChain.removeUnusedOwnKeys(ioTransaction);
+            mTrustLines->setIsOwnKeysPresent(mContractorID, false);
+            keyChain.removeUnusedContractorKeys(ioTransaction);
+            mTrustLines->setIsContractorKeysPresent(mContractorID, false);
+            info() << "Trust Line become empty";
+            try {
+                mEventsInterface->writeEvent(
+                    Event::closeTrustLineEvent(
+                        mContractorsManager->selfContractor()->mainAddress(),
+                        mContractorsManager->contractorMainAddress(mContractorID)));
+            } catch (std::exception &e) {
+                warning() << "Can't write close TL event " << e.what();
+            }
+        } else {
+            mTrustLines->setTrustLineState(
+                mContractorID,
+                TrustLine::Active);
+            info() << "All data saved. Now TL is ready for using";
+        }
 
         populateHistory(ioTransaction, TrustLineRecord::ClosingIncoming);
 
-        // delete this transaction from storage
-        ioTransaction->transactionHandler()->deleteRecord(
-            currentTransactionUUID());
+    } catch (ValueError &e) {
+        ioTransaction->rollback();
+        mTrustLines->setTrustLineState(
+            mContractorID,
+            TrustLine::ConflictResolving,
+            ioTransaction);
+        // todo need correct reaction
+        error() << "Attempt to save audit from contractor " << mContractorID << " failed. "
+                << "Details are: " << e.what();
+        return resultDone();
     } catch (IOError &e) {
         ioTransaction->rollback();
-        // todo : need return intermediate state of TL
-        error() << "Attempt to process confirmation from contractor " << message->senderUUID << " failed. "
+        mTrustLines->setTrustLineState(
+            mContractorID,
+            TrustLine::ConflictResolving);
+        // todo need correct reaction
+        error() << "Attempt to process confirmation from contractor " << mContractorID << " failed. "
                 << "IO transaction can't be completed. Details are: " << e.what();
         return resultDone();
     }
 
-    processConfirmationMessage(message);
-    mStep = AuditInitialization;
-    return resultAwakeAsFastAsPossible();
-}
-
-TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runRecoveryStage()
-{
-    info() << "Recovery";
-    if (!mTrustLines->trustLineIsPresent(mContractorUUID)) {
-        warning() << "Trust line is absent.";
-        return resultDone();
-    }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::Modify) {
-        info() << "Modify stage";
-        mTrustLines->closeIncoming(
-            mContractorUUID);
-        mStep = TrustLineResponseProcessing;
-        return runResponseProcessingStage();
-    }
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
-        info() << "Audit stage";
-        mTrustLines->closeIncoming(
-            mContractorUUID);
-        mStep = AuditResponseProcessing;
-        return runAuditResponseProcessingStage();
-    }
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        info() << "Keys pending state, current key number " << mCurrentKeyNumber;
-        auto keyChain = mKeysStore->keychain(mTrustLines->trustLineID(mContractorUUID));
-        auto ioTransaction = mStorageHandler->beginTransaction();
-        try {
-            mCurrentPublicKey = keyChain.publicKey(
-                ioTransaction,
-                mCurrentKeyNumber);
-            if (mCurrentPublicKey == nullptr) {
-                warning() << "Can't get own public key with number " << mCurrentKeyNumber;
-                return resultDone();
-            }
-            mStep = NextKeyProcessing;
-        } catch (IOError &e) {
-            ioTransaction->rollback();
-            error() << "Can't get own public key from storage. Details: " << e.what();
-            return resultDone();
-        }
-        return resultAwakeAsFastAsPossible();
-    }
-
-    warning() << "Invalid TL state for this TA state: "
-              << mTrustLines->trustLineState(mContractorUUID);
-    return resultDone();
-}
-
-TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runAddToBlackListStage()
-{
-    info() << "Close incoming TL to " << mContractorUUID << " after adding to black list";
-    try {
-        mPreviousIncomingAmount = mTrustLines->incomingTrustAmount(mContractorUUID);
-        mPreviousState = mTrustLines->trustLineState(mContractorUUID);
-    } catch (NotFoundError &e) {
-        warning() << "Attempt to change not existing TL";
-        return resultDone();
-    }
-
-    // Trust line must be created (or updated) in the internal storage.
-    // Also, history record must be written about this operation.
-    // Both writes must be done atomically, so the IO transaction is used.
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    try {
-        // note: io transaction would commit automatically on destructor call.
-        // there is no need to call commit manually.
-        mTrustLines->closeIncoming(
-            mContractorUUID);
-
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
-            TrustLine::Modify,
-            ioTransaction);
-
-        // remove this TL from Topology TrustLines Manager
-        mTopologyTrustLinesManager->addTrustLine(
-            make_shared<TopologyTrustLine>(
-                mNodeUUID,
-                mContractorUUID,
-                make_shared<const TrustLineAmount>(0)));
-        mTopologyCacheManager->resetInitiatorCache();
-        mMaxFlowCacheManager->clearCashes();
-        info() << "Incoming trust line from the node " << mContractorUUID
-               << " successfully closed.";
-
-#ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnTLModifyingStage();
-        mTrustLinesInfluenceController->testTerminateProcessOnTLModifyingStage();
-#endif
-
-        auto bytesAndCount = serializeToBytes();
-        info() << "Transaction serialized";
-        ioTransaction->transactionHandler()->saveRecord(
-            currentTransactionUUID(),
-            bytesAndCount.first,
-            bytesAndCount.second);
-        info() << "Transaction saved";
-
-    } catch (IOError &e) {
-        ioTransaction->rollback();
-        // return closed TL
-        mTrustLines->setIncoming(
-            mContractorUUID,
-            mPreviousIncomingAmount);
-        mTrustLines->setTrustLineState(
-            mContractorUUID,
-            mPreviousState);
-        warning() << "Attempt to close incoming TL from the node " << mContractorUUID << " failed. "
-                  << "IO transaction can't be completed. "
-                  << "Details are: " << e.what();
-
-        // Rethrowing the exception,
-        // because the TA can't finish properly and no result may be returned.
-        throw e;
-    }
-
-    // Notifying remote node about trust line state changed.
-    // Network communicator knows, that this message must be forced to be delivered,
-    // so the TA itself might finish without any response from the remote node.
-    sendMessage<CloseOutgoingTrustLineMessage>(
-        mContractorUUID,
+    trustLineActionSignal(
+        mContractorID,
         mEquivalent,
-        mNodeUUID,
-        mTransactionUUID,
-        mContractorUUID);
+        false);
 
-    mStep = TrustLineResponseProcessing;
-    return resultWaitForMessageTypes(
-        {Message::TrustLines_Confirmation},
-        kWaitMillisecondsForResponse);
+    return resultDone();
 }
 
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::resultOK()
 {
     return transactionResultFromCommandAndWaitForMessageTypes(
         mCommand->responseOK(),
-        {Message::TrustLines_Confirmation},
+        {Message::TrustLines_AuditConfirmation},
         kWaitMillisecondsForResponse);
 }
 
@@ -476,88 +360,16 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::resultProtocol
         mCommand->responseProtocolError());
 }
 
+TransactionResult::SharedConst CloseIncomingTrustLineTransaction::resultKeysError()
+{
+    return transactionResultFromCommand(
+        mCommand->responseThereAreNoKeys());
+}
+
 TransactionResult::SharedConst CloseIncomingTrustLineTransaction::resultUnexpectedError()
 {
     return transactionResultFromCommand(
         mCommand->responseUnexpectedError());
-}
-
-pair<BytesShared, size_t> CloseIncomingTrustLineTransaction::serializeToBytes() const
-{
-    const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
-    size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize
-                        + sizeof(TrustLine::SerializedTrustLineState)
-                        + kTrustLineAmountBytesCount
-                        + sizeof(AuditNumber);
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
-        bytesCount += lamport::Signature::signatureSize()
-                      + sizeof(KeyNumber);
-    }
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        bytesCount += sizeof(KeyNumber);
-    }
-
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    dataBytesOffset += parentBytesAndCount.second;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize);
-    dataBytesOffset += NodeUUID::kBytesSize;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &mPreviousState,
-        sizeof(TrustLine::SerializedTrustLineState));
-    dataBytesOffset += sizeof(TrustLine::SerializedTrustLineState);
-
-    vector<byte> buffer = trustLineAmountToBytes(mPreviousIncomingAmount);
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        buffer.data(),
-        buffer.size());
-    dataBytesOffset += kTrustLineAmountBytesCount;
-
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &mAuditNumber,
-        sizeof(AuditNumber));
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::AuditPending) {
-        dataBytesOffset += sizeof(AuditNumber);
-
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            mOwnSignatureAndKeyNumber.first->data(),
-            lamport::Signature::signatureSize());
-        dataBytesOffset += lamport::Signature::signatureSize();
-
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &mOwnSignatureAndKeyNumber.second,
-            sizeof(KeyNumber));
-    }
-
-    if (mTrustLines->trustLineState(mContractorUUID) == TrustLine::KeysPending) {
-        dataBytesOffset += sizeof(AuditNumber);
-
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &mCurrentKeyNumber,
-            sizeof(KeyNumber));
-    }
-
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
 }
 
 const string CloseIncomingTrustLineTransaction::logHeader() const
@@ -576,7 +388,7 @@ void CloseIncomingTrustLineTransaction::populateHistory(
     auto record = make_shared<TrustLineRecord>(
         mTransactionUUID,
         operationType,
-        mContractorUUID);
+        mContractorsManager->contractor(mContractorID));
 
     ioTransaction->historyStorage()->saveTrustLineRecord(
         record,

@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_CYCLEBASEFIVEORSIXNODESBOUNDARYMESSAGE_H
 
 #include "CyclesBaseFiveOrSixNodesInBetweenMessage.h"
+
 class CyclesBaseFiveOrSixNodesBoundaryMessage:
         public CycleBaseFiveOrSixNodesInBetweenMessage {
 public:
@@ -10,20 +11,19 @@ public:
 public:
     CyclesBaseFiveOrSixNodesBoundaryMessage(
         const SerializedEquivalent equivalent,
-        vector<NodeUUID> &path,
-        vector<NodeUUID> &boundaryNodes);
+        vector<BaseAddress::Shared> &path,
+        vector<BaseAddress::Shared> &boundaryNodes);
 
     CyclesBaseFiveOrSixNodesBoundaryMessage(
         BytesShared buffer);
 
 public:
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-    throw(bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
-    const vector<NodeUUID> BoundaryNodes() const;
+    vector<BaseAddress::Shared> BoundaryNodes() const;
 
 private:
-    vector<NodeUUID> mBoundaryNodes;
+    vector<BaseAddress::Shared> mBoundaryNodes;
 };
 
 

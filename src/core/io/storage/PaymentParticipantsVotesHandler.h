@@ -6,6 +6,7 @@
 #include "../../common/Types.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/NotFoundError.h"
+#include "../../contractors/Contractor.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 #include "../../crypto/lamportkeys.h"
@@ -23,12 +24,15 @@ public:
 
     void saveRecord(
         const TransactionUUID &transactionUUID,
-        const NodeUUID &nodeUUID,
+        Contractor::Shared contractor,
         const PaymentNodeID paymentNodeID,
         const lamport::PublicKey::Shared publicKey,
         const lamport::Signature::Shared signature);
 
     map<PaymentNodeID, lamport::Signature::Shared> participantsSignatures(
+        const TransactionUUID &transactionUUID);
+
+    void deleteRecords(
         const TransactionUUID &transactionUUID);
 
 private:

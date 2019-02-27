@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_RECEIVEMAXFLOWCALCULATIONTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
+#include "../../../contractors/ContractorsManager.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
@@ -15,13 +16,11 @@ public:
 
 public:
     ReceiveMaxFlowCalculationOnTargetTransaction(
-        const NodeUUID &nodeUUID,
         InitiateMaxFlowCalculationMessage::Shared message,
+        ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
         TopologyCacheManager *topologyCacheManager,
         Logger &logger);
-
-    InitiateMaxFlowCalculationMessage::Shared message() const;
 
     TransactionResult::SharedConst run();
 
@@ -38,6 +37,7 @@ private:
 
 private:
     InitiateMaxFlowCalculationMessage::Shared mMessage;
+    ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     TopologyCacheManager *mTopologyCacheManager;
 };

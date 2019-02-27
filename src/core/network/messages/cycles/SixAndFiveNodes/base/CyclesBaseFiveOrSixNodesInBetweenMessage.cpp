@@ -2,17 +2,19 @@
 
 CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage(
     const SerializedEquivalent equivalent,
-    vector<NodeUUID> &path):
-    EquivalentMessage(
-        equivalent),
+    ContractorID idOnReceiverSide,
+    vector<BaseAddress::Shared> &path):
+    SenderMessage(
+        equivalent,
+        idOnReceiverSide),
     mPath(path)
 {}
 
 CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage(
     BytesShared buffer):
-    EquivalentMessage(buffer)
+    SenderMessage(buffer)
 {
-    size_t bytesBufferOffset = EquivalentMessage::kOffsetToInheritedBytes();
+    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
 
     // path
     SerializedPositionInPath nodesInPath;
@@ -21,26 +23,26 @@ CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage
         buffer.get() + bytesBufferOffset,
         sizeof(SerializedPathLengthSize));
     bytesBufferOffset += sizeof(SerializedPathLengthSize);
-    if (nodesInPath <= 0)
-        return;
-    for (SerializedPositionInPath i = 1; i <= nodesInPath; ++i) {
-        NodeUUID stepNode(buffer.get() + bytesBufferOffset);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        mPath.push_back(stepNode);
+
+    for (SerializedPositionInPath idx = 0; idx < nodesInPath; idx++) {
+        auto stepAddress = deserializeAddress(
+            buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += stepAddress->serializedSize();
+        mPath.push_back(stepAddress);
     }
 }
 
 pair<BytesShared, size_t> CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBytes() const
-    throw(bad_alloc)
 {
-    auto parentBytesAndCount = EquivalentMessage::serializeToBytes();
-    const SerializedPathLengthSize kNodesInPath = (SerializedPathLengthSize)mPath.size();
+    auto parentBytesAndCount = SenderMessage::serializeToBytes();
+    auto kNodesInPath = (SerializedPathLengthSize)mPath.size();
     size_t bytesCount = parentBytesAndCount.second
-                        + sizeof(SerializedPathLengthSize)
-                        + kNodesInPath * NodeUUID::kBytesSize;
+                        + sizeof(SerializedPathLengthSize);
+    for (const auto &address : mPath) {
+        bytesCount += address->serializedSize();
+    }
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
-    // for parent node
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get(),
@@ -55,12 +57,13 @@ pair<BytesShared, size_t> CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBy
         sizeof(SerializedPathLengthSize));
     dataBytesOffset += sizeof(kNodesInPath);
 
-    for(auto const& value: mPath) {
+    for(auto const &address: mPath) {
+        auto serializedAddress = address->serializeToBytes();
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            &value,
-            NodeUUID::kBytesSize);
-        dataBytesOffset += NodeUUID::kBytesSize;
+            serializedAddress.get(),
+            address->serializedSize());
+        dataBytesOffset += address->serializedSize();
     }
     //----------------------------------------------------
     return make_pair(
@@ -68,24 +71,25 @@ pair<BytesShared, size_t> CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBy
         bytesCount);
 }
 
-const size_t CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes()
+const size_t CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes() const
 {
-    const SerializedPathLengthSize kNodesInPath = (SerializedPathLengthSize)mPath.size();
-    const size_t offset =
-        + sizeof(kNodesInPath)
-        + NodeUUID::kBytesSize * kNodesInPath
-        + EquivalentMessage::kOffsetToInheritedBytes();
+    auto kNodesInPath = (SerializedPathLengthSize)mPath.size();
+    size_t offset = SenderMessage::kOffsetToInheritedBytes()
+            + sizeof(SerializedPathLengthSize);
+    for (const auto &address : mPath) {
+        offset += address->serializedSize();
+    }
     return offset;
 }
 
 
-const vector<NodeUUID> CycleBaseFiveOrSixNodesInBetweenMessage::Path() const
+vector<BaseAddress::Shared> CycleBaseFiveOrSixNodesInBetweenMessage::path() const
 {
     return mPath;
 }
 
 void CycleBaseFiveOrSixNodesInBetweenMessage::addNodeToPath(
-    const NodeUUID &inBetweenNode)
+    BaseAddress::Shared inBetweenNode)
 {
     mPath.push_back(inBetweenNode);
 }
