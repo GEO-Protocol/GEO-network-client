@@ -21,7 +21,7 @@ This communication channel should be used in production environments or embedded
 with maximum performance in mind, and to avoid addtional resource consupting layers of communication (for example, HTTP API).
 
 1. **Via command-line interface** [comming soon] <br/> 
-This interface provides ability to communicate with node from the console in mode "one command at a time". 
+This interface provides ability to communicate with node from the console in mode "one command at a time". </br>
 It is useful during development, but it should not be considered to be used in production environments, 
 due to the limitations of concurent commands processing, and relatively high resouce usage per command execution.
 
