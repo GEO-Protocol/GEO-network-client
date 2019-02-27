@@ -21,7 +21,7 @@ todo: provide instructions
 <br/>
 <br/>
 
-# How to join the test net
+# How to join the Test.Net
 todo: provide instructions
 <br/>
 <br/>
