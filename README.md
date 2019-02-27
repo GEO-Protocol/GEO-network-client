@@ -21,6 +21,12 @@ todo: provide instructions
 <br/>
 <br/>
 
+# How to join the test net
+todo: provide instructions
+<br/>
+<br/>
+<br/>
+
 # How to report issues
 1. Please, use GitHub issues of this repo to describe your problem.
 1. If possible, please attach the log of the node, that is usually located in `operations.log`. Please, make sure that the node is runninf in `DEBUG` mode so more information would be included in final report.
