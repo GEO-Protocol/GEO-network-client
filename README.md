@@ -1,7 +1,14 @@
 ![Logo](https://github.com/GEO-Protocol/Press-Kit/blob/master/client/repo-header.png)
 
+# Releases
+Please, follow the link for [releases changelog](https://github.com/GEO-Protocol/GEO-network-client/blob/develop/RELEASES.md).
+</br>
+</br>
+
 # How to build
 todo: provide instructions
+</br>
+</br>
 
 # How to use
 ## Network topology
