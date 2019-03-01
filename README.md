@@ -35,4 +35,5 @@ Please, follow the [documentation](https://github.com/GEO-Protocol/Documentation
 
 # How to report issues
 1. Please, use GitHub issues of this repo to describe your problem.
-1. If possible, please attach the log of the node, that is usually located in `operations.log`. Please, make sure that the node is runninf in `DEBUG` mode so more information would be included in final report.
+1. If possible, please attach the log of the node, that is usually located in `operations.log`. <br/> 
+Please, make sure that the node is runninf in `DEBUG` mode so more information would be included in final report.
