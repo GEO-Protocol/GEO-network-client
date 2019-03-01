@@ -1,6 +1,13 @@
+[![Telegram Chat](https://github.com/Patrolavia/telegram-badge/blob/master/chat.svg)](https://t.me/geocommunity)
+[![Telegram Channel](https://github.com/Patrolavia/telegram-badge/blob/master/follow.svg)](https://t.me/geoprotocol)
+[![Gitter Chatl](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/GEO_Protocol/Lobby#)
+<br/>
+<br/>
+
 ![Logo](https://github.com/GEO-Protocol/Press-Kit/blob/master/client/repo-header.png)
 <br/>
 <br/>
+
 
 # Releases
 Please, follow the link for [releases changelog](https://github.com/GEO-Protocol/GEO-network-client/blob/develop/RELEASES.md).
