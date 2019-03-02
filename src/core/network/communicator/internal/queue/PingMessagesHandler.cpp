@@ -14,7 +14,7 @@ PingMessagesHandler::PingMessagesHandler(
         mIOService);
     mReschedulingTimer->expires_from_now(
         chrono::seconds(
-            kMessagesReschedulingSecondsTime));
+            +kMessagesReschedulingSecondsTime));
     mReschedulingTimer->async_wait(
         boost::bind(
             &PingMessagesHandler::delayedRescheduleResending,
@@ -95,7 +95,7 @@ void PingMessagesHandler::rescheduleResending()
         return;
     }
 
-    mResendingTimer.expires_from_now(chrono::seconds(kPingMessagesSecondsTimeOut));
+    mResendingTimer.expires_from_now(chrono::seconds(+kPingMessagesSecondsTimeOut));
     mResendingTimer.async_wait([this] (const boost::system::error_code &e) {
 
         if (e == boost::asio::error::operation_aborted) {

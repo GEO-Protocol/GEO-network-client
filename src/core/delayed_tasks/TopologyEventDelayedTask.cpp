@@ -13,7 +13,7 @@ TopologyEventDelayedTask::TopologyEventDelayedTask(
 
     mTopologyEventTimer->expires_from_now(
         chrono::seconds(
-            kDelayedTaskTimeSec));
+            +kDelayedTaskTimeSec));
     mTopologyEventTimer->async_wait(boost::bind(
         &TopologyEventDelayedTask::runTopologyEvent,
         this));
