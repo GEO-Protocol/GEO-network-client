@@ -36,8 +36,8 @@ protected:
 //    6 - Forbid Send Message With Final Path Configuration   0x40  // 64
 //    7 - Forbid Send Message On Final Amount Clarification Stage   0x80  // 128
 //    8 - Forbid Send Message On Vote Stage To Next Node   0x100  // 256
-//    9 - Forbid Send Message On Vote Stage To Coordinator   0x200  // 512
-//    10 - Forbid Send Message On Vote Consistency Stage   0x400  // 1024
+//    9 - Forbid Send Message On Vote Consistency Stage   0x200  // 512
+//    10 - Forbid Send Message On Recovery Stage   0x400  // 1024
 
 //    11 - throw exception on previous neighbor request processing stage  0x800  // 2048
 //    12 - throw exception on Coordinator Request Processing Stage  0x1000  // 4096

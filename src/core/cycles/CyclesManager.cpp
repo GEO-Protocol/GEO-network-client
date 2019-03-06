@@ -18,6 +18,9 @@ CyclesManager::CyclesManager(
 
     srand(randomInitializer());
     int timeStarted = (10 * 60) + (rand() % (60 * 60 * 6));
+#ifdef TESTS
+    timeStarted = 15;
+#endif
     mFiveNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
     mFiveNodesCycleTimer->expires_from_now(
@@ -30,6 +33,9 @@ CyclesManager::CyclesManager(
             as::placeholders::error));
 
     timeStarted = (10 * 60) + (rand() % (60 * 60 * 6));
+#ifdef TESTS
+    timeStarted = 15;
+#endif
     mSixNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
     mSixNodesCycleTimer->expires_from_now(
@@ -166,9 +172,13 @@ void CyclesManager::runSignalFiveNodes(
         warning() << err.message();
     }
     mFiveNodesCycleTimer->cancel();
+    auto timeRepeated = kFiveNodesSignalRepeatTimeSeconds;
+#ifdef TESTS
+    timeRepeated = 10;
+#endif
     mFiveNodesCycleTimer->expires_from_now(
         std::chrono::seconds(
-            kFiveNodesSignalRepeatTimeSeconds));
+            timeRepeated));
     mFiveNodesCycleTimer->async_wait(
         boost::bind(
             &CyclesManager::runSignalFiveNodes,
@@ -184,9 +194,13 @@ void CyclesManager::runSignalSixNodes(
         warning() << err.message();
     }
     mSixNodesCycleTimer->cancel();
+    auto timeRepeated = kSixNodesSignalRepeatTimeSeconds;
+#ifdef TESTS
+    timeRepeated = 10;
+#endif
     mSixNodesCycleTimer->expires_from_now(
         std::chrono::seconds(
-            kSixNodesSignalRepeatTimeSeconds));
+            timeRepeated));
     mSixNodesCycleTimer->async_wait(
         boost::bind(
             &CyclesManager::runSignalSixNodes,
@@ -201,12 +215,12 @@ bool CyclesManager::isChallengerTransactionWinReservation(
 {
     debug() << "isChallengerTransactionWinReservation challenger: " << challengerTransaction->currentTransactionUUID()
             << " transaction type: " << challengerTransaction->transactionType()
-            << " votesCheckingStage: " << challengerTransaction->isCommonVotesCheckingStage()
+            << " votesCheckingStage: " << challengerTransaction->isVotingStage()
             << " cycle length: " << to_string(challengerTransaction->cycleLength())
             << " coordinator: " << challengerTransaction->coordinatorAddress()->fullAddress();
     debug() << "isChallengerTransactionWinReservation reserved: " << reservedTransaction->currentTransactionUUID()
             << " transaction type: " << reservedTransaction->transactionType()
-            << " votesCheckingStage: " << reservedTransaction->isCommonVotesCheckingStage()
+            << " votesCheckingStage: " << reservedTransaction->isVotingStage()
             << " cycle length: " << to_string(reservedTransaction->cycleLength())
             << " coordinator: " << reservedTransaction->coordinatorAddress()->fullAddress();
     if (reservedTransaction->transactionType() != BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction
@@ -214,8 +228,8 @@ bool CyclesManager::isChallengerTransactionWinReservation(
         debug() << "isChallengerTransactionWinReservation false: reserved is not cycle transaction";
         return false;
     }
-    if (reservedTransaction->isCommonVotesCheckingStage()) {
-        debug() << "isChallengerTransactionWinReservation false: reserved on votesChecking stage";
+    if (reservedTransaction->isVotingStage()) {
+        debug() << "isChallengerTransactionWinReservation false: reserved on voting stage";
         return false;
     }
     if (challengerTransaction->cycleLength() != reservedTransaction->cycleLength()) {
@@ -225,7 +239,7 @@ bool CyclesManager::isChallengerTransactionWinReservation(
     }
     debug() << "isChallengerTransactionWinReservation "
             << (challengerTransaction->coordinatorAddress()->fullAddress() > reservedTransaction->coordinatorAddress()->fullAddress())
-            << " on coordinatorUUIDs";
+            << " on coordinatorAddress";
     return challengerTransaction->coordinatorAddress()->fullAddress() > reservedTransaction->coordinatorAddress()->fullAddress();
 }
 
@@ -234,22 +248,26 @@ bool CyclesManager::resolveReservationConflict(
     const TransactionUUID &reservedTransactionUUID)
 {
     debug() << "resolveReservationConflict";
-    auto challengerTransaction = static_pointer_cast<BasePaymentTransaction>(
-        mTransactionScheduler->cycleClosingTransactionByUUID(
-            challengerTransactionUUID));
-    auto reservedTransaction = static_pointer_cast<BasePaymentTransaction>(
-        mTransactionScheduler->cycleClosingTransactionByUUID(
-            reservedTransactionUUID));
-    debug() << "conflict between  " << challengerTransactionUUID << " and " << reservedTransactionUUID;
-    if (isChallengerTransactionWinReservation(
-            challengerTransaction,
-            reservedTransaction)) {
-        reservedTransaction->setTransactionState(
-            BasePaymentTransaction::Common_RollbackByOtherTransaction);
-        mTransactionScheduler->postponeTransaction(
-            reservedTransaction,
-            kPostponingRollbackTransactionTimeMSec);
-        return true;
+    try {
+        auto challengerTransaction = static_pointer_cast<BasePaymentTransaction>(
+            mTransactionScheduler->cycleClosingTransactionByUUID(
+                challengerTransactionUUID));
+        auto reservedTransaction = static_pointer_cast<BasePaymentTransaction>(
+            mTransactionScheduler->cycleClosingTransactionByUUID(
+                reservedTransactionUUID));
+        debug() << "conflict between  " << challengerTransactionUUID << " and " << reservedTransactionUUID;
+        if (isChallengerTransactionWinReservation(
+                challengerTransaction,
+                reservedTransaction)) {
+            reservedTransaction->setTransactionState(
+                BasePaymentTransaction::Common_RollbackByOtherTransaction);
+            mTransactionScheduler->awakeTransaction(
+                reservedTransaction);
+            return true;
+        }
+    } catch (NotFoundError &e) {
+        warning() << "Can't find transaction " << e.what();
+        return false;
     }
     return false;
 }

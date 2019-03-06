@@ -59,10 +59,10 @@ public:
     void testForbidSendMessageOnFinalAmountClarificationStage(
         uint32_t countForbiddenMessages = 1);
 
-    void testForbidSendMessageToNextNodeOnVoteStage(
+    void testForbidSendMessageOnVoteStage(
         uint32_t countForbiddenMessages = 1);
 
-    void testForbidSendMessageToCoordinatorOnVoteStage(
+    void testForbidSendMessageOnRecoveryStage(
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendMessageOnVoteConsistencyStage(
@@ -133,9 +133,9 @@ private:
     bool mForbidSendResponseToIntNodeOnReservationStage;
     bool mForbidSendMessageWithFinalPathConfiguration;
     bool mForbidSendMessageOnFinalAmountClarificationStage;
-    bool mForbidSendMessageToNextNodeOnVoteStage;
-    bool mForbidSendMessageToCoordinatorOnVoteStage;
+    bool mForbidSendMessageOnVoteStage;
     bool mForbidSendMessageOnVoteConsistencyStage;
+    bool mForbidSendMessageOnRecoveryStage;
 
     bool mThrowExceptionOnPreviousNeighborRequestProcessingStage;
     bool mThrowExceptionOnCoordinatorRequestProcessingStage;

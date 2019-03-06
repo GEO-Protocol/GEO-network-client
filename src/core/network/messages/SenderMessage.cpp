@@ -34,7 +34,7 @@ SenderMessage::SenderMessage(
         sizeof(ContractorID));
     bytesBufferOffset += sizeof(ContractorID);
 
-    uint16_t senderAddressesCnt;
+    byte senderAddressesCnt;
     memcpy(
         &senderAddressesCnt,
         buffer.get() + bytesBufferOffset,

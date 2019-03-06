@@ -20,13 +20,16 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndS
     debug() << "runCollectDataAndSendMessagesStage";
     vector<BaseAddress::Shared> path;
     path.push_back(
-        mContractorsManager->ownAddresses().at(0));
+        mContractorsManager->selfContractor()->mainAddress());
     for(const auto &neighborID: mTrustLinesManager->firstLevelNeighborsWithNoneZeroBalance()){
         sendMessage<CyclesSixNodesInBetweenMessage>(
             neighborID,
             mEquivalent,
             mContractorsManager->idOnContractorSide(neighborID),
             path);
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+        debug() << "Send message to neighbor " << neighborID;
+#endif
     }
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);
@@ -41,29 +44,44 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
     }
     CycleMap creditors;
     TrustLineBalance creditorsStepFlow;
-    for(const auto &mess: mContext){
+    for(const auto &mess: mContext) {
         auto message = static_pointer_cast<CyclesSixNodesBoundaryMessage>(mess);
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+        debug() << "Receive message from " << message->senderIncomingIP();
+        debug() << "Path:";
+        for (const auto &node : message->path()) {
+            debug() << node->fullAddress();
+        }
+        debug() << "Boundary nodes:";
+        for (const auto &node : message->boundaryNodes()) {
+            debug() << node->fullAddress();
+        }
+#endif
         auto stepPath = message->path();
         //  It has to be exactly nodes count in path
         if (stepPath.size() != 3) {
             warning() << "Received message contains " << stepPath.size() << " nodes";
             continue;
         }
-        if (stepPath.front() != mContractorsManager->ownAddresses().at(0)) {
+        if (stepPath.front() != mContractorsManager->selfContractor()->mainAddress()) {
             warning() << "Received message was initiate by other node " << stepPath.front()->fullAddress();
             continue;
         }
         auto contractorID = mContractorsManager->contractorIDByAddress(stepPath[1]);
         if (contractorID == ContractorsManager::kNotFoundContractorID) {
-            warning() << "There is no contractor with address " << stepPath[1];
+            warning() << "There is no contractor with address " << stepPath[1]->fullAddress();
+            continue;
         }
         creditorsStepFlow = mTrustLinesManager->balance(contractorID);
         //  If it is Debtor branch - skip it
-        if (creditorsStepFlow > TrustLine::kZeroBalance()) {
+        if (creditorsStepFlow >= TrustLine::kZeroBalance()) {
             continue;
         }
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+        debug() << "Creditor message";
+#endif
         //  Check all Boundary Nodes and add it to map if all checks path
-        for (auto &nodeAddress: message->BoundaryNodes()){
+        for (auto &nodeAddress: message->boundaryNodes()){
             //  Prevent loop on cycles path
             if (nodeAddress == stepPath.front()) {
                 continue;
@@ -89,21 +107,25 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
             warning() << "Received message contains " << stepPath.size() << " nodes";
             continue;
         }
-        if (stepPath.front() != mContractorsManager->ownAddresses().at(0)) {
+        if (stepPath.front() != mContractorsManager->selfContractor()->mainAddress()) {
             warning() << "Received message was initiate by other node " << stepPath.front()->fullAddress();
             continue;
         }
         auto contractorID = mContractorsManager->contractorIDByAddress(stepPath[1]);
         if (contractorID == ContractorsManager::kNotFoundContractorID) {
-            warning() << "There is no contractor with address " << stepPath[1];
+            warning() << "There is no contractor with address " << stepPath[1]->fullAddress();
+            continue;
         }
         debtorsStepFlow = mTrustLinesManager->balance(contractorID);
         //  If it is Creditors branch - skip it
-        if (debtorsStepFlow < TrustLine::kZeroBalance()) {
+        if (debtorsStepFlow <= TrustLine::kZeroBalance()) {
             continue;
         }
 
-        for (const auto &nodeAddress : message->BoundaryNodes()) {
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+        debug() << "Debtor message";
+#endif
+        for (const auto &nodeAddress : message->boundaryNodes()) {
             //  Prevent loop on cycles path
             if (nodeAddress == stepPath.front()) {
                 continue;
@@ -111,8 +133,10 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
             auto nodeAddressAndPathRange = creditors.equal_range(nodeAddress->fullAddress());
             for (auto nodeAddressAndPathIt = nodeAddressAndPathRange.first;
                  nodeAddressAndPathIt != nodeAddressAndPathRange.second; ++nodeAddressAndPathIt) {
-                if ((nodeAddressAndPathIt->second[2] == stepPath[1])
-                    or (nodeAddressAndPathIt->second[1] == stepPath[2]))
+                if ((nodeAddressAndPathIt->second[2] == stepPath[1]) or
+                        (nodeAddressAndPathIt->second[1] == stepPath[2]) or
+                        (nodeAddressAndPathIt->second[1] == stepPath[1]) or
+                        (nodeAddressAndPathIt->second[2] == stepPath[2]))
                     continue;
                 //  Find minMax flow between 3 value. 1 in map. 1 in boundaryNodes. 1 we get from creditor first node in path
                 vector<BaseAddress::Shared> stepCyclePath = {

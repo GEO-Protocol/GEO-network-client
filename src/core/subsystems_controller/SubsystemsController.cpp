@@ -15,9 +15,9 @@ SubsystemsController::SubsystemsController(
     mForbidSendResponseToIntNodeOnReservationStage = false;
     mForbidSendMessageWithFinalPathConfiguration = false;
     mForbidSendMessageOnFinalAmountClarificationStage = false;
-    mForbidSendMessageToNextNodeOnVoteStage = false;
-    mForbidSendMessageToCoordinatorOnVoteStage = false;
+    mForbidSendMessageOnVoteStage = false;
     mForbidSendMessageOnVoteConsistencyStage = false;
+    mForbidSendMessageOnRecoveryStage = false;
 
     mThrowExceptionOnPreviousNeighborRequestProcessingStage = false;
     mThrowExceptionOnCoordinatorRequestProcessingStage = false;
@@ -61,9 +61,9 @@ void SubsystemsController::setFlags(size_t flags)
     mForbidSendResponseToIntNodeOnReservationStage = (flags & 0x20) > 0;
     mForbidSendMessageWithFinalPathConfiguration = (flags & 0x40) > 0;
     mForbidSendMessageOnFinalAmountClarificationStage = (flags & 0x80) > 0;
-    mForbidSendMessageToNextNodeOnVoteStage = (flags & 0x100) > 0;
-    mForbidSendMessageToCoordinatorOnVoteStage = (flags & 0x200) > 0;
-    mForbidSendMessageOnVoteConsistencyStage = (flags & 0x400) > 0;
+    mForbidSendMessageOnVoteStage = (flags & 0x100) > 0;
+    mForbidSendMessageOnVoteConsistencyStage = (flags & 0x200) > 0;
+    mForbidSendMessageOnRecoveryStage = (flags & 0x400) > 0;
 
     mThrowExceptionOnPreviousNeighborRequestProcessingStage = (flags & 0x800) > 0;
     mThrowExceptionOnCoordinatorRequestProcessingStage = (flags & 0x1000) > 0;
@@ -251,20 +251,20 @@ void SubsystemsController::testForbidSendMessageOnFinalAmountClarificationStage(
     }
 }
 
-void SubsystemsController::testForbidSendMessageToNextNodeOnVoteStage(
+void SubsystemsController::testForbidSendMessageOnVoteStage(
     uint32_t countForbiddenMessages)
 {
-    if (mForbidSendMessageToNextNodeOnVoteStage) {
-        debug() << "ForbidSendMessageToNextNodeOnVoteStage";
+    if (mForbidSendMessageOnVoteStage) {
+        debug() << "ForbidSendMessageOnVoteStage";
         mCountForbiddenMessages = countForbiddenMessages;
     }
 }
 
-void SubsystemsController::testForbidSendMessageToCoordinatorOnVoteStage(
+void SubsystemsController::testForbidSendMessageOnRecoveryStage(
     uint32_t countForbiddenMessages)
 {
-    if (mForbidSendMessageToCoordinatorOnVoteStage) {
-        debug() << "ForbidSendMessageToCoordinatorOnVoteStage";
+    if (mForbidSendMessageOnRecoveryStage) {
+        debug() << "ForbidSendMessageOnRecoveryStage";
         mCountForbiddenMessages = countForbiddenMessages;
     }
 }

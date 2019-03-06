@@ -7,6 +7,7 @@
 #include "../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../../../network/messages/payments/ParticipantsVotesMessage.h"
 #include "../../../../crypto/lamportscheme.h"
+#include "../../../../subsystems_controller/SubsystemsController.h"
 
 using namespace crypto;
 
@@ -18,6 +19,7 @@ public:
         ContractorsManager *contractorsManager,
         StorageHandler *storageHandler,
         bool isRequestedTransactionCurrentlyInProcessing,
+        SubsystemsController *subsystemsController,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -30,5 +32,6 @@ protected:
     ContractorsManager *mContractorsManager;
     StorageHandler *mStorageHandler;
     bool mIsRequestedTransactionCurrentlyInProcessing;
+    SubsystemsController *mSubsystemsController;
 };
 #endif //GEO_NETWORK_CLIENT_VOUTESSTATUSRESPONSEPAYMENTTRANSACTION_H

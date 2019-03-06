@@ -37,7 +37,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
         info() << contractor->fullAddress();
     }
 
-    auto ownAddress = mContractorsManager->ownAddresses().at(0);
+    auto ownAddress = mContractorsManager->selfContractor()->mainAddress();
     for (const auto &contractorAddress : mCommand->contractorAddresses()) {
         if (contractorAddress == ownAddress) {
             warning() << "Attempt to initialise operation against itself was prevented. Canceled.";

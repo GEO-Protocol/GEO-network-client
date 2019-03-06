@@ -55,7 +55,7 @@ pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBy
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
-    //    for BoundaryNodes
+    //    for boundaryNodes
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &boundaryNodesCount,
@@ -76,7 +76,7 @@ pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBy
         bytesCount);
 }
 
-vector<BaseAddress::Shared> CyclesBaseFiveOrSixNodesBoundaryMessage::BoundaryNodes() const
+vector<BaseAddress::Shared> CyclesBaseFiveOrSixNodesBoundaryMessage::boundaryNodes() const
 {
     return mBoundaryNodes;
 }

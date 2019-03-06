@@ -85,7 +85,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitializatio
 {
     debug() << "runInitializationStage";
     // Firstly check if paths is valid cycle
-    // todo : correct method checkPath
+    // TODO : correct method checkPath
     checkPath(
         mPathStats->path());
     debug() << "cycle is valid";
@@ -116,7 +116,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitializatio
             warning() << "Can't close cycle, because coordinator outgoing amount equal zero, "
                 "and can't use reservations from other transactions";
             mCyclesManager->addClosedTrustLine(
-                mContractorsManager->ownAddresses().at(0),
+                mContractorsManager->selfContractor()->mainAddress(),
                 mNextNode);
             return resultDone();
         } else {
@@ -150,7 +150,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitializatio
         warning() << "Can't close cycle, because coordinator incoming amount equal zero";
         mCyclesManager->addClosedTrustLine(
             mPreviousNode,
-            mContractorsManager->ownAddresses().at(0));
+            mContractorsManager->selfContractor()->mainAddress());
         return resultDone();
     }
     debug() << "Incoming Possibilities: " << mIncomingAmount;
@@ -160,7 +160,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitializatio
     }
     debug() << "Initial Outgoing Amount: " << mOutgoingAmount;
     mPathStats->path()->addReceiver(
-        mContractorsManager->ownAddresses().at(0));
+        mContractorsManager->selfContractor()->mainAddress());
     mStep = Stages::Coordinator_AmountReservation;
     return runAmountReservationStage();
 }
@@ -194,7 +194,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
     mParticipantsSignatures.clear();
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
+    mSubsystemsController->testForbidSendMessageOnVoteStage();
 #endif
 
     // send message with all public keys to all participants and wait for voting results
@@ -260,7 +260,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
     if (!mTrustLinesManager->trustLineOwnKeysPresent(mNextNodeID)) {
         warning() << "There are no own keys on TL with contractor " << mNextNode->fullAddress();
         mCyclesManager->addClosedTrustLine(
-            mContractorsManager->ownAddresses().at(0),
+            mContractorsManager->selfContractor()->mainAddress(),
             mNextNode);
         return resultDone();
     }
@@ -292,7 +292,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
 
     if (!reserveOutgoingAmount(mNextNodeID, mOutgoingAmount, 0)) {
         mCyclesManager->addClosedTrustLine(
-            mContractorsManager->ownAddresses().at(0),
+            mContractorsManager->selfContractor()->mainAddress(),
             mNextNode);
         return resultDone();
     }
@@ -310,7 +310,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         mPathStats->maxFlow(),
-        mContractorsManager->ownAddresses().at(0),
+        mContractorsManager->selfContractor()->mainAddress(),
         mPathStats->path()->length());
 
     return resultWaitForMessageTypes(
@@ -348,7 +348,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
         mPathStats->maxFlow(),
-        mContractorsManager->ownAddresses().at(0),
+        mContractorsManager->selfContractor()->mainAddress(),
         mPathStats->path()->length());
 
     mStep = Coordinator_AmountReservation;
@@ -386,7 +386,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborA
         rollBack();
         if (message->state() == IntermediateNodeCycleReservationResponseMessage::Rejected) {
             mCyclesManager->addClosedTrustLine(
-                mContractorsManager->ownAddresses().at(0),
+                mContractorsManager->selfContractor()->mainAddress(),
                 mNextNode);
         }
         return resultDone();
@@ -396,7 +396,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborA
         warning() << "Neighbor node doesn't approved reservation request due to contractor keys absence";
         rollBack();
         mCyclesManager->addClosedTrustLine(
-            mContractorsManager->ownAddresses().at(0),
+            mContractorsManager->selfContractor()->mainAddress(),
             mNextNode);
         // todo maybe set mOwnKeysPresent into false and initiate KeysSharing TA
         return resultDone();
@@ -600,7 +600,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
         informIntermediateNodesAboutTransactionFinish(
             remoteNodePathPosition - 1);
         if (mPathStats->path()->intermediates().at(remoteNodePathPosition + 1) !=
-                mContractorsManager->ownAddresses().at(0)) {
+                mContractorsManager->selfContractor()->mainAddress()) {
             mCyclesManager->addOfflineNode(
                 mPathStats->path()->intermediates().at(
                     remoteNodePathPosition + 1));
@@ -848,6 +848,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::sendFinalPathCon
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration(
         (uint32_t)mPathStats->path()->intermediates().size());
+    mSubsystemsController->testSleepOnFinalAmountClarificationStage(
+        maxNetworkDelay(4));
 #endif
 
     mParticipantsPublicKeys.clear();
@@ -1060,8 +1062,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
     }
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
-        (uint32_t)mPaymentParticipants.size());
     mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
     mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif
@@ -1121,6 +1121,12 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
                 mMaximalClaimingBlockNumber);
         }
         debug() << "Voted +";
+#ifdef TESTS
+        mSubsystemsController->testSleepOnVoteConsistencyStage(
+            maxNetworkDelay(4));
+        mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
+            (uint32_t)mPaymentParticipants.size() - 1);
+#endif
         mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
             mEquivalent,
             mContractorsManager->ownAddresses(),
@@ -1138,23 +1144,27 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
 void CycleCloserInitiatorTransaction::checkPath(
     const Path::ConstShared path)
 {
-    if (path->length() < 1 || path->length() > 5) {
+    if (path->length() == 0 || path->length() > kMaxPathLength - 2) {
         throw ValueError("CycleCloserInitiatorTransaction::checkPath: "
-                             "invalid paths length");
+                             "invalid paths length " + to_string(path->length()));
     }
-    return;
-    // todo : check on own node
-    auto itGlobal = path->intermediates().begin();
-    while (itGlobal != path->intermediates().end() - 1) {
-        auto itLocal = itGlobal + 1;
-        while (itLocal != path->intermediates().end() - 1) {
-            if (*itGlobal == *itLocal) {
+    auto currentNodeMainAddress = mContractorsManager->selfContractor()->mainAddress();
+    for (uint32_t idxGlobal = 0; idxGlobal < path->intermediates().size() - 1; idxGlobal++) {
+        auto globalNodeAddress = path->intermediates().at(idxGlobal);
+        if (currentNodeMainAddress == globalNodeAddress) {
+            throw ValueError("CycleCloserInitiatorTransaction::checkPath: "
+                                 "paths contains current node several times");
+        }
+        for (uint32_t idxLocal = idxGlobal + 1; idxLocal < path->intermediates().size(); idxLocal++) {
+            if (globalNodeAddress == path->intermediates().at(idxLocal)) {
                 throw ValueError("CycleCloserInitiatorTransaction::checkPath: "
                                      "paths contains repeated nodes");
             }
-            itLocal++;
         }
-        itGlobal++;
+    }
+    if (currentNodeMainAddress == path->intermediates().at(path->intermediates().size() - 1)) {
+        throw ValueError("CycleCloserInitiatorTransaction::checkPath: "
+                             "paths contains current node several times");
     }
 }
 
@@ -1174,10 +1184,24 @@ void CycleCloserInitiatorTransaction::informIntermediateNodesAboutTransactionFin
     }
 }
 
+TransactionResult::SharedConst CycleCloserInitiatorTransaction::runRollbackByOtherTransactionStage()
+{
+    debug() << "runRollbackByOtherTransactionStage";
+    rollBack();
+    try {
+        informIntermediateNodesAboutTransactionFinish(
+            mPathStats->currentIntermediateNodeAndPos().second);
+    } catch (NotFoundError&) {
+        informIntermediateNodesAboutTransactionFinish(
+            (SerializedPositionInPath)(mPathStats->path()->length() - 1));
+    }
+    return resultDone();
+}
+
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::approve()
 {
     mCommittedAmount = totalReservedAmount(
-            AmountReservation::Outgoing);
+        AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
     for (const auto &paymentNodeIdAndAddress : mPaymentParticipants) {
         if (paymentNodeIdAndAddress.first == kCoordinatorPaymentNodeID) {

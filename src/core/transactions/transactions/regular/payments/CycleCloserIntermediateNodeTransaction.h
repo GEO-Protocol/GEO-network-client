@@ -103,6 +103,11 @@ protected:
      */
     TransactionResult::SharedConst runVotesCheckingStageWithPossibleTTL();
 
+    /**
+     * rollback current transaction because of cycle closing conflict
+     */
+    TransactionResult::SharedConst runRollbackByOtherTransactionStage();
+
 protected:
     TransactionResult::SharedConst approve();
 

@@ -56,19 +56,19 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
     info() << "current depth: " << (uint16_t)kCurrentDepth;
 #endif
+    path.push_back(
+        mContractorsManager->selfContractor()->mainAddress());
     if (kCurrentDepth == 1) {
-        mInBetweenNodeTopologyMessage->addNodeToPath(
-            mContractorsManager->ownAddresses().at(0));
         for(const auto &neighborID: firstLevelNodes) {
-            sendMessage(
+            sendMessage<CyclesSixNodesInBetweenMessage>(
                 neighborID,
-                mInBetweenNodeTopologyMessage);
+                mEquivalent,
+                mContractorsManager->idOnContractorSide(neighborID),
+                path);
             info() << "send request message to neighbor " << neighborID;
         }
     }
     else if (kCurrentDepth == 2) {
-        path.push_back(
-            mContractorsManager->ownAddresses().at(0));
         vector<BaseAddress::Shared> boundaryNodes;
         for (const auto &neighborID: firstLevelNodes) {
             boundaryNodes.push_back(

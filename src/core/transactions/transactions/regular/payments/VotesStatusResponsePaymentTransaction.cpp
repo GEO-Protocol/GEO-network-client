@@ -5,6 +5,7 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
     ContractorsManager *contractorsManager,
     StorageHandler *storageHandler,
     bool isRequestedTransactionCurrentlyInProcessing,
+    SubsystemsController *subsystemsController,
     Logger &logger):
     BaseTransaction(
         BaseTransaction::TransactionType::VoutesStatusResponsePaymentTransaction,
@@ -13,7 +14,8 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
     mContractorsManager(contractorsManager),
     mStorageHandler(storageHandler),
     mRequest(message),
-    mIsRequestedTransactionCurrentlyInProcessing(isRequestedTransactionCurrentlyInProcessing)
+    mIsRequestedTransactionCurrentlyInProcessing(isRequestedTransactionCurrentlyInProcessing),
+    mSubsystemsController(subsystemsController)
 {}
 
 TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
@@ -41,6 +43,9 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
     if (!participantsSignatures.empty()) {
         // todo : check if requested node is participant of this transaction
         info() << "send response with not empty ParticipantsVotesMessage";
+#ifdef TESTS
+        mSubsystemsController->testForbidSendMessageOnRecoveryStage();
+#endif
         sendMessage<ParticipantsVotesMessage>(
             senderAddress,
             mEquivalent,

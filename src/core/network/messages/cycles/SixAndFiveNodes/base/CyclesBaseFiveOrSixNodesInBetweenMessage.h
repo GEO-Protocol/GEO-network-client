@@ -25,9 +25,6 @@ public:
 
     vector<BaseAddress::Shared> path() const;
 
-    void addNodeToPath(
-        BaseAddress::Shared inBetweenNode);
-
 protected:
     const size_t kOffsetToInheritedBytes() const override;
 

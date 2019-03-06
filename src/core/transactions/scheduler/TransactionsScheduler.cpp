@@ -70,6 +70,18 @@ void TransactionsScheduler::postponeTransaction(
     adjustAwakeningToNextTransaction();
 }
 
+void TransactionsScheduler::awakeTransaction(
+    BaseTransaction::Shared transaction)
+{
+    for (const auto &transactionAndState : *mTransactions){
+        if (transaction->currentTransactionUUID() == transactionAndState.first->currentTransactionUUID()) {
+            (*mTransactions)[transactionAndState.first] = TransactionState::awakeAsFastAsPossible();
+            adjustAwakeningToNextTransaction();
+            break;
+        }
+    }
+}
+
 void TransactionsScheduler::tryAttachMessageToTransaction(
     Message::Shared message)
 {

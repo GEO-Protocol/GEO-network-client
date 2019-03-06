@@ -305,10 +305,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 #ifdef TESTS
     mSubsystemsController->testThrowExceptionOnVoteStage();
     mSubsystemsController->testTerminateProcessOnVoteStage();
-    mSubsystemsController->testForbidSendMessageToCoordinatorOnVoteStage();
+    mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage();
+    // coordinator wait for this message maxNetworkDelay(6)
     mSubsystemsController->testSleepOnVoteConsistencyStage(
-        maxNetworkDelay(
-            (uint16_t)(mPaymentNodesIds.size() + 2)));
+        maxNetworkDelay(8));
 #endif
 
     debug() << "Signed transaction transferred to coordinator";
@@ -1020,15 +1020,8 @@ TransactionResult::SharedConst BasePaymentTransaction::processNextNodeToCheckVot
         mCurrentNodeToCheckVotes);
 }
 
-TransactionResult::SharedConst BasePaymentTransaction::runRollbackByOtherTransactionStage()
-{
-    debug() << "runRollbackByOtherTransactionStage";
-    rollBack();
-    return resultDone();
-}
-
 const TrustLineAmount BasePaymentTransaction::totalReservedAmount(
-        AmountReservation::ReservationDirection reservationDirection) const
+    AmountReservation::ReservationDirection reservationDirection) const
 {
     TrustLineAmount totalAmount = 0;
     for (const auto &nodeIDAndReservations : mReservations) {
@@ -1428,7 +1421,7 @@ size_t BasePaymentTransaction::reservationsSizeInBytes() const {
 
 BaseAddress::Shared BasePaymentTransaction::coordinatorAddress() const
 {
-    return mContractorsManager->ownAddresses().at(0);
+    return mContractorsManager->selfContractor()->mainAddress();
 }
 
 const SerializedPathLengthSize BasePaymentTransaction::cycleLength() const
@@ -1436,9 +1429,11 @@ const SerializedPathLengthSize BasePaymentTransaction::cycleLength() const
     return 0;
 }
 
-bool BasePaymentTransaction::isCommonVotesCheckingStage() const
+bool BasePaymentTransaction::isVotingStage() const
 {
-    return mStep == Common_VotesChecking;
+    return mStep == Common_Voting or
+            mStep == Common_VotesChecking or
+            mStep == Common_Recovery;
 }
 
 void BasePaymentTransaction::setTransactionState(

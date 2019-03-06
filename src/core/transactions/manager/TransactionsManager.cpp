@@ -1134,6 +1134,7 @@ void TransactionsManager::launchVotesResponsePaymentsTransaction(
                 mStorageHandler,
                 mScheduler->isTransactionInProcess(
                     message->transactionUUID()),
+                mSubsystemsController,
                 mLog),
             false,
             false,

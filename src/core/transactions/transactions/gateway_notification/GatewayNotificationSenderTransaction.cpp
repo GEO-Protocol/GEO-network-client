@@ -60,7 +60,6 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::sendGateway
             break;
         }
     }
-    mEquivalentsCyclesSubsystemsRouter->clearRoutingTables();
     mPreviousStepStarted = utc_now();
     mStep = UpdateRoutingTableStage;
     return resultAwakeAfterMilliseconds(
@@ -69,6 +68,9 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::sendGateway
 
 TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRoutingTablesResponse()
 {
+    if (allNeighborsResponseReceive.empty()) {
+        mEquivalentsCyclesSubsystemsRouter->clearRoutingTables();
+    }
     while (!mContext.empty()) {
         if (mContext.at(0)->typeID() == Message::RoutingTableResponse) {
             const auto kMessage = popNextMessage<RoutingTableResponseMessage>();

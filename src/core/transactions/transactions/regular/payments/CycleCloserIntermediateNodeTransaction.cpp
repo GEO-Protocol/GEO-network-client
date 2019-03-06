@@ -701,6 +701,11 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCheckO
                 mPaymentNodesIds[mContractorsManager->selfContractor()->mainAddress()->fullAddress()],
                 mPublicKey->hash())));
 
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageOnVoteStage(
+        (uint32_t)mPaymentParticipants.size() - 2);
+#endif
+
     // send messages to all participants except coordinator:
     // to nodes with outgoing reservations - outgoing receipts and public key hash;
     // to rest nodes - only public key hash
@@ -949,6 +954,13 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runVotesC
     }
 
     return runVotesCheckingStage();
+}
+
+TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runRollbackByOtherTransactionStage()
+{
+    debug() << "runRollbackByOtherTransactionStage";
+    rollBack();
+    return resultDone();
 }
 
 BaseAddress::Shared CycleCloserIntermediateNodeTransaction::coordinatorAddress() const

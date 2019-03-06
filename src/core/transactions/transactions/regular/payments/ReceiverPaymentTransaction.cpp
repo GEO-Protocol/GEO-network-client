@@ -440,9 +440,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
     }
 
 #ifdef TESTS
-    // coordinator wait for this message maxNetworkDelay(2)
+    // coordinator wait for this message maxNetworkDelay(6)
     mSubsystemsController->testSleepOnFinalAmountClarificationStage(
-       maxNetworkDelay(3));
+       maxNetworkDelay(8));
 #endif
 
     debug() << "All reservations was updated";

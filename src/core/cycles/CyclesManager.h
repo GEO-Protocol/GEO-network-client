@@ -110,7 +110,6 @@ public:
 private:
     const uint32_t kSixNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
     const uint32_t kFiveNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
-    const uint16_t kPostponingRollbackTransactionTimeMSec = 10;
     const uint32_t kUpdatingTimerPeriodSeconds = 10 * 60;
 
     static const byte kOfflineNodesAndClosedTLLiveHours = 0;

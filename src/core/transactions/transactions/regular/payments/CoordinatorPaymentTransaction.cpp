@@ -149,7 +149,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
     while (response->pathCollection()->hasNextPath()) {
         auto path = response->pathCollection()->nextPath();
         info() << "path " << path->toString();
-        // todo : correct method isPathValid
         if (isPathValid(path)) {
             addPathForFurtherProcessing(path);
         } else {
@@ -292,7 +291,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
 #endif
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
+    mSubsystemsController->testForbidSendMessageOnVoteStage();
 #endif
 
     // send message with all public keys to all participants and wait for voting results
@@ -1490,9 +1489,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
         (uint32_t)mPaymentParticipants.size() - 1);
+    // participants wait for this message 6
     mSubsystemsController->testSleepOnVoteConsistencyStage(
-        maxNetworkDelay(
-            (uint16_t)(mPaymentParticipants.size() + 2)));
+        maxNetworkDelay(8));
     mSubsystemsController->testThrowExceptionOnCoordinatorAfterApproveBeforeSendMessage();
 #endif
 
@@ -1799,19 +1798,38 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
 bool CoordinatorPaymentTransaction::isPathValid(
     Path::Shared path) const
 {
-    return true;
-    // todo : check if node no equal to contractor node and to self
-    auto itGlobal = path->intermediates().begin();
-    while (itGlobal != path->intermediates().end() - 1) {
-        auto itLocal = itGlobal + 1;
-        while (itLocal != path->intermediates().end()) {
-            auto localAddress = *itLocal;
-            if (*itGlobal == *itLocal) {
+    if (path->length() == 0) {
+        return true;
+    }
+    if (path->length() > kMaxPathLength - 2) {
+        throw ValueError("CoordinatorPaymentTransaction::checkPath: "
+                             "invalid paths length " + to_string(path->length()));
+    }
+    auto currentNodeMainAddress = mContractorsManager->selfContractor()->mainAddress();
+    for (uint32_t idxGlobal = 0; idxGlobal < path->intermediates().size() - 1; idxGlobal++) {
+        auto globalNodeAddress = path->intermediates().at(idxGlobal);
+        if (currentNodeMainAddress == globalNodeAddress) {
+            warning() << "Paths contains current node several times";
+            return false;
+        }
+        if (mContractor->mainAddress() == globalNodeAddress) {
+            warning() << "Paths contains receiver node several times";
+            return false;
+        }
+        for (uint32_t idxLocal = idxGlobal + 1; idxLocal < path->intermediates().size(); idxLocal++) {
+            if (globalNodeAddress == path->intermediates().at(idxLocal)) {
+                warning() << "Paths contains repeated nodes " << globalNodeAddress->fullAddress();
                 return false;
             }
-            itLocal++;
         }
-        itGlobal++;
+    }
+    if (currentNodeMainAddress == path->intermediates().at(path->intermediates().size() - 1)) {
+        warning() << "Paths contains current node several times";
+        return false;
+    }
+    if (mContractor->mainAddress() == path->intermediates().at(path->intermediates().size() - 1)) {
+        warning() << "Paths contains receiver node several times";
+        return false;
     }
     return true;
 }

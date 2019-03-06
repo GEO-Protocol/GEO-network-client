@@ -61,6 +61,9 @@ public:
         BaseTransaction::Shared transaction,
         uint32_t millisecondsDelay);
 
+    void awakeTransaction(
+        BaseTransaction::Shared transaction);
+
     // TODO: add error log if unsuccessful
     // TODO: throw exception on failure,
     //       so the communicator would be able to know

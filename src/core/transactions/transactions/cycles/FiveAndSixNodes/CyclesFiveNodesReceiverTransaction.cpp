@@ -22,7 +22,7 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run()
         warning() << "There is no contractor " << contractorID;
         return resultDone();
     }
-    vector<BaseAddress::Shared> path = mInBetweenNodeTopologyMessage->path();
+    auto path = mInBetweenNodeTopologyMessage->path();
     if (!mTrustLinesManager->trustLineIsActive(contractorID)) {
         warning() << "TL with previous node " << contractorID << " is not active";
         return resultDone();
@@ -61,20 +61,20 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run()
 #ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
     debug() << "currentDepth " << (uint16_t)currentDepth;
 #endif
+    path.push_back(
+        mContractorsManager->selfContractor()->mainAddress());
     if (not isCreditorsBranch and currentDepth == 1) {
-        mInBetweenNodeTopologyMessage->addNodeToPath(
-            mContractorsManager->ownAddresses().at(0));
         for(const auto &neighborID: firstLevelNodes) {
-            sendMessage(
+            sendMessage<CyclesFiveNodesInBetweenMessage>(
                 neighborID,
-                mInBetweenNodeTopologyMessage);
+                mEquivalent,
+                mContractorsManager->idOnContractorSide(neighborID),
+                path);
             info() << "send request message to neighbor " << neighborID;
         }
         return resultDone();
     }
     if ((not isCreditorsBranch and currentDepth==2) or (isCreditorsBranch and currentDepth==1)) {
-        path.push_back(
-            mContractorsManager->selfContractor()->mainAddress());
         vector<BaseAddress::Shared> boundaryNodes;
         for (const auto &neighborID: firstLevelNodes) {
             boundaryNodes.push_back(

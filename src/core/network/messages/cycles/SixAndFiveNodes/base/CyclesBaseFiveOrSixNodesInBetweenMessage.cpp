@@ -87,9 +87,3 @@ vector<BaseAddress::Shared> CycleBaseFiveOrSixNodesInBetweenMessage::path() cons
 {
     return mPath;
 }
-
-void CycleBaseFiveOrSixNodesInBetweenMessage::addNodeToPath(
-    BaseAddress::Shared inBetweenNode)
-{
-    mPath.push_back(inBetweenNode);
-}

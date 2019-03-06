@@ -765,8 +765,16 @@ void ObservingHandler::responseActualBlockNumber(
         return;
     }
 
+    auto durationWithoutBlockNumberUpdatingSeconds = durationWithoutBlockNumberUpdating.hours() * 3600 +
+            durationWithoutBlockNumberUpdating.minutes() * 60 +
+            durationWithoutBlockNumberUpdating.seconds();
     BlockNumber actualBlockNumber = mLastUpdatedBlockNumber.first +
-            durationWithoutBlockNumberUpdating.seconds() / kApproximateBlockNumberIncrementingPeriodSeconds;
+            durationWithoutBlockNumberUpdatingSeconds / kApproximateBlockNumberIncrementingPeriodSeconds;
+#ifdef DEBUG_LOG_OBSEVING_HANDLER
+    debug() << "Last getting actual block number " << mLastUpdatedBlockNumber.first
+            << " at time " << mLastUpdatedBlockNumber.second;
+    debug() << "durationWithoutBlockNumberUpdating " << durationWithoutBlockNumberUpdatingSeconds;
+#endif
     info() << "Calculated observing block number: " << actualBlockNumber;
     mResourcesManager->putResource(
         make_shared<BlockNumberRecourse>(

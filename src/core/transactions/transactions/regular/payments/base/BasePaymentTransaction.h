@@ -117,7 +117,7 @@ public:
      * @return if payment transaction on Common_VotesChecking stage
      * used in CyclesManager for resolving cycle closing conflicts
      */
-    bool isCommonVotesCheckingStage() const;
+    bool isVotingStage() const;
 
     void setTransactionState(
         BasePaymentTransaction::SerializedStep transactionStage);
@@ -216,11 +216,6 @@ protected:
      * process response of intermediate node with result of recovered transaction
      */
     TransactionResult::SharedConst runCheckIntermediateNodeVotesStage();
-
-    /**
-     * rollback current transaction because of cycle closing conflict
-     */
-    TransactionResult::SharedConst runRollbackByOtherTransactionStage();
 
     TransactionResult::SharedConst runObservingStage();
 

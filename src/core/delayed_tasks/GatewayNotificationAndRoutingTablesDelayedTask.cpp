@@ -39,6 +39,7 @@ void GatewayNotificationAndRoutingTablesDelayedTask::runSignalNotify(
         std::chrono::seconds(
             kUpdatingTimerPeriodSeconds + rand() % (60 * 60 * 24)));
 #ifdef TESTS
+    mNotificationTimer->cancel();
     mNotificationTimer->expires_from_now(
         std::chrono::seconds(15));
 #endif

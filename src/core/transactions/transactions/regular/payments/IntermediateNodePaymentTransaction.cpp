@@ -620,9 +620,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
     }
 
 #ifdef TESTS
-    // coordinator wait for this message maxNetworkDelay(2)
+    // coordinator wait for this message maxNetworkDelay(6)
     mSubsystemsController->testSleepOnFinalAmountClarificationStage(
-        maxNetworkDelay(3));
+        maxNetworkDelay(8));
 #endif
 
     info() << "All reservations was updated";
@@ -721,6 +721,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCheckObser
         return runFinalReservationsNeighborConfirmation();
     }
 
+    // todo : add Payments_TTLProlongationResponse checking
+
     if (!resourceIsValid(BaseResource::ObservingBlockNumber)) {
         removeAllDataFromStorageConcerningTransaction();
         sendErrorMessageOnFinalAmountsConfiguration();
@@ -747,6 +749,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCheckObser
                 mPaymentNodesIds[mContractorsManager->selfContractor()->mainAddress()->fullAddress()],
                 mPublicKey->hash())));
 
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageOnVoteStage(
+        (uint32_t)mPaymentParticipants.size() - 2);
+#endif
+
     // send messages to all participants except coordinator:
     // to nodes with outgoing reservations - outgoing receipts and public key hash;
     // to rest nodes - only public key hash
@@ -758,11 +765,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCheckObser
         if (nodePaymentIdAndContractor.second == mContractorsManager->selfContractor()) {
             continue;
         }
-
-#ifdef TESTS
-        mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage(
-            (uint32_t)mPaymentParticipants.size() - 2);
-#endif
 
         auto participantID = mContractorsManager->contractorIDByAddress(nodePaymentIdAndContractor.second->mainAddress());
         if (mReservations.find(participantID) == mReservations.end()) {

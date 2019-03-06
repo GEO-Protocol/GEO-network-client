@@ -20,7 +20,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAnd
     debug() << "runCollectDataAndSendMessagesStage";
     vector<BaseAddress::Shared> path;
     path.push_back(
-        mContractorsManager->ownAddresses().at(0));
+        mContractorsManager->selfContractor()->mainAddress());
     TrustLineBalance zeroBalance = 0;
     for(const auto &neighborID: mTrustLinesManager->firstLevelNeighborsWithNegativeBalance()) {
         sendMessage<CyclesFiveNodesInBetweenMessage>(
@@ -57,17 +57,18 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
             warning() << "Received message contains " << stepPath.size() << " nodes";
             continue;
         }
-        if (stepPath.front() != mContractorsManager->ownAddresses().at(0)) {
+        if (stepPath.front() != mContractorsManager->selfContractor()->mainAddress()) {
             warning() << "Received message was initiate by other node " << stepPath.front()->fullAddress();
             continue;
         }
         auto contractorID = mContractorsManager->contractorIDByAddress(stepPath[1]);
         if (contractorID == ContractorsManager::kNotFoundContractorID) {
-            warning() << "There is no contractor with address " << stepPath[1];
+            warning() << "There is no contractor with address " << stepPath[1]->fullAddress();
+            continue;
         }
         creditorsStepFlow = mTrustLinesManager->balance(contractorID);
         //  If it is Debtor branch - skip it
-        if (creditorsStepFlow < TrustLine::kZeroBalance()) {
+        if (creditorsStepFlow <= TrustLine::kZeroBalance()) {
             continue;
         }
         if (stepPath.size() != 2) {
@@ -75,7 +76,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
             continue;
         }
         //  Check all Boundary Nodes and add it to map if all checks path
-        for (const auto &nodeAddress: message->BoundaryNodes()) {
+        for (const auto &nodeAddress: message->boundaryNodes()) {
             //  Prevent loop on cycles path
             if (nodeAddress == stepPath.front()) {
                 continue;
@@ -101,17 +102,18 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
             warning() << "Received message contains " << stepPathDebtors.size() << " nodes";
             continue;
         }
-        if (stepPathDebtors.front() != mContractorsManager->ownAddresses().at(0)) {
+        if (stepPathDebtors.front() != mContractorsManager->selfContractor()->mainAddress()) {
             warning() << "Received message was initiate by other node " << stepPathDebtors.front()->fullAddress();
             continue;
         }
         auto contractorID = mContractorsManager->contractorIDByAddress(stepPathDebtors[1]);
         if (contractorID == ContractorsManager::kNotFoundContractorID) {
-            warning() << "There is no contractor with address " << stepPathDebtors[1];
+            warning() << "There is no contractor with address " << stepPathDebtors[1]->fullAddress();
+            continue;
         }
         debtorsStepFlow = mTrustLinesManager->balance(contractorID);
         //  If it is Creditors branch - skip it
-        if (debtorsStepFlow > TrustLine::kZeroBalance()) {
+        if (debtorsStepFlow >= TrustLine::kZeroBalance()) {
             continue;
         }
         if (stepPathDebtors.size() != 3) {
@@ -120,7 +122,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
         }
 
         //  It has to be exactly nodes count in path
-        for (const auto &nodeAddress: message->BoundaryNodes()) {
+        for (const auto &nodeAddress: message->boundaryNodes()) {
             //  Prevent loop on cycles path
             if (nodeAddress == stepPathDebtors.front()) {
                 continue;
@@ -129,6 +131,9 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
             auto nodeAddressAndPathRange = creditors.equal_range(nodeAddress->fullAddress());
             for (auto nodeAddressAndPathIt = nodeAddressAndPathRange.first;
                  nodeAddressAndPathIt != nodeAddressAndPathRange.second; ++nodeAddressAndPathIt) {
+                if ((nodeAddressAndPathIt->second.back() == stepPathDebtors[1]) or
+                    (nodeAddressAndPathIt->second.back() == stepPathDebtors[2]))
+                    continue;
                 vector <BaseAddress::Shared> stepCyclePath = {
                         nodeAddressAndPathIt->second.back(),
                         nodeAddress,

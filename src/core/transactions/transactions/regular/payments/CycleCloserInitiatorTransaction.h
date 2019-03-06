@@ -81,6 +81,11 @@ protected:
      */
     TransactionResult::SharedConst runVotesConsistencyCheckingStage();
 
+    /**
+     * rollback current transaction because of cycle closing conflict
+     */
+    TransactionResult::SharedConst runRollbackByOtherTransactionStage();
+
 protected:
     /**
      * try reserve available amount to next node on closing cycle
