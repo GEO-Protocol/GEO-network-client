@@ -23,7 +23,7 @@ public:
     // for the public network (Internet transfer) the appropriate packet size is 508 bytes.
     // Packet header may contains 8 bytes. As the result, data segment of the packet may contains 500 byte.
     // The max message size = ~125kB.
-    typedef uint8_t TotalPacketsCount;
+    typedef uint16_t TotalPacketsCount;
     typedef TotalPacketsCount PacketIndex;
 
     static const constexpr size_t kSize =

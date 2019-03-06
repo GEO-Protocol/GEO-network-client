@@ -79,12 +79,11 @@ void OutgoingRemoteAddressNode::populateQueueWithNewPackets(
 {
     const auto kMessageContentWithCRC32BytesCount = messageBytesCount + sizeof(uint32_t);
 
-    PacketHeader::TotalPacketsCount kTotalPacketsCount =
-            static_cast<PacketHeader::TotalPacketsCount>(
-                    kMessageContentWithCRC32BytesCount / Packet::kMaxSize);
+    PacketHeader::TotalPacketsCount kTotalPacketsCount = 0;
+    for(size_t bytesLeft=kMessageContentWithCRC32BytesCount; bytesLeft; ++kTotalPacketsCount) {
+        bytesLeft -= std::min(bytesLeft, Packet::kMaxSize - PacketHeader::kSize);
+    }
 
-    if (kMessageContentWithCRC32BytesCount % Packet::kMaxSize != 0)
-        kTotalPacketsCount += 1;
 
     PacketHeader::ChannelIndex channelIndex = nextChannelIndex();
     uint32_t crcChecksum = crc32Checksum(
@@ -92,6 +91,7 @@ void OutgoingRemoteAddressNode::populateQueueWithNewPackets(
         messageBytesCount);
 
     size_t messageContentBytesProcessed = 0;
+    size_t messageCrc32ChecksumBytesProcessed = 0;
     Packet::Index packetIndex = 0;
     if (kTotalPacketsCount > 1) {
         for (; packetIndex<kTotalPacketsCount-1; ++packetIndex) {
@@ -125,12 +125,25 @@ void OutgoingRemoteAddressNode::populateQueueWithNewPackets(
                 &packetIndex,
                 sizeof(packetIndex));
 
+            size_t usefulBytesCount = Packet::kMaxSize - PacketHeader::kSize;
+            size_t messageLeftover = std::min(usefulBytesCount,
+                                              messageBytesCount - messageContentBytesProcessed
+            );
             memcpy(
-                buffer + PacketHeader::kDataOffset,
-                messageData + messageContentBytesProcessed,
-                Packet::kMaxSize - PacketHeader::kSize);
+                    buffer + PacketHeader::kDataOffset,
+                    messageData + messageContentBytesProcessed,
+                    messageLeftover);
 
-            messageContentBytesProcessed += Packet::kMaxSize - PacketHeader::kSize;
+            messageContentBytesProcessed += messageLeftover;
+
+            size_t bytesLeftover = usefulBytesCount - messageLeftover;
+            size_t checksumPartial = std::min(bytesLeftover, (size_t)sizeof(crcChecksum));
+            memcpy(
+                    buffer + PacketHeader::kDataOffset + messageLeftover,
+                    &crcChecksum,
+                    checksumPartial);
+            messageCrc32ChecksumBytesProcessed += checksumPartial;
+            messageContentBytesProcessed += checksumPartial;
 
             const auto packetMaxSize = Packet::kMaxSize;
             mPacketsQueue.push(
@@ -142,7 +155,7 @@ void OutgoingRemoteAddressNode::populateQueueWithNewPackets(
 
     // Writing last packet
     const PacketHeader::PacketSize kLastPacketSize =
-            static_cast<PacketHeader::PacketSize>(kMessageContentWithCRC32BytesCount - messageContentBytesProcessed) + PacketHeader::kSize;
+        static_cast<PacketHeader::PacketSize>(kMessageContentWithCRC32BytesCount - messageContentBytesProcessed) + PacketHeader::kSize;
 
     byte *buffer = static_cast<byte*>(malloc(kLastPacketSize));
     if (buffer == nullptr) {
@@ -169,20 +182,25 @@ void OutgoingRemoteAddressNode::populateQueueWithNewPackets(
         &packetIndex,
         sizeof(packetIndex));
 
+    size_t usefulBytesCount = Packet::kMaxSize - PacketHeader::kSize;
+    size_t messageLeftover = std::min(usefulBytesCount,
+        messageBytesCount - std::min(messageBytesCount, messageContentBytesProcessed)
+    );
     memcpy(
         buffer + PacketHeader::kDataOffset,
         messageData + messageContentBytesProcessed,
-        kLastPacketSize - sizeof(crcChecksum) - PacketHeader::kSize);
+        messageLeftover);
 
-    messageContentBytesProcessed += kLastPacketSize - sizeof(crcChecksum) - PacketHeader::kSize;
+    messageContentBytesProcessed += messageLeftover;
 
     // Copying CRC32 checksum
+    size_t checksumLeftover = (size_t)(sizeof(crcChecksum) - messageCrc32ChecksumBytesProcessed);
     memcpy(
-        buffer + PacketHeader::kDataOffset + kLastPacketSize - sizeof(crcChecksum) - PacketHeader::kSize,
-        &crcChecksum,
-        sizeof(crcChecksum));
+        buffer + PacketHeader::kDataOffset + messageLeftover,
+        (uint8_t *)&crcChecksum + messageCrc32ChecksumBytesProcessed,
+        checksumLeftover);
 
-    messageContentBytesProcessed += sizeof(crcChecksum);
+    messageContentBytesProcessed += checksumLeftover;
 
     mPacketsQueue.push(
         make_pair(
@@ -281,7 +299,7 @@ void OutgoingRemoteAddressNode::beginPacketsSending()
                 << setw(4) << bytesTransferred <<  "B TX [ => ] "
                 << endpoint.address() << ":" << endpoint.port() << "; "
                 << "Channel: " << setw(10) << static_cast<size_t>(channelIndex) << "; "
-                << "Packet: " << setw(3) << static_cast<size_t>(packetIndex)
+                << "Packet2: " << setw(3) << static_cast<size_t>(packetIndex)
                 << "/" << static_cast<size_t>(totalPacketsCount);
 #endif
 
