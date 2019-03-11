@@ -24,7 +24,7 @@ ENDIF (${PLATFORM} MATCHES "LINUX")
 
 #
 # Debug options
-# (available options are: DEBUG | RELEASE | TESTS)
+# (available options are: DEBUG | RELEASE | INTERNAL_TESTS | EXTERNAL_TESTS)
 #
 set(BUILD_CONFIGURATION "RELEASE")
 
@@ -68,8 +68,42 @@ IF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Os -s -fdata-sections -fmerge-all-constants")
 ENDIF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
 
-IF (${BUILD_CONFIGURATION} MATCHES "TESTS")
+IF (${BUILD_CONFIGURATION} MATCHES "INTERNAL_TESTS")
     add_subdirectory(src/tests)
+
+    add_definitions(
+        -DINTERNAL_TESTS
+        -DINTERNAL_ARGUMENTS_VALIDATION
+    )
+
+    #
+    # Logs configuration
+    #
+    add_definitions(
+        # Subsystems
+        -DDEBUG_LOG_NETWORK_COMMUNICATOR
+        # -DDEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
+        -DDEBUG_LOG_STORAGE_HANDLER # ToDo: change me in relevant transaction code
+
+        # Transactions control
+        -DDEBUG_LOG_TRANSACTIONS_MANAGER
+        -DDEBUG_LOG_SCHEDULER # ToDo: change me in relevant transaction code
+        # Transactions
+        -DDEBUG_LOG_TRUST_LINES_PROCESSING
+        -DDEBUG_LOG_ROUTING_TABLES_PROCESSING
+        -DDEBUG_LOG_MAX_FLOW_CALCULATION
+        -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
+        -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
+        -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
+        -DDEBUG_LOG_CYCLES_BUILDING_POCESSING
+        -DDEBUG_LOG_OBSEVING_HANDLER
+    )
+
+    set(CMAKE_BUILD_TYPE "Release")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+ENDIF (${BUILD_CONFIGURATION} MATCHES "INTERNAL_TESTS")
+
+IF (${BUILD_CONFIGURATION} MATCHES "EXTERNAL_TESTS")
 
     add_definitions(
         -DTESTS
@@ -101,8 +135,8 @@ IF (${BUILD_CONFIGURATION} MATCHES "TESTS")
     )
 
     set(CMAKE_BUILD_TYPE "Release")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
-ENDIF (${BUILD_CONFIGURATION} MATCHES "TESTS")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Os -s -fdata-sections -fmerge-all-constants")
+ENDIF (${BUILD_CONFIGURATION} MATCHES "EXTERNAL_TESTS")
 
 #
 # Engine type options

@@ -123,6 +123,11 @@ private:
     static const uint32_t kTransactionCheckingSignalRepeatTimeSeconds = 360;
     static const uint32_t kTransactionCheckingSignalSmallRepeatTimeSeconds = 60;
 
+#ifdef TESTS
+    static const uint32_t kTransactionCheckingSignalRepeatTimeSecondsTests = 60;
+    static const uint32_t kTransactionCheckingSignalSmallRepeatTimeSecondsTests = 10;
+#endif
+
     // block number updating period
     static const byte kBlockNumberUpdateHours = 1;
     static const byte kBlockNumberUpdateMinutes = 0;
@@ -136,6 +141,9 @@ private:
     }
 
     static const uint16_t kApproximateBlockNumberIncrementingPeriodSeconds = 60;
+#ifdef TESTS
+    static const uint16_t kApproximateBlockNumberIncrementingPeriodSecondsTests = 20;
+#endif
 
 private:
     vector<IPv4WithPortAddress::Shared> mObservers;

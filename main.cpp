@@ -1,6 +1,6 @@
 #include "src/core/Core.h"
 
-#ifdef TESTS
+#ifdef INTERNAL_TESTS
 #define CATCH_CONFIG_MAIN
 #include "src/tests/catch.hpp"
 #include "src/tests/TestIncludes.h"
@@ -33,7 +33,7 @@
 #include "src/tests/trust_lines/TrustLineTests.cpp"
 #endif
 
-#ifndef TESTS
+#ifndef INTERNAL_TESTS
 int main(int argc, char** argv) {
 
     return Core(argv[0]).run();

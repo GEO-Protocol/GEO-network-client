@@ -49,9 +49,13 @@ public:
     void rescheduleNextActionSmallTime();
 
 private:
-    static const uint16_t kClaimRequestPeriodSeconds = 30;//60;
+    static const uint16_t kClaimRequestPeriodSeconds = 60;
+    static const uint16_t kClaimRequestSmallPeriodSeconds = 30;
 
-    static const uint16_t kClaimRequestSmallPeriodSeconds = 10;//30;
+#ifdef TESTS
+    static const uint16_t kClaimRequestPeriodSecondsTests = 20;
+    static const uint16_t kClaimRequestSmallPeriodSecondsTests = 10;
+#endif
 
 private:
     ObservingClaimAppendRequestMessage::Shared mRequest;

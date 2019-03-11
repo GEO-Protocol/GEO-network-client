@@ -110,6 +110,10 @@ public:
 private:
     const uint32_t kSixNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
     const uint32_t kFiveNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
+#ifdef TESTS
+    const uint32_t kSignalStartTimeSecondsTests = 15;
+    const uint32_t kSignalRepeatTimeSecondsTests = 10;
+#endif
     const uint32_t kUpdatingTimerPeriodSeconds = 10 * 60;
 
     static const byte kOfflineNodesAndClosedTLLiveHours = 0;

@@ -19,7 +19,7 @@ CyclesManager::CyclesManager(
     srand(randomInitializer());
     int timeStarted = (10 * 60) + (rand() % (60 * 60 * 6));
 #ifdef TESTS
-    timeStarted = 15;
+    timeStarted = kSignalStartTimeSecondsTests;
 #endif
     mFiveNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
@@ -34,7 +34,7 @@ CyclesManager::CyclesManager(
 
     timeStarted = (10 * 60) + (rand() % (60 * 60 * 6));
 #ifdef TESTS
-    timeStarted = 15;
+    timeStarted = kSignalStartTimeSecondsTests;
 #endif
     mSixNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
@@ -174,7 +174,7 @@ void CyclesManager::runSignalFiveNodes(
     mFiveNodesCycleTimer->cancel();
     auto timeRepeated = kFiveNodesSignalRepeatTimeSeconds;
 #ifdef TESTS
-    timeRepeated = 10;
+    timeRepeated = kSignalRepeatTimeSecondsTests;
 #endif
     mFiveNodesCycleTimer->expires_from_now(
         std::chrono::seconds(
@@ -196,7 +196,7 @@ void CyclesManager::runSignalSixNodes(
     mSixNodesCycleTimer->cancel();
     auto timeRepeated = kSixNodesSignalRepeatTimeSeconds;
 #ifdef TESTS
-    timeRepeated = 10;
+    timeRepeated = kSignalRepeatTimeSecondsTests;
 #endif
     mSixNodesCycleTimer->expires_from_now(
         std::chrono::seconds(

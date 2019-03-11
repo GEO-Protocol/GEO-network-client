@@ -498,6 +498,11 @@ void ObservingHandler::runTransactionsChecking(
         mTransactionsTimer.expires_from_now(
             std::chrono::seconds(
                 kTransactionCheckingSignalRepeatTimeSeconds));
+#ifdef TESTS
+        mTransactionsTimer.expires_from_now(
+            std::chrono::seconds(
+                kTransactionCheckingSignalRepeatTimeSecondsTests));
+#endif
         mTransactionsTimer.async_wait(
             boost::bind(
                 &ObservingHandler::runTransactionsChecking,
@@ -549,6 +554,9 @@ void ObservingHandler::runTransactionsChecking(
 #endif
 
         auto transactionCheckingSignalRepeatTimeSeconds = kTransactionCheckingSignalRepeatTimeSeconds;
+#ifdef TESTS
+        transactionCheckingSignalRepeatTimeSeconds = kTransactionCheckingSignalRepeatTimeSecondsTests;
+#endif
         size_t idxProcessedTransaction = 0;
         for (const auto &responseTransaction : transactionsResponse->transactionsResponses()) {
             auto processedTransaction = checkedTransactions.at(idxProcessedTransaction++).first;
@@ -574,11 +582,14 @@ void ObservingHandler::runTransactionsChecking(
                 }
                 case ObservingTransaction::ClaimInPool: {
                     info() << "Claim in pool for " << processedTransaction;
-                    // todo: need correct reaction because observer get info about claim, when it on the blackchain
+                    // todo: need correct reaction because observer get info about claim, when it on the blockchain
                     if (!sendParticipantsVoteMessageToObservers(
                         processedTransaction,
                         mCheckedTransactions[processedTransaction])) {
                         transactionCheckingSignalRepeatTimeSeconds = kTransactionCheckingSignalSmallRepeatTimeSeconds;
+#ifdef TESTS
+                        transactionCheckingSignalRepeatTimeSeconds = kTransactionCheckingSignalSmallRepeatTimeSecondsTests;
+#endif
                     }
                     break;
                 }
@@ -601,6 +612,9 @@ void ObservingHandler::runTransactionsChecking(
                         processedTransaction,
                         mCheckedTransactions[processedTransaction])) {
                         transactionCheckingSignalRepeatTimeSeconds = kTransactionCheckingSignalSmallRepeatTimeSeconds;
+#ifdef TESTS
+                        transactionCheckingSignalRepeatTimeSeconds = kTransactionCheckingSignalSmallRepeatTimeSecondsTests;
+#endif
                     }
                     break;
                 }
@@ -639,6 +653,11 @@ void ObservingHandler::runTransactionsChecking(
     mTransactionsTimer.expires_from_now(
         std::chrono::seconds(
             kTransactionCheckingSignalSmallRepeatTimeSeconds));
+#ifdef TESTS
+    mTransactionsTimer.expires_from_now(
+        std::chrono::seconds(
+            kTransactionCheckingSignalSmallRepeatTimeSecondsTests));
+#endif
     mTransactionsTimer.async_wait(
         boost::bind(
             &ObservingHandler::runTransactionsChecking,
@@ -770,6 +789,10 @@ void ObservingHandler::responseActualBlockNumber(
             durationWithoutBlockNumberUpdating.seconds();
     BlockNumber actualBlockNumber = mLastUpdatedBlockNumber.first +
             durationWithoutBlockNumberUpdatingSeconds / kApproximateBlockNumberIncrementingPeriodSeconds;
+#ifdef TESTS
+    actualBlockNumber = mLastUpdatedBlockNumber.first +
+            durationWithoutBlockNumberUpdatingSeconds / kApproximateBlockNumberIncrementingPeriodSecondsTests;
+#endif
 #ifdef DEBUG_LOG_OBSEVING_HANDLER
     debug() << "Last getting actual block number " << mLastUpdatedBlockNumber.first
             << " at time " << mLastUpdatedBlockNumber.second;
