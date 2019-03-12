@@ -51,7 +51,7 @@ ObservingHandler::ObservingHandler(
 
     mBlockNumberRequestTimer.expires_from_now(
         std::chrono::seconds(
-            kInitialObservingRequestShiftSeconds));
+            +kInitialObservingRequestShiftSeconds));
     mBlockNumberRequestTimer.async_wait(
         boost::bind(
             &ObservingHandler::initialObservingRequest,
@@ -190,7 +190,7 @@ void ObservingHandler::initialObservingRequest()
             mAllowPaymentTransactionsSignal(true);
             mTransactionsTimer.expires_from_now(
                 std::chrono::seconds(
-                    kInitialObservingRequestShiftSeconds));
+                    +kInitialObservingRequestShiftSeconds));
             mTransactionsTimer.async_wait(
                 boost::bind(
                     &ObservingHandler::runTransactionsChecking,
@@ -206,7 +206,7 @@ void ObservingHandler::initialObservingRequest()
     warning() << "Can't get actual block number from all observers";
     mBlockNumberRequestTimer.expires_from_now(
         std::chrono::seconds(
-            kInitialObservingRequestNextSeconds));
+            +kInitialObservingRequestNextSeconds));
     mBlockNumberRequestTimer.async_wait(
         boost::bind(
             &ObservingHandler::initialObservingRequest,
@@ -497,11 +497,11 @@ void ObservingHandler::runTransactionsChecking(
     if (mCheckedTransactions.empty()) {
         mTransactionsTimer.expires_from_now(
             std::chrono::seconds(
-                kTransactionCheckingSignalRepeatTimeSeconds));
+                +kTransactionCheckingSignalRepeatTimeSeconds));
 #ifdef TESTS
         mTransactionsTimer.expires_from_now(
             std::chrono::seconds(
-                kTransactionCheckingSignalRepeatTimeSecondsTests));
+                +kTransactionCheckingSignalRepeatTimeSecondsTests));
 #endif
         mTransactionsTimer.async_wait(
             boost::bind(
@@ -652,11 +652,11 @@ void ObservingHandler::runTransactionsChecking(
     warning() << "Can't send request to all observers";
     mTransactionsTimer.expires_from_now(
         std::chrono::seconds(
-            kTransactionCheckingSignalSmallRepeatTimeSeconds));
+            +kTransactionCheckingSignalSmallRepeatTimeSeconds));
 #ifdef TESTS
     mTransactionsTimer.expires_from_now(
         std::chrono::seconds(
-            kTransactionCheckingSignalSmallRepeatTimeSecondsTests));
+            +kTransactionCheckingSignalSmallRepeatTimeSecondsTests));
 #endif
     mTransactionsTimer.async_wait(
         boost::bind(
@@ -774,7 +774,7 @@ void ObservingHandler::responseActualBlockNumber(
         mAllowPaymentTransactionsSignal(false);
         mBlockNumberRequestTimer.expires_from_now(
             std::chrono::seconds(
-                kInitialObservingRequestNextSeconds));
+                +kInitialObservingRequestNextSeconds));
         mBlockNumberRequestTimer.async_wait(
             boost::bind(
                 &ObservingHandler::getActualBlockNumber,
@@ -848,7 +848,7 @@ void ObservingHandler::getActualBlockNumber()
     warning() << "Can't get actual block number from all observers";
     mBlockNumberRequestTimer.expires_from_now(
         std::chrono::seconds(
-            kInitialObservingRequestNextSeconds));
+            +kInitialObservingRequestNextSeconds));
     mBlockNumberRequestTimer.async_wait(
         boost::bind(
             &ObservingHandler::getActualBlockNumber,
