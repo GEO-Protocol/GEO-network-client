@@ -84,12 +84,10 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
         bytesLeft -= std::min(bytesLeft, Packet::kMaxSize - PacketHeader::kSize);
     }
 
-
     PacketHeader::ChannelIndex channelIndex = nextChannelIndex();
     uint32_t crcChecksum = crc32Checksum(
         messageData,
         messageBytesCount);
-
 
     size_t messageContentBytesProcessed = 0;
     size_t messageCrc32ChecksumBytesProcessed = 0;
@@ -128,8 +126,7 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
 
             size_t usefulBytesCount = Packet::kMaxSize - PacketHeader::kSize;
             size_t messageLeftover = std::min(usefulBytesCount,
-                messageBytesCount - messageContentBytesProcessed
-            );
+                messageBytesCount - messageContentBytesProcessed);
             memcpy(
                 buffer + PacketHeader::kDataOffset,
                 messageData + messageContentBytesProcessed,
@@ -156,7 +153,8 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
 
     // Writing last packet
     const PacketHeader::PacketSize kLastPacketSize =
-        static_cast<PacketHeader::PacketSize>(kMessageContentWithCRC32BytesCount - messageContentBytesProcessed) + PacketHeader::kSize;
+        static_cast<PacketHeader::PacketSize>(kMessageContentWithCRC32BytesCount -
+        messageContentBytesProcessed) + PacketHeader::kSize;
 
     byte *buffer = static_cast<byte*>(malloc(kLastPacketSize));
     if (buffer == nullptr) {
@@ -185,8 +183,7 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
 
     size_t usefulBytesCount = Packet::kMaxSize - PacketHeader::kSize;
     size_t messageLeftover = std::min(usefulBytesCount,
-        messageBytesCount - std::min(messageBytesCount, messageContentBytesProcessed)
-    );
+        messageBytesCount - std::min(messageBytesCount, messageContentBytesProcessed));
     memcpy(
         buffer + PacketHeader::kDataOffset,
         messageData + messageContentBytesProcessed,
@@ -195,7 +192,7 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
     messageContentBytesProcessed += messageLeftover;
 
     // Copying CRC32 checksum
-    size_t checksumLeftover = (size_t)(sizeof(crcChecksum) - messageCrc32ChecksumBytesProcessed);
+    auto checksumLeftover = (size_t)(sizeof(crcChecksum) - messageCrc32ChecksumBytesProcessed);
     memcpy(
         buffer + PacketHeader::kDataOffset + messageLeftover,
         (uint8_t *)&crcChecksum + messageCrc32ChecksumBytesProcessed,
@@ -236,7 +233,6 @@ void OutgoingRemoteNode::beginPacketsSending()
         return;
     }
 
-
     // The next code inserts delay between sending packets in case of high traffic.
     const auto kShortSendingTimeInterval = boost::posix_time::milliseconds(20);
     const auto kTimeoutFromLastSending = boost::posix_time::microsec_clock::universal_time() - mCyclesStats.first;
@@ -259,7 +255,6 @@ void OutgoingRemoteNode::beginPacketsSending()
     } else {
         mCyclesStats.second = 0;
     }
-
 
     const auto packetDataAndSize = mPacketsQueue.front();
     mSocket.async_send_to(
@@ -301,7 +296,7 @@ void OutgoingRemoteNode::beginPacketsSending()
                 << setw(4) << bytesTransferred <<  "B TX [ => ] "
                 << endpoint.address() << ":" << endpoint.port() << "; "
                 << "Channel: " << setw(10) << static_cast<size_t>(channelIndex) << "; "
-                << "Packet1: " << setw(3) << static_cast<size_t>(packetIndex)
+                << "Packet: " << setw(3) << static_cast<size_t>(packetIndex)
                 << "/" << static_cast<size_t>(totalPacketsCount);
 #endif
 
