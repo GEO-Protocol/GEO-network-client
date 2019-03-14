@@ -12,10 +12,10 @@ GetTrustLineByIDCommand::GetTrustLineByIDCommand(
             throw ValueError("GetTrustLineByIDCommand: there is no input ");
         }
     };
-    auto contractorid_add = [&](auto& ctx) {
+    auto contractorIDParse = [&](auto& ctx) {
         mContractorID = _attr(ctx);
     };
-    auto equivalentid_add = [&](auto& ctx) {
+    auto equivalentParse = [&](auto& ctx) {
         mEquivalent = _attr(ctx);
     };
 
@@ -27,7 +27,7 @@ GetTrustLineByIDCommand::GetTrustLineByIDCommand(
         parse(
             command.begin(),
             command.end(),
-            *(int_[contractorid_add]) > char_(kTokensSeparator) > *(int_[equivalentid_add]) > eol);
+            *(int_[contractorIDParse]) > char_(kTokensSeparator) > *(int_[equivalentParse]) > eol);
     } catch(...) {
         throw ValueError("GetTrustLineByIDCommand: can't parse command.");
     }

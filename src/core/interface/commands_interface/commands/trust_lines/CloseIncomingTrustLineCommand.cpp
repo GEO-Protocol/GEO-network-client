@@ -13,10 +13,10 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
             throw ValueError("CloseIncomingTrustLineCommand: there is no input ");
         }
     };
-    auto contractorid_add = [&](auto& ctx) {
+    auto contractorIDParse = [&](auto& ctx) {
         mContractorID = _attr(ctx);
     };
-    auto equivalentid_add = [&](auto& ctx) {
+    auto equivalentParse = [&](auto& ctx) {
         mEquivalent = _attr(ctx);
     };
 
@@ -28,7 +28,7 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
         parse(
             command.begin(),
             command.end(),
-            *(int_[contractorid_add]) > char_(kTokensSeparator) > *(int_[equivalentid_add]) > eol);
+            *(int_[contractorIDParse]) > char_(kTokensSeparator) > *(int_[equivalentParse]) > eol);
     } catch(...) {
         throw ValueError("CloseIncomingTrustLineCommand: can't parse command.");
     }

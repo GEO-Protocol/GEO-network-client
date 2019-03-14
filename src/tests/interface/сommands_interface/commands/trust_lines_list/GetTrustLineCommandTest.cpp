@@ -3,7 +3,7 @@
 
 TEST_CASE("Testing GetTrustLineByAddressCommand")
 {
-    GetTrustLineByAddressCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "12\t127.0.0.1:2006\t2000\n");
+    REQUIRE_NOTHROW(GetTrustLineByAddressCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t12\t127.0.0.1:2006\t2000\n"));
 
     SECTION("Charater instead of int in number of addresses")
     {

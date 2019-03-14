@@ -3,7 +3,7 @@
 
 TEST_CASE("Testing PaymentTransactionByCommandUUIDCommand")
 {
-    PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "11111111-1111-1111-1111-111111111111\n");
+    REQUIRE_NOTHROW(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "11111111-1111-1111-1111-111111111111\n"));
 
     SECTION("UUID 7-4-4-12 -> 8-3-4-12 -> 8-4-3-12 -> 8-4-4-11 -> 4-4-12 -> 9-4-4-12 -> 8-5-4-12 -> 8-4-5-12 -> 8-4-4-13")
     {

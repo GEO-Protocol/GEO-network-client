@@ -3,7 +3,7 @@
 
 TEST_CASE("Trying INIT trustline ")
 {
-    InitTrustLineCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"1\t12\t127.0.0.1:2007\t3\n");
+    REQUIRE_NOTHROW(InitTrustLineCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"1\t12\t127.0.0.1:2007\t3\n"));
 
     SECTION("Two addresses")
     {

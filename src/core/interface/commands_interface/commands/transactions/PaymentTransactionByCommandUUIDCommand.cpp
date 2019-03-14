@@ -8,34 +8,34 @@ PaymentTransactionByCommandUUIDCommand::PaymentTransactionByCommandUUIDCommand(
         commandUUID,
         identifier())
 {
-    uint32_t flag_4 = 0, flag_8 =0 , flag_12 = 0;
+    uint32_t flag4 = 0, flag8 =0 , flag12 = 0;
     std::string paymentRecordCommandUUID;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator) {
             throw ValueError("PaymentTransactionByCommandUUIDCommand: there is no input ");
         }
     };
-    auto add_8 = [&](auto &ctx) {
-        flag_8++;
-        if(flag_8 >9) {
+    auto parseUUID8Chars = [&](auto &ctx) {
+        flag8++;
+        if(flag8 >9) {
             throw 1;
-        } else if(_attr(ctx) == '-' && flag_8 < 9) {
+        } else if(_attr(ctx) == '-' && flag8 < 9) {
             throw ValueError("Expect 8 digits");
         }
         paymentRecordCommandUUID += _attr(ctx);
     };
-    auto add_4 = [&](auto &ctx) {
-        flag_4++;
-        if(flag_4 >5 || (_attr(ctx) == '-' && flag_4 < 5)) {
+    auto parseUUID4Chars = [&](auto &ctx) {
+        flag4++;
+        if(flag4 >5 || (_attr(ctx) == '-' && flag4 < 5)) {
             throw ValueError("Expect 4 digits");
         } else if(_attr(ctx) == '-') {
-            flag_4=0;
+            flag4=0;
         }
         paymentRecordCommandUUID += _attr(ctx);
     };
-    auto add_12 = [&](auto &ctx) {
-        flag_12++;
-        if(flag_12 >13 || (_attr(ctx) == '\n' && flag_12 < 13)) {
+    auto parseUUID12Chars = [&](auto &ctx) {
+        flag12++;
+        if(flag12 >13 || (_attr(ctx) == '\n' && flag12 < 13)) {
             throw ValueError("Expect 12 digits");
         } else if(_attr(ctx) == '\n' ) {
         } else {
@@ -51,11 +51,11 @@ PaymentTransactionByCommandUUIDCommand::PaymentTransactionByCommandUUIDCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
-                *(char_[add_8] - char_('-')) > char_('-') [add_8]
-                >*(char_[add_4] - char_('-')) > char_('-') [add_4]
-                >*(char_[add_4] - char_('-')) > char_('-') [add_4]
-                >*(char_[add_4] - char_('-')) > char_('-') [add_4]
-                >*(char_[add_12] - char_(kCommandsSeparator) ) > char_(kCommandsSeparator) [add_12]));
+                *(char_[parseUUID8Chars] - char_('-')) > char_('-') [parseUUID8Chars]
+                >*(char_[parseUUID4Chars] - char_('-')) > char_('-') [parseUUID4Chars]
+                >*(char_[parseUUID4Chars] - char_('-')) > char_('-') [parseUUID4Chars]
+                >*(char_[parseUUID4Chars] - char_('-')) > char_('-') [parseUUID4Chars]
+                >*(char_[parseUUID12Chars] - char_(kCommandsSeparator) ) > char_(kCommandsSeparator) [parseUUID12Chars]));
         mPaymentTransactionCommandUUID = boost::lexical_cast<uuids::uuid>(paymentRecordCommandUUID);
     } catch(...) {
         throw ValueError("PaymentTransactionByCommandUUIDCommand: can't parse command");

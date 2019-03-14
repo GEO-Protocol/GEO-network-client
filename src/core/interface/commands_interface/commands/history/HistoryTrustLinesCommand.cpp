@@ -13,29 +13,29 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
             throw ValueError("HistoryTrustLinesCommand: there is no input ");
         }
     };
-    auto historyfrom_add = [&](auto &ctx) {
+    auto historyFromParse = [&](auto &ctx) {
         mHistoryFrom = _attr(ctx);
     };
-    auto historycount_add = [&](auto &ctx) {
+    auto historyCountParse = [&](auto &ctx) {
         mHistoryCount = _attr(ctx);
     };
-    auto timefrompresent_null = [&](auto &ctx) {
+    auto timeFromPresentNull = [&](auto &ctx) {
         mIsTimeFromPresent = false;
     };
-    auto timefrompresent_number = [&](auto &ctx) {
+    auto timeFromPresentAddNumber = [&](auto &ctx) {
         mIsTimeFromPresent = true;
         mTimeFrom = pt::time_from_string("1970-01-01 00:00:00.000");
         mTimeFrom += pt::microseconds(_attr(ctx));
     };
-    auto timetopresent_null = [&](auto &ctx) {
+    auto timeToPresentNull = [&](auto &ctx) {
         mIsTimeToPresent = false;
     };
-    auto timetopresent_number = [&](auto &ctx) {
+    auto timeToPresentAddNumber = [&](auto &ctx) {
         mIsTimeToPresent = true;
         mTimeTo = pt::time_from_string("1970-01-01 00:00:00.000");
         mTimeTo += pt::microseconds(_attr(ctx));
     };
-    auto equivalentID_add = [&](auto &ctx) {
+    auto equivalentParse = [&](auto &ctx) {
         mEquivalent = _attr(ctx);
     };
 
@@ -47,17 +47,17 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
-                *(int_[historyfrom_add])
+                *(int_[historyFromParse])
                 > char_(kTokensSeparator)
-                > *(int_[historycount_add])
+                > *(int_[historyCountParse])
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[timefrompresent_null]))
-                > -(int_[timefrompresent_number])
+                > -(+(char_("null")[timeFromPresentNull]))
+                > -(int_[timeFromPresentAddNumber])
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[timetopresent_null]))
-                > -(int_[timetopresent_number])
+                > -(+(char_("null")[timeToPresentNull]))
+                > -(int_[timeToPresentAddNumber])
                 > char_(kTokensSeparator)
-                > int_[equivalentID_add]
+                > int_[equivalentParse]
                 > eol));
     } catch(...) {
         throw ValueError("HistoryTrustLinesCommand : can't parse command");

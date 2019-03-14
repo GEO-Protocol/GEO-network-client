@@ -3,7 +3,7 @@
 
 TEST_CASE("Testing HistoryAdditionalPaymentsCommand")
 {
-    HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t1\t1\t1\t1\t1\t1\n");
+    REQUIRE_NOTHROW(HistoryAdditionalPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t1\t1\t1\t1\t1\t1\n"));
 
     SECTION("Different number in input")
     {

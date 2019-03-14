@@ -3,7 +3,7 @@
 
 TEST_CASE("Testing SetOutgoingTrustLineCommand")
 {
-    SetOutgoingTrustLineCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "0\t10\t0\n");
+    REQUIRE_NOTHROW(SetOutgoingTrustLineCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "0\t10\t0\n"));
 
     SECTION("Charater instead of integer and without amount & equivalent")
     {

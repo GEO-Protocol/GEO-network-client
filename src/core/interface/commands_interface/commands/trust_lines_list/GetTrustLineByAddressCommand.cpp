@@ -9,25 +9,25 @@ GetTrustLineByAddressCommand::GetTrustLineByAddressCommand(
         identifier())
 {
     std::string address;
-    uint32_t addressType, addressesCount, equivalentID;
+    uint32_t addressType, addressesCount;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator) {
             throw ValueError("GetTrustLineByAddressCommand: there is no input ");
         }
     };
-    auto parserType = [&](auto &ctx) {
+    auto addressTypeParse = [&](auto &ctx) {
         addressType = _attr(ctx);
     };
-    auto address_add = [&](auto &ctx) {
+    auto addressAddChar = [&](auto &ctx) {
         address += _attr(ctx);
     };
-    auto address_number_add = [&](auto &ctx) {
+    auto addressAddNumber = [&](auto &ctx) {
         address += std::to_string(_attr(ctx));
     };
-    auto address_Count = [&](auto &ctx) {
+    auto addressesCountParse = [&](auto &ctx) {
         addressesCount = _attr(ctx);
     };
-    auto address_vector = [&](auto &ctx) {
+    auto addressAddToVector = [&](auto &ctx) {
         switch (addressType) {
             case BaseAddress::IPv4_IncludingPort: {
                 mContractorAddresses.push_back(
@@ -41,8 +41,8 @@ GetTrustLineByAddressCommand::GetTrustLineByAddressCommand(
         }
         address.erase();
     };
-    auto equivalentID_add = [&](auto &ctx) {
-        equivalentID = _attr(ctx);
+    auto equivalentParse = [&](auto &ctx) {
+        mEquivalent = _attr(ctx);
     };
 
     try {
@@ -53,20 +53,19 @@ GetTrustLineByAddressCommand::GetTrustLineByAddressCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(),
-            *(int_[address_Count]-char_(kTokensSeparator)) > char_(kTokensSeparator));
+            *(int_[addressesCountParse]-char_(kTokensSeparator)) > char_(kTokensSeparator));
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
-                *(int_[address_Count]) > char_(kTokensSeparator)
-                > repeat(addressesCount)[*(int_[parserType] - char_(kTokensSeparator)) > char_(kTokensSeparator)
-                > repeat(3)[int_[address_number_add]> char_('.') [address_add]]
-                > int_[address_number_add] > char_(':') [address_add]
-                > int_[address_number_add] > char_(kTokensSeparator) [address_vector]]
-                > +(int_[equivalentID_add]) > eol));
+                *(int_[addressesCountParse]) > char_(kTokensSeparator)
+                > repeat(addressesCount)[*(int_[addressTypeParse] - char_(kTokensSeparator)) > char_(kTokensSeparator)
+                > repeat(3)[int_[addressAddNumber]> char_('.') [addressAddChar]]
+                > int_[addressAddNumber] > char_(':') [addressAddChar]
+                > int_[addressAddNumber] > char_(kTokensSeparator) [addressAddToVector]]
+                > +(int_[equivalentParse]) > eol));
     } catch(...) {
         throw ValueError("GetTrustLineByAddressCommand: can't parse command.");
     }
-    mEquivalent = equivalentID;
 }
 
 const string &GetTrustLineByAddressCommand::identifier()

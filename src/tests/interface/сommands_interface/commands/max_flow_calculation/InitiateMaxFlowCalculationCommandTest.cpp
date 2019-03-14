@@ -3,7 +3,7 @@
 
 TEST_CASE("Testing InitiateMaxFlowCalculationsCommand")
 {
-    InitiateMaxFlowCalculationCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t12\t127.0.0.1:2100\t2\n");
+    REQUIRE_NOTHROW(InitiateMaxFlowCalculationCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t12\t127.0.0.1:2100\t2\n"));
 
     SECTION("Two addresses")
     {

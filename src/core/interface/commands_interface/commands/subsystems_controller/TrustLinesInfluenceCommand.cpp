@@ -13,19 +13,19 @@ TrustLinesInfluenceCommand::TrustLinesInfluenceCommand(
             throw ValueError("TrustLinesInfluenceCommand: there is no input ");
         }
     };
-    auto flags_add = [&](auto &ctx) {
+    auto flagsParse = [&](auto &ctx) {
         mFlags = _attr(ctx);
         mFirstParameter = 0;
         mSecondParameter = 0;
         mThirdParameter = 0;
     };
-    auto firstparam_add = [&](auto &ctx) {
+    auto firstParamParse = [&](auto &ctx) {
         mFirstParameter = _attr(ctx);
     };
-    auto secondparam_add = [&](auto &ctx) {
+    auto secondParamParse = [&](auto &ctx) {
         mSecondParameter = _attr(ctx);
     };
-    auto thirdparam_add = [&](auto &ctx) {
+    auto thirdParamParse = [&](auto &ctx) {
         mThirdParameter = _attr(ctx);
     };
 
@@ -37,13 +37,13 @@ TrustLinesInfluenceCommand::TrustLinesInfluenceCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
-                *(int_[flags_add])
+                *(int_[flagsParse])
                 >-(char_(kTokensSeparator)
-                >*(int_[firstparam_add])
+                >*(int_[firstParamParse])
                 >char_(kTokensSeparator)
-                >*(int_[secondparam_add])
+                >*(int_[secondParamParse])
                 >char_(kTokensSeparator)
-                >*(int_[thirdparam_add]))
+                >*(int_[thirdParamParse]))
                 >eol));
     } catch(...) {
         throw ValueError("TrustLinesInfluenceCommand: can't parse command");

@@ -3,7 +3,7 @@
 
 TEST_CASE("Testing GetFirstLevelContractorsCommand")
 {
-    GetFirstLevelContractorsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\n");
+    REQUIRE_NOTHROW(GetFirstLevelContractorsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\n"));
 
     SECTION("No input")
     {

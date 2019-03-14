@@ -13,10 +13,10 @@ ShareKeysCommand::ShareKeysCommand(
             throw ValueError("ShareKeysCommand: there is no input ");
         }
     };
-    auto contractorID_add = [&](auto &ctx) {
+    auto contractorIDParse = [&](auto &ctx) {
         mContractorID = _attr(ctx);
     };
-    auto equivalent_add = [&](auto &ctx) {
+    auto equivalentParse = [&](auto &ctx) {
         mEquivalent = _attr(ctx);
     };
 
@@ -28,7 +28,7 @@ ShareKeysCommand::ShareKeysCommand(
         parse(
             command.begin(),
             command.end(),
-            *(int_[contractorID_add]) > char_(kTokensSeparator)  > int_[equivalent_add] > eol);
+            *(int_[contractorIDParse]) > char_(kTokensSeparator)  > int_[equivalentParse] > eol);
     } catch (...) {
         throw ValueError("SetOutgoingTrustLineCommand : can't parse command");
     }

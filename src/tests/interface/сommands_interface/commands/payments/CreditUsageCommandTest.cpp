@@ -3,10 +3,7 @@
 
 TEST_CASE("Testing CreditUsageCommand")
 {
-    CreditUsageCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t12\t127.3.3.3:2007\t2000\t3\n");
-
-
-
+    REQUIRE_NOTHROW(CreditUsageCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t12\t127.3.3.3:2007\t2000\t3\n"));
 
     SECTION("Two addresses")
     {

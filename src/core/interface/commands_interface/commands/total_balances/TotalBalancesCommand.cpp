@@ -13,7 +13,7 @@ TotalBalancesCommand::TotalBalancesCommand(
             throw ValueError("TotalBalancesCommand: there is no input ");
         }
     };
-    auto equivalent_add = [&](auto &ctx) {
+    auto equivalentParse = [&](auto &ctx) {
         mEquivalent = _attr(ctx);
     };
 
@@ -25,7 +25,7 @@ TotalBalancesCommand::TotalBalancesCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(),
-            *(int_[equivalent_add]) > eol);
+            *(int_[equivalentParse]) > eol);
     } catch (...) {
         throw ValueError("TotalBalancesCommand: can't parse command");
     }

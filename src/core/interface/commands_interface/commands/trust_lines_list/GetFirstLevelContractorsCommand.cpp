@@ -13,7 +13,7 @@ GetFirstLevelContractorsCommand::GetFirstLevelContractorsCommand(
             throw ValueError("GetFirstLevelContractorsCommand: there is no input ");
         }
     };
-    auto equivalent_add = [&](auto &ctx) {
+    auto equivalentParse = [&](auto &ctx) {
         mEquivalent = _attr(ctx);
     };
 
@@ -25,7 +25,7 @@ GetFirstLevelContractorsCommand::GetFirstLevelContractorsCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(),
-            *(int_[equivalent_add]) > kCommandsSeparator);
+            *(int_[equivalentParse]) > kCommandsSeparator);
     } catch (...) {
         throw ValueError("GetFirstLevelContractorsCommand: can't parse command");
     }

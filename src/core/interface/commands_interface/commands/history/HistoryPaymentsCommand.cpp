@@ -8,92 +8,92 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         uuid,
         identifier())
 {
-    uint32_t flag_low = 0, flag_high = 0, flag_4 = 0, flag_8 =0 , flag_12 = 0;
+    uint32_t flagLow = 0, flagHigh = 0, flag4 = 0, flag8 =0 , flag12 = 0;
     std::string lowBoundaryAmount, highBoundaryAmount, paymentRecordCommandUUID;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator) {
             throw ValueError("HistoryPaymentsCommand: there is no input ");
         }
     };
-    auto historyfrom_add = [&](auto &ctx) {
+    auto historyFromParse = [&](auto &ctx) {
         mHistoryFrom = _attr(ctx);
     };
-    auto historycount_add = [&](auto &ctx) {
+    auto historyCountParse = [&](auto &ctx) {
         mHistoryCount = _attr(ctx);
     };
-    auto timefrompresent_null = [&](auto &ctx) {
+    auto timeFromPresentNull = [&](auto &ctx) {
         mIsTimeFromPresent = false;
     };
-    auto timefrompresent_number = [&](auto &ctx) {
+    auto timeFromPresentNumber = [&](auto &ctx) {
         mIsTimeFromPresent = true;
         mTimeFrom = pt::time_from_string("1970-01-01 00:00:00.000");
         mTimeFrom += pt::microseconds(_attr(ctx));
     };
-    auto timetopresent_null = [&](auto &ctx) {
+    auto timeToPresentNull = [&](auto &ctx) {
         mIsTimeToPresent = false;
     };
-    auto timetopresent_number = [&](auto &ctx) {
+    auto timeToPresentNumber = [&](auto &ctx) {
         mIsTimeToPresent = true;
         mTimeTo = pt::time_from_string("1970-01-01 00:00:00.000");
         mTimeTo += pt::microseconds(_attr(ctx));
     };
-    auto lowboundary_null = [&](auto &ctx) {
+    auto lowBoundaryAmountNull = [&](auto &ctx) {
         mIsLowBoundaryAmountPresent = false;
     };
-    auto lowboundary_number = [&](auto &ctx) {
+    auto lowBoundaryAmountAddNumber = [&](auto &ctx) {
         lowBoundaryAmount += _attr(ctx);
         mIsLowBoundaryAmountPresent = true;
-        flag_low++;
-        if(flag_low>39) {
+        flagLow++;
+        if(flagLow>39) {
             throw ValueError("Amount is too big");
-        } else if (flag_low == 1 && _attr(ctx) <= 0) {
+        } else if (flagLow == 1 && _attr(ctx) <= 0) {
             throw ValueError("Amount can't be zero or low");
         }
     };
-    auto highboundary_null = [&](auto &ctx) {
+    auto highBoundaryAmountNull = [&](auto &ctx) {
         mIsHighBoundaryAmountPresent = false;
     };
-    auto highboundary_number = [&](auto &ctx) {
+    auto highBoundaryAmountAddNumber = [&](auto &ctx) {
         highBoundaryAmount += _attr(ctx);
         mIsHighBoundaryAmountPresent = true;
-        flag_high++;
-        if(flag_high>39) {
+        flagHigh++;
+        if(flagHigh>39) {
             throw ValueError("Amount is too big");
-        } else if (flag_high == 1 && _attr(ctx) <= 0) {
+        } else if (flagHigh == 1 && _attr(ctx) <= 0) {
             throw ValueError("Amount can't be zero or low");
         }
     };
-    auto paymentRecordUUID_null = [&](auto &ctx){
+    auto paymentRecordUUIDNull = [&](auto &ctx){
         mIsPaymentRecordCommandUUIDPresent = false;
     };
-    auto add_8 = [&](auto &ctx) {
-        flag_8++;
-        if(flag_8 >9) {
+    auto addUUID8Digits = [&](auto &ctx) {
+        flag8++;
+        if(flag8 >9) {
             throw 1;
-        } else if(_attr(ctx) == '-' && flag_8 < 9) {
+        } else if(_attr(ctx) == '-' && flag8 < 9) {
             throw ValueError("Expect 8 digits");
         }
         mIsPaymentRecordCommandUUIDPresent = true;
         paymentRecordCommandUUID += _attr(ctx);
     };
-    auto add_4 = [&](auto &ctx) {
-        flag_4++;
-        if(flag_4 >5 || (_attr(ctx) == '-' && flag_4 < 5)) {
+    auto addUUID4Digits = [&](auto &ctx) {
+        flag4++;
+        if(flag4 >5 || (_attr(ctx) == '-' && flag4 < 5)) {
             throw ValueError("Expect 4 digits");
         } else if(_attr(ctx) == '-') {
-            flag_4 = 0;
+            flag4 = 0;
         }
         paymentRecordCommandUUID += _attr(ctx);
     };
-    auto add_12 = [&](auto &ctx) {
-        flag_12++;
-        if(flag_12 >13 || (_attr(ctx) == kTokensSeparator && flag_12 < 13)) {
+    auto addUUID12Digits = [&](auto &ctx) {
+        flag12++;
+        if(flag12 >13 || (_attr(ctx) == kTokensSeparator && flag12 < 13)) {
             throw ValueError("Expect 12 digits");
         } else if(_attr(ctx) == kTokensSeparator) {
         } else { paymentRecordCommandUUID += _attr(ctx);
         }
     };
-    auto equivalentID_add = [&](auto &ctx) {
+    auto equivalentParse = [&](auto &ctx) {
         mEquivalent = _attr(ctx);
     };
 
@@ -105,29 +105,29 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
-                *(int_[historyfrom_add])
+                *(int_[historyFromParse])
                 > char_(kTokensSeparator)
-                > *(int_[historycount_add])
+                > *(int_[historyCountParse])
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[timefrompresent_null]))
-                > -(int_[timefrompresent_number])
+                > -(+(char_("null")[timeFromPresentNull]))
+                > -(int_[timeFromPresentNumber])
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[timetopresent_null]))
-                > -(int_[timetopresent_number])
+                > -(+(char_("null")[timeToPresentNull]))
+                > -(int_[timeToPresentNumber])
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[lowboundary_null]))
-                > -(*(digit [lowboundary_number] > !alpha > !punct))
+                > -(+(char_("null")[lowBoundaryAmountNull]))
+                > -(*(digit [lowBoundaryAmountAddNumber] > !alpha > !punct))
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[highboundary_null]))
-                > -(*(digit [highboundary_number] > !alpha > !punct))
+                > -(+(char_("null")[highBoundaryAmountNull]))
+                > -(*(digit [highBoundaryAmountAddNumber] > !alpha > !punct))
                 > char_(kTokensSeparator)
-                    > -(+(char_("null")[paymentRecordUUID_null] >char_('\t')))
-                    > -( *(char_[add_8] - char_('-')) > char_('-') [add_8]
-                        >*(char_[add_4] - char_('-')) > char_('-') [add_4]
-                        >*(char_[add_4] - char_('-')) > char_('-') [add_4]
-                        >*(char_[add_4] - char_('-')) > char_('-') [add_4]
-                        >*(char_[add_12] - char_('\t')) > char_('\t') [add_12])
-                > int_[equivalentID_add]
+                    > -(+(char_("null")[paymentRecordUUIDNull] >char_('\t')))
+                    > -( *(char_[addUUID8Digits] - char_('-')) > char_('-') [addUUID8Digits]
+                        >*(char_[addUUID4Digits] - char_('-')) > char_('-') [addUUID4Digits]
+                        >*(char_[addUUID4Digits] - char_('-')) > char_('-') [addUUID4Digits]
+                        >*(char_[addUUID4Digits] - char_('-')) > char_('-') [addUUID4Digits]
+                        >*(char_[addUUID12Digits] - char_('\t')) > char_('\t') [addUUID12Digits])
+                > int_[equivalentParse]
                 > eol));
 
         mLowBoundaryAmount = TrustLineAmount(lowBoundaryAmount);

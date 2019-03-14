@@ -3,7 +3,7 @@
 
 TEST_CASE("Testing HistoryPaymentsCommand")
 {
-    HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t3\t4\t5\t6\t47183823-2574-4bfd-b411-99ed177d3e43\t8\n");
+    REQUIRE_NOTHROW(HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t3\t4\t5\t6\t47183823-2574-4bfd-b411-99ed177d3e43\t8\n"));
 
     SECTION("No input")
     {

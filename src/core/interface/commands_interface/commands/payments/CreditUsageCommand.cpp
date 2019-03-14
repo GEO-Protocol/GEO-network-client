@@ -9,34 +9,34 @@ CreditUsageCommand::CreditUsageCommand(
         uuid,
         identifier())
 {
-    std::string address,amount;
-    uint32_t addressType, equivalentID, flag_amount = 0;
+    std::string address, amount;
+    uint32_t addressType, flagAmount = 0;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator) {
             throw ValueError("CreditUsageCommand: there is no input ");
         }
     };
-    auto parserType = [&](auto &ctx) {
+    auto addressTypeParse = [&](auto &ctx) {
         addressType = _attr(ctx);
     };
-    auto address_add = [&](auto &ctx) {
+    auto addressAddChar = [&](auto &ctx) {
         address += _attr(ctx);
     };
-    auto address_number_add = [&](auto &ctx) {
+    auto addressAddNumber = [&](auto &ctx) {
         address += std::to_string(_attr(ctx));
     };
-    auto address_Count = [&](auto &ctx) {
+    auto addressesCountParse = [&](auto &ctx) {
         mContractorAddressesCount = _attr(ctx);
     };
-    auto addamount = [&](auto &ctx) {
+    auto amountAddNumber = [&](auto &ctx) {
         amount += _attr(ctx);
-        flag_amount++;
-        if (flag_amount > 39) { throw ValueError("Amount is too big"); }
-        else if (flag_amount == 1 && _attr(ctx) <= 0) {
+        flagAmount++;
+        if (flagAmount > 39) { throw ValueError("Amount is too big"); }
+        else if (flagAmount == 1 && _attr(ctx) <= 0) {
             throw ValueError("Amount can't be zero or low");
         }
     };
-    auto address_vector = [&](auto &ctx) {
+    auto addressAddToVector = [&](auto &ctx) {
         switch (addressType) {
             case BaseAddress::IPv4_IncludingPort: {
                 mContractorAddresses.push_back(
@@ -52,8 +52,8 @@ CreditUsageCommand::CreditUsageCommand(
         address.erase();
     };
 
-    auto equivalentID_add = [&](auto &ctx) {
-        equivalentID = _attr(ctx);
+    auto equivalentParse = [&](auto &ctx) {
+        mEquivalent = _attr(ctx);
     };
 
     try {
@@ -64,25 +64,24 @@ CreditUsageCommand::CreditUsageCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(),
-            *(int_[address_Count]-char_(kTokensSeparator)) > char_(kTokensSeparator));
+            *(int_[addressesCountParse]-char_(kTokensSeparator)) > char_(kTokensSeparator));
         mContractorAddresses.reserve(mContractorAddressesCount);
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
-                *(int_[address_Count]) > char_(kTokensSeparator)
-                > repeat(mContractorAddressesCount)[*(int_[parserType] - char_(kTokensSeparator))
+                *(int_[addressesCountParse]) > char_(kTokensSeparator)
+                > repeat(mContractorAddressesCount)[*(int_[addressTypeParse] - char_(kTokensSeparator))
                 > char_(kTokensSeparator)
-                > repeat(3)[int_[address_number_add]> char_('.') [address_add]]
-                > int_[address_number_add] > char_(':') [address_add]
-                > int_[address_number_add] > char_(kTokensSeparator) [address_vector]]
-                >*(digit [addamount] > !alpha > !punct)
+                > repeat(3)[int_[addressAddNumber]> char_('.') [addressAddChar]]
+                > int_[addressAddNumber] > char_(':') [addressAddChar]
+                > int_[addressAddNumber] > char_(kTokensSeparator) [addressAddToVector]]
+                >*(digit [amountAddNumber] > !alpha > !punct)
                 > char_(kTokensSeparator)
-                > +(int_[equivalentID_add]) > eol));
+                > +(int_[equivalentParse]) > eol));
+        mAmount = TrustLineAmount(amount);
     } catch(...) {
         throw ValueError("CreditUsageCommand: can't parse command.");
     }
-    mAmount = TrustLineAmount(amount);
-    mEquivalent = equivalentID;
 }
 
 const string& CreditUsageCommand::identifier()

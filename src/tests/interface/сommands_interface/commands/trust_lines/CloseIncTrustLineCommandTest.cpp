@@ -3,7 +3,7 @@
 
 TEST_CASE("Testing CloseIncomingTrustLineCommand")
 {
-    CloseIncomingTrustLineCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "0\t2000\n");
+    REQUIRE_NOTHROW(CloseIncomingTrustLineCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "0\t2000\n"));
 
     SECTION("Character in contracorID")
     {

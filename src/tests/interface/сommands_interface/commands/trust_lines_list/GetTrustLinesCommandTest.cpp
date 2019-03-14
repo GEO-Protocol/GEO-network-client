@@ -3,7 +3,7 @@
 
 TEST_CASE("Testing GetTrustLinesCommand")
 {
-    GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t3\n");
+    REQUIRE_NOTHROW(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t3\n"));
 
     SECTION("Characters instead of integer and tabulation")
     {

@@ -31,7 +31,7 @@ public:
 private:
     size_t mHistoryFrom;
     size_t mHistoryCount;
-    size_t mContractorsCount;
+    size_t mContractorAddressesCount;
     vector<BaseAddress::Shared> mContractorAddresses;
     SerializedEquivalent mEquivalent;
 };

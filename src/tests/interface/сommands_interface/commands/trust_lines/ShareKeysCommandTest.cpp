@@ -3,7 +3,7 @@
 
 TEST_CASE("Testing ShareKeysCommand")
 {
-    ShareKeysCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "0\t0\n");
+    REQUIRE_NOTHROW(ShareKeysCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "0\t0\n"));
 
     SECTION("No input")
     {

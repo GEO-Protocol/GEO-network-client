@@ -8,57 +8,57 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
         uuid,
         identifier())
 {
-    uint32_t flag_low = 0, flag_high = 0;
+    uint32_t flagLow = 0, flagHigh = 0;
     std::string lowBoundaryAmount, highBoundaryAmount;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator) {
             throw ValueError("HistoryAdditionalPayments: there is no input ");
         }
     };
-    auto historyfrom_add = [&](auto &ctx) {
+    auto historyFromParse = [&](auto &ctx) {
         mHistoryFrom = _attr(ctx);
     };
-    auto historycount_add = [&](auto &ctx) {
+    auto historyCountParse = [&](auto &ctx) {
         mHistoryCount = _attr(ctx);
     };
-    auto timefrompresent_null = [&](auto &ctx) {
+    auto timeFromPresentNull = [&](auto &ctx) {
         mIsTimeFromPresent = false;
     };
-    auto timefrompresent_number = [&](auto &ctx) {
+    auto timeFromPresentNumber = [&](auto &ctx) {
         mIsTimeFromPresent = true;
         mTimeFrom = pt::time_from_string("1970-01-01 00:00:00.000");
         mTimeFrom += pt::microseconds(_attr(ctx));
     };
-    auto timetopresent_null = [&](auto &ctx) {
+    auto timeToPresentNull = [&](auto &ctx) {
         mIsTimeToPresent = false;
     };
-    auto timetopresent_number = [&](auto &ctx) {
+    auto timeToPresentNumber = [&](auto &ctx) {
         mIsTimeToPresent = true;
         mTimeTo = pt::time_from_string("1970-01-01 00:00:00.000");
         mTimeTo += pt::microseconds(_attr(ctx));
     };
-    auto lowboundary_null = [&](auto &ctx) {
+    auto lowBoundaryAmountNull = [&](auto &ctx) {
         mIsLowBoundaryAmountPresent = false; };
-    auto lowboundary_number = [&](auto &ctx) {
+    auto lowBoundaryAmountNumber = [&](auto &ctx) {
         lowBoundaryAmount += _attr(ctx);
         mIsLowBoundaryAmountPresent = true;
-        flag_low++;
-        if(flag_low>39) {
+        flagLow++;
+        if(flagLow>39) {
             throw ValueError("Amount is too big");
         }
     };
-    auto highboundary_null = [&](auto &ctx) {
+    auto highBoundaryAmountNull = [&](auto &ctx) {
         mIsHighBoundaryAmountPresent = false;
     };
-    auto highboundary_number = [&](auto &ctx) {
+    auto highBoundaryAmountNumber = [&](auto &ctx) {
         highBoundaryAmount += _attr(ctx);
         mIsHighBoundaryAmountPresent = true;
-        flag_high++;
-        if(flag_high>39) {
+        flagHigh++;
+        if(flagHigh>39) {
             throw ValueError("Amount is too big");
         }
     };
-    auto equivalentID_add = [&](auto &ctx) {
+    auto equivalentParse = [&](auto &ctx) {
         mEquivalent = _attr(ctx);
     };
 
@@ -70,23 +70,23 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
-                *(int_[historyfrom_add])
+                *(int_[historyFromParse])
                 > char_(kTokensSeparator)
-                > *(int_[historycount_add])
+                > *(int_[historyCountParse])
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[timefrompresent_null]))
-                > -(int_[timefrompresent_number])
+                > -(+(char_("null")[timeFromPresentNull]))
+                > -(int_[timeFromPresentNumber])
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[timetopresent_null]))
-                > -(int_[timetopresent_number])
+                > -(+(char_("null")[timeToPresentNull]))
+                > -(int_[timeToPresentNumber])
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[lowboundary_null]))
-                > -(*(digit [lowboundary_number] > !alpha > !punct))
+                > -(+(char_("null")[lowBoundaryAmountNull]))
+                > -(*(digit [lowBoundaryAmountNumber] > !alpha > !punct))
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[highboundary_null]))
-                > -(*(digit [highboundary_number] > !alpha > !punct))
+                > -(+(char_("null")[highBoundaryAmountNull]))
+                > -(*(digit [highBoundaryAmountNumber] > !alpha > !punct))
                 > char_(kTokensSeparator)
-                > int_[equivalentID_add]
+                > int_[equivalentParse]
                 > eol));
 
         mLowBoundaryAmount = TrustLineAmount(lowBoundaryAmount);

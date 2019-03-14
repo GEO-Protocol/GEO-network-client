@@ -14,13 +14,13 @@ GetTrustLinesCommand::GetTrustLinesCommand(
             throw ValueError("GetTrustLinesCommand: there is no input ");
         }
     };
-    auto mfrom_add = [&](auto &ctx){
+    auto trustLinesFromParse = [&](auto &ctx){
         mFrom = _attr(ctx);
     };
-    auto mcount_add = [&](auto &ctx) {
+    auto trustLinesCountParse = [&](auto &ctx) {
         mCount = _attr(ctx);
     };
-    auto mequivalent_add = [&](auto &ctx) {
+    auto equivalentParse = [&](auto &ctx) {
         mEquivalent = _attr(ctx);
     };
 
@@ -32,11 +32,11 @@ GetTrustLinesCommand::GetTrustLinesCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
-                *(int_[mfrom_add])
+                *(int_[trustLinesFromParse])
                 > char_(kTokensSeparator)
-                > *(int_[mcount_add])
+                > *(int_[trustLinesCountParse])
                 > char_(kTokensSeparator)
-                > *(int_[mequivalent_add])
+                > *(int_[equivalentParse])
                 > eol));
     } catch(...) {
         throw ValueError("GetTrustLinesCommand: can't parse command");
