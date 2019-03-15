@@ -73,7 +73,7 @@ void BaseCollectTopologyTransaction::fillTopology()
 
     while (!mContext.empty()) {
         if (mContext.front()->typeID() == Message::MaxFlow_ResultMaxFlowCalculation) {
-            const auto kMessage = popNextMessage<ResultMaxFlowCalculationMessage>();
+            const auto kMessage = popNextMessage<ResultMaxFlowCalculationMessage>(mContext);
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
             info() << "Sender " << kMessage->senderAddresses.at(0)->fullAddress() << " common";
             info() << "Outgoing flows: " << kMessage->outgoingFlows().size();
@@ -99,7 +99,7 @@ void BaseCollectTopologyTransaction::fillTopology()
             }
         }
         else if (mContext.front()->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
-            const auto kMessage = popNextMessage<ResultMaxFlowCalculationGatewayMessage>();
+            const auto kMessage = popNextMessage<ResultMaxFlowCalculationGatewayMessage>(mContext);
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
             info() << "Sender " << kMessage->senderAddresses.at(0)->fullAddress() << " gateway";
             info() << "Outgoing flows: " << kMessage->outgoingFlows().size();

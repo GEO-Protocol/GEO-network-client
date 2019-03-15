@@ -7,6 +7,7 @@
 #include "../../../common/memory/MemoryUtils.h"
 
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
+#include "../../../network/communicator/internal/incoming/TailManager.h"
 #include "../result/TransactionResult.h"
 #include "../../../resources/resources/BaseResource.h"
 
@@ -186,6 +187,15 @@ protected:
     {
         const auto message = static_pointer_cast<ContextMessageType>(mContext.front());
         mContext.pop_front();
+        return message;
+    }
+
+    // TODO: convert to hpp?
+    template <typename ContextMessageType>
+    inline shared_ptr<ContextMessageType> popNextMessage(TailManager::Tail &tail)
+    {
+        const auto message = static_pointer_cast<ContextMessageType>(tail.front());
+        tail.pop_front();
         return message;
     }
 
