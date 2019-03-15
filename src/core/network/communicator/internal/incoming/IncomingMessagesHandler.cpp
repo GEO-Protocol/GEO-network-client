@@ -4,6 +4,7 @@
 IncomingMessagesHandler::IncomingMessagesHandler(
     IOService &ioService,
     UDPSocket &socket,
+    TailManager &tailManager,
     Logger &logger)
     noexcept:
 
@@ -11,8 +12,11 @@ IncomingMessagesHandler::IncomingMessagesHandler(
     mIOService(ioService),
     mLog(logger),
     mMessagesParser(&logger),
+
+    mTailManager(tailManager),
     mRemoteNodesHandler(
         mMessagesParser,
+        mTailManager,
         mLog),
     mCleaningTimer(ioService)
 {

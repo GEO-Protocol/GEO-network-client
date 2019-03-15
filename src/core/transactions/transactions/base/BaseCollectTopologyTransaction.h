@@ -10,6 +10,7 @@
 
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
+#include "../../../network/communicator/internal/incoming/TailManager.h"
 
 class BaseCollectTopologyTransaction : public BaseTransaction {
 
@@ -25,6 +26,7 @@ public:
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        TailManager &tailManager,
         Logger &logger);
 
     BaseCollectTopologyTransaction(
@@ -36,6 +38,7 @@ public:
         TopologyTrustLinesManager *topologyTrustLineManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        TailManager &tailManager,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -66,6 +69,7 @@ protected:
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
     set<ContractorID> mGateways;
+    TailManager &mTailManager;
 };
 
 

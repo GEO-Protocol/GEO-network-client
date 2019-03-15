@@ -4,10 +4,12 @@
 Communicator::Communicator(
     IOService &IOService,
     ContractorsManager *contractorsManager,
+    TailManager &tailManager,
     Logger &logger):
 
     mIOService(IOService),
     mContractorsManager(contractorsManager),
+    mTailManager(tailManager),
     mLog(logger),
     mSocket(
         make_unique<UDPSocket>(
@@ -20,6 +22,7 @@ Communicator::Communicator(
         make_unique<IncomingMessagesHandler>(
             IOService,
             *mSocket,
+            mTailManager,
             logger)),
 
     mOutgoingMessagesHandler(

@@ -100,6 +100,11 @@ int Core::initSubsystems()
         return initCode;
     }
 
+    initCode = initTailManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initCommunicator();
     if (initCode != 0) {
         return initCode;
@@ -172,12 +177,27 @@ int Core::initLogger()
     }
 }
 
+int Core::initTailManager() {
+    try {
+        mTailManager = make_unique<TailManager>(
+                *mLog);
+
+        info() << "Tail manager is successfully initialised";
+        return 0;
+
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
 int Core::initCommunicator()
 {
     try {
         mCommunicator = make_unique<Communicator>(
             mIOService,
             mContractorsManager.get(),
+            *mTailManager,
             *mLog);
 
         info() << "Network communicator is successfully initialised";
@@ -282,6 +302,7 @@ int Core::initTransactionsManager()
             mStorageHandler.get(),
             mKeysStore.get(),
             mEventsInterface.get(),
+            *mTailManager,
             *mLog,
             mSubsystemsController.get(),
             mTrustLinesInfluenceController.get());

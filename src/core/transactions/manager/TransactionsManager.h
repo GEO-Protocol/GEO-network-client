@@ -102,6 +102,7 @@ public:
         StorageHandler *storageHandler,
         Keystore *keystore,
         EventsInterface *eventsInterface,
+        TailManager &tailManager,
         Logger &logger,
         SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController);
@@ -503,6 +504,7 @@ private:
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
     EventsInterface *mEventsInterface;
+    TailManager &mTailManager;
     Logger &mLog;
     bool isPaymentTransactionsAllowedDueToObserving;
 

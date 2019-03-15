@@ -55,7 +55,10 @@ set(SOURCE_FILES
         internal/queue/ConfirmationCachedResponseMessage.cpp
 
         internal/queue/PingMessagesHandler.h
-        internal/queue/PingMessagesHandler.cpp)
+        internal/queue/PingMessagesHandler.cpp
+
+        internal/incoming/TailManager.h
+        internal/incoming/TailManager.cpp)
 
 
 add_library(network__communicator ${SOURCE_FILES})

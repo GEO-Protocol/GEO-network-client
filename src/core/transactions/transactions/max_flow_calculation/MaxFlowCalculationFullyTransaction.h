@@ -20,6 +20,7 @@ public:
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
         bool iAmGateway,
+        TailManager &tailManager,
         Logger &logger);
 
 protected:

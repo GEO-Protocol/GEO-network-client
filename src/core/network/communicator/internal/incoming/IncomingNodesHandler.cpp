@@ -3,10 +3,12 @@
 
 IncomingNodesHandler::IncomingNodesHandler(
     MessagesParser &messagesParser,
+    TailManager &tailManager,
     Logger &logger)
     noexcept :
 
     mMessagesParser(messagesParser),
+    mTailManager(tailManager),
     mLog(logger)
 {}
 
@@ -27,6 +29,7 @@ IncomingRemoteNode* IncomingNodesHandler::handler (
             make_unique<IncomingRemoteNode>(
                 endpoint,
                 mMessagesParser,
+                mTailManager,
                 mLog));
     }
 
