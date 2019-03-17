@@ -9,7 +9,7 @@ TrustLinesInfluenceCommand::TrustLinesInfluenceCommand(
         identifier())
 {
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("TrustLinesInfluenceCommand: there is no input ");
         }
     };
@@ -44,7 +44,7 @@ TrustLinesInfluenceCommand::TrustLinesInfluenceCommand(
                 >*(int_[secondParamParse])
                 >char_(kTokensSeparator)
                 >*(int_[thirdParamParse]))
-                >eol));
+                >eol > eoi));
     } catch(...) {
         throw ValueError("TrustLinesInfluenceCommand: can't parse command");
     }

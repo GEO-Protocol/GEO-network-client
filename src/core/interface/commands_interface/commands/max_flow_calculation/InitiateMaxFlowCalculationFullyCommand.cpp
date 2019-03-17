@@ -8,15 +8,14 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
         uuid,
         identifier())
 {
-    std::string address;
-    uint32_t addressType;
+    std::string address, addressType;
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("InitiateMaxFlowCalculationFullyCommand: there is no input ");
         }
     };
     auto addressTypeParse = [&](auto &ctx) {
-        addressType = _attr(ctx);
+        addressType += _attr(ctx);
     };
     auto addressAddChar = [&](auto &ctx) {
         address += _attr(ctx);
@@ -28,11 +27,12 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
         mContractorsCount = _attr(ctx);
     };
     auto addressAddToVector = [&](auto &ctx) {
-        switch (addressType) {
+        switch (std::atoi(addressType.c_str())) {
             case BaseAddress::IPv4_IncludingPort: {
                 mContractorAddresses.push_back(
                     make_shared<IPv4WithPortAddress>(
                         address));
+                addressType.erase();
                 break;
             }
             default:
@@ -58,12 +58,33 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
         parse(
             command.begin(),
             command.end(), (
-                *(int_[addressesCountParse]) > char_(kTokensSeparator)
-                > repeat(mContractorsCount)[*(int_[addressTypeParse] - char_(kTokensSeparator)) > char_(kTokensSeparator)
-                > repeat(3)[int_[addressAddNumber]> char_('.') [addressAddChar]]
-                > int_[addressAddNumber] > char_(':') [addressAddChar]
-                > int_[addressAddNumber] > char_(kTokensSeparator) [addressAddToVector]]
-                > +(int_[equivalentParse]) > eol));
+                *(int_) > char_(kTokensSeparator)
+                > expect
+                [
+                        repeat(mContractorsCount)
+                        [
+                                parserString::string(std::to_string(BaseAddress::IPv4_IncludingPort)) [addressTypeParse]
+                                > *(char_[addressTypeParse] - char_(kTokensSeparator) )
+                                >char_(kTokensSeparator)
+                                > repeat(3)
+                                [
+                                        int_[addressAddNumber]
+                                        > char_('.') [addressAddChar]
+                                ]
+                                > int_[addressAddNumber]
+                                > char_(':') [addressAddChar]
+                                > int_[addressAddNumber]
+                                > char_(kTokensSeparator) [addressAddToVector]
+
+//                                         | //OR
+//
+//                              parserString::string(std::to_string(<NEW_ADDRESS_TYPE>) [addressTypeParse]
+//                              > *(char_[addressTypeParse] -char_(kTokensSeparator) )
+//                              >char_(kTokensSeparator)
+//                              ><NEW_PARSE_RULE>
+                        ]
+                ]
+                > +(int_[equivalentParse]) > eol > eoi));
     } catch(...) {
         throw ValueError("InitTrustLineCommand: can't parse command.");
     }

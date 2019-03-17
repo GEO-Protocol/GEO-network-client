@@ -9,7 +9,7 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
         identifier())
 {
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("CloseIncomingTrustLineCommand: there is no input ");
         }
     };
@@ -28,7 +28,7 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
         parse(
             command.begin(),
             command.end(),
-            *(int_[contractorIDParse]) > char_(kTokensSeparator) > *(int_[equivalentParse]) > eol);
+            *(int_[contractorIDParse]) > char_(kTokensSeparator) > *(int_[equivalentParse]) > eol > eoi);
     } catch(...) {
         throw ValueError("CloseIncomingTrustLineCommand: can't parse command.");
     }

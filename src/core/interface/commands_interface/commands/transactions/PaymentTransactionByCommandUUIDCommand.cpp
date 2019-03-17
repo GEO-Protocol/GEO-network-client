@@ -11,7 +11,7 @@ PaymentTransactionByCommandUUIDCommand::PaymentTransactionByCommandUUIDCommand(
     uint32_t flag4 = 0, flag8 =0 , flag12 = 0;
     std::string paymentRecordCommandUUID;
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("PaymentTransactionByCommandUUIDCommand: there is no input ");
         }
     };
@@ -55,7 +55,7 @@ PaymentTransactionByCommandUUIDCommand::PaymentTransactionByCommandUUIDCommand(
                 >*(char_[parseUUID4Chars] - char_('-')) > char_('-') [parseUUID4Chars]
                 >*(char_[parseUUID4Chars] - char_('-')) > char_('-') [parseUUID4Chars]
                 >*(char_[parseUUID4Chars] - char_('-')) > char_('-') [parseUUID4Chars]
-                >*(char_[parseUUID12Chars] - char_(kCommandsSeparator) ) > char_(kCommandsSeparator) [parseUUID12Chars]));
+                >*(char_[parseUUID12Chars] - char_(kCommandsSeparator) ) > char_(kCommandsSeparator) [parseUUID12Chars] > eoi));
         mPaymentTransactionCommandUUID = boost::lexical_cast<uuids::uuid>(paymentRecordCommandUUID);
     } catch(...) {
         throw ValueError("PaymentTransactionByCommandUUIDCommand: can't parse command");

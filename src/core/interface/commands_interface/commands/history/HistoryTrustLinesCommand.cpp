@@ -9,7 +9,7 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
         identifier())
 {
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("HistoryTrustLinesCommand: there is no input ");
         }
     };
@@ -58,7 +58,7 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
                 > -(int_[timeToPresentAddNumber])
                 > char_(kTokensSeparator)
                 > int_[equivalentParse]
-                > eol));
+                > eol > eoi));
     } catch(...) {
         throw ValueError("HistoryTrustLinesCommand : can't parse command");
     }

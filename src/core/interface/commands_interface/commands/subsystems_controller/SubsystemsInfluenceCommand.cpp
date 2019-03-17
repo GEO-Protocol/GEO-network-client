@@ -8,11 +8,11 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
         uuid,
         identifier())
 {
-    uint32_t flag = 0, addressType;
-    std::string forbiddenAmount, address;
+    uint32_t flag = 0;
+    std::string forbiddenAmount, address, addressType;
     mForbiddenNodeAddress = nullptr;
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("SubsystemsInfluenceCommand: there is no input ");
         }
     };
@@ -20,16 +20,24 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
         mFlags = _attr(ctx);
     };
     auto forbiddenAmountAdd = [&](auto &ctx) {
+        if(forbiddenAmount.front() == '0') {throw ValueError("Amount start's from zero");}
         forbiddenAmount += _attr(ctx);
         flag++;
-        if(flag > 39) {
-            throw ValueError("Amount is too big");
-        } else if (flag == 1 && _attr(ctx) <= 0) {
+        if(flag >= 78) {
+            for(int i = 0 ; i < forbiddenAmount.length(); i++)
+            {
+                if(forbiddenAmount[i] != kAmountLimit[i])
+                {
+                    throw ValueError("Amount is too big");
+                }
+
+            }
+        }else if (flag == 1 && _attr(ctx) == '0') {
             throw ValueError("Amount can't be zero or low");
         }
     };
     auto addressTypeParse = [&](auto &ctx) {
-        addressType = _attr(ctx);
+        addressType += _attr(ctx);
     };
     auto addressAddChar = [&](auto &ctx) {
         address += _attr(ctx);
@@ -38,7 +46,7 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
         address += std::to_string(_attr(ctx));
     };
     auto addressAddToVector = [&](auto &ctx) {
-        switch (addressType) {
+        switch (std::atoi(addressType.c_str())) {
             case BaseAddress::IPv4_IncludingPort: {
                 mForbiddenNodeAddress = make_shared<IPv4WithPortAddress>(address);
                 break;
@@ -60,12 +68,30 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
             commandBuffer.end(), (
                 *(int_[flagsAdd])
                 > -(char_(kTokensSeparator)
-                    > *(int_[addressTypeParse] - char_(kTokensSeparator)) > char_(kTokensSeparator)
-                    > repeat(3)[int_[addressAddNumber]> char_('.') [addressAddChar]]
-                    > int_[addressAddNumber] > char_(':') [addressAddChar]
-                    > int_[addressAddNumber] > char_(kTokensSeparator) [addressAddToVector]
-                    >*(digit [forbiddenAmountAdd] > !alpha > !punct))
-                > eol));
+                    > expect
+                    [
+                            parserString::string(std::to_string(BaseAddress::IPv4_IncludingPort)) [addressTypeParse]
+                            > *(char_[addressTypeParse] - char_(kTokensSeparator))
+                            >char_(kTokensSeparator)
+                            > repeat(3)
+                            [
+                                    int_[addressAddNumber]
+                                    > char_('.') [addressAddChar]
+                            ]
+                            > int_[addressAddNumber]
+                            > char_(':') [addressAddChar]
+                            > int_[addressAddNumber]
+                            > char_(kTokensSeparator) [addressAddToVector]
+
+//                                         | //OR
+//
+//                          parserString::string(std::to_string(<NEW_ADDRESS_TYPE>) [addressTypeParse]
+//                          > *(char_[addressTypeParse] - char_(kTokensSeparator)
+//                          > char_(kTokensSeparator)
+//                          > <NEW_PARSE_RULE>
+                    ]
+                    > *(digit [forbiddenAmountAdd] > !alpha > !punct))
+                > eol > eoi));
 
         mForbiddenAmount = TrustLineAmount(forbiddenAmount);
     } catch (...) {

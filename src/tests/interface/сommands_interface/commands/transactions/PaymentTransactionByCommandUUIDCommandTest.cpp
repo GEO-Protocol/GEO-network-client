@@ -26,11 +26,42 @@ TEST_CASE("Testing PaymentTransactionByCommandUUIDCommand")
         REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "47183823-25574-4bfd-b411-99ed177dd3e43\n"));
     }
 
+    SECTION("Double separator")
+    {
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "11111111-1111-1111-1111-111111111111\n\t"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "11111111-1111-1111-1111-111111111111\t\t\n"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "11111111-1111-1111-1111-111111111111\t\n"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\t11111111-1111-1111-1111-111111111111\n"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\n11111111-1111-1111-1111-111111111111\n"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\t11111111-1111-1111-1111-111111111111\n\n"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\n11111111-1111-1111-1111-111111111111\t\n"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\n11111111-1111-1111-1111-111111111111\n\n"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\t11111111-1111-1111-1111-111111111111\t\n"));
+    }
+
     SECTION("No input")
     {
         REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, ""));
 
         REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\n"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\t"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\n\n"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\t\t"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\t\n"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\n\t"));
     }
 
     SECTION("Character instead of UUID")
@@ -38,8 +69,10 @@ TEST_CASE("Testing PaymentTransactionByCommandUUIDCommand")
         REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "fgdgfgdgfdd"));
     }
 
-    SECTION("Lost EOL")
+    SECTION("Lost EOL & character after eol")
     {
         REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "47183823-25574-4bfd-b411-99ed177dd3e43"));
+
+        REQUIRE_THROWS(PaymentTransactionByCommandUUIDCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "47183823-25574-4bfd-b411-99ed177dd3e43\n34"));
     }
 }

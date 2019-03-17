@@ -10,6 +10,21 @@ TEST_CASE("Testing HistoryWithContractorCommand")
         REQUIRE_NOTHROW(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"0\t1\t2\t12\t127.0.0.1:2007\t12\t127.0.0.1:2007\t2\n"));
     }
 
+    SECTION("Double separator")
+    {
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"0\t\t1\t1\t12\t127.0.0.1:2007\t2\n"));
+
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"0\t1\t\t1\t12\t127.0.0.1:2007\t2\n"));
+
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"0\t1\t1\t\t12\t127.0.0.1:2007\t2\n"));
+
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"0\t1\t1\t12\t\t127.0.0.1:2007\t2\n"));
+
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"0\t1\t1\t12\t127.0.0.1:2007\t\t2\n"));
+
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"\t\t1\t1\t12\t127.0.0.1:2007\t2\n"));
+    }
+
     SECTION("Second address whithout type")
     {
         REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"0\t1\t2\t12\t127.0.0.1:2007\t127.0.0.1:2007\t2\n"));
@@ -62,10 +77,24 @@ TEST_CASE("Testing HistoryWithContractorCommand")
         REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,""));
 
         REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"\n"));
+
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"\t"));
+
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"\t\n"));
+
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"\t\t"));
+
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"\n\n"));
+
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"\n\t"));
     }
 
-    SECTION("Character instead of command")
+    SECTION("Character instead of command & after EOL")
     {
         REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"sdfdsf"));
+
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"0\t1\t1\t12\t127.0.0.1:2007\t2\n\t"));
+
+        REQUIRE_THROWS(HistoryWithContractorCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"0\t1\t1\t12\t127.0.0.1:2007\t2\nsdfs"));
     }
 }

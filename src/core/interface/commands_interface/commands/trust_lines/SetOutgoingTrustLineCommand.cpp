@@ -12,7 +12,7 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
     std::string amount;
     uint32_t flagAmount=0;
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("SetOutgoingTrustLineCommand: there is no input ");
         }
     };
@@ -20,11 +20,19 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
         mContractorID = _attr(ctx);
     };
     auto amountAddNumber = [&](auto &ctx) {
+        if(amount.front() == '0'&& isdigit(amount.back())){ throw ValueError("Amount can't start from zero");}
         amount += _attr(ctx);
         flagAmount++;
-        if (flagAmount > 39) {
-            throw ValueError("Amount is too big");
-        } else if (flagAmount == 1 && _attr(ctx) <= 0) {
+        if(flagAmount >= 78) {
+            for(int i = 0 ; i < amount.length(); i++)
+            {
+                if(amount[i] != kAmountLimit[i])
+                {
+                    throw ValueError("Amount is too big");
+                }
+
+            }
+        }else if (flagAmount == 1 && _attr(ctx) == '0') {
             throw ValueError("Amount can't be zero or low");
         }
     };
@@ -43,7 +51,7 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
             *(int_[contractorIDParse])
                 > char_(kTokensSeparator)
                 > *(digit [amountAddNumber] > !alpha > !punct)
-                > char_(kTokensSeparator)  > int_[equivalentParse] > eol );
+                > char_(kTokensSeparator)  > int_[equivalentParse] > eol > eoi );
         mAmount = TrustLineAmount(amount);
     } catch(...) {
         throw ValueError("SetOutgoingTrustLineCommand : can't parse command");

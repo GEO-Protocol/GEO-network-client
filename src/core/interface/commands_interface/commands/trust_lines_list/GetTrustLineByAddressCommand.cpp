@@ -8,15 +8,15 @@ GetTrustLineByAddressCommand::GetTrustLineByAddressCommand(
         uuid,
         identifier())
 {
-    std::string address;
-    uint32_t addressType, addressesCount;
+    std::string address, addressType;
+    uint32_t addressesCount;
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("GetTrustLineByAddressCommand: there is no input ");
         }
     };
     auto addressTypeParse = [&](auto &ctx) {
-        addressType = _attr(ctx);
+        addressType += _attr(ctx);
     };
     auto addressAddChar = [&](auto &ctx) {
         address += _attr(ctx);
@@ -28,11 +28,12 @@ GetTrustLineByAddressCommand::GetTrustLineByAddressCommand(
         addressesCount = _attr(ctx);
     };
     auto addressAddToVector = [&](auto &ctx) {
-        switch (addressType) {
+        switch (std::atoi(addressType.c_str())) {
             case BaseAddress::IPv4_IncludingPort: {
                 mContractorAddresses.push_back(
                     make_shared<IPv4WithPortAddress>(
                         address));
+                addressType.erase();
                 break;
             }
             default:
@@ -57,12 +58,33 @@ GetTrustLineByAddressCommand::GetTrustLineByAddressCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
-                *(int_[addressesCountParse]) > char_(kTokensSeparator)
-                > repeat(addressesCount)[*(int_[addressTypeParse] - char_(kTokensSeparator)) > char_(kTokensSeparator)
-                > repeat(3)[int_[addressAddNumber]> char_('.') [addressAddChar]]
-                > int_[addressAddNumber] > char_(':') [addressAddChar]
-                > int_[addressAddNumber] > char_(kTokensSeparator) [addressAddToVector]]
-                > +(int_[equivalentParse]) > eol));
+                *(int_) > char_(kTokensSeparator)
+                > expect
+                [
+                        repeat(addressesCount)
+                        [
+                                parserString::string(std::to_string(BaseAddress::IPv4_IncludingPort)) [addressTypeParse]
+                                > *(char_[addressTypeParse] - char_(kTokensSeparator))
+                                >char_(kTokensSeparator)
+                                > repeat(3)
+                                [
+                                        int_[addressAddNumber]
+                                        > char_('.') [addressAddChar]
+                                ]
+                                > int_[addressAddNumber]
+                                > char_(':') [addressAddChar]
+                                > int_[addressAddNumber]
+                                > char_(kTokensSeparator) [addressAddToVector]
+
+//                                         | //OR
+//
+//                              parserString::string(std::to_string(<NEW_ADDRESS_TYPE>) [addressTypeParse]
+//                              > *(char_[addressTypeParse] - char_(kTokensSeparator) )
+//                              > char_(kTokensSeparator)
+//                              > <NEW_PARSE_RULE>
+                        ]
+                ]
+                > +(int_[equivalentParse]) > eol > eoi));
     } catch(...) {
         throw ValueError("GetTrustLineByAddressCommand: can't parse command.");
     }

@@ -20,11 +20,34 @@ TEST_CASE("Testing GetTrustLinesCommand")
         REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t3a"));
     }
 
+    SECTION("Double separator")
+    {
+        REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t3\n\n"));
+
+        REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t3\n\t"));
+
+        REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\t\t2\t3\n"));
+
+        REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t\t2\t3\n"));
+
+        REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t\t3\n"));
+    }
+
     SECTION("No input")
     {
         REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, ""));
 
         REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\n"));
+
+        REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\t"));
+
+        REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\t\n"));
+
+        REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\t\t"));
+
+        REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\n\t"));
+
+        REQUIRE_THROWS(GetTrustLinesCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "\n\n"));
     }
 
     SECTION("Characters instead of input")

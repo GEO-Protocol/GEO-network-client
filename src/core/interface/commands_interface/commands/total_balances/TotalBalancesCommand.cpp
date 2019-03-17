@@ -9,7 +9,7 @@ TotalBalancesCommand::TotalBalancesCommand(
         identifier())
 {
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("TotalBalancesCommand: there is no input ");
         }
     };
@@ -25,7 +25,7 @@ TotalBalancesCommand::TotalBalancesCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(),
-            *(int_[equivalentParse]) > eol);
+            *(int_[equivalentParse]) > eol > eoi);
     } catch (...) {
         throw ValueError("TotalBalancesCommand: can't parse command");
     }

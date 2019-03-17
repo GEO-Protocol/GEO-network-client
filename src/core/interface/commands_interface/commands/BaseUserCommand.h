@@ -13,17 +13,20 @@ using boost::spirit::x3::char_;
 using boost::spirit::x3::_attr;
 using boost::spirit::x3::repeat;
 using boost::spirit::x3::eol;
+using boost::spirit::x3::eoi;
 using boost::spirit::x3::ascii::space;
 using boost::spirit::x3::ascii::digit;
 using boost::spirit::x3::ascii::alpha;
 using boost::spirit::x3::ascii::punct;
+using boost::spirit::x3::expect;
+
+namespace parserString = boost::spirit::x3;
 
 namespace uuids = boost::uuids;
 
 class BaseUserCommand {
 public:
     typedef shared_ptr<BaseUserCommand> Shared;
-
 public:
     BaseUserCommand(
         const string& identifier);
