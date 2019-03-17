@@ -5,7 +5,7 @@ ObservingTransaction::ObservingTransaction(
     mRequest(observingRequestMessage),
     mResponse(NoInfo)
 {
-   // mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestPeriodSeconds);
+    mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestPeriodSeconds);
 #ifdef TESTS
     mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestPeriodSecondsTests);
 #endif
@@ -51,7 +51,7 @@ const DateTime &ObservingTransaction::nextActionDateTime()
 
 void ObservingTransaction::rescheduleNextActionTime()
 {
-   // mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestPeriodSeconds);
+    mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestPeriodSeconds);
 #ifdef TESTS
     mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestPeriodSecondsTests);
 #endif
@@ -59,7 +59,7 @@ void ObservingTransaction::rescheduleNextActionTime()
 
 void ObservingTransaction::rescheduleNextActionSmallTime()
 {
-   //mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestSmallPeriodSeconds);
+   mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestSmallPeriodSeconds);
 #ifdef TESTS
     mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestSmallPeriodSecondsTests);
 #endif
