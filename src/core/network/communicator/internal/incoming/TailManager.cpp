@@ -12,6 +12,6 @@ TailManager::TailManager(
 TailManager::~TailManager() {
 }
 
-TailManager::Tail &TailManager::getTail(Message::MessageType type) {
-    return mTails[type];
+TailManager::Tail &TailManager::getFlowTail() {
+    return mFlowTail;
 }

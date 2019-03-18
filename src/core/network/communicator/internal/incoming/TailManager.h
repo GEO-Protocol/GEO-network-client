@@ -6,7 +6,6 @@
 #define GEO_NETWORK_CLIENT_TAILMANAGER_H
 
 
-#include <map>
 #include <list>
 #include "../../../messages/Message.hpp"
 #include "../../../../logger/Logger.h"
@@ -22,10 +21,10 @@ public:
     typedef std::list<Message::Shared> Tail;
 
 public:
-    Tail &getTail(Message::MessageType type);
+    Tail &getFlowTail();
 
 private:
-    std::map<Message::MessageType, Tail> mTails;
+    Tail mFlowTail;
     Logger &mLog;
 };
 

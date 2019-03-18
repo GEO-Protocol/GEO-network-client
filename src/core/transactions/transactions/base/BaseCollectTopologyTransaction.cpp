@@ -69,7 +69,7 @@ TransactionResult::SharedConst BaseCollectTopologyTransaction::run()
 void BaseCollectTopologyTransaction::fillTopology()
 {
     /// Take messages from TailManager instead of BaseTransaction's 'mContext'
-    auto &mContext = mTailManager.getTail(Message::MaxFlow_ResultMaxFlowCalculation);
+    auto &mContext = mTailManager.getFlowTail();
 
     while (!mContext.empty()) {
         if (mContext.front()->typeID() == Message::MaxFlow_ResultMaxFlowCalculation) {

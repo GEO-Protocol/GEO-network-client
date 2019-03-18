@@ -249,7 +249,7 @@ bool IncomingRemoteNode::tryCollectNextPacket ()
         debug() << "Collected message of type " << kFlagAndMessage.second->typeID();
         if (kFlagAndMessage.second->typeID() == Message::MaxFlow_ResultMaxFlowCalculation or
             kFlagAndMessage.second->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
-            mTailManager.getTail(Message::MaxFlow_ResultMaxFlowCalculation).push_back(kFlagAndMessage.second);
+            mTailManager.getFlowTail().push_back(kFlagAndMessage.second);
         }
         else {
             mCollectedMessages.push_back(kFlagAndMessage.second);
