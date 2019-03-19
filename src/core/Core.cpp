@@ -180,6 +180,7 @@ int Core::initLogger()
 int Core::initTailManager() {
     try {
         mTailManager = make_unique<TailManager>(
+                mIOService,
                 *mLog);
 
         info() << "Tail manager is successfully initialised";
