@@ -89,9 +89,6 @@ public:
     void tryAttachMessageToCollectTopologyTransaction(
         Message::Shared message);
 
-    void tryAttachMessageToCyclesFiveAndSixNodes(
-        Message::Shared message);
-
     void tryAttachMessageToRoutingTableTransaction(
         Message::Shared message);
 

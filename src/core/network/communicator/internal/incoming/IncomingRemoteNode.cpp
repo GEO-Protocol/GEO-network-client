@@ -251,6 +251,15 @@ bool IncomingRemoteNode::tryCollectNextPacket ()
             kFlagAndMessage.second->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
             mTailManager.getFlowTail().push_back(kFlagAndMessage.second);
         }
+        else if (kFlagAndMessage.second->typeID() == Message::Cycles_FiveNodesBoundary) {
+            mTailManager.getCyclesFiveTail().push_back(kFlagAndMessage.second);
+        }
+        else if (kFlagAndMessage.second->typeID() == Message::Cycles_SixNodesBoundary) {
+            mTailManager.getCyclesSixTail().push_back(kFlagAndMessage.second);
+        }
+        else if (kFlagAndMessage.second->typeID() == Message::RoutingTableResponse) {
+            mTailManager.getRoutingTableTail().push_back(kFlagAndMessage.second);
+        }
         else {
             mCollectedMessages.push_back(kFlagAndMessage.second);
         }

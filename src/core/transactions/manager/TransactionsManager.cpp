@@ -418,10 +418,6 @@ void TransactionsManager::processMessage(
     /*
      * Cycles
      */
-    } else if (message->typeID() == Message::MessageType::Cycles_FiveNodesBoundary
-               or message->typeID() == Message::MessageType::Cycles_SixNodesBoundary) {
-        mScheduler->tryAttachMessageToCyclesFiveAndSixNodes(message);
-
     } else if (message->typeID() == Message::MessageType::Cycles_SixNodesMiddleware) {
         launchSixNodesCyclesResponseTransaction(
             static_pointer_cast<CyclesSixNodesInBetweenMessage>(message));
@@ -1425,6 +1421,7 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction(
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
+                mTailManager,
                 mLog),
             true,
             false,
@@ -1468,6 +1465,7 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction(
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent),
+                mTailManager,
                 mLog),
             true,
             false,
@@ -1892,6 +1890,7 @@ void TransactionsManager::launchGatewayNotificationSenderTransaction()
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter,
                 mEquivalentsCyclesSubsystemsRouter.get(),
+                mTailManager,
                 mLog),
             false,
             false,

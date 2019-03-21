@@ -278,11 +278,6 @@ void Communicator::onMessageReceived(
             static_pointer_cast<ConfirmationMessage>(message));
         return;
 
-    } else if (message->typeID() == Message::RoutingTableResponse) {
-        const auto kConfirmationMessage =
-            static_pointer_cast<ConfirmationMessage>(message);
-        mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
-            kConfirmationMessage);
     }
 
     signalMessageReceived(message);

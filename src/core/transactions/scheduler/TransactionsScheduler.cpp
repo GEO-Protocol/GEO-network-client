@@ -511,31 +511,6 @@ void TransactionsScheduler::tryAttachMessageToCollectTopologyTransaction(
                     "can't find CollectTopologyTransaction");
 }
 
-void TransactionsScheduler::tryAttachMessageToCyclesFiveAndSixNodes(
-    Message::Shared message)
-{
-    for (auto const &transactionAndState : *mTransactions) {
-        // Six and five nodes cycles should be discovered only once per day,
-        // so, theoretically, only one discovering transaction may exist at once,
-        // and message may be attached to first found transaction.
-        if (transactionAndState.first->transactionType() == BaseTransaction::Cycles_SixNodesInitTransaction
-            and message->typeID() == Message::Cycles_SixNodesBoundary
-            and message->equivalent() == transactionAndState.first->equivalent()) {
-            transactionAndState.first->pushContext(message);
-            return;
-        }
-        if (transactionAndState.first->transactionType() == BaseTransaction::Cycles_FiveNodesInitTransaction
-            and message->typeID() == Message::Cycles_FiveNodesBoundary
-            and message->equivalent() == transactionAndState.first->equivalent()) {
-            transactionAndState.first->pushContext(message);
-            return;
-        }
-    }
-    throw NotFoundError(
-            "TransactionsScheduler::tryAttachMessageToCyclesFiveAndSixNodes: "
-                "can't find appropriate transaction");
-}
-
 void TransactionsScheduler::tryAttachMessageToRoutingTableTransaction(
     Message::Shared message)
 {

@@ -5,6 +5,7 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
     CyclesManager *cyclesManager,
+    TailManager &tailManager,
     Logger &logger) :
     CyclesBaseFiveSixNodesInitTransaction(
         BaseTransaction::Cycles_FiveNodesInitTransaction,
@@ -12,7 +13,8 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
         contractorsManager,
         trustLinesManager,
         cyclesManager,
-        logger)
+        logger),
+    mTailManager(tailManager)
 {}
 
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAndSendMessagesStage()
@@ -42,6 +44,9 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAnd
 
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage()
 {
+    /// Take messages from TailManager instead of BaseTransaction's 'mContext'
+    auto &mContext = mTailManager.getCyclesFiveTail();
+
     debug() << "runParseMessageAndCreateCyclesStage";
     if (mContext.empty()) {
         info() << "No responses messages are present. Can't create cycles paths";
