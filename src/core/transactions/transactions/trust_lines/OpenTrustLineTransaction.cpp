@@ -302,7 +302,8 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
         mEventsInterface->writeEvent(
             Event::initTrustLineEvent(
                 mContractorsManager->selfContractor()->mainAddress(),
-                mContractorsManager->contractorMainAddress(mContractorID)));
+                mContractorsManager->contractorMainAddress(mContractorID),
+                mEquivalent));
     } catch (std::exception &e) {
         warning() << "Can't write init TL event " << e.what();
     }

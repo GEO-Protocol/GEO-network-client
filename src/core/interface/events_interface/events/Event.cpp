@@ -26,10 +26,11 @@ const size_t Event::dataSize() const
 
 Event::Shared Event::topologyEvent(
     BaseAddress::Shared nodeAddress,
-    vector<BaseAddress::Shared>& nodeNeighbors)
+    vector<BaseAddress::Shared>& nodeNeighbors,
+    SerializedEquivalent equivalent)
 {
     stringstream ss;
-    ss << nodeAddress->fullAddress() << kTokensSeparator << to_string(nodeNeighbors.size());
+    ss << equivalent << kTokensSeparator << nodeAddress->fullAddress() << kTokensSeparator << to_string(nodeNeighbors.size());
     for (const auto &neighbor : nodeNeighbors) {
         ss << kTokensSeparator << neighbor->fullAddress();
     }
@@ -40,10 +41,11 @@ Event::Shared Event::topologyEvent(
 
 Event::Shared Event::initTrustLineEvent(
     BaseAddress::Shared source,
-    BaseAddress::Shared destination)
+    BaseAddress::Shared destination,
+    SerializedEquivalent equivalent)
 {
     stringstream ss;
-    ss << source->fullAddress() << kTokensSeparator << destination->fullAddress();
+    ss << equivalent << kTokensSeparator << source->fullAddress() << kTokensSeparator << destination->fullAddress();
     return make_shared<Event>(
         EventType::InitTrustLine,
         ss.str());
@@ -51,10 +53,11 @@ Event::Shared Event::initTrustLineEvent(
 
 Event::Shared Event::closeTrustLineEvent(
     BaseAddress::Shared source,
-    BaseAddress::Shared destination)
+    BaseAddress::Shared destination,
+    SerializedEquivalent equivalent)
 {
     stringstream ss;
-    ss << source->fullAddress() << kTokensSeparator << destination->fullAddress();
+    ss << equivalent << kTokensSeparator << source->fullAddress() << kTokensSeparator << destination->fullAddress();
     return make_shared<Event>(
         EventType::CloseTrustLine,
         ss.str());
@@ -63,10 +66,12 @@ Event::Shared Event::closeTrustLineEvent(
 Event::Shared Event::paymentEvent(
     BaseAddress::Shared coordinatorAddress,
     BaseAddress::Shared receiverAddress,
-    vector<vector<BaseAddress::Shared>>& paymentPaths)
+    vector<vector<BaseAddress::Shared>>& paymentPaths,
+    SerializedEquivalent equivalent)
 {
     stringstream ss;
-    ss << coordinatorAddress->fullAddress() << kTokensSeparator << receiverAddress->fullAddress();
+    ss << equivalent << kTokensSeparator << coordinatorAddress->fullAddress()
+        << kTokensSeparator << receiverAddress->fullAddress();
     for (const auto &path : paymentPaths) {
         for (const auto &nodeAddress : path) {
             ss << kTokensSeparator << nodeAddress->fullAddress();

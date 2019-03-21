@@ -29,20 +29,24 @@ public:
 
     static Event::Shared topologyEvent(
         BaseAddress::Shared nodeAddress,
-        vector<BaseAddress::Shared>& nodeNeighbors);
+        vector<BaseAddress::Shared>& nodeNeighbors,
+        SerializedEquivalent equivalent);
 
     static Event::Shared initTrustLineEvent(
         BaseAddress::Shared source,
-        BaseAddress::Shared destination);
+        BaseAddress::Shared destination,
+        SerializedEquivalent equivalent);
 
     static Event::Shared closeTrustLineEvent(
         BaseAddress::Shared source,
-        BaseAddress::Shared destination);
+        BaseAddress::Shared destination,
+        SerializedEquivalent equivalent);
 
     static Event::Shared paymentEvent(
         BaseAddress::Shared coordinatorAddress,
         BaseAddress::Shared receiverAddress,
-        vector<vector<BaseAddress::Shared>>& paymentPaths);
+        vector<vector<BaseAddress::Shared>>& paymentPaths,
+        SerializedEquivalent equivalent);
 
 private:
     EventType mEventIdentifier;

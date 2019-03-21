@@ -298,7 +298,8 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
                 mEventsInterface->writeEvent(
                     Event::closeTrustLineEvent(
                         mContractorsManager->selfContractor()->mainAddress(),
-                        mContractorsManager->contractorMainAddress(mContractorID)));
+                        mContractorsManager->contractorMainAddress(mContractorID),
+                        mEquivalent));
             } catch (std::exception &e) {
                 warning() << "Can't write close TL event " << e.what();
             }

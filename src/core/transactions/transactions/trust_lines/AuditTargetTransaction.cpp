@@ -34,7 +34,7 @@ AuditTargetTransaction::AuditTargetTransaction(
 
 TransactionResult::SharedConst AuditTargetTransaction::run()
 {
-    info() << "sender: " << mContractorID << "sender incoming IP " << mSenderIncomingIP;
+    info() << "sender: " << mContractorID << " sender incoming IP " << mSenderIncomingIP;
 
     if (!mContractorsManager->contractorPresent(mContractorID)) {
         warning() << "There is no contractor with requested id";

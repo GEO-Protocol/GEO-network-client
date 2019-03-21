@@ -1521,7 +1521,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
             Event::paymentEvent(
                 mContractorsManager->selfContractor()->mainAddress(),
                 mContractor->mainAddress(),
-                paymentEventPaths));
+                paymentEventPaths,
+                mEquivalent));
     } catch (std::exception &e) {
         warning() << "Can't write payment event " << e.what();
     }
