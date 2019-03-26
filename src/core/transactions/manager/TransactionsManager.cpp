@@ -347,22 +347,6 @@ void TransactionsManager::processMessage(
         launchReceiveMaxFlowCalculationOnTargetTransaction(
             static_pointer_cast<InitiateMaxFlowCalculationMessage>(message));
 
-    } else if (message->typeID() == Message::MessageType::MaxFlow_ResultMaxFlowCalculation) {
-        try {
-            mScheduler->tryAttachMessageToCollectTopologyTransaction(message);
-        } catch (NotFoundError &) {
-            launchReceiveResultMaxFlowCalculationTransaction(
-                static_pointer_cast<ResultMaxFlowCalculationMessage>(message));
-        }
-
-    } else if (message->typeID() == Message::MessageType::MaxFlow_ResultMaxFlowCalculationFromGateway) {
-        try {
-            mScheduler->tryAttachMessageToCollectTopologyTransaction(message);
-        } catch (NotFoundError &) {
-            launchReceiveResultMaxFlowCalculationTransactionFromGateway(
-                static_pointer_cast<ResultMaxFlowCalculationGatewayMessage>(message));
-        }
-
     } else if (message->typeID() == Message::MessageType::MaxFlow_CalculationSourceFirstLevel) {
         launchMaxFlowCalculationSourceFstLevelTransaction(
             static_pointer_cast<MaxFlowCalculationSourceFstLevelMessage>(message));
@@ -470,14 +454,6 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::GatewayNotification) {
         launchGatewayNotificationReceiverTransaction(
             static_pointer_cast<GatewayNotificationMessage>(message));
-
-    } else if (message->typeID() == Message::RoutingTableResponse) {
-        try {
-            mScheduler->tryAttachMessageToRoutingTableTransaction(message);
-        } catch (NotFoundError &e) {
-            launchRoutingTableUpdatingTransaction(
-                static_pointer_cast<RoutingTableResponseMessage>(message));
-        }
 
     /*
      * Attaching to existing transactions
@@ -832,56 +808,6 @@ void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
         throw ConflictError(e.message());
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for ReceiveMaxFlowCalculationOnTargetTransaction "
-                "with equivalent " << message->equivalent() << " Details are: " << e.what();
-    }
-}
-
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
-    ResultMaxFlowCalculationMessage::Shared message)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<ReceiveResultMaxFlowCalculationTransaction>(
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
-                mLog),
-            false,
-            false,
-            true);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for ReceiveResultMaxFlowCalculationTransaction "
-                "with equivalent " << message->equivalent() << " Details are: " << e.what();
-    }
-}
-
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchReceiveResultMaxFlowCalculationTransactionFromGateway(
-    ResultMaxFlowCalculationGatewayMessage::Shared message)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<ReceiveResultMaxFlowCalculationTransaction>(
-                message,
-                mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
-                mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
-                mLog),
-            false,
-            false,
-            true);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for ReceiveResultMaxFlowCalculationTransaction "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
@@ -1914,24 +1840,6 @@ void TransactionsManager::launchGatewayNotificationReceiverTransaction(
             false,
             false,
             true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchRoutingTableUpdatingTransaction(
-    RoutingTableResponseMessage::Shared message)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<RoutingTableUpdatingTransaction>(
-                message,
-                mEquivalentsSubsystemsRouter,
-                mEquivalentsCyclesSubsystemsRouter.get(),
-                mLog),
-            false,
-            false,
-            false);
     } catch (ConflictError &e){
         throw ConflictError(e.message());
     }

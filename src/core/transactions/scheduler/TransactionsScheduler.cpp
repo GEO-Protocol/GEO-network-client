@@ -59,7 +59,7 @@ void TransactionsScheduler::postponeTransaction(
 {
     for (const auto &transactionAndState : *mTransactions){
         if (transaction->currentTransactionUUID() == transactionAndState.first->currentTransactionUUID()) {
-            warning() << "scheduleTransaction: Duplicate TransactionUUID. Already exists. "
+            warning() << "postponeTransaction: Duplicate TransactionUUID. Already exists. "
                       << "Current TA type: " << transaction->transactionType()
                       << ". Conflicted TA type:" << transactionAndState.first->transactionType();
             throw ConflictError("Duplicate TransactionUUID");
@@ -492,41 +492,6 @@ bool TransactionsScheduler::isTransactionInProcess(
         }
     }
     return false;
-}
-
-void TransactionsScheduler::tryAttachMessageToCollectTopologyTransaction(
-    Message::Shared message)
-{
-    for (auto const &transactionAndState : *mTransactions) {
-        if (transactionAndState.first->transactionType() == BaseTransaction::InitiateMaxFlowCalculationTransactionType
-            or transactionAndState.first->transactionType() == BaseTransaction::MaxFlowCalculationStepTwoTransactionType
-            or transactionAndState.first->transactionType() == BaseTransaction::FindPathByMaxFlowTransactionType
-            or transactionAndState.first->transactionType() == BaseTransaction::MaxFlowCalculationFullyTransactionType) {
-            transactionAndState.first->pushContext(message);
-            return;
-        }
-    }
-    throw NotFoundError(
-            "TransactionsScheduler::tryAttachMessageToCollectTopologyTransaction: "
-                    "can't find CollectTopologyTransaction");
-}
-
-void TransactionsScheduler::tryAttachMessageToRoutingTableTransaction(
-    Message::Shared message)
-{
-    for (auto const &transactionAndState : *mTransactions) {
-        // Routing table updating TA should be run only once per 3 days,
-        // so, theoretically, only one runned transaction may exist at once,
-        // and message may be attached to first found transaction.
-        if (transactionAndState.first->transactionType() == BaseTransaction::GatewayNotificationSenderType
-            and message->typeID() == Message::RoutingTableResponse) {
-            transactionAndState.first->pushContext(message);
-            return;
-        }
-    }
-    throw NotFoundError(
-            "TransactionsScheduler::tryAttachMessageToRoutingTableTransaction: "
-                "can't find appropriate transaction");
 }
 
 const BaseTransaction::Shared TransactionsScheduler::paymentTransactionByCommandUUID(

@@ -155,8 +155,14 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::Cycles_FiveNodesMiddleware:
             return messageCollected<CyclesFiveNodesInBetweenMessage>(buffer);
 
+        case Message::Cycles_FiveNodesBoundary:
+            return messageCollected<CyclesFiveNodesBoundaryMessage>(buffer);
+
         case Message::Cycles_SixNodesMiddleware:
             return messageCollected<CyclesSixNodesInBetweenMessage>(buffer);
+
+        case Message::Cycles_SixNodesBoundary:
+            return messageCollected<CyclesSixNodesBoundaryMessage>(buffer);
 
 
         /*
@@ -191,6 +197,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
          */
         case Message::GatewayNotification:
             return messageCollected<GatewayNotificationMessage>(buffer);
+
+        case Message::RoutingTableResponse:
+            return messageCollected<RoutingTableResponseMessage>(buffer);
 
         /*
          * General

@@ -43,7 +43,6 @@
 #include "../transactions/max_flow_calculation/MaxFlowCalculationTargetFstLevelTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationSourceSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationTargetSndLevelTransaction.h"
-#include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationTransaction.h"
 
 #include "../transactions/total_balances/TotalBalancesTransaction.h"
 
@@ -64,7 +63,6 @@
 
 #include "../transactions/gateway_notification/GatewayNotificationSenderTransaction.h"
 #include "../transactions/gateway_notification/GatewayNotificationReceiverTransaction.h"
-#include "../transactions/gateway_notification/RoutingTableUpdatingTransaction.h"
 
 #include "../transactions/general/NoEquivalentTransaction.h"
 #include "../transactions/general/PongReactionTransaction.h"
@@ -194,12 +192,6 @@ protected: // Transactions
     void launchReceiveMaxFlowCalculationOnTargetTransaction(
         InitiateMaxFlowCalculationMessage::Shared message);
 
-    void launchReceiveResultMaxFlowCalculationTransaction(
-        ResultMaxFlowCalculationMessage::Shared message);
-
-    void launchReceiveResultMaxFlowCalculationTransactionFromGateway(
-        ResultMaxFlowCalculationGatewayMessage::Shared message);
-
     void launchMaxFlowCalculationSourceFstLevelTransaction(
         MaxFlowCalculationSourceFstLevelMessage::Shared message);
 
@@ -314,9 +306,6 @@ protected: // Transactions
 
     void launchGatewayNotificationReceiverTransaction(
         GatewayNotificationMessage::Shared message);
-
-    void launchRoutingTableUpdatingTransaction(
-        RoutingTableResponseMessage::Shared message);
 
     /*
      * General

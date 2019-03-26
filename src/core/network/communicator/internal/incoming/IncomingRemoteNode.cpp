@@ -250,17 +250,15 @@ bool IncomingRemoteNode::tryCollectNextPacket ()
         if (kFlagAndMessage.second->typeID() == Message::MaxFlow_ResultMaxFlowCalculation or
             kFlagAndMessage.second->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
             mTailManager.getFlowTail().push_back(kFlagAndMessage.second);
-        }
-        else if (kFlagAndMessage.second->typeID() == Message::Cycles_FiveNodesBoundary) {
+            mCollectedMessages.push_back(kFlagAndMessage.second);
+        } else if (kFlagAndMessage.second->typeID() == Message::Cycles_FiveNodesBoundary) {
             mTailManager.getCyclesFiveTail().push_back(kFlagAndMessage.second);
-        }
-        else if (kFlagAndMessage.second->typeID() == Message::Cycles_SixNodesBoundary) {
+        } else if (kFlagAndMessage.second->typeID() == Message::Cycles_SixNodesBoundary) {
             mTailManager.getCyclesSixTail().push_back(kFlagAndMessage.second);
-        }
-        else if (kFlagAndMessage.second->typeID() == Message::RoutingTableResponse) {
+        } else if (kFlagAndMessage.second->typeID() == Message::RoutingTableResponse) {
             mTailManager.getRoutingTableTail().push_back(kFlagAndMessage.second);
-        }
-        else {
+            mCollectedMessages.push_back(kFlagAndMessage.second);
+        } else {
             mCollectedMessages.push_back(kFlagAndMessage.second);
         }
         mChannels.erase(kChannelIndex);

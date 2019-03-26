@@ -1,11 +1,8 @@
-//
-// Created by minyor on 14.03.19.
-//
-
 #include "TailManager.h"
 
 TailManager::Tail::Tail(TailManager &manager) :
-    mManager(manager) {
+    mManager(manager)
+{
     mManager.mTails.push_back(this);
 }
 
@@ -18,8 +15,8 @@ TailManager::TailManager(
     mFlowTail(*this),
     mCyclesFiveTail(*this),
     mCyclesSixTail(*this),
-    mRoutingTableTail(*this) {
-
+    mRoutingTableTail(*this)
+{
     mUpdatingTimer = make_unique<as::steady_timer>(
         mIOService);
     mUpdatingTimer->expires_from_now(
@@ -32,10 +29,11 @@ TailManager::TailManager(
             as::placeholders::error));
 }
 
-TailManager::~TailManager() {
-}
+TailManager::~TailManager()
+{}
 
-void TailManager::update(const boost::system::error_code &err) {
+void TailManager::update(const boost::system::error_code &err)
+{
     if (err) {
         warning() << err.message();
     }
@@ -51,18 +49,23 @@ void TailManager::update(const boost::system::error_code &err) {
 
     DateTime now = utc_now();
 
-    for(TailList::iterator lit = mTails.begin(); lit != mTails.end(); ++lit) {
+    for(auto lit = mTails.begin(); lit != mTails.end(); ++lit) {
         Tail &tail = **lit;
 
-        for(MsgList::iterator current = tail.end(); current != tail.begin(); ) { --current;
+        for(auto current = tail.end(); current != tail.begin(); ) {
+            --current;
             Msg &msg = *current;
-            if(!msg.time.is_not_a_date_time()) break;
+            if(!msg.time.is_not_a_date_time()) {
+                break;
+            }
             msg.time = now;
         }
 
-        for(MsgList::iterator current=tail.begin(); current!=tail.end(); ) {
+        for(auto current=tail.begin(); current!=tail.end(); ) {
             Msg &msg = *current;
-            if(!msg.time.is_not_a_date_time() and (now - msg.time) <= kCleanDuration()) break;
+            if (!msg.time.is_not_a_date_time() and (now - msg.time) <= kCleanDuration()) {
+                break;
+            }
             current = tail.erase(current);
         }
     }
@@ -72,14 +75,17 @@ LoggerStream TailManager::info() const
 {
     return mLog.info(logHeader());
 }
+
 LoggerStream TailManager::debug() const
 {
     return mLog.debug(logHeader());
 }
+
 LoggerStream TailManager::warning() const
 {
     return mLog.warning(logHeader());
 }
+
 const string TailManager::logHeader() const
 {
     stringstream s;

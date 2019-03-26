@@ -1,7 +1,3 @@
-//
-// Created by minyor on 14.03.19.
-//
-
 #ifndef GEO_NETWORK_CLIENT_TAILMANAGER_H
 #define GEO_NETWORK_CLIENT_TAILMANAGER_H
 
@@ -33,7 +29,7 @@ public:
     typedef std::list<Tail *> TailList;
 
 private:
-    const uint32_t kUpdatingTimerPeriodSeconds = 1 * 60;
+    const uint32_t kUpdatingTimerPeriodSeconds = 60;
 
     static const byte kCleanHours = 0;
     static const byte kCleanMinutes = 5;

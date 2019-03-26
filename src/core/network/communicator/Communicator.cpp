@@ -207,6 +207,7 @@ void Communicator::onMessageReceived(
                 mContractorsManager->ownAddresses(),
                 kResultMaxFlowCalculationMessage->confirmationID()),
             kResultMaxFlowCalculationMessage->senderAddresses.at(0));
+        return;
     }
 
     // In case if received message is of type "max flow confirmation message" -
@@ -278,6 +279,12 @@ void Communicator::onMessageReceived(
             static_pointer_cast<ConfirmationMessage>(message));
         return;
 
+    } else if (message->typeID() == Message::RoutingTableResponse) {
+        const auto kConfirmationMessage =
+            static_pointer_cast<ConfirmationMessage>(message);
+        mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
+            kConfirmationMessage);
+        return;
     }
 
     signalMessageReceived(message);
