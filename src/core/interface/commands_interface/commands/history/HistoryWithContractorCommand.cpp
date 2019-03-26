@@ -11,7 +11,7 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
     std::string address, addressType;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
-            throw ValueError("HistoryWithContractorCommand: there is no input ");
+            throw ValueError("HistoryWithContractorCommand: input is empty.");
         }
     };
     auto historyFromParse = [&](auto &ctx) {
@@ -45,13 +45,12 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
                 break;
             }
             default:
-                throw ValueError("HistoryWithContractorCommand: can't parse command. "
+                throw ValueError("HistoryWithContractorCommand: cannot parse command. "
                     "Error occurred while parsing 'Contractor Address' token.");
         }
         address.erase();
     };
-
-    try {
+         try {
         parse(
             commandBuffer.begin(),
             commandBuffer.end(),
@@ -64,6 +63,8 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
                 > *(int_[historyCountParse] - char_(kTokensSeparator))
                 > char_(kTokensSeparator)  > *(int_[contractorAddressesCountParse] - char_(kTokensSeparator))));
         mContractorAddresses.reserve(mContractorAddressesCount);
+
+
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
@@ -73,34 +74,19 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
                 > char_(kTokensSeparator)
                 > *(int_)
                 > char_(kTokensSeparator)
-                > expect
-                [
-                        repeat(mContractorAddressesCount)
-                        [
-                                parserString::string(std::to_string(BaseAddress::IPv4_IncludingPort)) [addressTypeParse]
-                                > *(char_[addressTypeParse] - char_(kTokensSeparator))
-                                > char_(kTokensSeparator)
-                                > repeat(3)
-                                [
-                                        int_[addressAddNumber]
-                                        > char_('.') [addressAddChar]
-                                ]
-                                > int_[addressAddNumber]
-                                > char_(':') [addressAddChar]
-                                > int_[addressAddNumber]
-                                > char_(kTokensSeparator) [addressAddToVector]
-
-//                                         | //OR
-//
-//                              parserString::string(std::to_string(<NEW_ADDRESS_TYPE>) [addressTypeParse]
-//                              > *(char_[addressTypeParse] -char_(kTokensSeparator))
-//                              > char_(kTokensSeparator)
-//                              > <NEW_PARSE_RULE>
-                       ]
-                ]
+                > addressLexeme<
+                        decltype(addressAddChar),
+                        decltype(addressAddNumber),
+                        decltype(addressTypeParse),
+                        decltype(addressAddToVector)>(
+                                mContractorAddressesCount,
+                                addressAddChar,
+                                addressAddNumber,
+                                addressTypeParse,
+                                addressAddToVector)
                 > +(int_[equivalentParse]) > eol > eoi));
     } catch (...) {
-        throw ValueError("HistoryWithContractorCommand: can't parse command.");
+        throw ValueError("HistoryWithContractorCommand: cannot parse command.");
     }
 }
 

@@ -2,8 +2,6 @@
 #define SUBSYSTEMSINFLUENCECOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class SubsystemsInfluenceCommand:
     public BaseUserCommand {

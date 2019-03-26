@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_FIRSTLEVELCONTRACTORSBALANCESCOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class GetTrustLinesCommand : public BaseUserCommand {
 
@@ -13,7 +12,6 @@ public:
     GetTrustLinesCommand(
         const CommandUUID &uuid,
         const string &commandBuffer);
-
 
     static const string &identifier();
 

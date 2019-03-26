@@ -3,8 +3,6 @@
 
 #include "../BaseUserCommand.h"
 
-#include "../../../../common/exceptions/ValueError.h"
-
 class ShareKeysCommand : public BaseUserCommand {
 
 public:
@@ -28,6 +26,5 @@ private:
     ContractorID mContractorID;
     SerializedEquivalent mEquivalent;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_SHAREKEYSCOMMAND_H

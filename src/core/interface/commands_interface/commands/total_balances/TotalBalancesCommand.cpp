@@ -10,7 +10,7 @@ TotalBalancesCommand::TotalBalancesCommand(
 {
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
-            throw ValueError("TotalBalancesCommand: there is no input ");
+            throw ValueError("TotalBalancesCommand: input is empty.");
         }
     };
     auto equivalentParse = [&](auto &ctx) {
@@ -27,7 +27,7 @@ TotalBalancesCommand::TotalBalancesCommand(
             commandBuffer.end(),
             *(int_[equivalentParse]) > eol > eoi);
     } catch (...) {
-        throw ValueError("TotalBalancesCommand: can't parse command");
+        throw ValueError("TotalBalancesCommand: cannot parse command.");
     }
 }
 const string &TotalBalancesCommand::identifier()

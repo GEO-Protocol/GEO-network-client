@@ -10,7 +10,7 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
 {
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
-            throw ValueError("CloseIncomingTrustLineCommand: there is no input ");
+            throw ValueError("CloseIncomingTrustLineCommand: input is empty.");
         }
     };
     auto contractorIDParse = [&](auto& ctx) {
@@ -30,7 +30,7 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
             command.end(),
             *(int_[contractorIDParse]) > char_(kTokensSeparator) > *(int_[equivalentParse]) > eol > eoi);
     } catch(...) {
-        throw ValueError("CloseIncomingTrustLineCommand: can't parse command.");
+        throw ValueError("CloseIncomingTrustLineCommand: cannot parse command.");
     }
 }
 

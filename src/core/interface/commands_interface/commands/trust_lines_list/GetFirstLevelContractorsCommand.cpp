@@ -27,7 +27,7 @@ GetFirstLevelContractorsCommand::GetFirstLevelContractorsCommand(
             commandBuffer.end(),
             *(int_[equivalentParse]) > eol > eoi);
     } catch (...) {
-        throw ValueError("GetFirstLevelContractorsCommand: can't parse command");
+        throw ValueError("GetFirstLevelContractorsCommand: cannot parse command");
     }
 }
 

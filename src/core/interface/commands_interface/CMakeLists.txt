@@ -7,8 +7,9 @@ set(SOURCE_FILES
         interface/CommandsInterface.cpp
         interface/CommandsInterface.h
         
-        commands/BaseUserCommand.cpp
+
         commands/BaseUserCommand.h
+        commands/BaseUserCommand.cpp
 
         commands/trust_lines/InitTrustLineCommand.h
         commands/trust_lines/InitTrustLineCommand.cpp

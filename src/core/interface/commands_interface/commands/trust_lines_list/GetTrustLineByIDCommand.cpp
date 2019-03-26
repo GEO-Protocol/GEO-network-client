@@ -29,7 +29,7 @@ GetTrustLineByIDCommand::GetTrustLineByIDCommand(
             command.end(),
             *(int_[contractorIDParse]) > char_(kTokensSeparator) > *(int_[equivalentParse]) > eol > eoi );
     } catch(...) {
-        throw ValueError("GetTrustLineByIDCommand: can't parse command.");
+        throw ValueError("GetTrustLineByIDCommand: cannot parse command.");
     }
 }
 

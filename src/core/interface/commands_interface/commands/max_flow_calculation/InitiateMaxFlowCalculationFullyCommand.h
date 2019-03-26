@@ -2,8 +2,6 @@
 #define GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONFULLYCOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class InitiateMaxFlowCalculationFullyCommand : public BaseUserCommand {
 public:
@@ -28,6 +26,5 @@ private:
     vector<BaseAddress::Shared> mContractorAddresses;
     SerializedEquivalent mEquivalent;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONFULLYCOMMAND_H

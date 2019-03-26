@@ -1,6 +1,5 @@
 ﻿#include "CreditUsageCommand.h"
 
-
 CreditUsageCommand::CreditUsageCommand(
     const CommandUUID &uuid,
     const string &commandBuffer) :
@@ -13,7 +12,7 @@ CreditUsageCommand::CreditUsageCommand(
     uint32_t flagAmount = 0;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
-            throw ValueError("CreditUsageCommand: there is no input ");
+            throw ValueError("CreditUsageCommand: input is empty.");
         }
     };
     auto addressTypeParse = [&](auto &ctx) {
@@ -31,17 +30,8 @@ CreditUsageCommand::CreditUsageCommand(
     auto amountAddNumber = [&](auto &ctx) {
         amount += _attr(ctx);
         flagAmount++;
-        if(flagAmount >= 78) {
-            for(int i = 0 ; i < amount.length(); i++)
-            {
-                if(amount[i] != kAmountLimit[i])
-                {
-                    throw ValueError("Amount is too big");
-                }
-
-            }
-        }else if (flagAmount == 1 && _attr(ctx) == '0') {
-            throw ValueError("Amount can't be zero or low");
+       if (flagAmount == 1 && _attr(ctx) == '0') {
+            throw ValueError("CreditUsageCommand: amount contains leading zero.");
         }
     };
     auto addressAddToVector = [&](auto &ctx) {
@@ -54,7 +44,7 @@ CreditUsageCommand::CreditUsageCommand(
                 break;
             }
             default:
-                throw ValueError("CreditUsageCommand: can't parse command. "
+                throw ValueError("CreditUsageCommand: cannot parse command. "
                     "Error occurred while parsing 'Contractor Address' token.");
         }
 
@@ -79,37 +69,22 @@ CreditUsageCommand::CreditUsageCommand(
             commandBuffer.begin(),
             commandBuffer.end(), (
                 *(int_) > char_(kTokensSeparator)
-                > expect
-                [
-                        repeat(mContractorAddressesCount)
-                        [
-                                parserString::string(std::to_string(BaseAddress::IPv4_IncludingPort)) [addressTypeParse]
-                                > *(char_[addressTypeParse] - char_(kTokensSeparator))
-                                >char_(kTokensSeparator)
-                                > repeat(3)
-                                [
-                                        int_[addressAddNumber]
-                                        > char_('.') [addressAddChar]
-                                ]
-                                > int_[addressAddNumber]
-                                > char_(':') [addressAddChar]
-                                > int_[addressAddNumber]
-                                > char_(kTokensSeparator) [addressAddToVector]
-
-//                                         | //OR
-//
-//                              parserString::string(std::to_string(<NEW_ADDRESS_TYPE>) [addressTypeParse]
-//                              > *(char_[addressTypeParse] -char_(kTokensSeparator))
-//                              > char_(kTokensSeparator)
-//                              > <NEW_PARSE_RULE>
-                        ]
-                ]
+                > addressLexeme<
+                        decltype(addressAddChar),
+                        decltype(addressAddNumber),
+                        decltype(addressTypeParse),
+                        decltype(addressAddToVector)>(
+                        mContractorAddressesCount,
+                        addressAddChar,
+                        addressAddNumber,
+                        addressTypeParse,
+                        addressAddToVector)
                 >*(digit [amountAddNumber] > !alpha > !punct)
                 > char_(kTokensSeparator)
                 > +(int_[equivalentParse]) > eol > eoi));
         mAmount = TrustLineAmount(amount);
     } catch(...) {
-        throw ValueError("CreditUsageCommand: can't parse command.");
+        throw ValueError("CreditUsageCommand: cannot parse command.");
     }
 }
 

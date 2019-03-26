@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORSCOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class GetFirstLevelContractorsCommand : public BaseUserCommand {
 
@@ -25,4 +24,5 @@ public:
 private:
     SerializedEquivalent mEquivalent;
 };
+
 #endif //GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORSCOMMAND_H

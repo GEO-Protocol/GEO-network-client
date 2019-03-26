@@ -4,7 +4,6 @@ GetTrustLinesCommand::GetTrustLinesCommand(
     const CommandUUID &uuid,
     const string &commandBuffer):
 
-
     BaseUserCommand(
         uuid,
         identifier())
@@ -39,7 +38,7 @@ GetTrustLinesCommand::GetTrustLinesCommand(
                 > *(int_[equivalentParse])
                 > eol > eoi));
     } catch(...) {
-        throw ValueError("GetTrustLinesCommand: can't parse command");
+        throw ValueError("GetTrustLinesCommand: cannot parse command.");
     }
 }
 

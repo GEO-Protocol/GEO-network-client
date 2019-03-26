@@ -13,27 +13,17 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
     mForbiddenNodeAddress = nullptr;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
-            throw ValueError("SubsystemsInfluenceCommand: there is no input ");
+            throw ValueError("SubsystemsInfluenceCommand:  input is empty.");
         }
     };
     auto flagsAdd = [&](auto &ctx) {
         mFlags = _attr(ctx);
     };
     auto forbiddenAmountAdd = [&](auto &ctx) {
-        if(forbiddenAmount.front() == '0') {throw ValueError("Amount start's from zero");}
         forbiddenAmount += _attr(ctx);
         flag++;
-        if(flag >= 78) {
-            for(int i = 0 ; i < forbiddenAmount.length(); i++)
-            {
-                if(forbiddenAmount[i] != kAmountLimit[i])
-                {
-                    throw ValueError("Amount is too big");
-                }
-
-            }
-        }else if (flag == 1 && _attr(ctx) == '0') {
-            throw ValueError("Amount can't be zero or low");
+        if (flag == 1 && _attr(ctx) == '0') {
+            throw ValueError("SubsystemsInfluenceCommand: amount contains leading zero.");
         }
     };
     auto addressTypeParse = [&](auto &ctx) {
@@ -52,7 +42,7 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
                 break;
             }
             default:
-                throw ValueError("SubsystemsInfluenceCommand: can't parse command. "
+                throw ValueError("SubsystemsInfluenceCommand: cannot parse command. "
                     "Error occurred while parsing 'Contractor Address' token.");
         }
         address.erase();
@@ -60,7 +50,7 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
 
     try {
         parse(
-            commandBuffer.begin(),
+            commandBuffer.begin(),s
             commandBuffer.end(),
             char_[check]);
         parse(
@@ -68,34 +58,22 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
             commandBuffer.end(), (
                 *(int_[flagsAdd])
                 > -(char_(kTokensSeparator)
-                    > expect
-                    [
-                            parserString::string(std::to_string(BaseAddress::IPv4_IncludingPort)) [addressTypeParse]
-                            > *(char_[addressTypeParse] - char_(kTokensSeparator))
-                            >char_(kTokensSeparator)
-                            > repeat(3)
-                            [
-                                    int_[addressAddNumber]
-                                    > char_('.') [addressAddChar]
-                            ]
-                            > int_[addressAddNumber]
-                            > char_(':') [addressAddChar]
-                            > int_[addressAddNumber]
-                            > char_(kTokensSeparator) [addressAddToVector]
-
-//                                         | //OR
-//
-//                          parserString::string(std::to_string(<NEW_ADDRESS_TYPE>) [addressTypeParse]
-//                          > *(char_[addressTypeParse] - char_(kTokensSeparator)
-//                          > char_(kTokensSeparator)
-//                          > <NEW_PARSE_RULE>
-                    ]
+                    > addressLexeme<
+                        decltype(addressAddChar),
+                        decltype(addressAddNumber),
+                        decltype(addressTypeParse),
+                        decltype(addressAddToVector)>(
+                        1,
+                        addressAddChar,
+                        addressAddNumber,
+                        addressTypeParse,
+                        addressAddToVector)
                     > *(digit [forbiddenAmountAdd] > !alpha > !punct))
                 > eol > eoi));
 
         mForbiddenAmount = TrustLineAmount(forbiddenAmount);
     } catch (...) {
-        throw ValueError("SubsystemsInfluenceCommand: can't parse command");
+        throw ValueError("SubsystemsInfluenceCommand: cannot parse command.");
     }
 }
 

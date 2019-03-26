@@ -12,7 +12,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
     std::string lowBoundaryAmount, highBoundaryAmount, paymentRecordCommandUUID;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
-            throw ValueError("HistoryPaymentsCommand: there is no input ");
+            throw ValueError("HistoryPaymentsCommand: input is empty.");
         }
     };
     auto historyFromParse = [&](auto &ctx) {
@@ -37,46 +37,26 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         mTimeTo = pt::time_from_string("1970-01-01 00:00:00.000");
         mTimeTo += pt::microseconds(_attr(ctx));
     };
-    auto lowBoundaryAmountNull = [&](auto &ctx) {
+    auto setLowBoundaryAmountNull = [&](auto &ctx) {
         mIsLowBoundaryAmountPresent = false;
     };
     auto lowBoundaryAmountAddNumber = [&](auto &ctx) {
-        if(lowBoundaryAmount.front() == '0') {throw ValueError("Amount start's from zero");}
         lowBoundaryAmount += _attr(ctx);
         mIsLowBoundaryAmountPresent = true;
         flagLow++;
-        if(flagLow >= 78) {
-            for(int i = 0 ; i < lowBoundaryAmount.length(); i++)
-            {
-                if(lowBoundaryAmount[i] != kAmountLimit[i])
-                {
-                    throw ValueError("Amount is too big");
-                }
-
-            }
-        }else if (flagLow == 1 && _attr(ctx) == '0') {
-            throw ValueError("Amount can't be zero or low");
+        if (flagLow == 1 && _attr(ctx) == '0') {
+            throw ValueError("HistoryPaymentsCommand: amount contains leading zero.");
         }
     };
-    auto highBoundaryAmountNull = [&](auto &ctx) {
+    auto setHighBoundaryAmountNull = [&](auto &ctx) {
         mIsHighBoundaryAmountPresent = false;
     };
     auto highBoundaryAmountAddNumber = [&](auto &ctx) {
-        if(highBoundaryAmount.front() == '0') {throw ValueError("Amount start's from zero");}
         highBoundaryAmount += _attr(ctx);
         mIsHighBoundaryAmountPresent = true;
         flagHigh++;
-        if(flagHigh >= 78) {
-            for(int i = 0 ; i < highBoundaryAmount.length(); i++)
-            {
-                if(highBoundaryAmount[i] != kAmountLimit[i])
-                {
-                    throw ValueError("Amount is too big");
-                }
-
-            }
-        }else if (flagHigh == 1 && _attr(ctx) == '0') {
-            throw ValueError("Amount can't be zero or low");
+        if (flagHigh == 1 && _attr(ctx) == '0') {
+            throw ValueError("HistoryPaymentsCommand: amount contains leading zero.");
         }
     };
     auto paymentRecordUUIDNull = [&](auto &ctx){
@@ -84,10 +64,8 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
     };
     auto addUUID8Digits = [&](auto &ctx) {
         flag8++;
-        if(flag8 >9) {
-            throw 1;
-        } else if(_attr(ctx) == '-' && flag8 < 9) {
-            throw ValueError("Expect 8 digits");
+        if(flag8 > 9 || (_attr(ctx) == '-' && flag8 < 9)) {
+            throw ValueError("HistoryPaymentsCommand: UUID expect 8 digits.");
         }
         mIsPaymentRecordCommandUUIDPresent = true;
         paymentRecordCommandUUID += _attr(ctx);
@@ -95,7 +73,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
     auto addUUID4Digits = [&](auto &ctx) {
         flag4++;
         if(flag4 >5 || (_attr(ctx) == '-' && flag4 < 5)) {
-            throw ValueError("Expect 4 digits");
+            throw ValueError("HistoryPaymentsCommand: UUID expect 4 digits.");
         } else if(_attr(ctx) == '-') {
             flag4 = 0;
         }
@@ -104,10 +82,10 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
     auto addUUID12Digits = [&](auto &ctx) {
         flag12++;
         if(flag12 >13 || (_attr(ctx) == kTokensSeparator && flag12 < 13)) {
-            throw ValueError("Expect 12 digits");
+            throw ValueError("HistoryPaymentsCommand: UUID expect 12 digits.");
         } else if(_attr(ctx) == kTokensSeparator) {
-        } else { paymentRecordCommandUUID += _attr(ctx);
-        }
+            return;
+        } else { paymentRecordCommandUUID += _attr(ctx);}
     };
     auto equivalentParse = [&](auto &ctx) {
         mEquivalent = _attr(ctx);
@@ -131,18 +109,20 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
                 > -(+(char_("null")[timeToPresentNull]))
                 > -(int_[timeToPresentNumber])
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[lowBoundaryAmountNull]))
+                > -(+(char_("null")[setLowBoundaryAmountNull]))
                 > -(*(digit [lowBoundaryAmountAddNumber] > !alpha > !punct))
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[highBoundaryAmountNull]))
+                > -(+(char_("null")[setHighBoundaryAmountNull]))
                 > -(*(digit [highBoundaryAmountAddNumber] > !alpha > !punct))
                 > char_(kTokensSeparator)
-                    > -(+(char_("null")[paymentRecordUUIDNull] >char_('\t')))
-                    > -( *(char_[addUUID8Digits] - char_('-')) > char_('-') [addUUID8Digits]
-                        >*(char_[addUUID4Digits] - char_('-')) > char_('-') [addUUID4Digits]
-                        >*(char_[addUUID4Digits] - char_('-')) > char_('-') [addUUID4Digits]
-                        >*(char_[addUUID4Digits] - char_('-')) > char_('-') [addUUID4Digits]
-                        >*(char_[addUUID12Digits] - char_('\t')) > char_('\t') [addUUID12Digits])
+                    > -(+(char_("null")[paymentRecordUUIDNull] >char_(kTokensSeparator)))
+                    > -(UUIDLexeme<
+                            decltype(addUUID8Digits),
+                            decltype(addUUID4Digits),
+                            decltype(addUUID12Digits)>(
+                                    addUUID8Digits,
+                                    addUUID4Digits,
+                                    addUUID12Digits))
                 > int_[equivalentParse]
                 > eol > eoi));
 
@@ -150,7 +130,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         mHighBoundaryAmount = TrustLineAmount(highBoundaryAmount);
         mPaymentRecordCommandUUID = boost::lexical_cast<uuids::uuid>(paymentRecordCommandUUID);
     } catch(...) {
-        throw ValueError("HistoryPaymentsCommand : can't parse command");
+        throw ValueError("HistoryPaymentsCommand: cannot parse command.");
     }
 }
 

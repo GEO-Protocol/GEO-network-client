@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_HISTORYTRUSTLINESCOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class HistoryTrustLinesCommand : public BaseUserCommand {
 
@@ -45,6 +44,5 @@ private:
     bool mIsTimeToPresent;
     SerializedEquivalent mEquivalent;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_HISTORYTRUSTLINESCOMMAND_H

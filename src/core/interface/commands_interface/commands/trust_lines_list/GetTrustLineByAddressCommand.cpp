@@ -37,7 +37,7 @@ GetTrustLineByAddressCommand::GetTrustLineByAddressCommand(
                 break;
             }
             default:
-                throw ValueError("GetTrustLineByAddressCommand: can't parse command. "
+                throw ValueError("GetTrustLineByAddressCommand: cannot parse command. "
                     "Error occurred while parsing 'Contractor Address' token.");
         }
         address.erase();
@@ -59,34 +59,19 @@ GetTrustLineByAddressCommand::GetTrustLineByAddressCommand(
             commandBuffer.begin(),
             commandBuffer.end(), (
                 *(int_) > char_(kTokensSeparator)
-                > expect
-                [
-                        repeat(addressesCount)
-                        [
-                                parserString::string(std::to_string(BaseAddress::IPv4_IncludingPort)) [addressTypeParse]
-                                > *(char_[addressTypeParse] - char_(kTokensSeparator))
-                                >char_(kTokensSeparator)
-                                > repeat(3)
-                                [
-                                        int_[addressAddNumber]
-                                        > char_('.') [addressAddChar]
-                                ]
-                                > int_[addressAddNumber]
-                                > char_(':') [addressAddChar]
-                                > int_[addressAddNumber]
-                                > char_(kTokensSeparator) [addressAddToVector]
-
-//                                         | //OR
-//
-//                              parserString::string(std::to_string(<NEW_ADDRESS_TYPE>) [addressTypeParse]
-//                              > *(char_[addressTypeParse] - char_(kTokensSeparator) )
-//                              > char_(kTokensSeparator)
-//                              > <NEW_PARSE_RULE>
-                        ]
-                ]
+                > addressLexeme<
+                        decltype(addressAddChar),
+                        decltype(addressAddNumber),
+                        decltype(addressTypeParse),
+                        decltype(addressAddToVector)>(
+                        addressesCount,
+                        addressAddChar,
+                        addressAddNumber,
+                        addressTypeParse,
+                        addressAddToVector)
                 > +(int_[equivalentParse]) > eol > eoi));
     } catch(...) {
-        throw ValueError("GetTrustLineByAddressCommand: can't parse command.");
+        throw ValueError("GetTrustLineByAddressCommand: cannot parse command.");
     }
 }
 

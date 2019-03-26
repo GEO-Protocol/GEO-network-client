@@ -20,5 +20,4 @@ public:
         string &equivalents) const;
 };
 
-
 #endif //GEO_NETWORK_CLIENT_EQUIVALENTLISTCOMMAND_H

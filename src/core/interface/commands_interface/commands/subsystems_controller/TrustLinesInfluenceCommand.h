@@ -3,8 +3,6 @@
 
 #include "../BaseUserCommand.h"
 
-#include "../../../../common/exceptions/ValueError.h"
-
 class TrustLinesInfluenceCommand : public BaseUserCommand {
 
 public:
@@ -56,6 +54,5 @@ protected:
     uint32_t mSecondParameter;
     uint32_t mThirdParameter;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINESINFLUENCECOMMAND_H
