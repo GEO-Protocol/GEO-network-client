@@ -86,15 +86,6 @@ public:
     bool isTransactionInProcess(
         const TransactionUUID &transactionUUID) const;
 
-    void tryAttachMessageToCollectTopologyTransaction(
-        Message::Shared message);
-
-    void tryAttachMessageToCyclesFiveAndSixNodes(
-        Message::Shared message);
-
-    void tryAttachMessageToRoutingTableTransaction(
-        Message::Shared message);
-
     const BaseTransaction::Shared paymentTransactionByCommandUUID(
         const CommandUUID &commandUUID) const;
 

@@ -55,6 +55,8 @@ private:
 
     int initLogger();
 
+    int initTailManager();
+
     int initCommunicator();
 
     int initObservingHandler(
@@ -207,6 +209,7 @@ protected:
     unique_ptr<ContractorsManager> mContractorsManager;
     unique_ptr<ObservingHandler> mObservingHandler;
     unique_ptr<TopologyEventDelayedTask> mTopologyEventDelayedTask;
+    unique_ptr<TailManager> mTailManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

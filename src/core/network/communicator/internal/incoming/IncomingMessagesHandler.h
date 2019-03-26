@@ -20,6 +20,7 @@ public:
     IncomingMessagesHandler(
         IOService &ioService,
         UDPSocket &socket,
+        TailManager &tailManager,
         Logger &logger)
         noexcept;
 
@@ -56,6 +57,7 @@ protected:
 protected:
     UDPSocket &mSocket;
     IOService &mIOService;
+    TailManager &mTailManager;
     Logger &mLog;
 
     boost::array<byte, kMaxIncomingBufferSize> mIncomingBuffer;

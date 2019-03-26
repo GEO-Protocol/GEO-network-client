@@ -52,7 +52,7 @@ IPv4WithPortAddress::IPv4WithPortAddress(
     size_t bytesBufferOffset = sizeof(SerializedType);
 
     for (int idx = 0; idx < 4; idx++) {
-        uint16_t nextIPByte;
+        byte nextIPByte;
         memcpy(
             &nextIPByte,
             buffer + bytesBufferOffset,

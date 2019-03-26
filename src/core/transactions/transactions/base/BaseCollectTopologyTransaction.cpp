@@ -8,6 +8,7 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    TailManager &tailManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -18,7 +19,8 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     mTrustLinesManager(trustLinesManager),
     mTopologyTrustLineManager(topologyTrustLineManager),
     mTopologyCacheManager(topologyCacheManager),
-    mMaxFlowCacheManager(maxFlowCacheManager)
+    mMaxFlowCacheManager(maxFlowCacheManager),
+    mTailManager(tailManager)
 {}
 
 BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
@@ -30,6 +32,7 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     TopologyTrustLinesManager *topologyTrustLineManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    TailManager &tailManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -41,7 +44,8 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     mTrustLinesManager(trustLinesManager),
     mTopologyTrustLineManager(topologyTrustLineManager),
     mTopologyCacheManager(topologyCacheManager),
-    mMaxFlowCacheManager(maxFlowCacheManager)
+    mMaxFlowCacheManager(maxFlowCacheManager),
+    mTailManager(tailManager)
 {}
 
 TransactionResult::SharedConst BaseCollectTopologyTransaction::run()
@@ -64,9 +68,12 @@ TransactionResult::SharedConst BaseCollectTopologyTransaction::run()
 
 void BaseCollectTopologyTransaction::fillTopology()
 {
+    /// Take messages from TailManager instead of BaseTransaction's 'mContext'
+    auto &mContext = mTailManager.getFlowTail();
+
     while (!mContext.empty()) {
-        if (mContext.at(0)->typeID() == Message::MaxFlow_ResultMaxFlowCalculation) {
-            const auto kMessage = popNextMessage<ResultMaxFlowCalculationMessage>();
+        if (mContext.front()->typeID() == Message::MaxFlow_ResultMaxFlowCalculation) {
+            const auto kMessage = popNextMessage<ResultMaxFlowCalculationMessage>(mContext);
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
             info() << "Sender " << kMessage->senderAddresses.at(0)->fullAddress() << " common";
             info() << "Outgoing flows: " << kMessage->outgoingFlows().size();
@@ -91,8 +98,8 @@ void BaseCollectTopologyTransaction::fillTopology()
                         incomingFlow.second));
             }
         }
-        else if (mContext.at(0)->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
-            const auto kMessage = popNextMessage<ResultMaxFlowCalculationGatewayMessage>();
+        else if (mContext.front()->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
+            const auto kMessage = popNextMessage<ResultMaxFlowCalculationGatewayMessage>(mContext);
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
             info() << "Sender " << kMessage->senderAddresses.at(0)->fullAddress() << " gateway";
             info() << "Outgoing flows: " << kMessage->outgoingFlows().size();

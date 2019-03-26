@@ -5,6 +5,7 @@
 #include "../common/Packet.hpp"
 #include "IncomingChannel.h"
 #include "MessageParser.h"
+#include "TailManager.h"
 
 #include <boost/unordered_map.hpp>
 
@@ -20,6 +21,7 @@ public:
     IncomingRemoteNode(
         const UDPEndpoint &endpoint,
         MessagesParser &messagesParser,
+        TailManager &tailManager,
         Logger &logger)
         noexcept;
 
@@ -69,6 +71,7 @@ protected:
     vector<Message::Shared> mCollectedMessages;
 
     MessagesParser &mMessagesParser;
+    TailManager &mTailManager;
     Logger &mLog;
 };
 

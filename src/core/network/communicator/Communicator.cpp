@@ -4,10 +4,12 @@
 Communicator::Communicator(
     IOService &IOService,
     ContractorsManager *contractorsManager,
+    TailManager &tailManager,
     Logger &logger):
 
     mIOService(IOService),
     mContractorsManager(contractorsManager),
+    mTailManager(tailManager),
     mLog(logger),
     mSocket(
         make_unique<UDPSocket>(
@@ -20,6 +22,7 @@ Communicator::Communicator(
         make_unique<IncomingMessagesHandler>(
             IOService,
             *mSocket,
+            mTailManager,
             logger)),
 
     mOutgoingMessagesHandler(
@@ -204,6 +207,7 @@ void Communicator::onMessageReceived(
                 mContractorsManager->ownAddresses(),
                 kResultMaxFlowCalculationMessage->confirmationID()),
             kResultMaxFlowCalculationMessage->senderAddresses.at(0));
+        return;
     }
 
     // In case if received message is of type "max flow confirmation message" -
@@ -280,6 +284,7 @@ void Communicator::onMessageReceived(
             static_pointer_cast<ConfirmationMessage>(message);
         mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
             kConfirmationMessage);
+        return;
     }
 
     signalMessageReceived(message);

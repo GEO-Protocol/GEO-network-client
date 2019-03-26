@@ -12,6 +12,7 @@ FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     bool iAmGateway,
+    TailManager &tailManager,
     Logger &logger) :
 
     BaseCollectTopologyTransaction(
@@ -22,6 +23,7 @@ FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
         topologyTrustLineManager,
         topologyCacheManager,
         maxFlowCacheManager,
+        tailManager,
         logger),
 
     mContractorAddress(contractorAddress),

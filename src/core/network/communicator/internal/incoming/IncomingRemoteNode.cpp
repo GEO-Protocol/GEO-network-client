@@ -4,11 +4,13 @@
 IncomingRemoteNode::IncomingRemoteNode(
     const UDPEndpoint &endpoint,
     MessagesParser &messagesParser,
+    TailManager &tailManager,
     Logger &logger)
     noexcept:
 
     mEndpoint(endpoint),
     mMessagesParser(messagesParser),
+    mTailManager(tailManager),
     mLog(logger)
 {}
 
@@ -245,7 +247,20 @@ bool IncomingRemoteNode::tryCollectNextPacket ()
     const auto kFlagAndMessage = channel->tryCollectMessage();
     if (kFlagAndMessage.first) {
         debug() << "Collected message of type " << kFlagAndMessage.second->typeID();
-        mCollectedMessages.push_back(kFlagAndMessage.second);
+        if (kFlagAndMessage.second->typeID() == Message::MaxFlow_ResultMaxFlowCalculation or
+            kFlagAndMessage.second->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
+            mTailManager.getFlowTail().push_back(kFlagAndMessage.second);
+            mCollectedMessages.push_back(kFlagAndMessage.second);
+        } else if (kFlagAndMessage.second->typeID() == Message::Cycles_FiveNodesBoundary) {
+            mTailManager.getCyclesFiveTail().push_back(kFlagAndMessage.second);
+        } else if (kFlagAndMessage.second->typeID() == Message::Cycles_SixNodesBoundary) {
+            mTailManager.getCyclesSixTail().push_back(kFlagAndMessage.second);
+        } else if (kFlagAndMessage.second->typeID() == Message::RoutingTableResponse) {
+            mTailManager.getRoutingTableTail().push_back(kFlagAndMessage.second);
+            mCollectedMessages.push_back(kFlagAndMessage.second);
+        } else {
+            mCollectedMessages.push_back(kFlagAndMessage.second);
+        }
         mChannels.erase(kChannelIndex);
     }
 

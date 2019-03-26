@@ -4,6 +4,7 @@ GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
     ContractorsManager *contractorsManager,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     EquivalentsCyclesSubsystemsRouter *equivalentsCyclesSubsystemsRouter,
+    TailManager &tailManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -13,7 +14,8 @@ GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
     mContractorsManager(contractorsManager),
     mEquivalentsSubsystemsRouter(equivalentsSubsystemsRouter),
     mEquivalentsCyclesSubsystemsRouter(equivalentsCyclesSubsystemsRouter),
-    mTransactionStarted(utc_now())
+    mTransactionStarted(utc_now()),
+    mTailManager(tailManager)
 {}
 
 TransactionResult::SharedConst GatewayNotificationSenderTransaction::run()
@@ -68,12 +70,15 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::sendGateway
 
 TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRoutingTablesResponse()
 {
+    /// Take messages from TailManager instead of BaseTransaction's 'mContext'
+    auto &mContext = mTailManager.getRoutingTableTail();
+
     if (allNeighborsResponseReceive.empty()) {
         mEquivalentsCyclesSubsystemsRouter->clearRoutingTables();
     }
     while (!mContext.empty()) {
         if (mContext.at(0)->typeID() == Message::RoutingTableResponse) {
-            const auto kMessage = popNextMessage<RoutingTableResponseMessage>();
+            const auto kMessage = popNextMessage<RoutingTableResponseMessage>(mContext);
             info() << "node " << kMessage->idOnReceiverSide << " send response";
             allNeighborsResponseReceive.insert(kMessage->idOnReceiverSide);
             for (const auto &equivalentAndNeighbors : kMessage->neighborsByEquivalents()) {

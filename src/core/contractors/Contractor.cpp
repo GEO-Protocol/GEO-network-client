@@ -33,7 +33,7 @@ Contractor::Contractor(
 {
     size_t bufferDataOffset = 0;
 
-    uint16_t addressesCount;
+    byte addressesCount;
     memcpy(
         &addressesCount,
         buffer + bufferDataOffset,

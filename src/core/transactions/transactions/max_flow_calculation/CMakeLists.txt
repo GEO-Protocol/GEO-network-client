@@ -13,8 +13,6 @@ set(SOURCE_FILES
         MaxFlowCalculationSourceSndLevelTransaction.cpp
         MaxFlowCalculationTargetSndLevelTransaction.h
         MaxFlowCalculationTargetSndLevelTransaction.cpp
-        ReceiveResultMaxFlowCalculationTransaction.h
-        ReceiveResultMaxFlowCalculationTransaction.cpp
         CollectTopologyTransaction.h
         CollectTopologyTransaction.cpp
         MaxFlowCalculationFullyTransaction.h

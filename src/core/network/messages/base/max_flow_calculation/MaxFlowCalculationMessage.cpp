@@ -19,7 +19,7 @@ MaxFlowCalculationMessage::MaxFlowCalculationMessage (
 {
     auto bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
 
-    uint16_t senderAddressesCnt;
+    byte senderAddressesCnt;
     memcpy(
         &senderAddressesCnt,
         buffer.get() + bytesBufferOffset,

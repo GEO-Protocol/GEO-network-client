@@ -21,6 +21,7 @@ class IncomingNodesHandler {
 public:
     IncomingNodesHandler(
         MessagesParser &messagesParser,
+        TailManager &tailManager,
         Logger &logger)
         noexcept;
 
@@ -42,6 +43,7 @@ protected:
 
 protected:
     MessagesParser &mMessagesParser;
+    TailManager &mTailManager;
     Logger &mLog;
 
     boost::container::flat_map<uint64_t, IncomingRemoteNode::Unique> mNodes;

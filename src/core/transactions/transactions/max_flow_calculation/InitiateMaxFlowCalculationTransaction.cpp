@@ -8,6 +8,7 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
     bool iAmGateway,
+    TailManager &tailManager,
     Logger &logger) :
 
     BaseCollectTopologyTransaction(
@@ -18,6 +19,7 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
         topologyTrustLineManager,
         topologyCacheManager,
         maxFlowCacheManager,
+        tailManager,
         logger),
     mCommand(command),
     mResultStep(1),

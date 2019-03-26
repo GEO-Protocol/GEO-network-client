@@ -14,6 +14,7 @@ public:
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
         CyclesManager *cyclesManager,
+        TailManager &tailManager,
         Logger &logger);
 
 protected:
@@ -22,6 +23,9 @@ protected:
 protected:
     TransactionResult::SharedConst runCollectDataAndSendMessagesStage();
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
+
+private:
+    TailManager &mTailManager;
 
 };
 #endif //GEO_NETWORK_CLIENT_CYCLESSIXNODESINITTRANSACTION_H

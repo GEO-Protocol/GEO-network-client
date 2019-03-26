@@ -7,8 +7,7 @@ set(SOURCE_FILES
         GatewayNotificationReceiverTransaction.h
         GatewayNotificationReceiverTransaction.cpp
 
-        RoutingTableUpdatingTransaction.h
-        RoutingTableUpdatingTransaction.cpp)
+        )
 
 add_library(transactions__gateway_notification ${SOURCE_FILES})
 
