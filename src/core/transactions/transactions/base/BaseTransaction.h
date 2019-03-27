@@ -50,6 +50,9 @@ public:
     virtual ~BaseTransaction() = default;
 
     enum TransactionType {
+        OpenChannelTransaction = 10,
+        ConfirmChannelTransaction = 11,
+
         OpenTrustLineTransaction = 100,
         AcceptTrustLineTransaction = 101,
         SetOutgoingTrustLineTransaction = 102,

@@ -3,6 +3,7 @@
 
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
+#include "../../../messages/trust_line_channels/InitChannelMessage.h"
 #include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
 
 #include <boost/signals2.hpp>
@@ -76,8 +77,9 @@ protected: // messages handlers
      * Removes all messages of type "SetIncomingTrustLineMessage" with contractor UUID = "contractorUUID",
      * to prevent messages order collision.
      */
-    // todo : actually now only GatewayNotification go to the ConfirmationRequiredMessagesHandler
-    // and it doesn't save in storage
+    void addChannelInitInTheQueue(
+        TransactionMessage::Shared message);
+
     void updateGatewayNotificationInTheQueue(
         TransactionMessage::Shared message);
 

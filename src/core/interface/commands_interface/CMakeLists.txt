@@ -10,6 +10,9 @@ set(SOURCE_FILES
         commands/BaseUserCommand.cpp
         commands/BaseUserCommand.h
 
+        commands/trust_line_channels/InitChannelCommand.h
+        commands/trust_line_channels/InitChannelCommand.cpp
+
         commands/trust_lines/InitTrustLineCommand.h
         commands/trust_lines/InitTrustLineCommand.cpp
         commands/trust_lines/SetOutgoingTrustLineCommand.h

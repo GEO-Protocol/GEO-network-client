@@ -222,6 +222,14 @@ void Communicator::onMessageReceived(
             return;
     }
 
+    else if (message->typeID() == Message::Channel_Init) {
+        const auto initMessage = static_pointer_cast<InitChannelMessage>(message);
+        mConfirmationRequiredMessagesHandler->tryProcessConfirmation(make_shared<ConfirmationMessage>(
+            initMessage->equivalent(),
+            initMessage->contractorID(),
+            initMessage->transactionUUID()));
+    }
+
     // these messages are inherited from DestinationMessage
     // and should be checked if they were delivered on address
     else if (message->isDestinationMessage()) {
@@ -236,14 +244,13 @@ void Communicator::onMessageReceived(
                     << ", idOnContractorSide: " << mContractorsManager->idOnContractorSide(kDestinationMessage->idOnReceiverSide);
             return;
         }
-    }
 
-    if (message->typeID() == Message::General_Ping) {
+    } else if (message->typeID() == Message::General_Ping) {
         const auto pingMessage =
-            static_pointer_cast<PingMessage>(message);
+                static_pointer_cast<PingMessage>(message);
         if (pingMessage->senderAddresses.empty()) {
             error() << "Ping message from " << pingMessage->senderIncomingIP()
-                      << " doesn't contain sender addresses and will be ignored";
+                    << " doesn't contain sender addresses and will be ignored";
             return;
         }
         sendMessage(
@@ -253,6 +260,22 @@ void Communicator::onMessageReceived(
                 // and we should include it to PongMessage
                 pingMessage->idOnReceiverSide),
             pingMessage->senderAddresses.at(0));
+        return;
+
+        // In case if received message is of type "confirmation message" -
+        // then it must not be transferred for further processing.
+        // Instead of that, it must be transferred for processing into
+        // confirmation required messages handler.
+    } else if (message->typeID() == Message::System_Confirmation) {
+        mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
+                static_pointer_cast<ConfirmationMessage>(message));
+        return;
+
+    } else if (message->typeID() == Message::RoutingTableResponse) {
+        const auto kConfirmationMessage =
+                static_pointer_cast<ConfirmationMessage>(message);
+        mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
+                kConfirmationMessage);
         return;
     }
 
@@ -268,23 +291,6 @@ void Communicator::onMessageReceived(
 #endif
             return;
         }
-    }
-
-    // In case if received message is of type "confirmation message" -
-    // then it must not be transferred for further processing.
-    // Instead of that, it must be transferred for processing into
-    // confirmation required messages handler.
-    if (message->typeID() == Message::System_Confirmation) {
-        mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
-            static_pointer_cast<ConfirmationMessage>(message));
-        return;
-
-    } else if (message->typeID() == Message::RoutingTableResponse) {
-        const auto kConfirmationMessage =
-            static_pointer_cast<ConfirmationMessage>(message);
-        mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
-            kConfirmationMessage);
-        return;
     }
 
     signalMessageReceived(message);

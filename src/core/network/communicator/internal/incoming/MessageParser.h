@@ -5,6 +5,8 @@
 
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
 
+#include "../../../messages/trust_line_channels/InitChannelMessage.h"
+
 #include "../../../messages/trust_lines/TrustLineInitialMessage.h"
 #include "../../../messages/trust_lines/TrustLineConfirmationMessage.h"
 #include "../../../messages/trust_lines/PublicKeysSharingInitMessage.h"

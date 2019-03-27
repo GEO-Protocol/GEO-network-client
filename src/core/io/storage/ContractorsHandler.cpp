@@ -12,7 +12,9 @@ ContractorsHandler::ContractorsHandler(
     sqlite3_stmt *stmt;
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    "(id INTEGER PRIMARY KEY, "
-                   "id_on_contractor_side INTEGER);";
+                   "id_on_contractor_side INTEGER, "
+                   "crypto_key BLOB NOT NULL, "
+                   "is_confirmed INTEGER NOT NULL DEFAULT 0);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::creating table: "
@@ -47,7 +49,7 @@ void ContractorsHandler::saveContractor(
     Contractor::Shared contractor)
 {
     string query = "INSERT INTO " + mTableName +
-                   "(id) VALUES (?);";
+                   "(id, crypto_key) VALUES (?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -115,7 +117,7 @@ void ContractorsHandler::saveIdOnContractorSide(
     Contractor::Shared contractor)
 {
     string query = "UPDATE " + mTableName +
-                   " SET id_on_contractor_side = ? WHERE id = ?;";
+                   " SET id_on_contractor_side = ?, is_confirmed = 1 WHERE id = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -167,7 +169,7 @@ vector<Contractor::Shared> ContractorsHandler::allContractors()
     vector<Contractor::Shared> result;
     result.reserve(rowCount);
 
-    string query = "SELECT id, id_on_contractor_side FROM " + mTableName;
+    string query = "SELECT id, id_on_contractor_side, crypto_key, is_confirmed FROM " + mTableName;
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::allContractors: "
@@ -176,11 +178,20 @@ vector<Contractor::Shared> ContractorsHandler::allContractors()
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         auto id = (ContractorID)sqlite3_column_int(stmt, 0);
         auto idOnContractorSide = (ContractorID)sqlite3_column_int(stmt, 1);
+        uint32_t cryptoKey;
+        memcpy(
+            &cryptoKey,
+            sqlite3_column_blob(stmt, 2),
+            sizeof(uint32_t));
+        auto isChannelConfirmed = sqlite3_column_int(stmt, 3);
+
         try {
             result.push_back(
                 make_shared<Contractor>(
                     id,
-                    idOnContractorSide));
+                    idOnContractorSide,
+                    cryptoKey,
+                    isChannelConfirmed == 1));
         } catch (...) {
             throw Exception("ContractorsHandler::allContractors. "
                                 "Unable to create contractor instance from DB.");

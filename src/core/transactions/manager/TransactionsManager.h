@@ -8,6 +8,9 @@
 /*
  * Transactions
  */
+#include "../transactions/trust_line_channel/InitChannelTransaction.h"
+#include "../transactions/trust_line_channel/ConfirmChannelTransaction.h"
+
 #include "../transactions/trust_lines/OpenTrustLineTransaction.h"
 #include "../transactions/trust_lines/AcceptTrustLineTransaction.h"
 #include "../transactions/trust_lines/SetOutgoingTrustLineTransaction.h"
@@ -145,12 +148,16 @@ public:
 
 protected: // Transactions
     /*
-     * Trust lines transactions
+     * Channel transactions
      */
+    void launchInitChannelTransaction(
+        InitChannelCommand::Shared command);
 
-    /**
-     * Starts transaction that would processes locally received command
-     * and try to set outgoing trust line to the remote node.
+    void launchConfirmChannelTransaction(
+        InitChannelMessage::Shared message);
+
+    /*
+     * Trust lines transactions
      */
     void launchInitTrustLineTransaction(
         InitTrustLineCommand::Shared command);
@@ -164,10 +171,6 @@ protected: // Transactions
     void launchPublicKeysSharingSourceTransaction(
         ShareKeysCommand::Shared command);
 
-    /**
-     * Starts transaction that would processes received message
-     * and attempts to set incoming trust line from the remote node.
-     */
     void launchAcceptTrustLineTransaction(
         TrustLineInitialMessage::Shared message);
 

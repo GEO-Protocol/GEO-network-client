@@ -14,12 +14,19 @@ public:
 
     Contractor(
         ContractorID id,
+        vector<BaseAddress::Shared> &addresses,
+        uint32_t cryptoKey);
+
+    Contractor(
+        ContractorID id,
         ContractorID idOnContractorSide,
         vector<BaseAddress::Shared> addresses);
 
     Contractor(
         ContractorID id,
-        ContractorID idOnContractorSide);
+        ContractorID idOnContractorSide,
+        uint32_t cryptoKey,
+        bool isConfirmed);
 
     Contractor(
         vector<BaseAddress::Shared> addresses);
@@ -32,6 +39,10 @@ public:
     const ContractorID ownIdOnContractorSide() const;
 
     void setOwnIdOnContractorSide(ContractorID id);
+
+    const uint32_t cryptoKey() const;
+
+    const bool isConfirmed() const;
 
     vector<BaseAddress::Shared> addresses() const;
 
@@ -62,6 +73,8 @@ public:
 private:
     ContractorID mID;
     ContractorID mOwnIdOnContractorSide;
+    uint32_t mCryptoKey;
+    bool mIsConfirmed;
     vector<BaseAddress::Shared> mAddresses;
 };
 

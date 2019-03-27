@@ -8,10 +8,10 @@ set(SOURCE_FILES
     SetOutgoingTrustLineTransaction.h
     SetOutgoingTrustLineTransaction.cpp
 
-        CloseIncomingTrustLineTransaction.h
+    CloseIncomingTrustLineTransaction.h
     CloseIncomingTrustLineTransaction.cpp
 
-        OpenTrustLineTransaction.h
+    OpenTrustLineTransaction.h
     OpenTrustLineTransaction.cpp
     AcceptTrustLineTransaction.h
     AcceptTrustLineTransaction.cpp

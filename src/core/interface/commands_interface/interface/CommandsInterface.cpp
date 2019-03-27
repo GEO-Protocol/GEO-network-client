@@ -137,7 +137,12 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 {
     BaseUserCommand *command = nullptr;
     try {
-        if (identifier == InitTrustLineCommand::identifier()) {
+        if (identifier == InitChannelCommand::identifier()) {
+            command = new InitChannelCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == InitTrustLineCommand::identifier()) {
             command = new InitTrustLineCommand(
                 uuid,
                 buffer);

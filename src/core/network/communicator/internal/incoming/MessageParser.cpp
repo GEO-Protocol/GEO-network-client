@@ -35,6 +35,11 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::System_Confirmation:
             return messageCollected<ConfirmationMessage>(buffer);
 
+        /*
+         * Channel messages
+         */
+        case Message::Channel_Init:
+            return messageCollected<InitChannelMessage>(buffer);
 
         /*
          * Trust lines messages

@@ -27,6 +27,11 @@ public:
         System_Confirmation = 0,
 
         /*
+         * Channel
+         */
+        Channel_Init = 10,
+
+        /*
          * Trust lines
          */
         TrustLines_Initial = 101,

@@ -4,7 +4,19 @@ Contractor::Contractor(
     ContractorID id,
     vector<BaseAddress::Shared> &addresses):
     mID(id),
-    mAddresses(addresses)
+    mCryptoKey(6789),
+    mAddresses(addresses),
+    mIsConfirmed(false)
+{}
+
+Contractor::Contractor(
+    ContractorID id,
+    vector<BaseAddress::Shared> &addresses,
+    uint32_t cryptoKey) :
+    mID(id),
+    mCryptoKey(cryptoKey),
+    mAddresses(addresses),
+    mIsConfirmed(false)
 {}
 
 Contractor::Contractor(
@@ -18,9 +30,13 @@ Contractor::Contractor(
 
 Contractor::Contractor(
     ContractorID id,
-    ContractorID idOnContractorSide) :
+    ContractorID idOnContractorSide,
+    uint32_t cryptoKey,
+    bool isConfirmed) :
     mID(id),
-    mOwnIdOnContractorSide(idOnContractorSide)
+    mOwnIdOnContractorSide(idOnContractorSide),
+    mCryptoKey(cryptoKey),
+    mIsConfirmed(isConfirmed)
 {}
 
 Contractor::Contractor(
@@ -63,6 +79,16 @@ void Contractor::setOwnIdOnContractorSide(
     ContractorID id)
 {
     mOwnIdOnContractorSide = id;
+}
+
+const uint32_t Contractor::cryptoKey() const
+{
+    return mCryptoKey;
+}
+
+const bool Contractor::isConfirmed() const
+{
+    return mIsConfirmed;
 }
 
 vector<BaseAddress::Shared> Contractor::addresses() const
@@ -134,7 +160,7 @@ size_t Contractor::serializedSize() const
 string Contractor::toString() const
 {
     stringstream ss;
-    ss << mID << " " << mOwnIdOnContractorSide << " ";
+    ss << mID << " " << mOwnIdOnContractorSide << " " << mCryptoKey << " " << mIsConfirmed << " ";
     for (const auto &address : mAddresses) {
         ss << address->fullAddress() << " ";
     }

@@ -5,6 +5,7 @@
 
 #include "../../../logger/Logger.h"
 
+#include "../commands/trust_line_channels/InitChannelCommand.h"
 #include "../commands/trust_lines/InitTrustLineCommand.h"
 #include "../commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../commands/trust_lines/CloseIncomingTrustLineCommand.h"

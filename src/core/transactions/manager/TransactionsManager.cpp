@@ -237,7 +237,12 @@ void TransactionsManager::processCommand(
     // ToDo: sort calls in the call probability order.
     // For example, max flows calculations would be called much often, then credit usage transactions.
     // So, why we are checking trust lines commands first, and max flow is only in the middle of the check sequence?
-    if (command->identifier() == InitTrustLineCommand::identifier()) {
+    if (command->identifier() == InitChannelCommand::identifier()) {
+        launchInitChannelTransaction(
+            static_pointer_cast<InitChannelCommand>(
+                command));
+
+    } else if (command->identifier() == InitTrustLineCommand::identifier()) {
         launchInitTrustLineTransaction(
             static_pointer_cast<InitTrustLineCommand>(
                 command));
@@ -442,6 +447,13 @@ void TransactionsManager::processMessage(
             static_pointer_cast<ConflictResolverMessage>(message));
 
     /*
+     * Channels
+     */
+    } else if (message->typeID() == Message::TrustLines_Initial) {
+        launchConfirmChannelTransaction(
+            static_pointer_cast<InitChannelMessage>(message));
+
+    /*
      * General
      */
     } else if (message->typeID() == Message::General_Pong) {
@@ -461,6 +473,36 @@ void TransactionsManager::processMessage(
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
     }
+}
+
+void TransactionsManager::launchInitChannelTransaction(
+    InitChannelCommand::Shared command)
+{
+    auto transaction = make_shared<InitChannelTransaction>(
+        command,
+        mContractorsManager,
+        mStorageHandler,
+        mLog);
+    prepareAndSchedule(
+        transaction,
+        true,
+        false,
+        true);
+}
+
+void TransactionsManager::launchConfirmChannelTransaction(
+    InitChannelMessage::Shared message)
+{
+    auto transaction = make_shared<ConfirmChannelTransaction>(
+        message,
+        mContractorsManager,
+        mStorageHandler,
+        mLog);
+    prepareAndSchedule(
+        transaction,
+        false,
+        false,
+        true);
 }
 
 void TransactionsManager::launchInitTrustLineTransaction(

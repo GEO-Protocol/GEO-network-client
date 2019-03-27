@@ -54,6 +54,39 @@ vector<Contractor::Shared> ContractorsManager::allContractors() const
     return result;
 }
 
+Contractor::Shared ContractorsManager::createContractor(
+    IOTransaction::Shared ioTransaction,
+    vector<BaseAddress::Shared> contractorAddresses,
+    uint32_t cryptoKey)
+{
+    auto contractorID = contractorIDByAddresses(
+        contractorAddresses);
+    if (contractorID != kNotFoundContractorID) {
+        throw ValueError("Channel for this contractor already present");
+    }
+
+    auto id = nextFreeID(ioTransaction);
+    info() << "New contractor initializing " << id;
+    if (cryptoKey == 0) {
+        mContractors[id] = make_shared<Contractor>(
+            id,
+            contractorAddresses);
+    } else {
+        mContractors[id] = make_shared<Contractor>(
+            id,
+            contractorAddresses,
+            cryptoKey);
+    }
+    ioTransaction->contractorsHandler()->saveContractor(
+        mContractors[id]);
+    for (const auto &address : contractorAddresses) {
+        ioTransaction->addressHandler()->saveAddress(
+            id,
+            address);
+    }
+    return mContractors[id];
+}
+
 ContractorID ContractorsManager::getContractorID(
     IOTransaction::Shared ioTransaction,
     vector<BaseAddress::Shared> contractorAddresses)
@@ -112,6 +145,15 @@ bool ContractorsManager::contractorPresent(
     ContractorID contractorID) const
 {
     return mContractors.find(contractorID) != mContractors.end();
+}
+
+bool ContractorsManager::channelConfirmed(
+    ContractorID contractorID) const
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+    return mContractors.at(contractorID)->isConfirmed();
 }
 
 Contractor::Shared ContractorsManager::contractor(

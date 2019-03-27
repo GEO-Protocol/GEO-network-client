@@ -14,6 +14,7 @@ add_subdirectory(transactions/trustlines_list)
 add_subdirectory(transactions/transaction)
 add_subdirectory(transactions/gateway_notification)
 add_subdirectory(transactions/general)
+add_subdirectory(transactions/trust_line_channel)
 
 set(SOURCE_FILES
         manager/TransactionsManager.h
@@ -38,6 +39,7 @@ target_link_libraries(transactions
         transactions__transaction
         transactions__gateway_notification
         transactions__general
+        transactions__channels
 
         common
         exceptions

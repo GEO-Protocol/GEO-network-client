@@ -16,6 +16,11 @@ bool ConfirmationRequiredMessagesQueue::enqueue(
     TransactionMessage::Shared message)
 {
     switch (message->typeID()) {
+        case Message::Channel_Init: {
+            addChannelInitInTheQueue(
+                message);
+            break;
+        }
         case Message::GatewayNotification: {
             updateGatewayNotificationInTheQueue(
                 message);
@@ -71,6 +76,16 @@ void ConfirmationRequiredMessagesQueue::resetInternalTimeout()
     noexcept
 {
     mNextTimeoutSeconds = 4;
+}
+
+void ConfirmationRequiredMessagesQueue::addChannelInitInTheQueue(
+    TransactionMessage::Shared message)
+{
+    mMessages[message->transactionUUID()] = message;
+    signalSaveMessageToStorage(
+        mContractorID,
+        message);
+
 }
 
 void ConfirmationRequiredMessagesQueue::updateGatewayNotificationInTheQueue(

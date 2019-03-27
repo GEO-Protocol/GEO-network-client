@@ -18,6 +18,11 @@ public:
 
     vector<Contractor::Shared> allContractors() const;
 
+    Contractor::Shared createContractor(
+        IOTransaction::Shared ioTransaction,
+        vector<BaseAddress::Shared> contractorAddresses,
+        uint32_t cryptoKey = 0);
+
     ContractorID getContractorID(
         IOTransaction::Shared ioTransaction,
         vector<BaseAddress::Shared> contractorAddresses);
@@ -28,6 +33,9 @@ public:
         IOTransaction::Shared ioTransaction = nullptr);
 
     bool contractorPresent(
+        ContractorID contractorID) const;
+
+    bool channelConfirmed(
         ContractorID contractorID) const;
 
     Contractor::Shared contractor(
@@ -55,11 +63,11 @@ public:
 
     Contractor::Shared selfContractor() const;
 
-protected:
     // returns id of contractor if addresses will be founded and kNotFoundContractorID otherwise
     ContractorID contractorIDByAddresses(
         vector<BaseAddress::Shared> &checkedAddresses) const;
 
+protected:
     const ContractorID nextFreeID(
         IOTransaction::Shared ioTransaction) const;
 
