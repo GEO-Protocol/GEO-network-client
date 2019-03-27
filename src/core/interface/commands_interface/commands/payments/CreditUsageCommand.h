@@ -2,11 +2,7 @@
 #define GEO_NETWORK_CLIENT_CREDITUSAGECOMMAND_H
 
 #include "../BaseUserCommand.h"
-
-#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
-
-#include "../../../../common/exceptions/ValueError.h"
 #include "../../../../common/exceptions/MemoryError.h"
 
 class CreditUsageCommand:

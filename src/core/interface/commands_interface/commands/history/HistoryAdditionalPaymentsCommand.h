@@ -3,7 +3,6 @@
 
 #include "../BaseUserCommand.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class HistoryAdditionalPaymentsCommand : public BaseUserCommand {
 

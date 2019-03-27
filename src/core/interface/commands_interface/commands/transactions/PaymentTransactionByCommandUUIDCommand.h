@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_PAYMENTTRANSACTIONBYCOMMANDUUIDCOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class PaymentTransactionByCommandUUIDCommand : public BaseUserCommand {
 
@@ -23,6 +22,5 @@ public:
 private:
     CommandUUID mPaymentTransactionCommandUUID;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_PAYMENTTRANSACTIONBYCOMMANDUUIDCOMMAND_H

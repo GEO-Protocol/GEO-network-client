@@ -11,8 +11,8 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
     uint32_t flagLow = 0, flagHigh = 0;
     std::string lowBoundaryAmount, highBoundaryAmount;
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
-            throw ValueError("HistoryAdditionalPayments: there is no input ");
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
+            throw ValueError("HistoryAdditionalPayments: input is empty.");
         }
     };
     auto historyFromParse = [&](auto &ctx) {
@@ -37,25 +37,25 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
         mTimeTo = pt::time_from_string("1970-01-01 00:00:00.000");
         mTimeTo += pt::microseconds(_attr(ctx));
     };
-    auto lowBoundaryAmountNull = [&](auto &ctx) {
+    auto setLowBoundaryAmountNull = [&](auto &ctx) {
         mIsLowBoundaryAmountPresent = false; };
     auto lowBoundaryAmountNumber = [&](auto &ctx) {
         lowBoundaryAmount += _attr(ctx);
         mIsLowBoundaryAmountPresent = true;
         flagLow++;
-        if(flagLow>39) {
-            throw ValueError("Amount is too big");
+        if (flagLow == 1 && _attr(ctx) == '0') {
+            throw ValueError("HistoryAdditionalPaymentsCommand: amount contains leading zero.");
         }
     };
-    auto highBoundaryAmountNull = [&](auto &ctx) {
+    auto setHighBoundaryAmountNull = [&](auto &ctx) {
         mIsHighBoundaryAmountPresent = false;
     };
     auto highBoundaryAmountNumber = [&](auto &ctx) {
         highBoundaryAmount += _attr(ctx);
         mIsHighBoundaryAmountPresent = true;
         flagHigh++;
-        if(flagHigh>39) {
-            throw ValueError("Amount is too big");
+        if (flagHigh == 1 && _attr(ctx) == '0') {
+            throw ValueError("HistoryAdditionalPaymentsCommand: amount contains leading zero.");
         }
     };
     auto equivalentParse = [&](auto &ctx) {
@@ -80,20 +80,19 @@ HistoryAdditionalPaymentsCommand::HistoryAdditionalPaymentsCommand(
                 > -(+(char_("null")[timeToPresentNull]))
                 > -(int_[timeToPresentNumber])
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[lowBoundaryAmountNull]))
+                > -(+(char_("null")[setLowBoundaryAmountNull]))
                 > -(*(digit [lowBoundaryAmountNumber] > !alpha > !punct))
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[highBoundaryAmountNull]))
+                > -(+(char_("null")[setHighBoundaryAmountNull]))
                 > -(*(digit [highBoundaryAmountNumber] > !alpha > !punct))
                 > char_(kTokensSeparator)
                 > int_[equivalentParse]
-                > eol));
-
+                > eol > eoi));
         mLowBoundaryAmount = TrustLineAmount(lowBoundaryAmount);
         mHighBoundaryAmount = TrustLineAmount(highBoundaryAmount);
     }
     catch(...) {
-       throw ValueError("HistoryAdditionalPaymentsCommand : can't parse command");
+       throw ValueError("HistoryAdditionalPaymentsCommand : cannot parse command.");
     }
 }
 

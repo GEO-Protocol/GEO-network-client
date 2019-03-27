@@ -1,6 +1,5 @@
 ﻿#include "CreditUsageCommand.h"
 
-
 CreditUsageCommand::CreditUsageCommand(
     const CommandUUID &uuid,
     const string &commandBuffer) :
@@ -9,15 +8,15 @@ CreditUsageCommand::CreditUsageCommand(
         uuid,
         identifier())
 {
-    std::string address, amount;
-    uint32_t addressType, flagAmount = 0;
+    std::string address, amount, addressType;
+    uint32_t flagAmount = 0;
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
-            throw ValueError("CreditUsageCommand: there is no input ");
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
+            throw ValueError("CreditUsageCommand: input is empty.");
         }
     };
     auto addressTypeParse = [&](auto &ctx) {
-        addressType = _attr(ctx);
+        addressType += _attr(ctx);
     };
     auto addressAddChar = [&](auto &ctx) {
         address += _attr(ctx);
@@ -31,24 +30,24 @@ CreditUsageCommand::CreditUsageCommand(
     auto amountAddNumber = [&](auto &ctx) {
         amount += _attr(ctx);
         flagAmount++;
-        if (flagAmount > 39) { throw ValueError("Amount is too big"); }
-        else if (flagAmount == 1 && _attr(ctx) <= 0) {
-            throw ValueError("Amount can't be zero or low");
+       if (flagAmount == 1 && _attr(ctx) == '0') {
+            throw ValueError("CreditUsageCommand: amount contains leading zero.");
         }
     };
     auto addressAddToVector = [&](auto &ctx) {
-        switch (addressType) {
+        switch (std::atoi(addressType.c_str())) {
             case BaseAddress::IPv4_IncludingPort: {
                 mContractorAddresses.push_back(
                     make_shared<IPv4WithPortAddress>(
                         address));
+                addressType.erase();
                 break;
             }
             default:
-                throw ValueError("CreditUsageCommand: can't parse command. "
+                throw ValueError("CreditUsageCommand: cannot parse command. "
                     "Error occurred while parsing 'Contractor Address' token.");
-
         }
+
         address.erase();
     };
 
@@ -69,18 +68,23 @@ CreditUsageCommand::CreditUsageCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
-                *(int_[addressesCountParse]) > char_(kTokensSeparator)
-                > repeat(mContractorAddressesCount)[*(int_[addressTypeParse] - char_(kTokensSeparator))
-                > char_(kTokensSeparator)
-                > repeat(3)[int_[addressAddNumber]> char_('.') [addressAddChar]]
-                > int_[addressAddNumber] > char_(':') [addressAddChar]
-                > int_[addressAddNumber] > char_(kTokensSeparator) [addressAddToVector]]
+                *(int_) > char_(kTokensSeparator)
+                > addressLexeme<
+                    decltype(addressAddChar),
+                    decltype(addressAddNumber),
+                    decltype(addressTypeParse),
+                    decltype(addressAddToVector)>(
+                        mContractorAddressesCount,
+                        addressAddChar,
+                        addressAddNumber,
+                        addressTypeParse,
+                        addressAddToVector)
                 >*(digit [amountAddNumber] > !alpha > !punct)
                 > char_(kTokensSeparator)
-                > +(int_[equivalentParse]) > eol));
+                > +(int_[equivalentParse]) > eol > eoi));
         mAmount = TrustLineAmount(amount);
     } catch(...) {
-        throw ValueError("CreditUsageCommand: can't parse command.");
+        throw ValueError("CreditUsageCommand: cannot parse command.");
     }
 }
 

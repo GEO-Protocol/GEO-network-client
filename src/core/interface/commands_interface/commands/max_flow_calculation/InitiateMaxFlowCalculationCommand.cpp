@@ -8,15 +8,14 @@ InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
         uuid,
         identifier())
 {
-    std::string address;
-    uint32_t addressType;
+    std::string address, addressType;
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
-            throw ValueError("InitiateMaxFlowCalculationCommand: there is no input ");
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
+            throw ValueError("InitiateMaxFlowCalculationCommand: input is empty.");
         }
     };
     auto addressTypeParse = [&](auto &ctx) {
-        addressType = _attr(ctx);
+        addressType += _attr(ctx);
     };
     auto addressAddChar = [&](auto &ctx) {
         address += _attr(ctx);
@@ -28,15 +27,16 @@ InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
         mContractorsCount = _attr(ctx);
     };
     auto addressAddToVector = [&](auto &ctx) {
-        switch (addressType) {
+        switch (std::atoi(addressType.c_str())) {
             case BaseAddress::IPv4_IncludingPort: {
                 mContractorAddresses.push_back(
                     make_shared<IPv4WithPortAddress>(
                         address));
+                addressType.erase();
                 break;
             }
             default:
-                throw ValueError("InitiateMaxFlowCalculationCommand: can't parse command. "
+                throw ValueError("InitiateMaxFlowCalculationCommand: cannot parse command. "
                     "Error occurred while parsing 'Contractor Address' token.");
         }
         address.erase();
@@ -58,14 +58,21 @@ InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
         parse(
             command.begin(),
             command.end(), (
-                *(int_[addressesCountParse]) > char_(kTokensSeparator)
-                > repeat(mContractorsCount)[*(int_[addressTypeParse] - char_(kTokensSeparator)) > char_(kTokensSeparator)
-                > repeat(3)[int_[addressAddNumber]> char_('.') [addressAddChar]]
-                > int_[addressAddNumber] > char_(':') [addressAddChar]
-                > int_[addressAddNumber] > char_(kTokensSeparator) [addressAddToVector]]
-                > +(int_[equivalentParse]) > eol));
+                *(int_)
+                > char_(kTokensSeparator)
+                > addressLexeme<
+                    decltype(addressAddChar),
+                    decltype(addressAddNumber),
+                    decltype(addressTypeParse),
+                    decltype(addressAddToVector)>(
+                        mContractorsCount,
+                        addressAddChar,
+                        addressAddNumber,
+                        addressTypeParse,
+                        addressAddToVector)
+                > +(int_[equivalentParse]) > eol > eoi));
     } catch(...) {
-        throw ValueError("InitTrustLineCommand: can't parse command.");
+        throw ValueError("InitTrustLineCommand: cannot parse command.");
     }
 }
 

@@ -4,13 +4,12 @@ GetTrustLinesCommand::GetTrustLinesCommand(
     const CommandUUID &uuid,
     const string &commandBuffer):
 
-
     BaseUserCommand(
         uuid,
         identifier())
 {
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("GetTrustLinesCommand: there is no input ");
         }
     };
@@ -37,9 +36,9 @@ GetTrustLinesCommand::GetTrustLinesCommand(
                 > *(int_[trustLinesCountParse])
                 > char_(kTokensSeparator)
                 > *(int_[equivalentParse])
-                > eol));
+                > eol > eoi));
     } catch(...) {
-        throw ValueError("GetTrustLinesCommand: can't parse command");
+        throw ValueError("GetTrustLinesCommand: cannot parse command.");
     }
 }
 

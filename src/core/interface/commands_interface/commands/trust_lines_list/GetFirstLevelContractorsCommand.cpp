@@ -9,7 +9,7 @@ GetFirstLevelContractorsCommand::GetFirstLevelContractorsCommand(
         identifier())
 {
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("GetFirstLevelContractorsCommand: there is no input ");
         }
     };
@@ -25,9 +25,9 @@ GetFirstLevelContractorsCommand::GetFirstLevelContractorsCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(),
-            *(int_[equivalentParse]) > kCommandsSeparator);
+            *(int_[equivalentParse]) > eol > eoi);
     } catch (...) {
-        throw ValueError("GetFirstLevelContractorsCommand: can't parse command");
+        throw ValueError("GetFirstLevelContractorsCommand: cannot parse command");
     }
 }
 

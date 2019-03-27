@@ -2,8 +2,6 @@
 #define GEO_NETWORK_CLIENT_INITTRUSTLINECOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class InitTrustLineCommand : public BaseUserCommand {
 
@@ -29,6 +27,5 @@ private:
     size_t mContractorAddressesCount;
     vector<BaseAddress::Shared> mContractorAddresses;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_INITTRUSTLINECOMMAND_H

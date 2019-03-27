@@ -2,8 +2,6 @@
 #define GEO_NETWORK_CLIENT_HISTORYWITHCONTRACTORCOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../contractors/addresses/IPv4WithPortAddress.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class HistoryWithContractorCommand : public BaseUserCommand {
 
@@ -35,6 +33,5 @@ private:
     vector<BaseAddress::Shared> mContractorAddresses;
     SerializedEquivalent mEquivalent;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_HISTORYWITHCONTRACTORCOMMAND_H

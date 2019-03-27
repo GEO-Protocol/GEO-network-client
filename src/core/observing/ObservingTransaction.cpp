@@ -59,7 +59,7 @@ void ObservingTransaction::rescheduleNextActionTime()
 
 void ObservingTransaction::rescheduleNextActionSmallTime()
 {
-    mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestSmallPeriodSeconds);
+   mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestSmallPeriodSeconds);
 #ifdef TESTS
     mNextActionDateTime = utc_now() + boost::posix_time::seconds(kClaimRequestSmallPeriodSecondsTests);
 #endif

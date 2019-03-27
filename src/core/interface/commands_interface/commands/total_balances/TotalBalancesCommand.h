@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_TOTALBALANCESCOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class TotalBalancesCommand : public BaseUserCommand {
 
@@ -24,6 +23,5 @@ public:
 private:
     SerializedEquivalent mEquivalent;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_TOTALBALANCESCOMMAND_H

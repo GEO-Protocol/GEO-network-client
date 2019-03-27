@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_GETTRUSTLINEBYIDCOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class GetTrustLineByIDCommand : public BaseUserCommand {
 
@@ -30,6 +29,5 @@ private:
     ContractorID mContractorID;
     SerializedEquivalent mEquivalent;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_GETTRUSTLINEBYIDCOMMAND_H

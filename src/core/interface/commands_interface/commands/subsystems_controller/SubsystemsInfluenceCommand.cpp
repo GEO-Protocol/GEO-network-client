@@ -8,12 +8,12 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
         uuid,
         identifier())
 {
-    uint32_t flag = 0, addressType;
-    std::string forbiddenAmount, address;
+    uint32_t flag = 0;
+    std::string forbiddenAmount, address, addressType;
     mForbiddenNodeAddress = nullptr;
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
-            throw ValueError("SubsystemsInfluenceCommand: there is no input ");
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
+            throw ValueError("SubsystemsInfluenceCommand:  input is empty.");
         }
     };
     auto flagsAdd = [&](auto &ctx) {
@@ -22,14 +22,12 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
     auto forbiddenAmountAdd = [&](auto &ctx) {
         forbiddenAmount += _attr(ctx);
         flag++;
-        if(flag > 39) {
-            throw ValueError("Amount is too big");
-        } else if (flag == 1 && _attr(ctx) <= 0) {
-            throw ValueError("Amount can't be zero or low");
+        if (flag == 1 && _attr(ctx) == '0') {
+            throw ValueError("SubsystemsInfluenceCommand: amount contains leading zero.");
         }
     };
     auto addressTypeParse = [&](auto &ctx) {
-        addressType = _attr(ctx);
+        addressType += _attr(ctx);
     };
     auto addressAddChar = [&](auto &ctx) {
         address += _attr(ctx);
@@ -38,13 +36,13 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
         address += std::to_string(_attr(ctx));
     };
     auto addressAddToVector = [&](auto &ctx) {
-        switch (addressType) {
+        switch (std::atoi(addressType.c_str())) {
             case BaseAddress::IPv4_IncludingPort: {
                 mForbiddenNodeAddress = make_shared<IPv4WithPortAddress>(address);
                 break;
             }
             default:
-                throw ValueError("SubsystemsInfluenceCommand: can't parse command. "
+                throw ValueError("SubsystemsInfluenceCommand: cannot parse command. "
                     "Error occurred while parsing 'Contractor Address' token.");
         }
         address.erase();
@@ -52,7 +50,7 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
 
     try {
         parse(
-            commandBuffer.begin(),
+            commandBuffer.begin(),s
             commandBuffer.end(),
             char_[check]);
         parse(
@@ -60,16 +58,22 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
             commandBuffer.end(), (
                 *(int_[flagsAdd])
                 > -(char_(kTokensSeparator)
-                    > *(int_[addressTypeParse] - char_(kTokensSeparator)) > char_(kTokensSeparator)
-                    > repeat(3)[int_[addressAddNumber]> char_('.') [addressAddChar]]
-                    > int_[addressAddNumber] > char_(':') [addressAddChar]
-                    > int_[addressAddNumber] > char_(kTokensSeparator) [addressAddToVector]
-                    >*(digit [forbiddenAmountAdd] > !alpha > !punct))
-                > eol));
+                > addressLexeme<
+                    decltype(addressAddChar),
+                    decltype(addressAddNumber),
+                    decltype(addressTypeParse),
+                    decltype(addressAddToVector)>(
+                        1,
+                        addressAddChar,
+                        addressAddNumber,
+                        addressTypeParse,
+                        addressAddToVector)
+                    > *(digit [forbiddenAmountAdd] > !alpha > !punct))
+                > eol > eoi));
 
         mForbiddenAmount = TrustLineAmount(forbiddenAmount);
     } catch (...) {
-        throw ValueError("SubsystemsInfluenceCommand: can't parse command");
+        throw ValueError("SubsystemsInfluenceCommand: cannot parse command.");
     }
 }
 

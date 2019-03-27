@@ -4,9 +4,6 @@
 #include "../BaseUserCommand.h"
 
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
-#include "../../../../common/exceptions/ValueError.h"
-
-using namespace std;
 
 /**
  * This command is used to open/close/update trust line to the remote contractor node.
@@ -43,6 +40,5 @@ private:
     TrustLineAmount mAmount;
     SerializedEquivalent mEquivalent;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_SETTRUSTLINECOMMAND_H

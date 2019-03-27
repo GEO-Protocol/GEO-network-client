@@ -3,7 +3,6 @@
 
 #include "../BaseUserCommand.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class HistoryPaymentsCommand : public BaseUserCommand {
 
@@ -64,6 +63,5 @@ private:
     bool mIsPaymentRecordCommandUUIDPresent;
     SerializedEquivalent mEquivalent;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_HISTORYPAYMENTSCOMMAND_H

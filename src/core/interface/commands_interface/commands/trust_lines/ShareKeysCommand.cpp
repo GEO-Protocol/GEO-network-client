@@ -9,8 +9,8 @@ ShareKeysCommand::ShareKeysCommand(
         identifier())
 {
     auto check = [&](auto &ctx) {
-        if(_attr(ctx) == kCommandsSeparator) {
-            throw ValueError("ShareKeysCommand: there is no input ");
+        if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
+            throw ValueError("ShareKeysCommand: input is empty.");
         }
     };
     auto contractorIDParse = [&](auto &ctx) {
@@ -28,9 +28,9 @@ ShareKeysCommand::ShareKeysCommand(
         parse(
             command.begin(),
             command.end(),
-            *(int_[contractorIDParse]) > char_(kTokensSeparator)  > int_[equivalentParse] > eol);
+            *(int_[contractorIDParse]) > char_(kTokensSeparator)  > int_[equivalentParse] > eol > eoi);
     } catch (...) {
-        throw ValueError("SetOutgoingTrustLineCommand : can't parse command");
+        throw ValueError("ShareKeysCommand: cannot parse command.");
     }
 }
 
