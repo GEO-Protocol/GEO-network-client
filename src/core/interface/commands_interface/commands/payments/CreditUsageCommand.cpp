@@ -70,10 +70,10 @@ CreditUsageCommand::CreditUsageCommand(
             commandBuffer.end(), (
                 *(int_) > char_(kTokensSeparator)
                 > addressLexeme<
-                        decltype(addressAddChar),
-                        decltype(addressAddNumber),
-                        decltype(addressTypeParse),
-                        decltype(addressAddToVector)>(
+                    decltype(addressAddChar),
+                    decltype(addressAddNumber),
+                    decltype(addressTypeParse),
+                    decltype(addressAddToVector)>(
                         mContractorAddressesCount,
                         addressAddChar,
                         addressAddNumber,

@@ -75,15 +75,15 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
                 > *(int_)
                 > char_(kTokensSeparator)
                 > addressLexeme<
-                        decltype(addressAddChar),
-                        decltype(addressAddNumber),
-                        decltype(addressTypeParse),
-                        decltype(addressAddToVector)>(
-                                mContractorAddressesCount,
-                                addressAddChar,
-                                addressAddNumber,
-                                addressTypeParse,
-                                addressAddToVector)
+                    decltype(addressAddChar),
+                    decltype(addressAddNumber),
+                    decltype(addressTypeParse),
+                    decltype(addressAddToVector)>(
+                        mContractorAddressesCount,
+                        addressAddChar,
+                        addressAddNumber,
+                        addressTypeParse,
+                        addressAddToVector)
                 > +(int_[equivalentParse]) > eol > eoi));
     } catch (...) {
         throw ValueError("HistoryWithContractorCommand: cannot parse command.");

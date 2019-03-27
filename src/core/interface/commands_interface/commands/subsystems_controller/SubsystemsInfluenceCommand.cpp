@@ -58,11 +58,11 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
             commandBuffer.end(), (
                 *(int_[flagsAdd])
                 > -(char_(kTokensSeparator)
-                    > addressLexeme<
-                        decltype(addressAddChar),
-                        decltype(addressAddNumber),
-                        decltype(addressTypeParse),
-                        decltype(addressAddToVector)>(
+                > addressLexeme<
+                    decltype(addressAddChar),
+                    decltype(addressAddNumber),
+                    decltype(addressTypeParse),
+                    decltype(addressAddToVector)>(
                         1,
                         addressAddChar,
                         addressAddNumber,

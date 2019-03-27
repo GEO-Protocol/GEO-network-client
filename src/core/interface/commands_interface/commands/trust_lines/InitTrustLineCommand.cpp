@@ -47,23 +47,23 @@ InitTrustLineCommand::InitTrustLineCommand(
 
     try {
         parse(
-                command.begin(),
-                command.end(),
-                char_[check]);
+            command.begin(),
+            command.end(),
+            char_[check]);
         parse(
-                command.begin(),
-                command.end(),
-                *(int_[addressesCountParse]-char_(kTokensSeparator)) > char_(kTokensSeparator));
+            command.begin(),
+            command.end(),
+            *(int_[addressesCountParse]-char_(kTokensSeparator)) > char_(kTokensSeparator));
         mContractorAddresses.reserve(addressesCount);
         parse(
                 command.begin(),
                 command.end(),
                 *(int_) > char_(kTokensSeparator)
                 > addressLexeme<
-                        decltype(addressAddChar),
-                        decltype(addressAddNumber),
-                        decltype(addressTypeParse),
-                        decltype(addressAddToVector)>(
+                    decltype(addressAddChar),
+                    decltype(addressAddNumber),
+                    decltype(addressTypeParse),
+                    decltype(addressAddToVector)>(
                         addressesCount,
                         addressAddChar,
                         addressAddNumber,

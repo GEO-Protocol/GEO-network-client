@@ -47,27 +47,27 @@ public:
     inline auto addressLexeme(size_t mContractorAddressesCount, addChar addressChar,
                               addNumber addressNumber, addType addresType, addToVector addressToVector) {
         return lexeme[expect[
-                repeat(mContractorAddressesCount)
+            repeat(mContractorAddressesCount)
+            [
+                parserString::string(std::to_string(BaseAddress::IPv4_IncludingPort))[addresType]
+                > *(char_[addresType] - char_(kTokensSeparator))
+                > char_(kTokensSeparator)
+                > repeat(3)
                 [
-                        parserString::string(std::to_string(BaseAddress::IPv4_IncludingPort))[addresType]
-                        > *(char_[addresType] - char_(kTokensSeparator))
-                        > char_(kTokensSeparator)
-                        > repeat(3)
-                        [
-                                int_[addressNumber]
-                                > char_('.')[addressChar]
-                        ]
-                        > int_[addressNumber]
-                        > char_(':')[addressChar]
-                        > int_[addressNumber]
-                        > char_(kTokensSeparator)[addressToVector]
+                    int_[addressNumber]
+                    > char_('.')[addressChar]
+                ]
+                > int_[addressNumber]
+                > char_(':')[addressChar]
+                > int_[addressNumber]
+                > char_(kTokensSeparator)[addressToVector]
 
 //                                         | //OR
 //
-//                              parserString::string(std::to_string(<NEW_ADDRESS_TYPE>) [addressTypeParse]
-//                              > *(char_[addressTypeParse] -char_(kTokensSeparator))
-//                              > char_(kTokensSeparator)
-//                              > <NEW_PARSE_RULE>
+//                  parserString::string(std::to_string(<NEW_ADDRESS_TYPE>) [addressTypeParse]
+//                  > *(char_[addressTypeParse] -char_(kTokensSeparator))
+//                  > char_(kTokensSeparator)
+//                  > <NEW_PARSE_RULE>
                 ]
         ]];
     }

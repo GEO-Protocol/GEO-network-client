@@ -60,10 +60,10 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
             command.end(), (
                 *(int_) > char_(kTokensSeparator)
                 > addressLexeme<
-                        decltype(addressAddChar),
-                        decltype(addressAddNumber),
-                        decltype(addressTypeParse),
-                        decltype(addressAddToVector)>(
+                    decltype(addressAddChar),
+                    decltype(addressAddNumber),
+                    decltype(addressTypeParse),
+                    decltype(addressAddToVector)>(
                         mContractorsCount,
                         addressAddChar,
                         addressAddNumber,

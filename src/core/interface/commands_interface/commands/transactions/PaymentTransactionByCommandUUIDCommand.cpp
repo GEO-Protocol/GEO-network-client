@@ -48,13 +48,13 @@ PaymentTransactionByCommandUUIDCommand::PaymentTransactionByCommandUUIDCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
-                    UUIDLexeme<
-                            decltype(addUUID8Digits),
-                            decltype(addUUID4Digits),
-                            decltype(addUUID12Digits)>(
-                            addUUID8Digits,
-                            addUUID4Digits,
-                            addUUID12Digits) > eoi));
+                UUIDLexeme<
+                    decltype(addUUID8Digits),
+                    decltype(addUUID4Digits),
+                    decltype(addUUID12Digits)>(
+                        addUUID8Digits,
+                        addUUID4Digits,
+                        addUUID12Digits) > eoi));
         mPaymentTransactionCommandUUID = boost::lexical_cast<uuids::uuid>(paymentRecordCommandUUID);
     } catch(...) {
         throw ValueError("PaymentTransactionByCommandUUIDCommand: cannot parse command.");
