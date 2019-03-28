@@ -449,7 +449,7 @@ void TransactionsManager::processMessage(
     /*
      * Channels
      */
-    } else if (message->typeID() == Message::TrustLines_Initial) {
+    } else if (message->typeID() == Message::Channel_Init) {
         launchConfirmChannelTransaction(
             static_pointer_cast<InitChannelMessage>(message));
 

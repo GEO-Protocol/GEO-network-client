@@ -21,13 +21,6 @@ public:
 
     TransactionMessage(
         const SerializedEquivalent equivalent,
-        ContractorID idOnReceiverSide,
-        vector<BaseAddress::Shared> &senderAddresses,
-        const TransactionUUID &transactionUUID)
-        noexcept;
-
-    TransactionMessage(
-        const SerializedEquivalent equivalent,
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID)
         noexcept;

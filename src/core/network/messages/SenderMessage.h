@@ -20,8 +20,7 @@ public:
 public:
     SenderMessage(
         const SerializedEquivalent equivalent,
-        ContractorID idOnReceiverSide,
-        vector<BaseAddress::Shared> senderAddresses = {})
+        ContractorID idOnReceiverSide)
         noexcept;
 
     SenderMessage(

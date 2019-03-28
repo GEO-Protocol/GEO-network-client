@@ -27,11 +27,6 @@ public:
         System_Confirmation = 0,
 
         /*
-         * Channel
-         */
-        Channel_Init = 10,
-
-        /*
          * Trust lines
          */
         TrustLines_Initial = 101,
@@ -105,11 +100,12 @@ public:
          */
         General_Ping = 500,
         General_Pong = 501,
-        General_NoEquivalent,
+        General_NoEquivalent = 502,
 
         /*
-         * Empty slot with codes 600-699
+         * Channel
          */
+        Channel_Init = 600,
 
         /*
          * Gateway notification & Routing tables
@@ -158,11 +154,6 @@ public:
      * Derived classes of specific responses must override one of this methods.
      */
     virtual const bool isTransactionMessage() const
-    {
-        return false;
-    }
-
-    virtual const bool isDestinationMessage() const
     {
         return false;
     }

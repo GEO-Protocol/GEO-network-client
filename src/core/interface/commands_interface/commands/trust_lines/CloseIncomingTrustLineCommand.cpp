@@ -28,7 +28,8 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
         parse(
             command.begin(),
             command.end(),
-            *(int_[contractorIDParse]) > char_(kTokensSeparator) > *(int_[equivalentParse]) > eol > eoi);
+            *(int_[contractorIDParse]) > char_(kTokensSeparator)
+            > *(int_[equivalentParse]) > eol > eoi);
     } catch(...) {
         throw ValueError("CloseIncomingTrustLineCommand: cannot parse command.");
     }

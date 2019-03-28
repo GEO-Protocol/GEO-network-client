@@ -3,13 +3,12 @@
 
 SenderMessage::SenderMessage(
     const SerializedEquivalent equivalent,
-    ContractorID idOnReceiverSide,
-    vector<BaseAddress::Shared> senderAddresses)
+    ContractorID idOnReceiverSide)
     noexcept :
     EquivalentMessage(
         equivalent),
     idOnReceiverSide(idOnReceiverSide),
-    senderAddresses(senderAddresses)
+    senderAddresses({})
 {}
 
 SenderMessage::SenderMessage(

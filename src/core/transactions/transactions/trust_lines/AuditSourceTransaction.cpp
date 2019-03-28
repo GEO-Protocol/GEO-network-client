@@ -159,7 +159,6 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
         mEquivalent,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
-        mContractorID,
         mAuditNumber,
         mTrustLines->incomingTrustAmount(mContractorID),
         mTrustLines->outgoingTrustAmount(mContractorID),
@@ -243,7 +242,6 @@ TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
         mEquivalent,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
-        mContractorID,
         mAuditNumber,
         mTrustLines->incomingTrustAmount(mContractorID),
         mTrustLines->outgoingTrustAmount(mContractorID),
@@ -269,7 +267,6 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
                 mEquivalent,
                 mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
-                mContractorID,
                 mAuditNumber,
                 mTrustLines->incomingTrustAmount(mContractorID),
                 mTrustLines->outgoingTrustAmount(mContractorID),
@@ -284,9 +281,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         info() << "Transaction will be closed and send ping";
         sendMessage<PingMessage>(
             mContractorID,
-            0,
-            mContractorID,
-            mContractorsManager->selfContractor()->addresses());
+            mContractorsManager->idOnContractorSide(mContractorID));
         return resultDone();
     }
 

@@ -23,15 +23,6 @@ public:
         vector<BaseAddress::Shared> contractorAddresses,
         uint32_t cryptoKey = 0);
 
-    ContractorID getContractorID(
-        IOTransaction::Shared ioTransaction,
-        vector<BaseAddress::Shared> contractorAddresses);
-
-    ContractorID getContractorID(
-        vector<BaseAddress::Shared> contractorAddresses,
-        ContractorID idOnContractorSide,
-        IOTransaction::Shared ioTransaction = nullptr);
-
     bool contractorPresent(
         ContractorID contractorID) const;
 

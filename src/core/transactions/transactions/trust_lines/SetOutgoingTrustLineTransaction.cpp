@@ -197,7 +197,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
         mEquivalent,
         mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
-        mContractorID,
         mAuditNumber,
         mTrustLines->incomingTrustAmount(mContractorID),
         mTrustLines->outgoingTrustAmount(mContractorID),
@@ -221,7 +220,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
                 mEquivalent,
                 mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
-                mContractorID,
                 mAuditNumber,
                 mTrustLines->incomingTrustAmount(mContractorID),
                 mTrustLines->outgoingTrustAmount(mContractorID),
@@ -236,9 +234,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
         info() << "Transaction will be closed and send ping";
         sendMessage<PingMessage>(
             mContractorID,
-            0,
-            mContractorID,
-            mContractorsManager->selfContractor()->addresses());
+            mContractorsManager->idOnContractorSide(mContractorID));
         return resultDone();
     }
 

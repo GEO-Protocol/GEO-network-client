@@ -122,9 +122,7 @@ void PingMessagesHandler::sendPingMessages() const
             make_pair(
                 contractorID,
                 make_shared<PingMessage>(
-                    0,
-                    contractorID,
-                    mContractorsManager->selfContractor()->addresses())));
+                    mContractorsManager->idOnContractorSide(contractorID))));
     }
 }
 

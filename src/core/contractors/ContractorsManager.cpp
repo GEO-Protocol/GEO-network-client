@@ -68,9 +68,11 @@ Contractor::Shared ContractorsManager::createContractor(
     auto id = nextFreeID(ioTransaction);
     info() << "New contractor initializing " << id;
     if (cryptoKey == 0) {
+        // todo : generate new crypto key
         mContractors[id] = make_shared<Contractor>(
             id,
-            contractorAddresses);
+            contractorAddresses,
+            6789);
     } else {
         mContractors[id] = make_shared<Contractor>(
             id,
@@ -85,60 +87,6 @@ Contractor::Shared ContractorsManager::createContractor(
             address);
     }
     return mContractors[id];
-}
-
-ContractorID ContractorsManager::getContractorID(
-    IOTransaction::Shared ioTransaction,
-    vector<BaseAddress::Shared> contractorAddresses)
-{
-    auto contractorID = contractorIDByAddresses(
-        contractorAddresses);
-    if (contractorID != kNotFoundContractorID) {
-        return contractorID;
-    }
-    auto id = nextFreeID(ioTransaction);
-    info() << "New contractor initializing " << id;
-    mContractors[id] = make_shared<Contractor>(
-        id,
-        contractorAddresses);
-    ioTransaction->contractorsHandler()->saveContractor(
-        mContractors[id]);
-    for (const auto &address : contractorAddresses) {
-        ioTransaction->addressHandler()->saveAddress(
-            id,
-            address);
-    }
-    return id;
-}
-
-ContractorID ContractorsManager::getContractorID(
-    vector<BaseAddress::Shared> contractorAddresses,
-    ContractorID idOnContractorSide,
-    IOTransaction::Shared ioTransaction)
-{
-    auto contractorID = contractorIDByAddresses(contractorAddresses);
-    if (contractorID != kNotFoundContractorID) {
-        return contractorID;
-    }
-
-    if (ioTransaction != nullptr) {
-        auto id = nextFreeID(ioTransaction);
-        info() << "New contractor initializing " << id;
-        mContractors[id] = make_shared<Contractor>(
-            id,
-            idOnContractorSide,
-            contractorAddresses);
-        ioTransaction->contractorsHandler()->saveContractorFull(
-            mContractors[id]);
-        for (const auto &address : contractorAddresses) {
-            ioTransaction->addressHandler()->saveAddress(
-                id,
-                address);
-        }
-        return id;
-    } else {
-        throw NotFoundError("There is no contractor with requested address");
-    }
 }
 
 bool ContractorsManager::contractorPresent(
@@ -186,6 +134,7 @@ void ContractorsManager::setIDOnContractorSide(
     auto contractor = mContractors[contractorID];
     contractor->setOwnIdOnContractorSide(idOnContractorSide);
     ioTransaction->contractorsHandler()->saveIdOnContractorSide(contractor);
+    contractor->confirm();
 }
 
 ContractorID ContractorsManager::contractorIDByAddresses(

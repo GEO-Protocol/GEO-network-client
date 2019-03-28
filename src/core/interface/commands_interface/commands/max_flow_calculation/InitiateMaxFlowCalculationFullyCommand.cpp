@@ -57,7 +57,7 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
         mContractorAddresses.reserve(mContractorsCount);
         parse(
             command.begin(),
-            command.end(), (
+            command.end(),
                 *(int_) > char_(kTokensSeparator)
                 > addressLexeme<
                     decltype(addressAddChar),
@@ -69,7 +69,7 @@ InitiateMaxFlowCalculationFullyCommand::InitiateMaxFlowCalculationFullyCommand(
                         addressAddNumber,
                         addressTypeParse,
                         addressAddToVector)
-                > +(int_[equivalentParse]) > eol > eoi));
+                > +(int_[equivalentParse]) > eol > eoi);
     } catch(...) {
         throw ValueError("InitTrustLineCommand: cannot parse command.");
     }

@@ -10,17 +10,8 @@ public:
 public:
     Contractor(
         ContractorID id,
-        vector<BaseAddress::Shared> &addresses);
-
-    Contractor(
-        ContractorID id,
         vector<BaseAddress::Shared> &addresses,
         uint32_t cryptoKey);
-
-    Contractor(
-        ContractorID id,
-        ContractorID idOnContractorSide,
-        vector<BaseAddress::Shared> addresses);
 
     Contractor(
         ContractorID id,
@@ -43,6 +34,8 @@ public:
     const uint32_t cryptoKey() const;
 
     const bool isConfirmed() const;
+
+    void confirm();
 
     vector<BaseAddress::Shared> addresses() const;
 

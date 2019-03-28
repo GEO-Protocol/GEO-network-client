@@ -4,17 +4,15 @@ AuditMessage::AuditMessage(
     const SerializedEquivalent equivalent,
     ContractorID idOnSenderSide,
     const TransactionUUID &transactionUUID,
-    ContractorID destinationID,
     const AuditNumber auditNumber,
     const TrustLineAmount &incomingAmount,
     const TrustLineAmount &outgoingAmount,
     const KeyNumber keyNumber,
     const lamport::Signature::Shared signature):
-    DestinationMessage(
+    TransactionMessage(
         equivalent,
         idOnSenderSide,
-        transactionUUID,
-        destinationID),
+        transactionUUID),
     mAuditNumber(auditNumber),
     mIncomingAmount(incomingAmount),
     mOutgoingAmount(outgoingAmount),
@@ -24,9 +22,9 @@ AuditMessage::AuditMessage(
 
 AuditMessage::AuditMessage(
     BytesShared buffer) :
-    DestinationMessage(buffer)
+    TransactionMessage(buffer)
 {
-    auto bytesBufferOffset = DestinationMessage::kOffsetToInheritedBytes();
+    auto bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
     memcpy(
         &mAuditNumber,
@@ -93,7 +91,7 @@ const bool AuditMessage::isCheckCachedResponse() const
 
 pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
 {
-    const auto parentBytesAndCount = DestinationMessage::serializeToBytes();
+    const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     auto kBufferSize = parentBytesAndCount.second
                        + sizeof(AuditNumber)
                        + kTrustLineAmountBytesCount
@@ -149,7 +147,7 @@ pair<BytesShared, size_t> AuditMessage::serializeToBytes() const
 const size_t AuditMessage::kOffsetToInheritedBytes() const
 {
     const auto kOffset =
-            DestinationMessage::kOffsetToInheritedBytes()
+            TransactionMessage::kOffsetToInheritedBytes()
             + sizeof(AuditNumber)
             + kTrustLineAmountBytesCount
             + kTrustLineAmountBytesCount

@@ -50,7 +50,7 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
 
     try {
         parse(
-            commandBuffer.begin(),s
+            commandBuffer.begin(),
             commandBuffer.end(),
             char_[check]);
         parse(

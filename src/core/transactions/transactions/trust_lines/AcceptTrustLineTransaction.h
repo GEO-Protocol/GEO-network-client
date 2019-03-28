@@ -50,9 +50,7 @@ protected:
 
 protected:
     ContractorID mContractorID;
-    ContractorID mOwnIdOnContractorSide;
     string mSenderIncomingIP;
-    vector<BaseAddress::Shared> mContractorAddresses;
 
     ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;

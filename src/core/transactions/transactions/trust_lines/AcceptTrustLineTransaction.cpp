@@ -16,9 +16,8 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
         message->transactionUUID(),
         message->equivalent(),
         logger),
-    mOwnIdOnContractorSide(message->contractorID()),
+    mContractorID(message->idOnReceiverSide),
     mSenderIncomingIP(message->senderIncomingIP()),
-    mContractorAddresses(message->senderAddresses),
     mContractorsManager(contractorsManager),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler),
@@ -30,31 +29,16 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
 
 TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 {
-    info() << "sender incoming IP " << mSenderIncomingIP;
-    for (auto &senderAddress : mContractorAddresses) {
-        info() << "contractor address " << senderAddress->fullAddress();
-    }
-
-    if (mContractorAddresses.empty()) {
-        warning() << "Contractor addresses are empty";
+    info() << "sender: " << mContractorID << " sender incoming IP " << mSenderIncomingIP;
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested ID";
         return resultDone();
     }
-
-    // Trust line must be created (or updated) in the internal storage.
-    // Also, history record must be written about this operation.
-    // Both writes must be done atomically, so the IO transaction is used.
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    try {
-        mContractorID = mContractorsManager->getContractorID(
-            mContractorAddresses,
-            mOwnIdOnContractorSide,
-            ioTransaction);
-    } catch (IOError &e) {
-        ioTransaction->rollback();
-        error() << "Error during getting ContractorID. Details: " << e.what();
-        throw e;
+    if (!mContractorsManager->channelConfirmed(mContractorID)) {
+        warning() << "Channel is not confirmed";
+        return resultDone();
     }
-    info() << "Try init TL to " << mContractorID;
+    info() << "Contractor main address: " << mContractorsManager->contractorMainAddress(mContractorID)->fullAddress();
 
     if (mTrustLinesManager->trustLineIsPresent(mContractorID)) {
         if (mTrustLinesManager->isTrustLineEmpty(mContractorID)
@@ -65,9 +49,8 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
                 Message::TrustLines_Initial,
                 kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
                 mEquivalent,
-                mOwnIdOnContractorSide,
-                mTransactionUUID,
                 mContractorID,
+                mTransactionUUID,
                 mIAmGateway,
                 ConfirmationMessage::OK);
             return resultDone();
@@ -81,9 +64,10 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         }
     }
 
-    // if contractor in black list we should reject operation with TL
-    // todo : check black list if need
-
+    // Trust line must be created (or updated) in the internal storage.
+    // Also, history record must be written about this operation.
+    // Both writes must be done atomically, so the IO transaction is used.
+    auto ioTransaction = mStorageHandler->beginTransaction();
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
@@ -142,9 +126,8 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         Message::TrustLines_Initial,
         kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
         mEquivalent,
-        mOwnIdOnContractorSide,
-        mTransactionUUID,
         mContractorID,
+        mTransactionUUID,
         mIAmGateway,
         ConfirmationMessage::OK);
     info() << "Confirmation was sent";
@@ -157,11 +140,8 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::sendTrustLineErrorCon
     sendMessage<TrustLineConfirmationMessage>(
         mContractorID,
         mEquivalent,
-        mOwnIdOnContractorSide,
+        mContractorID,
         mTransactionUUID,
-        // todo : current node did't accept request and not send contractorID
-        // update messages hierarchy
-        0,
         false,
         errorState);
     return resultDone();

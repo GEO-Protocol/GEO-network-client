@@ -9,7 +9,6 @@ CyclesFourNodesNegativeBalanceRequestMessage::CyclesFourNodesNegativeBalanceRequ
 
     TransactionMessage(
         equivalent,
-        0,
         senderAddresses,
         transactionUUID),
     mContractorAddress(contractorAddress),

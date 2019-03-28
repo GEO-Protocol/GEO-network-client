@@ -8,7 +8,6 @@ CyclesFourNodesBalancesResponseMessage::CyclesFourNodesBalancesResponseMessage(
 
     TransactionMessage(
         equivalent,
-        0,
         senderAddresses,
         transactionUUID),
     mSuitableNodes(suitableNodes)

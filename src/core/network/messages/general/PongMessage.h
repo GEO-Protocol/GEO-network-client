@@ -9,7 +9,11 @@ public:
     typedef shared_ptr<PongMessage> Shared;
 
 public:
-    using SenderMessage::SenderMessage;
+    PongMessage(
+        ContractorID idOnReceiverSide) noexcept;
+
+    PongMessage(
+        BytesShared buffer) noexcept;
 
     const MessageType typeID() const;
 };

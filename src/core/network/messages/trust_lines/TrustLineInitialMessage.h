@@ -12,9 +12,7 @@ public:
     TrustLineInitialMessage(
         const SerializedEquivalent equivalent,
         ContractorID idOnSenderSide,
-        vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
-        ContractorID contractorID,
         bool isContractorGateway)
     noexcept;
 
@@ -25,9 +23,6 @@ public:
     const MessageType typeID() const
     noexcept;
 
-    const ContractorID contractorID() const
-    noexcept;
-
     const bool isContractorGateway() const
     noexcept;
 
@@ -36,7 +31,6 @@ public:
     pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
-    ContractorID mContractorID;
     bool mIsContractorGateway;
 };
 

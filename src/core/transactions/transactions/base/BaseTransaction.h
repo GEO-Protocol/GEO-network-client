@@ -50,9 +50,7 @@ public:
     virtual ~BaseTransaction() = default;
 
     enum TransactionType {
-        OpenChannelTransaction = 10,
-        ConfirmChannelTransaction = 11,
-
+        // Trust lines
         OpenTrustLineTransaction = 100,
         AcceptTrustLineTransaction = 101,
         SetOutgoingTrustLineTransaction = 102,
@@ -91,9 +89,8 @@ public:
         MaxFlowCalculationTargetFstLevelTransactionType = 405,
         MaxFlowCalculationSourceSndLevelTransactionType = 406,
         MaxFlowCalculationTargetSndLevelTransactionType = 407,
-        ReceiveResultMaxFlowCalculationTransactionType = 408,
-        MaxFlowCalculationStepTwoTransactionType = 410,
-        MaxFlowCalculationFullyTransactionType = 411,
+        MaxFlowCalculationStepTwoTransactionType = 408,
+        MaxFlowCalculationFullyTransactionType = 409,
 
         // TrustLine list
         ContractorsList = 500,
@@ -114,24 +111,20 @@ public:
         // FindPath
         FindPathByMaxFlowTransactionType = 800,
 
-        // empty slot from 900 to 999
-
-        //BlackList
-        AddNodeToBlackListTransactionType = 1000,
-        CheckIfNodeInBlackListTransactionType = 1001,
-        RemoveNodeFromBlackListTransactionType = 1002,
+        // Channels
+        OpenChannelTransaction = 900,
+        ConfirmChannelTransaction = 901,
 
         // Transactions
-        TransactionByCommandUUIDType = 1100,
+        TransactionByCommandUUIDType = 1000,
 
         // Gateway notification
-        GatewayNotificationSenderType = 1200,
-        GatewayNotificationReceiverType = 1201,
-        RoutingTableUpdatingType = 1202,
+        GatewayNotificationSenderType = 1100,
+        GatewayNotificationReceiverType = 1101,
 
         // General
-        NoEquivalentType = 1300,
-        PongReactionType = 1301
+        NoEquivalentType = 1200,
+        PongReactionType = 1201
     };
 
 public:

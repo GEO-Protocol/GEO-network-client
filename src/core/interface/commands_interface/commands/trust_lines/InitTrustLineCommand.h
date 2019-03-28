@@ -16,16 +16,15 @@ public:
     static const string &identifier()
     noexcept;
 
-    const SerializedEquivalent equivalent() const
+    const ContractorID contractorID() const
     noexcept;
 
-    vector<BaseAddress::Shared> contractorAddresses() const
+    const SerializedEquivalent equivalent() const
     noexcept;
 
 private:
     SerializedEquivalent mEquivalent;
-    size_t mContractorAddressesCount;
-    vector<BaseAddress::Shared> mContractorAddresses;
+    ContractorID mContractorID;
 };
 
 #endif //GEO_NETWORK_CLIENT_INITTRUSTLINECOMMAND_H

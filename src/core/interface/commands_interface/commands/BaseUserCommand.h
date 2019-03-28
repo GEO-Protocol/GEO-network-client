@@ -60,7 +60,7 @@ public:
                 > int_[addressNumber]
                 > char_(':')[addressChar]
                 > int_[addressNumber]
-                > char_(kTokensSeparator)[addressToVector]
+                > (char_(kTokensSeparator)|eol)[addressToVector]
 
 //                                         | //OR
 //

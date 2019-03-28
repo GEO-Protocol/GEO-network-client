@@ -2,30 +2,12 @@
 
 Contractor::Contractor(
     ContractorID id,
-    vector<BaseAddress::Shared> &addresses):
-    mID(id),
-    mCryptoKey(6789),
-    mAddresses(addresses),
-    mIsConfirmed(false)
-{}
-
-Contractor::Contractor(
-    ContractorID id,
     vector<BaseAddress::Shared> &addresses,
     uint32_t cryptoKey) :
     mID(id),
     mCryptoKey(cryptoKey),
     mAddresses(addresses),
     mIsConfirmed(false)
-{}
-
-Contractor::Contractor(
-    ContractorID id,
-    ContractorID idOnContractorSide,
-    vector<BaseAddress::Shared> addresses) :
-    mID(id),
-    mOwnIdOnContractorSide(idOnContractorSide),
-    mAddresses(addresses)
 {}
 
 Contractor::Contractor(
@@ -89,6 +71,11 @@ const uint32_t Contractor::cryptoKey() const
 const bool Contractor::isConfirmed() const
 {
     return mIsConfirmed;
+}
+
+void Contractor::confirm()
+{
+    mIsConfirmed = true;
 }
 
 vector<BaseAddress::Shared> Contractor::addresses() const

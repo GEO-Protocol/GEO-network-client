@@ -1,13 +1,13 @@
 #ifndef GEO_NETWORK_CLIENT_AUDITMESSAGE_H
 #define GEO_NETWORK_CLIENT_AUDITMESSAGE_H
 
-#include "../base/transaction/DestinationMessage.h"
+#include "../base/transaction/TransactionMessage.h"
 #include "../../../crypto/lamportscheme.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
 
 using namespace crypto;
 
-class AuditMessage : public DestinationMessage {
+class AuditMessage : public TransactionMessage {
 
 public:
     typedef shared_ptr<AuditMessage> Shared;
@@ -17,7 +17,6 @@ public:
         const SerializedEquivalent equivalent,
         ContractorID idOnSenderSide,
         const TransactionUUID &transactionUUID,
-        ContractorID destinationID,
         const AuditNumber auditNumber,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,

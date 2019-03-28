@@ -9,7 +9,11 @@ public:
     typedef shared_ptr<PingMessage> Shared;
 
 public:
-    using SenderMessage::SenderMessage;
+    PingMessage(
+        ContractorID idOnReceiverSide) noexcept;
+
+    PingMessage(
+        BytesShared buffer) noexcept;
 
     const MessageType typeID() const;
 };

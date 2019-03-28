@@ -7,8 +7,8 @@ InitChannelCommand::InitChannelCommand(
         commandUUID,
         identifier())
 {
-    std::string address;
-    uint32_t addressType, addressesCount;
+    std::string address, addressType;
+    uint32_t addressesCount;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator) {
             throw ValueError("InitChannelCommand: there is no input ");
@@ -27,11 +27,12 @@ InitChannelCommand::InitChannelCommand(
         addressesCount = _attr(ctx);
     };
     auto addressAddToVector = [&](auto &ctx) {
-        switch (addressType) {
+        switch (std::atoi(addressType.c_str())) {
             case BaseAddress::IPv4_IncludingPort: {
                 mContractorAddresses.push_back(
                     make_shared<IPv4WithPortAddress>(
                         address));
+                addressType.erase();
                 break;
             }
             default:
@@ -56,13 +57,20 @@ InitChannelCommand::InitChannelCommand(
         mContractorAddresses.reserve(addressesCount);
         parse(
             command.begin(),
-            command.end(), (
-                *(int_[addressesCountParse]) > char_(kTokensSeparator)
-                > repeat(addressesCount)[*(int_[addressTypeParse] - char_(kTokensSeparator)) > char_(kTokensSeparator)
-                > repeat(3)[int_[addressAddNumber]> char_('.') [addressAddChar]]
-                > int_[addressAddNumber] > char_(':') [addressAddChar]
-                > int_[addressAddNumber] > char_(kTokensSeparator) [addressAddToVector]]
-                > +(int_[cryptoKeyParse]) > eol));
+            command.end(),
+            *(int_) > char_(kTokensSeparator)
+            > addressLexeme<
+                decltype(addressAddChar),
+                decltype(addressAddNumber),
+                decltype(addressTypeParse),
+                decltype(addressAddToVector)>(
+                    addressesCount,
+                    addressAddChar,
+                    addressAddNumber,
+                    addressTypeParse,
+                    addressAddToVector)
+                > -(int_[cryptoKeyParse] > eol)
+                > eoi);
     } catch(...) {
         throw ValueError("InitChannelCommand: can't parse command.");
     }

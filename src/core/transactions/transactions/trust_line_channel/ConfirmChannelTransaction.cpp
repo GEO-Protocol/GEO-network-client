@@ -36,6 +36,10 @@ TransactionResult::SharedConst ConfirmChannelTransaction::run()
 
     if (mContractorsManager->channelConfirmed(contractorID)) {
         info() << "Channel already confirmed";
+        sendMessage<ConfirmationMessage>(
+            mEquivalent,
+            mContractorsManager->idOnContractorSide(contractorID),
+            mTransactionUUID);
         return resultDone();
     }
 

@@ -49,7 +49,7 @@ void ContractorsHandler::saveContractor(
     Contractor::Shared contractor)
 {
     string query = "INSERT INTO " + mTableName +
-                   "(id, crypto_key) VALUES (?, ?);";
+                   " (id, crypto_key) VALUES (?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -61,6 +61,12 @@ void ContractorsHandler::saveContractor(
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::saveContractor: "
                           "Bad binding of ID; sqlite error: " + to_string(rc));
+    }
+    auto cryptoKey = contractor->cryptoKey();
+    rc = sqlite3_bind_blob(stmt, 2, &cryptoKey, sizeof(uint32_t), SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorsHandler::saveContractor: "
+                          "Bad binding of cryptoKey; sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
