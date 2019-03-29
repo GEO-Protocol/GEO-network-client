@@ -2,8 +2,10 @@
 
 ConfirmationNotStronglyRequiredMessagesQueue::ConfirmationNotStronglyRequiredMessagesQueue(
     const SerializedEquivalent equivalent,
-    BaseAddress::Shared contractorAddress)
+    BaseAddress::Shared contractorAddress,
+    Logger &logger)
     noexcept:
+    LoggerMixin(logger),
     mEquivalent(equivalent),
     mContractorAddress(contractorAddress)
 {
@@ -16,7 +18,8 @@ bool ConfirmationNotStronglyRequiredMessagesQueue::enqueue(
     ConfirmationID confirmationID)
 {
     // todo : check all sender addresses
-    if (message->senderAddresses.at(0) != mContractorAddress) {
+    if (message->equivalent() != mEquivalent) {
+        this->warning() << "Message doesn't belong to this queue due to equivalent: " << message->equivalent();
         return false;
     }
     message->setConfirmationID(
@@ -25,12 +28,15 @@ bool ConfirmationNotStronglyRequiredMessagesQueue::enqueue(
         case Message::MaxFlow_ResultMaxFlowCalculation:
         case Message::MaxFlow_ResultMaxFlowCalculationFromGateway: {
             if (mMessages.count(confirmationID) != 0) {
+                this->warning() << "Message with confirmationID " << confirmationID
+                                << " has already present in queue";
                 return false;
             }
             mMessages[message->confirmationID()] = message;
             return true;
         }
         default:
+            this->warning() << "Invalid  message type " << message->typeID();
             return false;
     }
 }
@@ -87,4 +93,12 @@ bool ConfirmationNotStronglyRequiredMessagesQueue::checkIfNeedResendMessages()
         return false;
     }
     return true;
+}
+
+const string ConfirmationNotStronglyRequiredMessagesQueue::logHeader() const
+noexcept
+{
+    stringstream ss;
+    ss << "[ConfirmationNotStronglyRequiredMessagesQueue " << mContractorAddress->fullAddress() << " ]";
+    return ss.str();
 }

@@ -224,9 +224,10 @@ void Communicator::onMessageReceived(
 
     else if (message->typeID() == Message::Channel_Init) {
         const auto initMessage = static_pointer_cast<InitChannelMessage>(message);
+        auto contractorID = mContractorsManager->contractorIDByAddresses(initMessage->senderAddresses);
         mConfirmationRequiredMessagesHandler->tryProcessConfirmation(make_shared<ConfirmationMessage>(
             initMessage->equivalent(),
-            initMessage->contractorID(),
+            contractorID,
             initMessage->transactionUUID()));
 
     } else if (message->typeID() == Message::General_Ping) {

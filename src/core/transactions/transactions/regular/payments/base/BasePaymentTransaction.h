@@ -389,7 +389,6 @@ protected:
     pair<BytesShared, size_t> getSerializedReceipt(
         ContractorID source,
         ContractorID target,
-        lamport::KeyHash::Shared sourceTransactionPublicKeyHash,
         const TrustLineAmount &amount,
         bool isSource);
 

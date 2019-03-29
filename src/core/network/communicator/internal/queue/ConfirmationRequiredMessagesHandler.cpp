@@ -60,7 +60,7 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     debug() << "Message of type " << message->typeID() << " for equivalent " << message->equivalent()
-            << " enqueued for confirmation receiving.";
+            << " with contractor " << contractorID << " enqueued for confirmation receiving.";
 #endif
 
     if (mQueues.size() == 1

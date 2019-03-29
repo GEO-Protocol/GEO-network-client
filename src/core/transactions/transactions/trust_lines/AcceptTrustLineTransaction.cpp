@@ -49,7 +49,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
                 Message::TrustLines_Initial,
                 kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
                 mEquivalent,
-                mContractorID,
+                mContractorsManager->idOnContractorSide(mContractorID),
                 mTransactionUUID,
                 mIAmGateway,
                 ConfirmationMessage::OK);
@@ -126,7 +126,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         Message::TrustLines_Initial,
         kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
         mEquivalent,
-        mContractorID,
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         mIAmGateway,
         ConfirmationMessage::OK);
@@ -140,7 +140,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::sendTrustLineErrorCon
     sendMessage<TrustLineConfirmationMessage>(
         mContractorID,
         mEquivalent,
-        mContractorID,
+        mContractorsManager->idOnContractorSide(mContractorID),
         mTransactionUUID,
         false,
         errorState);

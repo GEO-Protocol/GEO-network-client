@@ -144,6 +144,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             kReservation.first,
             ResponseMessage::Rejected);
     }
+    debug() << "Sender ID " << senderID;
 
     if (!mTrustLinesManager->trustLineIsPresent(senderID)) {
         warning() << "Path is not valid: there is no TL with previous node. Rejected.";
@@ -663,7 +664,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
         auto serializedIncomingReceiptData = getSerializedReceipt(
             coordinatorID,
             mContractorsManager->idOnContractorSide(coordinatorID),
-            kMessage->transactionPublicKeyHash(),
             coordinatorTotalIncomingReservationAmount,
             false);
         if (!keyChain.checkSign(
@@ -790,7 +790,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCheckObser
             auto serializedOutgoingReceiptData = getSerializedReceipt(
                 mContractorsManager->idOnContractorSide(participantID),
                 participantID,
-                mPublicKey->hash(),
                 outgoingReservedAmount,
                 true);
             auto signatureAndKeyNumber = keyChain.sign(
@@ -892,7 +891,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
         auto serializedIncomingReceiptData = getSerializedReceipt(
             senderID,
             mContractorsManager->idOnContractorSide(senderID),
-            kMessage->transactionPublicKeyHash(),
             participantTotalIncomingReservationAmount,
             false);
         if (!keyChain.checkSign(

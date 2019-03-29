@@ -617,7 +617,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         auto serializedIncomingReceiptData = getSerializedReceipt(
             coordinatorID,
             mContractorsManager->idOnContractorSide(coordinatorID),
-            kMessage->transactionPublicKeyHash(),
             coordinatorTotalIncomingReservationAmount,
             false);
         if (!keyChain.checkSign(
@@ -737,7 +736,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCheckO
             auto serializedOutgoingReceiptData = getSerializedReceipt(
                 mContractorsManager->idOnContractorSide(participantID),
                 participantID,
-                mPublicKey->hash(),
                 outgoingReservedAmount,
                 true);
             auto signatureAndKeyNumber = keyChain.sign(
@@ -839,7 +837,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
         auto serializedIncomingReceiptData = getSerializedReceipt(
             senderID,
             mContractorsManager->idOnContractorSide(senderID),
-            kMessage->transactionPublicKeyHash(),
             participantTotalIncomingReservationAmount,
             false);
         if (!keyChain.checkSign(

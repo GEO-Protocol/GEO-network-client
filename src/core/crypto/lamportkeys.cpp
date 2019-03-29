@@ -113,6 +113,15 @@ const byte* KeyHash::data() const
     return mData;
 }
 
+const string KeyHash::toString() const
+{
+    stringstream ss;
+    ss << std::hex;
+    for(int i(0); i<KeyHash::kBytesSize; ++i)
+        ss<<(int)mData[i];
+    return ss.str();
+}
+
 bool operator== (const KeyHash &kh1, const KeyHash &kh2)
 {
 #ifdef BOOST_BIG_ENDIAN

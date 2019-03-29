@@ -81,6 +81,10 @@ void ConfirmationRequiredMessagesQueue::resetInternalTimeout()
 void ConfirmationRequiredMessagesQueue::addChannelInitInTheQueue(
     TransactionMessage::Shared message)
 {
+    // InitChannel message can be in queue only once
+    if (!mMessages.empty()) {
+        return;
+    }
     mMessages[message->transactionUUID()] = message;
     signalSaveMessageToStorage(
         mContractorID,

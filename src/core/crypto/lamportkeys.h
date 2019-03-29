@@ -38,6 +38,8 @@ public:
 
     const byte* data() const;
 
+    const string toString() const;
+
     friend bool operator== (
         const KeyHash &kh1,
         const KeyHash &kh2);

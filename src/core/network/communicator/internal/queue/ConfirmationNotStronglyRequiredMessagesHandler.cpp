@@ -19,6 +19,10 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryEnqueueMessage(
     // can be enqueued, so if you want add message to ConfirmationNotStronglyRequiredMessagesHandler,
     // you should override this method
     // In case if no queue is present for this contractor - new one must be created.
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+    debug() << "tryEnqueueMessage " << message->typeID() << " "
+            << contractorAddress->fullAddress() << " " << message->equivalent();
+#endif
     const auto equivalent = message->equivalent();
     const auto queueKey = make_pair(
         equivalent,
@@ -26,7 +30,8 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryEnqueueMessage(
     if (mQueues.count(queueKey) == 0) {
         auto newQueue = make_shared<ConfirmationNotStronglyRequiredMessagesQueue>(
             equivalent,
-            contractorAddress);
+            contractorAddress,
+            mLog);
         mQueues[queueKey] = newQueue;
     }
 
@@ -35,13 +40,13 @@ void ConfirmationNotStronglyRequiredMessagesHandler::tryEnqueueMessage(
         mCurrentConfirmationID)) {
         warning() << "tryEnqueueMessage: can't enqueue message "
                   << message->typeID() << " with confirmation id " << mCurrentConfirmationID;
+    } else {
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+        debug() << "Message of type " << message->typeID() << " for equivalent " << equivalent
+                << " enqueued for not strongly confirmation receiving.";
+#endif
     }
     mCurrentConfirmationID++;
-
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-    debug() << "Message of type " << message->typeID() << " for equivalent " << equivalent
-            << " enqueued for not strongly confirmation receiving.";
-#endif
 
     if (mQueues.size() == 1
         and mQueues.begin()->second->size() == 1) {

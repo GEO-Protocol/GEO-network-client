@@ -26,38 +26,34 @@ TransactionResult::SharedConst InitChannelTransaction::run()
         return resultProtocolError();
     }
 
-    if (mCommand->cryptoKey() != 6789) {
-        info() << "Channel crypto key generation";
-        auto ioTransaction = mStorageHandler->beginTransaction();
-        try {
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    try {
+        if (mCommand->cryptoKey() != 6789) {
+            info() << "Channel crypto key generation";
             mContractor = mContractorsManager->createContractor(
                 ioTransaction,
                 mCommand->contractorAddresses());
-        } catch (IOError &e) {
-            ioTransaction->rollback();
-            error() << "Error during creating channel. Details: " << e.what();
-            return resultUnexpectedError();
-        }
-        info() << "Init channel to contractor with ID " << mContractor->getID()
-               << " and crypto key " << mContractor->cryptoKey();
-    } else {
-        info() << "Channel crypto key: " << mCommand->cryptoKey();
-        auto ioTransaction = mStorageHandler->beginTransaction();
-        try {
+            info() << "Init channel to contractor with ID " << mContractor->getID()
+                   << " and crypto key " << mContractor->cryptoKey();
+        } else {
+            info() << "Channel crypto key: " << mCommand->cryptoKey();
             mContractor = mContractorsManager->createContractor(
                 ioTransaction,
                 mCommand->contractorAddresses());
-        } catch (IOError &e) {
-            ioTransaction->rollback();
-            error() << "Error during creating channel. Details: " << e.what();
-            return resultUnexpectedError();
+            info() << "Init channel to contractor with ID " << mContractor->getID();
+            sendMessage<InitChannelMessage>(
+                mContractor->getID(),
+                mContractorsManager->ownAddresses(),
+                mTransactionUUID,
+                mContractor->getID());
         }
-        info() << "Init channel to contractor with ID " << mContractor->getID();
-        sendMessage<InitChannelMessage>(
-            mContractor->getID(),
-            mContractorsManager->ownAddresses(),
-            mTransactionUUID,
-            mContractor->getID());
+    } catch (ValueError &e) {
+        error() << "Can't create channel. Details: " << e.what();
+        return resultProtocolError();
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        error() << "Error during creating channel. Details: " << e.what();
+        return resultUnexpectedError();
     }
     return resultOK();
 }

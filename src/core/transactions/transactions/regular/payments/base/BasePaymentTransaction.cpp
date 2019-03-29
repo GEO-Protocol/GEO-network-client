@@ -1086,13 +1086,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runObservingRejectTransac
 pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
     ContractorID source,
     ContractorID target,
-    lamport::KeyHash::Shared sourceTransactionPublicKeyHash,
     const TrustLineAmount &amount,
     bool isSource)
 {
     size_t serializedDataSize = sizeof(ContractorID)
                                 + sizeof(ContractorID)
-                                + lamport::KeyHash::kBytesSize
                                 + sizeof(BlockNumber)
                                 + TransactionUUID::kBytesSize
                                 + kTrustLineAmountBytesCount
@@ -1111,12 +1109,6 @@ pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
         &target,
         sizeof(ContractorID));
     bytesBufferOffset += sizeof(ContractorID);
-
-    memcpy(
-        serializedData.get() + bytesBufferOffset,
-        sourceTransactionPublicKeyHash->data(),
-        lamport::KeyHash::kBytesSize);
-    bytesBufferOffset += lamport::KeyHash::kBytesSize;
 
     memcpy(
         serializedData.get() + bytesBufferOffset,
@@ -1147,6 +1139,9 @@ pair<BytesShared, size_t> BasePaymentTransaction::getSerializedReceipt(
         serializedData.get() + bytesBufferOffset,
         &currentAuditNumber,
         sizeof(AuditNumber));
+
+    debug() << "Receipt " << source << " " << target << " " << amount << " "
+            << mMaximalClaimingBlockNumber << " " << currentAuditNumber;
 
     return make_pair(
         serializedData,

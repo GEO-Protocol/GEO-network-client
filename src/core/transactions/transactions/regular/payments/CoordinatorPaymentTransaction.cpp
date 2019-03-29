@@ -1282,7 +1282,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
             auto serializedOutgoingReceiptData = getSerializedReceipt(
                 mContractorsManager->idOnContractorSide(participantID),
                 participantID,
-                mPublicKey->hash(),
                 outgoingReservedAmount,
                 true);
             auto signatureAndKeyNumber = keyChain.sign(

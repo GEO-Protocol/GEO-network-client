@@ -6,10 +6,11 @@
 #include "../../../messages/base/max_flow_calculation/MaxFlowCalculationConfirmationMessage.h"
 #include "../../../messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
 #include "../../../messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
+#include "../../../../logger/LoggerMixin.hpp"
 
 #include <map>
 
-class ConfirmationNotStronglyRequiredMessagesQueue {
+class ConfirmationNotStronglyRequiredMessagesQueue : protected LoggerMixin {
 
 public:
     typedef shared_ptr<ConfirmationNotStronglyRequiredMessagesQueue> Shared;
@@ -17,7 +18,8 @@ public:
 public:
     ConfirmationNotStronglyRequiredMessagesQueue(
         const SerializedEquivalent equivalent,
-        BaseAddress::Shared contractorAddress)
+        BaseAddress::Shared contractorAddress,
+        Logger &logger)
         noexcept;
 
     /**
@@ -63,6 +65,9 @@ protected:
      * Sets re-sending timeout to the default value.
      */
     void resetInternalTimeout()
+        noexcept;
+
+    const string logHeader() const
         noexcept;
 
 protected:

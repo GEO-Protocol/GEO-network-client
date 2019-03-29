@@ -33,10 +33,12 @@ TransactionResult::SharedConst ConfirmChannelTransaction::run()
         warning() << "There is no contractor for requested addresses";
         return resultDone();
     }
+    info() << "Channel ID " << contractorID;
 
     if (mContractorsManager->channelConfirmed(contractorID)) {
         info() << "Channel already confirmed";
         sendMessage<ConfirmationMessage>(
+            contractorID,
             mEquivalent,
             mContractorsManager->idOnContractorSide(contractorID),
             mTransactionUUID);

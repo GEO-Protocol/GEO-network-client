@@ -11,6 +11,7 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
     uint32_t flag = 0;
     std::string forbiddenAmount, address, addressType;
     mForbiddenNodeAddress = nullptr;
+    mForbiddenAmount = 0;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("SubsystemsInfluenceCommand:  input is empty.");
@@ -68,8 +69,8 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
                         addressAddNumber,
                         addressTypeParse,
                         addressAddToVector)
-                    > *(digit [forbiddenAmountAdd] > !alpha > !punct))
-                > eol > eoi));
+                    > -((digit [forbiddenAmountAdd] > !alpha > !punct) > eol))
+                > eoi));
 
         mForbiddenAmount = TrustLineAmount(forbiddenAmount);
     } catch (...) {

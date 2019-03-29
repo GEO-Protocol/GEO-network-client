@@ -874,7 +874,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::sendFinalPathCon
             auto serializedOutgoingReceiptData = getSerializedReceipt(
                 mContractorsManager->idOnContractorSide(mNextNodeID),
                 mNextNodeID,
-                mPublicKey->hash(),
                 mPathStats->maxFlow(),
                 true);
             auto signatureAndKeyNumber = keyChain.sign(
@@ -1017,7 +1016,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalReservat
     auto serializedIncomingReceiptData = getSerializedReceipt(
         mPreviousNodeID,
         mContractorsManager->idOnContractorSide(mPreviousNodeID),
-        kMessage->transactionPublicKeyHash(),
         participantTotalIncomingReservationAmount,
         false);
     if (!keyChain.checkSign(
