@@ -22,6 +22,7 @@ StorageHandler::StorageHandler(
     mPaymentTransactionsHandler(connection(dataBaseName, directory), kPaymentTransactionsTableName, logger),
     mPaymentKeysHandler(connection(dataBaseName, directory), kPaymentKeysTableName, logger),
     mPaymentParticipantsVotesHandler(connection(dataBaseName, directory), kPaymentParticipantsVotesTableName, logger),
+    mFeaturesHandler(connection(dataBaseName, directory), kFeaturesTableName, logger),
     mLog(logger)
 {
     sqlite3_config(SQLITE_CONFIG_SINGLETHREAD);
@@ -91,6 +92,7 @@ IOTransaction::Shared StorageHandler::beginTransaction()
         &mPaymentTransactionsHandler,
         &mContractorsHandler,
         &mAddressHandler,
+        &mFeaturesHandler,
         mLog);
 }
 

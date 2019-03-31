@@ -15,6 +15,7 @@ IOTransaction::IOTransaction(
     PaymentTransactionsHandler *paymentTransactionsHandler,
     ContractorsHandler *contractorsHandler,
     AddressHandler *addressHandler,
+    FeaturesHandler *featuresHandler,
     Logger &logger) :
 
     mDBConnection(dbConnection),
@@ -31,6 +32,7 @@ IOTransaction::IOTransaction(
     mPaymentTransactionsHandler(paymentTransactionsHandler),
     mContractorsHandler(contractorsHandler),
     mAddressHandler(addressHandler),
+    mFeaturesHandler(featuresHandler),
     mIsTransactionBegin(true),
     mLog(logger)
 {
@@ -157,6 +159,15 @@ AddressHandler* IOTransaction::addressHandler()
                           "transaction was rollback, it can't be use now");
     }
     return mAddressHandler;
+}
+
+FeaturesHandler* IOTransaction::featuresHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::featuresHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mFeaturesHandler;
 }
 
 void IOTransaction::commit()

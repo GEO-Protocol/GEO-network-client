@@ -56,7 +56,10 @@ set(SOURCE_FILES
         ContractorsHandler.h
         ContractorsHandler.cpp
         AddressHandler.h
-        AddressHandler.cpp)
+        AddressHandler.cpp
+
+        FeaturesHandler.h
+        FeaturesHandler.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

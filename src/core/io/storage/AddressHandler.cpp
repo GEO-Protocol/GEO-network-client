@@ -11,7 +11,7 @@ AddressHandler::AddressHandler(
 {
     sqlite3_stmt *stmt;
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
-                   "(type INTEGER INTEGER NOT NULL, "
+                   "(type INTEGER NOT NULL, "
                    "contractor_id INTEGER NOT NULL, "
                    "address_size INTEGER NOT NULL, "
                    "address BLOB NOT NULL, "

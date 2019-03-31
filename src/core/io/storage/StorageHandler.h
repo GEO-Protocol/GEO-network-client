@@ -57,6 +57,8 @@ private:
     const string kContractorsTableName = "contractors";
     const string kContractorAddressesTableName = "contractors_addresses";
 
+    const string kFeaturesTableName = "features";
+
 private:
     static sqlite3 *mDBConnection;
 
@@ -75,6 +77,7 @@ private:
     PaymentTransactionsHandler mPaymentTransactionsHandler;
     ContractorsHandler mContractorsHandler;
     AddressHandler mAddressHandler;
+    FeaturesHandler mFeaturesHandler;
     string mDirectory;
     string mDataBaseName;
 };

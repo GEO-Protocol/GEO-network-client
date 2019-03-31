@@ -18,6 +18,8 @@
 #include "ContractorsHandler.h"
 #include "AddressHandler.h"
 
+#include "FeaturesHandler.h"
+
 #include "../../../libs/sqlite3/sqlite3.h"
 
 class IOTransaction {
@@ -41,6 +43,7 @@ public:
         PaymentTransactionsHandler *paymentTransactionsHandler,
         ContractorsHandler *contractorsHandler,
         AddressHandler *addressHandler,
+        FeaturesHandler *featuresHandler,
         Logger &logger);
 
     ~IOTransaction();
@@ -70,6 +73,8 @@ public:
     ContractorsHandler *contractorsHandler();
 
     AddressHandler *addressHandler();
+
+    FeaturesHandler *featuresHandler();
 
     void rollback();
 
@@ -102,6 +107,8 @@ private:
 
     ContractorsHandler *mContractorsHandler;
     AddressHandler *mAddressHandler;
+
+    FeaturesHandler *mFeaturesHandler;
 
     bool mIsTransactionBegin;
     Logger &mLog;
