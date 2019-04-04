@@ -14,11 +14,13 @@ add_subdirectory(trust_line_channels)
 
 set(SOURCE_FILES
         Message.hpp         # todo: why are not this message in base?
-        SenderMessage.cpp   # todo: why are not this message in base?
-        SenderMessage.h     # todo: why are not this message in base?
 
         EquivalentMessage.h
-        EquivalentMessage.cpp )
+        EquivalentMessage.cpp
+
+        SenderMessage.cpp   # todo: why are not this message in base?
+        SenderMessage.h     # todo: why are not this message in base?
+        )
 
 
 add_library(network__messages ${SOURCE_FILES})

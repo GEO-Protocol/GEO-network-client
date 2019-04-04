@@ -20,12 +20,19 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
             *(reinterpret_cast<SerializedProtocolVersion *>(buffer.get()));
         if (kMessageProtocolVersion != Message::ProtocolVersion::Latest) {
             warning() << "processBytesSequence: Message with invalid protocol version occurred "
-                      << (uint16_t)kMessageProtocolVersion << " current protocol version " << Message::Latest << ". Message dropped.";
+                      << (uint16_t)kMessageProtocolVersion << " current protocol version "
+                      << Message::Latest << ". Message dropped.";
             return messageInvalidOrIncomplete();
         }
 
+        byte isMessageEncrypted = *(reinterpret_cast<byte*>(buffer.get() + sizeof(SerializedProtocolVersion)));
+        if (isMessageEncrypted) {
+            // todo : decrypt message
+        }
+
         const Message::SerializedType kMessageIdentifier =
-            *(reinterpret_cast<Message::SerializedType*>(buffer.get() + sizeof(SerializedProtocolVersion)));
+            *(reinterpret_cast<Message::SerializedType*>(buffer.get() +
+                sizeof(byte) + sizeof(SerializedProtocolVersion)));
 
         switch(kMessageIdentifier) {
 

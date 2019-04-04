@@ -37,9 +37,9 @@ public:
     NodeUUID& operator=(
         const boost::uuids::uuid &u);
 
-    friend bool operator== (
-        const NodeUUID &u1,
-        const NodeUUID &u2);
+//    friend bool operator== (
+//        const NodeUUID &u1,
+//        const NodeUUID &u2);
 
     const string stringUUID() const;
 };

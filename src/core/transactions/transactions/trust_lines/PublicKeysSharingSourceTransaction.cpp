@@ -26,7 +26,6 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     mStep = Initialization;
 }
 
-
 PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     ShareKeysCommand::Shared command,
     ContractorsManager *contractorsManager,

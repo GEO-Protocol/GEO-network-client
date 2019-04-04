@@ -41,7 +41,7 @@ public:
         TailManager &tailManager,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
     enum Stages {
@@ -55,7 +55,7 @@ protected:
 
     virtual TransactionResult::SharedConst processCollectingTopology() = 0;
 
-    virtual TransactionResult::SharedConst applyCustomLogic(){};
+    virtual TransactionResult::SharedConst applyCustomLogic(){return resultDone();};
 
     void fillTopology();
 

@@ -43,30 +43,31 @@ NodeUUID& NodeUUID::operator=(const boost::uuids::uuid &u){
     return *this;
 }
 
-bool operator== (const NodeUUID &a, const NodeUUID &b)
-{
-#ifdef BOOST_BIG_ENDIAN
-    for (size_t i=0; i<15; ++i){
-        if (a.data[i] < b.data[i])
-            return false;
-
-        else if (a.data[i] > b.data[i])
-            return false;
-    }
-    return false;
-#endif
-
-#ifdef BOOST_LITTLE_ENDIAN
-    for (int i=15; i>-1; --i){
-        if (a.data[i] < b.data[i])
-            return false;
-
-        else if (a.data[i] > b.data[i])
-            return false;
-    }
-    return true;
-#endif
-}
+// todo : solve boost issues
+//bool operator== (const NodeUUID &a, const NodeUUID &b)
+//{
+//#ifdef BOOST_BIG_ENDIAN
+//    for (size_t i=0; i<15; ++i){
+//        if (a.data[i] < b.data[i])
+//            return false;
+//
+//        else if (a.data[i] > b.data[i])
+//            return false;
+//    }
+//    return false;
+//#endif
+//
+//#ifdef BOOST_LITTLE_ENDIAN
+//    for (int i=15; i>-1; --i){
+//        if (a.data[i] < b.data[i])
+//            return false;
+//
+//        else if (a.data[i] > b.data[i])
+//            return false;
+//    }
+//    return true;
+//#endif
+//}
 
 const NodeUUID& NodeUUID::empty ()
 {

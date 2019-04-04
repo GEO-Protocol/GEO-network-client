@@ -30,14 +30,14 @@ public:
         Logger &logger);
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const override;
 
 private:
-    TransactionResult::SharedConst sendRequestForCollectingTopology();
+    TransactionResult::SharedConst sendRequestForCollectingTopology() override;
 
-    TransactionResult::SharedConst processCollectingTopologyShortly(){}
+    TransactionResult::SharedConst processCollectingTopologyShortly(){return resultDone();}
 
-    TransactionResult::SharedConst processCollectingTopology();
+    TransactionResult::SharedConst processCollectingTopology() override;
 
 private:
     // ToDo: move to separate config file

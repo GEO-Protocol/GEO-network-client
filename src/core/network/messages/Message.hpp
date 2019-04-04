@@ -184,22 +184,32 @@ public:
     {
         SerializedProtocolVersion kProtocolVersion = ProtocolVersion::Latest;
         const SerializedType kMessageType = typeID();
+        bool isMessageEncrypted = isEncrypted();
+        size_t dataBytesOffset = 0;
+        const auto kBufferSize = sizeof(SerializedProtocolVersion) + sizeof(byte) + sizeof(kMessageType);
         auto buffer = tryMalloc(
-                sizeof(SerializedProtocolVersion) + sizeof(kMessageType));
+            kBufferSize);
 
         memcpy(
             buffer.get(),
             &kProtocolVersion,
             sizeof(SerializedProtocolVersion));
+        dataBytesOffset += sizeof(SerializedProtocolVersion);
 
         memcpy(
-            buffer.get() + sizeof(SerializedProtocolVersion),
+            buffer.get() + dataBytesOffset,
+            &isMessageEncrypted,
+            sizeof(byte));
+        dataBytesOffset += sizeof(byte);
+
+        memcpy(
+            buffer.get() + dataBytesOffset,
             &kMessageType,
             sizeof(kMessageType));
 
         return make_pair(
             buffer,
-            sizeof(SerializedProtocolVersion) + sizeof(kMessageType));
+            kBufferSize);
     }
 
     void setSenderIncomingIP(
@@ -213,10 +223,15 @@ public:
         return mSenderIncomingIP;
     }
 
+    bool isEncrypted() const
+    {
+        return false;
+    }
+
 protected:
     virtual const size_t kOffsetToInheritedBytes() const
     {
-        return sizeof(SerializedProtocolVersion) + sizeof(SerializedType);
+        return sizeof(SerializedProtocolVersion) + sizeof(byte) + sizeof(SerializedType);
     }
 
 private:

@@ -78,6 +78,8 @@ void TrustLinesManager::loadTrustLinesFromStorage()
 
         } catch (NotFoundError&) {
             info() << "init TL in storage with contractor " << kTrustLine->contractorID();
+            kTrustLine->setState(
+                TrustLine::Init);
             if (keyChain.ownKeysPresent(ioTransaction)) {
                 warning() << "Something wrong, because TL contains own valid keys";
             }
@@ -725,17 +727,11 @@ void TrustLinesManager::updateTrustLineFromStorage(
         kTrustLine->setTotalOutgoingReceiptsAmount(
             totalOutgoingReceiptsAmount);
 
-        if (keyChain.ownKeysPresent(ioTransaction)) {
-            kTrustLine->setIsOwnKeysPresent(true);
-        } else {
-            kTrustLine->setIsOwnKeysPresent(false);
-        }
 
-        if (keyChain.contractorKeysPresent(ioTransaction)) {
-            kTrustLine->setIsContractorKeysPresent(true);
-        } else {
-            kTrustLine->setIsContractorKeysPresent(false);
-        }
+        kTrustLine->setIsOwnKeysPresent(
+            keyChain.ownKeysPresent(ioTransaction));
+        kTrustLine->setIsContractorKeysPresent(
+            keyChain.contractorKeysPresent(ioTransaction));
 
     } catch (NotFoundError&) {
         info() << "init TL in storage with contractor " << kTrustLine->contractorID();
