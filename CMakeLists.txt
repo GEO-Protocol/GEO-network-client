@@ -192,6 +192,7 @@ add_subdirectory(src/core/equivalents)
 add_subdirectory(src/core/crypto)
 add_subdirectory(src/core/contractors)
 add_subdirectory(src/core/observing)
+add_subdirectory(src/core/features)
 
 
 #
@@ -239,4 +240,5 @@ target_link_libraries(geo_network_client
         crypto
 
         contractors
-        observing)
+        observing
+        features)
