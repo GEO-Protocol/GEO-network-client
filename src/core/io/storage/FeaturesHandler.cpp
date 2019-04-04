@@ -31,8 +31,8 @@ FeaturesHandler::FeaturesHandler(
 }
 
 void FeaturesHandler::saveFeature(
-    string featureName,
-    string featureValue)
+    const string& featureName,
+    const string& featureValue)
 {
     string query = "INSERT INTO " + mTableName +
                    "(feature_name, feature_length, feature_value) "
@@ -74,10 +74,10 @@ void FeaturesHandler::saveFeature(
 }
 
 string FeaturesHandler::getFeature(
-    string featureName)
+    const string& featureName)
 {
     sqlite3_stmt *stmt;
-    string query = "SELECT feature_size, feature_value FROM "
+    string query = "SELECT feature_length, feature_value FROM "
                    + mTableName + " WHERE feature_name = ?";
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -90,7 +90,7 @@ string FeaturesHandler::getFeature(
                       "Bad binding of feature name; sqlite error: " + to_string(rc));
     }
     if (sqlite3_step(stmt) != SQLITE_ROW ) {
-        throw ValueError("FeaturesHandler::getFeature: "
+        throw NotFoundError("FeaturesHandler::getFeature: "
                          "There is no feature: " + featureName);
     }
 

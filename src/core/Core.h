@@ -17,6 +17,7 @@
 #include "contractors/ContractorsManager.h"
 #include "observing/ObservingHandler.h"
 #include "delayed_tasks/TopologyEventDelayedTask.h"
+#include "features/FeaturesManager.h"
 
 #include "logger/Logger.h"
 
@@ -87,6 +88,9 @@ private:
     int initKeysStore();
 
     int initTopologyEventDelayedTask();
+
+    int initFeaturesManager(
+        const json &conf);
 
     void connectCommunicatorSignals();
 
@@ -210,6 +214,7 @@ protected:
     unique_ptr<ObservingHandler> mObservingHandler;
     unique_ptr<TopologyEventDelayedTask> mTopologyEventDelayedTask;
     unique_ptr<TailManager> mTailManager;
+    unique_ptr<FeaturesManager> mFeaturesManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

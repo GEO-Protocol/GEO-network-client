@@ -102,6 +102,7 @@ public:
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        FeaturesManager *featuresManager,
         EventsInterface *eventsInterface,
         TailManager &tailManager,
         Logger &logger,
@@ -495,6 +496,7 @@ private:
     ResultsInterface *mResultsInterface;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
+    FeaturesManager *mFeaturesManager;
     EventsInterface *mEventsInterface;
     TailManager &mTailManager;
     Logger &mLog;

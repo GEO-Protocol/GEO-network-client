@@ -8,6 +8,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    FeaturesManager *featuresManager,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &log) :
 
@@ -20,6 +21,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
+    mFeaturesManager(featuresManager),
     mTrustLinesInfluenceController(trustLinesInfluenceController)
 {}
 
@@ -32,6 +34,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    FeaturesManager *featuresManager,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &log) :
 
@@ -45,6 +48,7 @@ BaseTrustLineTransaction::BaseTrustLineTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
+    mFeaturesManager(featuresManager),
     mTrustLinesInfluenceController(trustLinesInfluenceController)
 {}
 
@@ -65,7 +69,9 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getOwnSerializedAuditData()
     size_t bytesCount = sizeof(AuditNumber)
                         + kTrustLineAmountBytesCount
                         + kTrustLineAmountBytesCount
-                        + kTrustLineBalanceSerializeBytesCount;
+                        + kTrustLineBalanceSerializeBytesCount
+                        + sizeof(byte)
+                        + mFeaturesManager->getEquivalentsRegistryAddress().length();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
 
@@ -102,7 +108,21 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getOwnSerializedAuditData()
         dataBytesShared.get() + dataBytesOffset,
         balanceBufferBytes.data(),
         kTrustLineBalanceSerializeBytesCount);
+    dataBytesOffset += kTrustLineBalanceSerializeBytesCount;
     info() << "own balance " << mTrustLines->balance(mContractorID);
+
+    auto equivalentRegistryAddress = mFeaturesManager->getEquivalentsRegistryAddress();
+    auto equivalentsRegistryAddressLength = (byte)equivalentRegistryAddress.length();
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &equivalentsRegistryAddressLength,
+        sizeof(byte));
+    dataBytesOffset += sizeof(byte);
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        equivalentRegistryAddress.c_str(),
+        equivalentRegistryAddress.length());
+    info() << "own equivalents registry address: " << equivalentRegistryAddress;
 
     return make_pair(
         dataBytesShared,
@@ -114,7 +134,9 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getContractorSerializedAudit
     size_t bytesCount = sizeof(AuditNumber)
                         + kTrustLineAmountBytesCount
                         + kTrustLineAmountBytesCount
-                        + kTrustLineBalanceSerializeBytesCount;
+                        + kTrustLineBalanceSerializeBytesCount
+                        + sizeof(byte)
+                        + mFeaturesManager->getEquivalentsRegistryAddress().length();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
 
@@ -152,7 +174,21 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getContractorSerializedAudit
         dataBytesShared.get() + dataBytesOffset,
         balanceBufferBytes.data(),
         kTrustLineBalanceSerializeBytesCount);
+    dataBytesOffset += kTrustLineBalanceSerializeBytesCount;
     info() << "contractor balance " << contractorBalance;
+
+    auto equivalentRegistryAddress = mFeaturesManager->getEquivalentsRegistryAddress();
+    auto equivalentsRegistryAddressLength = (byte)equivalentRegistryAddress.length();
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &equivalentsRegistryAddressLength,
+        sizeof(byte));
+    dataBytesOffset += sizeof(byte);
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        equivalentRegistryAddress.c_str(),
+        equivalentRegistryAddress.length());
+    info() << "contractor equivalents registry address: " << equivalentRegistryAddress;
 
     return make_pair(
         dataBytesShared,

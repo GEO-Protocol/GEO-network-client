@@ -26,6 +26,7 @@ public:
         MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
         Keystore *keystore,
+        FeaturesManager *featuresManager,
         EventsInterface *eventsInterface,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger)

@@ -9,6 +9,7 @@ AuditTargetTransaction::AuditTargetTransaction(
     TopologyTrustLinesManager *topologyTrustLinesManager,
     TopologyCacheManager *topologyCacheManager,
     MaxFlowCacheManager *maxFlowCacheManager,
+    FeaturesManager *featuresManager,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger):
     BaseTrustLineTransaction(
@@ -20,6 +21,7 @@ AuditTargetTransaction::AuditTargetTransaction(
         manager,
         storageHandler,
         keystore,
+        featuresManager,
         trustLinesInfluenceController,
         logger),
     mMessage(message),

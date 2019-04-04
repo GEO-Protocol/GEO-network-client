@@ -10,6 +10,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
     Keystore *keystore,
+    FeaturesManager *featuresManager,
     EventsInterface *eventsInterface,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger)
@@ -23,6 +24,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
         manager,
         storageHandler,
         keystore,
+        featuresManager,
         trustLinesInfluenceController,
         logger),
     mCommand(command),

@@ -16,6 +16,7 @@ public:
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        FeaturesManager *featuresManager,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
@@ -26,6 +27,7 @@ public:
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        FeaturesManager *featuresManager,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 

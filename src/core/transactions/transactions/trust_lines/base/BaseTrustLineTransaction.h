@@ -4,6 +4,7 @@
 #include "../../base/BaseTransaction.h"
 #include "../../../../contractors/ContractorsManager.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../features/FeaturesManager.h"
 #include "../../../../crypto/keychain.h"
 #include "../../../../crypto/lamportkeys.h"
 
@@ -27,6 +28,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        FeaturesManager *featuresManager,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &log);
 
@@ -39,6 +41,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Keystore *keystore,
+        FeaturesManager *featuresManager,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &log);
 
@@ -66,6 +69,7 @@ protected:
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
+    FeaturesManager *mFeaturesManager;
 
     ContractorID mContractorID;
     AuditNumber mAuditNumber;

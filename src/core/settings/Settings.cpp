@@ -76,3 +76,19 @@ vector<SerializedEquivalent> Settings::iAmGateway(
         return result;
     }
 }
+
+string Settings::equivalentsRegistryAddress(
+    const json *conf) const
+{
+    if (conf == nullptr) {
+        auto j = loadParsedJSON();
+        conf = &j;
+    }
+    try {
+        auto result = (*conf).at("equivalents_registry_address").get<string>();
+        return result;
+    } catch (...) {
+        // todo : throw RuntimeError
+        return "";
+    }
+}

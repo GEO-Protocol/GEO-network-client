@@ -136,6 +136,11 @@ int Core::initSubsystems()
         return initCode;
     }
 
+    initCode = initFeaturesManager(conf);
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initTransactionsManager();
     if (initCode != 0) {
         return initCode;
@@ -180,8 +185,8 @@ int Core::initLogger()
 int Core::initTailManager() {
     try {
         mTailManager = make_unique<TailManager>(
-                mIOService,
-                *mLog);
+            mIOService,
+            *mLog);
 
         info() << "Tail manager is successfully initialised";
         return 0;
@@ -302,6 +307,7 @@ int Core::initTransactionsManager()
             mResultsInterface.get(),
             mStorageHandler.get(),
             mKeysStore.get(),
+            mFeaturesManager.get(),
             mEventsInterface.get(),
             *mTailManager,
             *mLog,
@@ -410,6 +416,22 @@ int Core::initTopologyEventDelayedTask()
             mEquivalentsSubsystemsRouter.get(),
             *mLog);
         info() << "Topology Event Delayed Task is successfully initialized";
+        return 0;
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initFeaturesManager(
+    const json &conf)
+{
+    try {
+        mFeaturesManager = make_unique<FeaturesManager>(
+            mSettings->equivalentsRegistryAddress(&conf),
+            mStorageHandler.get(),
+            *mLog);
+        info() << "Features Manager is successfully initialized";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);

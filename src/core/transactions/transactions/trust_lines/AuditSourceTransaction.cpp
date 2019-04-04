@@ -7,6 +7,7 @@ AuditSourceTransaction::AuditSourceTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    FeaturesManager *featuresManager,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
     BaseTrustLineTransaction(
@@ -17,6 +18,7 @@ AuditSourceTransaction::AuditSourceTransaction(
         manager,
         storageHandler,
         keystore,
+        featuresManager,
         trustLinesInfluenceController,
         logger),
     mCountSendingAttempts(0)
@@ -32,6 +34,7 @@ AuditSourceTransaction::AuditSourceTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    FeaturesManager *featuresManager,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger) :
     BaseTrustLineTransaction(
@@ -42,6 +45,7 @@ AuditSourceTransaction::AuditSourceTransaction(
         manager,
         storageHandler,
         keystore,
+        featuresManager,
         trustLinesInfluenceController,
         logger),
     mCountSendingAttempts(0)

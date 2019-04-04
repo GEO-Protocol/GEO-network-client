@@ -10,6 +10,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
     Keystore *keystore,
+    FeaturesManager *featuresManager,
     EventsInterface *eventsInterface,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger)
@@ -23,6 +24,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
         manager,
         storageHandler,
         keystore,
+        featuresManager,
         trustLinesInfluenceController,
         logger),
     mCommand(command),

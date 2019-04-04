@@ -23,6 +23,7 @@ public:
         TopologyTrustLinesManager *topologyTrustLinesManager,
         TopologyCacheManager *topologyCacheManager,
         MaxFlowCacheManager *maxFlowCacheManager,
+        FeaturesManager *featuresManager,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 

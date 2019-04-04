@@ -26,6 +26,9 @@ public:
     vector<SerializedEquivalent> iAmGateway(
         const json *conf = nullptr) const;
 
+    string equivalentsRegistryAddress(
+        const json *conf = nullptr) const;
+
     json loadParsedJSON() const;
 };
 

@@ -5,7 +5,7 @@
 #include "../../logger/Logger.h"
 #include "../../common/memory/MemoryUtils.h"
 #include "../../common/exceptions/IOError.h"
-#include "../../common/exceptions/ValueError.h"
+#include "../../common/exceptions/NotFoundError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
 
 #include <string>
@@ -19,11 +19,11 @@ public:
         Logger &logger);
 
     void saveFeature(
-        string featureName,
-        string featureValue);
+        const string& featureName,
+        const string& featureValue);
 
     string getFeature(
-        string featureName);
+        const string& featureName);
 
 private:
     LoggerStream info() const;

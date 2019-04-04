@@ -12,6 +12,7 @@ TransactionsManager::TransactionsManager(
     ResultsInterface *resultsInterface,
     StorageHandler *storageHandler,
     Keystore *keystore,
+    FeaturesManager *featuresManager,
     EventsInterface *eventsInterface,
     TailManager &tailManager,
     Logger &logger,
@@ -25,6 +26,7 @@ TransactionsManager::TransactionsManager(
     mResultsInterface(resultsInterface),
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
+    mFeaturesManager(featuresManager),
     mEventsInterface(eventsInterface),
     mTailManager(tailManager),
     mLog(logger),
@@ -550,6 +552,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
             mSubsystemsController,
             mKeysStore,
+            mFeaturesManager,
             mEventsInterface,
             mTrustLinesInfluenceController,
             mLog);
@@ -587,6 +590,7 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(command->equivalent()),
             mSubsystemsController,
             mKeysStore,
+            mFeaturesManager,
             mEventsInterface,
             mTrustLinesInfluenceController,
             mLog);
@@ -714,6 +718,7 @@ void TransactionsManager::launchAuditTargetTransaction(
             mEquivalentsSubsystemsRouter->topologyTrustLineManager(message->equivalent()),
             mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
+            mFeaturesManager,
             mTrustLinesInfluenceController,
             mLog);
         subscribeForTrustLineActionSignal(
@@ -2414,6 +2419,7 @@ void TransactionsManager::onAuditSlot(
             trustLinesManager,
             mStorageHandler,
             mKeysStore,
+            mFeaturesManager,
             mTrustLinesInfluenceController,
             mLog);
 
@@ -2470,6 +2476,7 @@ void TransactionsManager::onResumeTransactionSlot(
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mStorageHandler,
                 mKeysStore,
+                mFeaturesManager,
                 mTrustLinesInfluenceController,
                 mLog);
             subscribeForTrustLineActionSignal(
