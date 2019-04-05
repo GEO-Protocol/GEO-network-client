@@ -327,6 +327,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<EquivalentListCommand>(
                 command));
 
+    } else if (command->identifier() == ContractorListCommand::identifier()){
+        launchGetContractorListTransaction(
+            static_pointer_cast<ContractorListCommand>(
+                command));
+
     } else if (command->identifier() == PaymentTransactionByCommandUUIDCommand::identifier()){
         launchPaymentTransactionByCommandUUIDTransaction(
             static_pointer_cast<PaymentTransactionByCommandUUIDCommand>(
@@ -1826,6 +1831,19 @@ void TransactionsManager::launchGetEquivalentListTransaction(
         make_shared<GetEquivalentListTransaction>(
             command,
             mEquivalentsSubsystemsRouter,
+            mLog),
+        true,
+        false,
+        false);
+}
+
+void TransactionsManager::launchGetContractorListTransaction(
+    ContractorListCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<GetContractorListTransaction>(
+            command,
+            mContractorsManager,
             mLog),
         true,
         false,

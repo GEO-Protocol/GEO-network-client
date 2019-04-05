@@ -59,6 +59,7 @@
 #include "../transactions/trustlines_list/GetTrustLineByAddressTransaction.h"
 #include "../transactions/trustlines_list/GetTrustLineByIDTransaction.h"
 #include "../transactions/trustlines_list/GetEquivalentListTransaction.h"
+#include "../transactions/trust_line_channel/GetContractorListTransaction.h"
 
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
 
@@ -295,6 +296,9 @@ protected: // Transactions
 
     void launchGetEquivalentListTransaction(
         EquivalentListCommand::Shared command);
+
+    void launchGetContractorListTransaction(
+        ContractorListCommand::Shared command);
 
     /*
      * Transaction
