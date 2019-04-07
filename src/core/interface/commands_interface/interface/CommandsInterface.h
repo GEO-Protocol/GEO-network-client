@@ -23,6 +23,7 @@
 #include "../commands/trust_lines_list/GetTrustLineByAddressCommand.h"
 #include "../commands/trust_lines_list/GetTrustLineByIDCommand.h"
 #include "../commands/trust_lines_list/EquivalentListCommand.h"
+#include "../commands/trust_line_channels/ContractorListCommand.h"
 #include "../commands/subsystems_controller/SubsystemsInfluenceCommand.h"
 #include "../commands/subsystems_controller/TrustLinesInfluenceCommand.h"
 #include "../commands/transactions/PaymentTransactionByCommandUUIDCommand.h"

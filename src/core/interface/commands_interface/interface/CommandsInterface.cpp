@@ -227,6 +227,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == ContractorListCommand::identifier()) {
+            command = new ContractorListCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == SubsystemsInfluenceCommand::identifier()) {
             return newCommand<SubsystemsInfluenceCommand>(
                 uuid,
