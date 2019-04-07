@@ -144,10 +144,12 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
     }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
-    auto serializedAuditData = getOwnSerializedAuditData();
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineID(mContractorID));
     try {
+        auto serializedAuditData = getOwnSerializedAuditData(
+            keyChain.ownPublicKeysHash(ioTransaction),
+            keyChain.contractorPublicKeysHash(ioTransaction));
         mOwnSignatureAndKeyNumber = keyChain.sign(
             ioTransaction,
             serializedAuditData.first,
@@ -265,7 +267,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineID(mContractorID));
-    auto contractorSerializedAuditData = getContractorSerializedAuditData();
     try {
 
         // todo process ConfirmationMessage::OwnKeysAbsent and ConfirmationMessage::ContractorKeysAbsent
@@ -287,6 +288,9 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
             BaseTransaction::SetOutgoingTrustLineTransaction);
 #endif
 
+        auto contractorSerializedAuditData = getContractorSerializedAuditData(
+            keyChain.ownPublicKeysHash(ioTransaction),
+            keyChain.contractorPublicKeysHash(ioTransaction));
         if (!keyChain.checkSign(
                 ioTransaction,
                 contractorSerializedAuditData.first,
@@ -310,8 +314,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
 
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
             mContractorID);
-        if (mTrustLines->isTrustLineEmpty(mContractorID) and
-                mAuditNumber > TrustLine::kInitialAuditNumber + 1) {
+        if (mTrustLines->isTrustLineEmpty(mContractorID)) {
             mTrustLines->setTrustLineState(
                 mContractorID,
                 TrustLine::Archived,

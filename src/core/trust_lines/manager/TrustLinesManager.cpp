@@ -227,10 +227,9 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
 void TrustLinesManager::closeOutgoing(
     ContractorID contractorID)
 {
-    if (not trustLineIsPresent(contractorID)) {
-        throw NotFoundError(
-            logHeader() + "::closeOutgoing: "
-                "No trust line to this contractor is present " + to_string(contractorID));
+    if (outgoingTrustAmount(contractorID) == 0) {
+        throw ValueError(logHeader() + "::closeOutgoing: "
+            "can't close outgoing trust line with zero amount.");
     }
 
     auto trustLine = mTrustLines[contractorID];
@@ -240,10 +239,9 @@ void TrustLinesManager::closeOutgoing(
 void TrustLinesManager::closeIncoming(
     ContractorID contractorID)
 {
-    if (not trustLineIsPresent(contractorID)) {
-        throw NotFoundError(
-            logHeader() + "::closeIncoming: "
-                "No trust line to this contractor is present " + to_string(contractorID));
+    if (incomingTrustAmount(contractorID) == 0) {
+        throw ValueError(logHeader() + "::closeIncoming: "
+            "can't close incoming trust line with zero amount.");
     }
 
     auto trustLine = mTrustLines[contractorID];

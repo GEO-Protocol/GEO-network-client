@@ -116,6 +116,15 @@ namespace crypto {
         IOTransaction::Shared ioTransaction,
         KeysCount keyPairsCount)
     {
+        KeyNumber currentKeysSetSequenceNumber;
+        try {
+            currentKeysSetSequenceNumber = ioTransaction->ownKeysHandler()->maxKeySetSequenceNumber(
+                mTrustLineID);
+            currentKeysSetSequenceNumber++;
+        } catch (NotFoundError &) {
+            currentKeysSetSequenceNumber = 0;
+        }
+        info() << "Keys set sequence number " << currentKeysSetSequenceNumber;
         auto cntFailedAttempts = 0;
         keyNumberGuard(keyPairsCount);
         for (KeyNumber idx = 0; idx < keyPairsCount; idx++) {
@@ -124,6 +133,7 @@ namespace crypto {
             try {
                 ioTransaction->ownKeysHandler()->saveKey(
                     mTrustLineID,
+                    currentKeysSetSequenceNumber,
                     pubKey,
                     &pKey,
                     idx);
@@ -160,6 +170,7 @@ namespace crypto {
 
     void TrustLineKeychain::setContractorPublicKey(
         IOTransaction::Shared ioTransaction,
+        KeyNumber currentKeysSetSequenceNumber,
         KeyNumber number,
         const lamport::PublicKey::Shared key)
     {
@@ -169,6 +180,7 @@ namespace crypto {
         // todo: throw ConsistencyError in case if contractor already has key in this position.
         ioTransaction->contractorKeysHandler()->saveKey(
             mTrustLineID,
+            currentKeysSetSequenceNumber,
             key,
             number);
     }
@@ -195,7 +207,16 @@ namespace crypto {
     bool TrustLineKeychain::ownKeysCriticalCount(
         IOTransaction::Shared ioTransaction)
     {
+        // todo : check only on current set sequence
         return ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID) <= kMinKeysSetSize;
+    }
+
+    bool TrustLineKeychain::isInitialAuditCondition(
+        IOTransaction::Shared ioTransaction)
+    {
+        auto ownValidKeysCount = ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID);
+        auto contractorKeysCount = ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID);
+        return ownValidKeysCount == kDefaultKeysSetSize -1 and contractorKeysCount == kDefaultKeysSetSize - 1;
     }
 
     pair<lamport::Signature::Shared, KeyNumber> TrustLineKeychain::sign(
@@ -648,6 +669,44 @@ namespace crypto {
         }
     }
 
+    lamport::KeyHash::Shared TrustLineKeychain::ownPublicKeysHash(
+        IOTransaction::Shared ioTransaction)
+    {
+        auto currentKeysSetSequenceNumber = ioTransaction->ownKeysHandler()->maxKeySetSequenceNumber(
+            mTrustLineID);
+        auto ownPublicKeys = ioTransaction->ownKeysHandler()->publicKeysBySetNumber(
+            mTrustLineID,
+            currentKeysSetSequenceNumber);
+        crypto_generichash_state state;
+        crypto_generichash_init(&state, nullptr, 0, lamport::KeyHash::kBytesSize);
+        for (const auto &publicKey : ownPublicKeys) {
+            crypto_generichash_update(&state, publicKey->data(), lamport::PublicKey::keySize());
+        }
+        auto keyHashBuffer = (byte*)malloc(lamport::KeyHash::kBytesSize);
+        crypto_generichash_final(&state, keyHashBuffer, lamport::KeyHash::kBytesSize);
+        return make_shared<lamport::KeyHash>(
+            keyHashBuffer);
+    }
+
+    lamport::KeyHash::Shared TrustLineKeychain::contractorPublicKeysHash(
+        IOTransaction::Shared ioTransaction)
+    {
+        auto currentKeysSetSequenceNumber = ioTransaction->contractorKeysHandler()->maxKeySetSequenceNumber(
+            mTrustLineID);
+        auto contractorPublicKeys = ioTransaction->contractorKeysHandler()->publicKeysBySetNumber(
+            mTrustLineID,
+            currentKeysSetSequenceNumber);
+        crypto_generichash_state state;
+        crypto_generichash_init(&state, nullptr, 0, lamport::KeyHash::kBytesSize);
+        for (const auto &publicKey : contractorPublicKeys) {
+            crypto_generichash_update(&state, publicKey->data(), lamport::PublicKey::keySize());
+        }
+        auto keyHashBuffer = (byte*)malloc(lamport::KeyHash::kBytesSize);
+        crypto_generichash_final(&state, keyHashBuffer, lamport::KeyHash::kBytesSize);
+        return make_shared<lamport::KeyHash>(
+            keyHashBuffer);
+    }
+
     void TrustLineKeychain::keyNumberGuard(
         const KeyNumber &number) const
     {
@@ -691,6 +750,5 @@ namespace crypto {
         s << "[TrustLineKeychain: " << mTrustLineID << "] ";
         return s.str();
     }
-
 
 }

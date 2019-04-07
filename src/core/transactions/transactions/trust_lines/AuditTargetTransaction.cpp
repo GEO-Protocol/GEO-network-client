@@ -101,6 +101,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             currentTransactionUUID(),
             mOwnSignatureAndKeyNumber.second,
             mOwnSignatureAndKeyNumber.first);
+
         info() << "Send audit again message signed by key " << mOwnSignatureAndKeyNumber.second;
         return resultDone();
     }
@@ -124,7 +125,9 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             closeOutgoingTrustLine(ioTransaction);
         }
 
-        auto contractorSerializedAuditData = getContractorSerializedAuditData();
+        auto contractorSerializedAuditData = getContractorSerializedAuditData(
+            keyChain.ownPublicKeysHash(ioTransaction),
+            keyChain.contractorPublicKeysHash(ioTransaction));
 
         if (!keyChain.checkSign(
                 ioTransaction,
@@ -138,7 +141,9 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
         }
         info() << "Signature is correct";
 
-        auto serializedAuditData = getOwnSerializedAuditData();
+        auto serializedAuditData = getOwnSerializedAuditData(
+            keyChain.ownPublicKeysHash(ioTransaction),
+            keyChain.contractorPublicKeysHash(ioTransaction));
         mOwnSignatureAndKeyNumber = keyChain.sign(
             ioTransaction,
             serializedAuditData.first,
@@ -164,7 +169,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             mContractorID);
 
         if (mTrustLines->isTrustLineEmpty(mContractorID) and
-                mAuditNumber > TrustLine::kInitialAuditNumber + 1) {
+                !keyChain.isInitialAuditCondition(ioTransaction)) {
             mTrustLines->setTrustLineState(
                 mContractorID,
                 TrustLine::Archived,
@@ -185,9 +190,9 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             BaseTransaction::AuditTargetTransactionType);
 #endif
 
-    } catch (ValueError &) {
-        warning() << "Attempt to set incoming trust line from the node " << mContractorID << " failed. "
-                  << "Cannot open TL with zero amount.";
+    } catch (ValueError &e) {
+        warning() << "Attempt to change trust line from the node " << mContractorID << " failed. "
+                  << e.what();
         return sendAuditErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     } catch (IOError &e) {

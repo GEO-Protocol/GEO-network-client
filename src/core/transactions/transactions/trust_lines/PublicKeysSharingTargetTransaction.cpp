@@ -81,6 +81,11 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runPublicKeyR
     try {
         mTrustLines->setIsContractorKeysPresent(mContractorID, false);
         keyChain.removeUnusedContractorKeys(ioTransaction);
+        mCurrentKeysSetSequenceNumber = ioTransaction->contractorKeysHandler()->maxKeySetSequenceNumber(
+            mTrustLines->trustLineID(mContractorID));
+        mCurrentKeysSetSequenceNumber++;
+    } catch (NotFoundError& ) {
+        mCurrentKeysSetSequenceNumber = 0;
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Can't remove unused contractor keys. Details: " << e.what();
@@ -135,6 +140,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
     try {
         keyChain.setContractorPublicKey(
             ioTransaction,
+            mCurrentKeysSetSequenceNumber,
             mCurrentKeyNumber,
             mCurrentPublicKey);
 

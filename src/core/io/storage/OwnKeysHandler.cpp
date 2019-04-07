@@ -13,6 +13,7 @@ OwnKeysHandler::OwnKeysHandler(
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    " (hash BLOB PRIMARY KEY, "
                    "trust_line_id INTEGER NOT NULL, "
+                   "keys_set_sequence_number INTEGER NOT NULL, "
                    "public_key BLOB NOT NULL, "
                    "private_key BLOB NOT NULL, "
                    "number INTEGER NOT NULL, "
@@ -64,56 +65,63 @@ OwnKeysHandler::OwnKeysHandler(
 
 void OwnKeysHandler::saveKey(
     const TrustLineID trustLineID,
-    const lamport::PublicKey::Shared publicKey,
-    const lamport::PrivateKey *privateKey,
+    const KeyNumber keysSetSequenceNumber,
+    const PublicKey::Shared publicKey,
+    const PrivateKey *privateKey,
     const KeyNumber number) {
     string query = "INSERT INTO " + mTableName +
-                   "(hash, trust_line_id, public_key, private_key, number) "
-                           "VALUES (?, ?, ?, ?, ?);";
+                   "(hash, trust_line_id, keys_set_sequence_number, public_key, private_key, number) "
+                           "VALUES (?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
-                              "Bad query; sqlite error: " + to_string(rc));
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 1, publicKey->hash()->data(),
-                           (int) lamport::KeyHash::kBytesSize, SQLITE_STATIC);
+                           (int) KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
-                              "Bad binding of Hash; sqlite error: " + to_string(rc));
+                          "Bad binding of Hash; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_int(stmt, 2, trustLineID);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
-                              "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
+                          "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 3, publicKey->data(),
+    rc = sqlite3_bind_int(stmt, 3, keysSetSequenceNumber);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::saveKey: "
+                          "Bad binding of Key Set Sequence Number; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 4, publicKey->data(),
                            (int) publicKey->keySize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
-                              "Bad binding of Public Key; sqlite error: " + to_string(rc));
+                          "Bad binding of Public Key; sqlite error: " + to_string(rc));
     }
 
     // todo encrypt private key data
-    BytesShared buffer = tryMalloc(privateKey->keySize());
+    BytesShared buffer = tryMalloc(
+        PrivateKey::keySize());
     {
         auto g = privateKey->data()->unlockAndInitGuard();
         memcpy(
             buffer.get(),
             g.address(),
-            privateKey->keySize());
+            PrivateKey::keySize());
     }
-    rc = sqlite3_bind_blob(stmt, 4, buffer.get(),
-                           (int)privateKey->keySize(), SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 5, buffer.get(),
+                           (int)PrivateKey::keySize(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
-                              "Bad binding of Private Key; sqlite error: " + to_string(rc));
+                          "Bad binding of Private Key; sqlite error: " + to_string(rc));
     }
 
-    rc = sqlite3_bind_int(stmt, 5, number);
+    rc = sqlite3_bind_int(stmt, 6, number);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::saveKey: "
-                              "Bad binding of Number; sqlite error: " + to_string(rc));
+                          "Bad binding of Number; sqlite error: " + to_string(rc));
     }
     // todo : add saving of is_valid
 
@@ -130,7 +138,39 @@ void OwnKeysHandler::saveKey(
     }
 }
 
-pair<lamport::PrivateKey*, KeyNumber> OwnKeysHandler::nextAvailableKey(
+const KeyNumber OwnKeysHandler::maxKeySetSequenceNumber(
+    const TrustLineID trustLineID)
+{
+    string query = "SELECT MAX(keys_set_sequence_number) FROM " + mTableName
+                   + " WHERE trust_line_id = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::maxKeySetSequenceNumber: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::maxKeySetSequenceNumber: "
+                          "Bad binding of TrustLineID; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        // todo : check if not NULL
+        auto result = (KeyNumber)sqlite3_column_int(stmt, 0);
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        return result;
+    } else {
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        throw NotFoundError("OwnKeysHandler::maxKeySetSequenceNumber: "
+                                "There are now records with requested TrustLineID");
+    }
+}
+
+pair<PrivateKey*, KeyNumber> OwnKeysHandler::nextAvailableKey(
     const TrustLineID trustLineID)
 {
     string query = "SELECT private_key, number FROM " + mTableName
@@ -149,7 +189,7 @@ pair<lamport::PrivateKey*, KeyNumber> OwnKeysHandler::nextAvailableKey(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        auto privateKey = new lamport::PrivateKey((byte*)sqlite3_column_blob(stmt, 0));
+        auto privateKey = new PrivateKey((byte*)sqlite3_column_blob(stmt, 0));
         auto number = (KeyNumber)sqlite3_column_int(stmt, 1);
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
@@ -167,7 +207,7 @@ pair<lamport::PrivateKey*, KeyNumber> OwnKeysHandler::nextAvailableKey(
 void OwnKeysHandler::invalidKey(
     const TrustLineID trustLineID,
     const KeyNumber number,
-    const lamport::Signature::Shared signature)
+    const Signature::Shared signature)
 {
     string query = "UPDATE " + mTableName + " SET is_valid = 0, private_key = ? WHERE trust_line_id = ? AND number = ?;";
     sqlite3_stmt *stmt;
@@ -207,8 +247,8 @@ void OwnKeysHandler::invalidKey(
 
 void OwnKeysHandler::invalidKeyByHash(
     const TrustLineID trustLineID,
-    const lamport::KeyHash::Shared keyHash,
-    const lamport::Signature::Shared signature)
+    const KeyHash::Shared keyHash,
+    const Signature::Shared signature)
 {
     string query = "UPDATE " + mTableName + " SET is_valid = 0, private_key = ? WHERE trust_line_id = ? AND hash = ?;";
     sqlite3_stmt *stmt;
@@ -227,7 +267,7 @@ void OwnKeysHandler::invalidKeyByHash(
         throw IOError("OwnKeysHandler::invalidKeyByHash: "
                           "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 3, keyHash->data(), (int)lamport::KeyHash::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 3, keyHash->data(), (int)KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::invalidKeyByHash: "
                           "Bad binding of Number; sqlite error: " + to_string(rc));
@@ -246,7 +286,7 @@ void OwnKeysHandler::invalidKeyByHash(
     }
 }
 
-const lamport::PublicKey::Shared OwnKeysHandler::getPublicKey(
+const PublicKey::Shared OwnKeysHandler::getPublicKey(
     const TrustLineID trustLineID,
     const KeyNumber keyNumber)
 {
@@ -271,7 +311,7 @@ const lamport::PublicKey::Shared OwnKeysHandler::getPublicKey(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        auto result = make_shared<lamport::PublicKey>(
+        auto result = make_shared<PublicKey>(
             (byte*)sqlite3_column_blob(stmt, 0));
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
@@ -284,9 +324,9 @@ const lamport::PublicKey::Shared OwnKeysHandler::getPublicKey(
     }
 }
 
-const lamport::PublicKey::Shared OwnKeysHandler::getPublicKeyByHash(
+const PublicKey::Shared OwnKeysHandler::getPublicKeyByHash(
     const TrustLineID trustLineID,
-    const lamport::KeyHash::Shared keyHash)
+    const KeyHash::Shared keyHash)
 {
     string query = "SELECT public_key FROM  " + mTableName
                    + " WHERE trust_line_id = ? AND hash = ? AND is_valid = 1;";
@@ -301,7 +341,7 @@ const lamport::PublicKey::Shared OwnKeysHandler::getPublicKeyByHash(
         throw IOError("OwnKeysHandler::getPublicKeyByHash: "
                           "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 2, keyHash->data(), (int) lamport::KeyHash::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 2, keyHash->data(), (int) KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::getPublicKeyByHash: "
                           "Bad binding of Number; sqlite error: " + to_string(rc));
@@ -309,7 +349,7 @@ const lamport::PublicKey::Shared OwnKeysHandler::getPublicKeyByHash(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        auto result = make_shared<lamport::PublicKey>(
+        auto result = make_shared<PublicKey>(
                 (byte*)sqlite3_column_blob(stmt, 0));
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
@@ -322,7 +362,7 @@ const lamport::PublicKey::Shared OwnKeysHandler::getPublicKeyByHash(
     }
 }
 
-const lamport::KeyHash::Shared OwnKeysHandler::getPublicKeyHash(
+const KeyHash::Shared OwnKeysHandler::getPublicKeyHash(
     const TrustLineID trustLineID,
     const KeyNumber keyNumber)
 {
@@ -347,7 +387,7 @@ const lamport::KeyHash::Shared OwnKeysHandler::getPublicKeyHash(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        auto result = make_shared<lamport::KeyHash>(
+        auto result = make_shared<KeyHash>(
             (byte*)sqlite3_column_blob(stmt, 0));
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
@@ -361,7 +401,7 @@ const lamport::KeyHash::Shared OwnKeysHandler::getPublicKeyHash(
 }
 
 const KeyNumber OwnKeysHandler::getKeyNumberByHash(
-    const lamport::KeyHash::Shared keyHash)
+    const KeyHash::Shared keyHash)
 {
     string query = "SELECT number FROM  " + mTableName + " WHERE hash = ?;";
     sqlite3_stmt *stmt;
@@ -370,7 +410,7 @@ const KeyNumber OwnKeysHandler::getKeyNumberByHash(
         throw IOError("OwnKeysHandler::getKeyNumberByHash: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 1, keyHash->data(), (int) lamport::KeyHash::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 1, keyHash->data(), (int) KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::getKeyNumberByHash: "
                           "Bad binding of Hash; sqlite error: " + to_string(rc));
@@ -435,6 +475,62 @@ void OwnKeysHandler::removeUnusedKeys(
         throw IOError("OwnKeysHandler::removeUnusedKeys: "
                           "Run query; sqlite error: " + to_string(rc));
     }
+}
+
+vector<PublicKey::Shared> OwnKeysHandler::publicKeysBySetNumber(
+    const TrustLineID trustLineID,
+    const KeyNumber keysSetSequenceNumber) const
+{
+    vector<PublicKey::Shared> result;
+    string queryCount = "SELECT count(*) FROM " + mTableName
+            + " WHERE trust_line_id = ? AND keys_set_sequence_number = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::publicKeysBySetNumber: "
+                          "Bad count query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::publicKeysBySetNumber: "
+                          "Bad binding of Trust Line ID in count query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 2, keysSetSequenceNumber);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::publicKeysBySetNumber: "
+                          "Bad binding of Keys Set Sequence Number in count query; sqlite error: " + to_string(rc));
+    }
+    sqlite3_step(stmt);
+    auto rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
+    result.reserve(rowCount);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+
+    string query = "SELECT public_key FROM "
+                   + mTableName + " WHERE trust_line_id = ? AND keys_set_sequence_number = ?";
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::publicKeysBySetNumber: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::publicKeysBySetNumber: "
+                          "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 2, keysSetSequenceNumber);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::publicKeysBySetNumber: "
+                          "Bad binding of Keys Set Sequence Number; sqlite error: " + to_string(rc));
+    }
+    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+        auto publicKey = make_shared<PublicKey>(
+            (byte*)sqlite3_column_blob(stmt, 0));
+        result.push_back(publicKey);
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
 }
 
 LoggerStream OwnKeysHandler::info() const

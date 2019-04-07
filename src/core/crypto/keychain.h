@@ -176,6 +176,7 @@ public:
      */
     void setContractorPublicKey(
         IOTransaction::Shared ioTransaction,
+        KeyNumber currentKeysSetSequenceNumber,
         KeyNumber number,
         const lamport::PublicKey::Shared key);
 
@@ -199,6 +200,9 @@ public:
         KeysCount contractorKeysCount=kDefaultKeysSetSize);
 
     bool ownKeysCriticalCount(
+        IOTransaction::Shared ioTransaction);
+
+    bool isInitialAuditCondition(
         IOTransaction::Shared ioTransaction);
 
     /**
@@ -344,6 +348,12 @@ public:
         vector<ReceiptRecord::Shared> contractorOutgoingReceipts);
 
     pair<lamport::Signature::Shared, KeyNumber> getCurrentAuditSignatureAndKeyNumber(
+        IOTransaction::Shared ioTransaction);
+
+    lamport::KeyHash::Shared ownPublicKeysHash(
+        IOTransaction::Shared ioTransaction);
+
+    lamport::KeyHash::Shared contractorPublicKeysHash(
         IOTransaction::Shared ioTransaction);
 
 protected:

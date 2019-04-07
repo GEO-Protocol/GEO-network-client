@@ -64,6 +64,7 @@ private:
     ContractorID mContractorID;
     string mSenderIncomingIP;
     vector<BaseAddress::Shared> mContractorAddresses;
+    KeyNumber mCurrentKeysSetSequenceNumber;
     KeyNumber mCurrentKeyNumber;
     lamport::PublicKey::Shared mCurrentPublicKey;
     KeysCount mContractorKeysCount;

@@ -35,7 +35,7 @@ void OutgoingRemoteNode::sendMessage(
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         const Message::SerializedType kMessageType =
             *(reinterpret_cast<Message::SerializedType*>(
-                bytesAndBytesCount.first.get() + sizeof(SerializedProtocolVersion)));
+                bytesAndBytesCount.first.get() + sizeof(byte) + sizeof(SerializedProtocolVersion)));
 
         debug()
             << "Message of type "

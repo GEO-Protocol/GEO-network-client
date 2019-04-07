@@ -56,9 +56,13 @@ protected:
     TransactionResult::SharedConst sendAuditErrorConfirmation(
         ConfirmationMessage::OperationState errorState);
 
-    pair<BytesShared, size_t> getOwnSerializedAuditData();
+    pair<BytesShared, size_t> getOwnSerializedAuditData(
+        lamport::KeyHash::Shared ownPublicKeysHash,
+        lamport::KeyHash::Shared contractorPublicKeysHash);
 
-    pair<BytesShared, size_t> getContractorSerializedAuditData();
+    pair<BytesShared, size_t> getContractorSerializedAuditData(
+        lamport::KeyHash::Shared ownPublicKeysHash,
+        lamport::KeyHash::Shared contractorPublicKeysHash);
 
 protected:
     static const uint32_t kWaitMillisecondsForResponse = 20000;

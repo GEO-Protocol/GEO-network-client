@@ -1176,6 +1176,7 @@ bool BasePaymentTransaction::checkAllPublicKeyHashesProperly()
             return false;
         }
     }
+    return true;
 }
 
 const TrustLineAmount BasePaymentTransaction::totalReservedIncomingAmountToNode(

@@ -64,12 +64,16 @@ TransactionResult::SharedConst BaseTrustLineTransaction::sendAuditErrorConfirmat
     return resultDone();
 }
 
-pair<BytesShared, size_t> BaseTrustLineTransaction::getOwnSerializedAuditData()
+pair<BytesShared, size_t> BaseTrustLineTransaction::getOwnSerializedAuditData(
+    lamport::KeyHash::Shared ownPublicKeysHash,
+    lamport::KeyHash::Shared contractorPublicKeysHash)
 {
     size_t bytesCount = sizeof(AuditNumber)
                         + kTrustLineAmountBytesCount
                         + kTrustLineAmountBytesCount
                         + kTrustLineBalanceSerializeBytesCount
+                        + lamport::KeyHash::kBytesSize
+                        + lamport::KeyHash::kBytesSize
                         + sizeof(byte)
                         + mFeaturesManager->getEquivalentsRegistryAddress().length();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -111,6 +115,20 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getOwnSerializedAuditData()
     dataBytesOffset += kTrustLineBalanceSerializeBytesCount;
     info() << "own balance " << mTrustLines->balance(mContractorID);
 
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        ownPublicKeysHash->data(),
+        lamport::KeyHash::kBytesSize);
+    dataBytesOffset += lamport::KeyHash::kBytesSize;
+    info() << "Own keys hash: " << ownPublicKeysHash->toString();
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        contractorPublicKeysHash->data(),
+        lamport::KeyHash::kBytesSize);
+    dataBytesOffset += lamport::KeyHash::kBytesSize;
+    info() << "Contractor keys hash: " << contractorPublicKeysHash->toString();
+
     auto equivalentRegistryAddress = mFeaturesManager->getEquivalentsRegistryAddress();
     auto equivalentsRegistryAddressLength = (byte)equivalentRegistryAddress.length();
     memcpy(
@@ -129,12 +147,16 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getOwnSerializedAuditData()
         bytesCount);
 }
 
-pair<BytesShared, size_t> BaseTrustLineTransaction::getContractorSerializedAuditData()
+pair<BytesShared, size_t> BaseTrustLineTransaction::getContractorSerializedAuditData(
+    lamport::KeyHash::Shared ownPublicKeysHash,
+    lamport::KeyHash::Shared contractorPublicKeysHash)
 {
     size_t bytesCount = sizeof(AuditNumber)
                         + kTrustLineAmountBytesCount
                         + kTrustLineAmountBytesCount
                         + kTrustLineBalanceSerializeBytesCount
+                        + lamport::KeyHash::kBytesSize
+                        + lamport::KeyHash::kBytesSize
                         + sizeof(byte)
                         + mFeaturesManager->getEquivalentsRegistryAddress().length();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -176,6 +198,20 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getContractorSerializedAudit
         kTrustLineBalanceSerializeBytesCount);
     dataBytesOffset += kTrustLineBalanceSerializeBytesCount;
     info() << "contractor balance " << contractorBalance;
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        contractorPublicKeysHash->data(),
+        lamport::KeyHash::kBytesSize);
+    dataBytesOffset += lamport::KeyHash::kBytesSize;
+    info() << "Contractor keys hash: " << contractorPublicKeysHash->toString();
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        ownPublicKeysHash->data(),
+        lamport::KeyHash::kBytesSize);
+    dataBytesOffset += lamport::KeyHash::kBytesSize;
+    info() << "Own keys hash: " << ownPublicKeysHash->toString();
 
     auto equivalentRegistryAddress = mFeaturesManager->getEquivalentsRegistryAddress();
     auto equivalentsRegistryAddressLength = (byte)equivalentRegistryAddress.length();

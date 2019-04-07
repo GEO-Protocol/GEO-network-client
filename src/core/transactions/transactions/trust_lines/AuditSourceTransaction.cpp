@@ -111,10 +111,12 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
     // note: io transaction would commit automatically on destructor call.
     // there is no need to call commit manually.
     auto ioTransaction = mStorageHandler->beginTransaction();
-    auto serializedAuditData = getOwnSerializedAuditData();
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineID(mContractorID));
     try {
+        auto serializedAuditData = getOwnSerializedAuditData(
+            keyChain.ownPublicKeysHash(ioTransaction),
+            keyChain.contractorPublicKeysHash(ioTransaction));
         mOwnSignatureAndKeyNumber = keyChain.sign(
             ioTransaction,
             serializedAuditData.first,
@@ -314,7 +316,6 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineID(mContractorID));
-    auto contractorSerializedAuditData = getContractorSerializedAuditData();
     try {
 
         // todo process ConfirmationMessage::OwnKeysAbsent and ConfirmationMessage::ContractorKeysAbsent
@@ -328,6 +329,10 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
             // todo run conflict resolving TA
             return resultDone();
         }
+
+        auto contractorSerializedAuditData = getContractorSerializedAuditData(
+            keyChain.ownPublicKeysHash(ioTransaction),
+            keyChain.contractorPublicKeysHash(ioTransaction));
 
         if (!keyChain.checkSign(
                 ioTransaction,
@@ -354,7 +359,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
             mContractorID);
         if (mTrustLines->isTrustLineEmpty(mContractorID) and
-                mAuditNumber > TrustLine::kInitialAuditNumber + 1) {
+                !keyChain.isInitialAuditCondition(ioTransaction)) {
             mTrustLines->setTrustLineState(
                 mContractorID,
                 TrustLine::Archived,

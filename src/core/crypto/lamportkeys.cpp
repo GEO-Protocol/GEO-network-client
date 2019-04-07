@@ -95,8 +95,15 @@ const byte* PublicKey::data() const
 
 const KeyHash::Shared PublicKey::hash() const
 {
-    // todo build correct hash
-    return make_shared<KeyHash>(mData);
+    auto keyHashBuffer = (byte*)malloc(KeyHash::kBytesSize);
+    crypto_generichash(
+        keyHashBuffer,
+        KeyHash::kBytesSize,
+        mData,
+        keySize(),
+        nullptr,
+        0);
+    return make_shared<KeyHash>(keyHashBuffer);
 }
 
 KeyHash::KeyHash(

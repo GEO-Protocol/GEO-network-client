@@ -22,8 +22,12 @@ public:
 
     void saveKey(
         const TrustLineID trustLineID,
+        const KeyNumber keysSetSequenceNumber,
         const PublicKey::Shared publicKey,
         const KeyNumber number);
+
+    const KeyNumber maxKeySetSequenceNumber(
+        const TrustLineID trustLineID);
 
     void invalidKey(
         const TrustLineID trustLineID,
@@ -50,6 +54,10 @@ public:
 
     void removeUnusedKeys(
         const TrustLineID trustLineID);
+
+    vector<PublicKey::Shared> publicKeysBySetNumber(
+        const TrustLineID trustLineID,
+        const KeyNumber keysSetSequenceNumber) const;
 
 private:
     LoggerStream info() const;
