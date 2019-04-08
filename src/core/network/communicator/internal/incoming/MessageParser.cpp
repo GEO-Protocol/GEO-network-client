@@ -9,7 +9,7 @@ MessagesParser::MessagesParser(
 
 pair<bool, Message::Shared> MessagesParser::processBytesSequence(
     BytesShared buffer,
-    const size_t count)
+    size_t count)
 {
     if (count < kMinimalMessageSize || buffer == nullptr) {
         return messageInvalidOrIncomplete();
@@ -27,7 +27,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
 
         byte isMessageEncrypted = *(reinterpret_cast<byte*>(buffer.get() + sizeof(SerializedProtocolVersion)));
         if (isMessageEncrypted) {
-            // todo : decrypt message
+            auto pair = MsgEncryptor().decrypt(buffer, count);
+            buffer = pair.first;
+            count = pair.second;
         }
 
         const Message::SerializedType kMessageIdentifier =

@@ -2,6 +2,7 @@
 #define MESSAGEPARSER_H
 
 #include "../../../../common/memory/MemoryUtils.h"
+#include "../../../../crypto/MsgEncryptor.h"
 
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
 
@@ -78,7 +79,7 @@ public:
 
     pair<bool, Message::Shared> processBytesSequence(
         BytesShared buffer,
-        const size_t count);
+        size_t count);
 
     MessagesParser& operator= (
         const MessagesParser &other)

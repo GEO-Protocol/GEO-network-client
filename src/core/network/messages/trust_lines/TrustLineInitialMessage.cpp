@@ -36,6 +36,10 @@ const Message::MessageType TrustLineInitialMessage::typeID() const
     return Message::TrustLines_Initial;
 }
 
+bool TrustLineInitialMessage::isEncrypted() const {
+    return true;
+}
+
 const bool TrustLineInitialMessage::isContractorGateway() const
     noexcept
 {

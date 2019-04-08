@@ -16,6 +16,10 @@ public:
     typedef uint16_t SerializedType;
 
 public:
+    static const size_t UnencryptedHeaderSize =
+        sizeof(SerializedProtocolVersion) +
+        sizeof(byte);
+
     enum ProtocolVersion {
         Latest = 0,
     };
@@ -223,7 +227,7 @@ public:
         return mSenderIncomingIP;
     }
 
-    bool isEncrypted() const
+    virtual bool isEncrypted() const
     {
         return false;
     }

@@ -5,41 +5,18 @@
 #ifndef GEO_NETWORK_CLIENT_MSGENCRYPTOR_H
 #define GEO_NETWORK_CLIENT_MSGENCRYPTOR_H
 
+#include "ByteEncryptor.h"
+#include "../network/messages/Message.hpp"
 
-#include <sodium.h>
-#include "../common/Types.h"
-
-class MsgEncryptor {
+class MsgEncryptor : public ByteEncryptor {
 public:
-    typedef pair<BytesShared, size_t> Buffer;
-    struct PublicKey { uint8_t key[crypto_box_PUBLICKEYBYTES+1]; };
-    struct SecretKey { uint8_t key[crypto_box_SECRETKEYBYTES+1]; };
-    typedef std::shared_ptr<PublicKey> PublicKeyShared;
-    typedef std::shared_ptr<SecretKey> SecretKeyShared;
-
-    struct KeyPair {
-        PublicKeyShared publicKey = NULL;
-        SecretKeyShared secretKey = NULL;
-    };
+    MsgEncryptor();
 
 public:
-    explicit MsgEncryptor(
-        PublicKeyShared publicKey);
-    MsgEncryptor(
-        PublicKeyShared publicKey,
-        SecretKeyShared secretKey);
-
-public:
-    static KeyPair generateKeyPair();
-    static KeyPair defaultKeyPair();
-
-public:
-    Buffer encrypt(const Buffer &msg) const;
-    Buffer decrypt(const Buffer &cipher) const;
-
-private:
-    PublicKeyShared mPublicKey = NULL;
-    SecretKeyShared mSecretKey = NULL;
+    Buffer encrypt(Message::Shared message);
+    Buffer decrypt(
+        BytesShared buffer,
+        const size_t count);
 };
 
 
