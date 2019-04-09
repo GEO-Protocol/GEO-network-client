@@ -1,7 +1,3 @@
-//
-// Created by minyor on 08.04.19.
-//
-
 #ifndef GEO_NETWORK_CLIENT_OUTGOINGREMOTEBASENODE_H
 #define GEO_NETWORK_CLIENT_OUTGOINGREMOTEBASENODE_H
 
@@ -31,6 +27,10 @@ public:
 
     virtual ~OutgoingRemoteBaseNode();
 
+    void sendMessage(
+        Message::Shared message)
+        noexcept;
+
     bool containsPacketsInQueue() const;
 
 protected:
@@ -47,6 +47,8 @@ protected:
 
     PacketHeader::ChannelIndex nextChannelIndex()
         noexcept;
+
+    virtual void beginPacketsSending() = 0;
 
     virtual LoggerStream errors() const = 0;
 

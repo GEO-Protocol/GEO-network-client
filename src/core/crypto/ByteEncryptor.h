@@ -1,7 +1,3 @@
-//
-// Created by minyor on 08.04.19.
-//
-
 #ifndef GEO_NETWORK_CLIENT_BYTEENCRYPTOR_H
 #define GEO_NETWORK_CLIENT_BYTEENCRYPTOR_H
 

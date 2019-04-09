@@ -1,7 +1,3 @@
-//
-// Created by minyor on 08.04.19.
-//
-
 #include "ByteEncryptor.h"
 
 ByteEncryptor::ByteEncryptor(

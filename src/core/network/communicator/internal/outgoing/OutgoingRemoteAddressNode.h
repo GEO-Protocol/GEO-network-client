@@ -18,10 +18,6 @@ public:
         Logger &logger)
         noexcept;
 
-    void sendMessage(
-        Message::Shared message)
-        noexcept;
-
 protected:
     void beginPacketsSending();
 

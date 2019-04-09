@@ -1,7 +1,3 @@
-//
-// Created by minyor on 08.04.19.
-//
-
 #include "OutgoingRemoteBaseNode.h"
 
 OutgoingRemoteBaseNode::OutgoingRemoteBaseNode(
@@ -25,6 +21,48 @@ PacketHeader::ChannelIndex OutgoingRemoteBaseNode::nextChannelIndex()
 {
     // Integer overflow is normal here.
     return mNextAvailableChannelIndex++;
+}
+
+void OutgoingRemoteBaseNode::sendMessage(
+    Message::Shared message)
+noexcept
+{
+    try {
+        // In case if queue already contains packets -
+        // then async handler is already scheduled.
+        // Otherwise - it must be initialised.
+        bool packetsSendingAlreadyScheduled = !mPacketsQueue.empty();
+
+        auto bytesAndBytesCount = preprocessMessage(message);
+        if (bytesAndBytesCount.second > Message::maxSize()) {
+            errors() << "Message is too big to be transferred via the network";
+            return;
+        }
+
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+        const Message::SerializedType kMessageType =
+            *(reinterpret_cast<Message::SerializedType*>(
+                bytesAndBytesCount.first.get() + sizeof(byte) + sizeof(SerializedProtocolVersion)));
+
+        debug()
+            << "Message of type "
+            << static_cast<size_t>(kMessageType)
+            << " postponed for the sending";
+#endif
+
+        populateQueueWithNewPackets(
+            bytesAndBytesCount.first.get(),
+            bytesAndBytesCount.second);
+
+        if (not packetsSendingAlreadyScheduled) {
+            beginPacketsSending();
+        }
+
+    } catch (exception &e) {
+        errors()
+            << "Exception occurred: "
+            << e.what();
+    }
 }
 
 bool OutgoingRemoteBaseNode::containsPacketsInQueue() const

@@ -1,9 +1,4 @@
-//
-// Created by minyor on 08.04.19.
-//
-
 #include "MsgEncryptor.h"
-#include "../network/messages/Message.hpp"
 
 MsgEncryptor::MsgEncryptor() :
     ByteEncryptor(
