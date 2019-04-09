@@ -6,7 +6,7 @@ TotalBalancesTransaction::TotalBalancesTransaction(
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::TotalBalancesTransactionType,
+        BaseTransaction::TotalBalancesTransactionType,
         command->equivalent(),
         logger),
     mCommand(command),

@@ -16,24 +16,7 @@ GetFirstLevelContractorsTransaction::GetFirstLevelContractorsTransaction(
 
 TransactionResult::SharedConst GetFirstLevelContractorsTransaction::run()
 {
-    if (mContractorsManager != nullptr) {
-        const auto contractorsCount = mContractorsManager->allContractors().size();
-        stringstream ss;
-        ss << to_string(contractorsCount);
-        for (const auto &contractor: mContractorsManager->allContractors()) {
-            ss << kTokensSeparator << contractor->getID()
-               << kTokensSeparator << contractor->outputString();
-        }
-        ss << kCommandsSeparator;
-        string kResultInfo = ss.str();
-        return transactionResultFromCommand(
-            mCommand->resultOk(kResultInfo));
-    }
-    if (mTrustLinesManager == nullptr) {
-        warning() << "Both TrustLinesManager and ContractorsManager are null";
-        return transactionResultFromCommand(
-            mCommand->responseUnexpectedError());
-    }
+    info() << "run";
     const auto neighborsCount = mTrustLinesManager->trustLines().size();
     stringstream ss;
     ss << to_string(neighborsCount);

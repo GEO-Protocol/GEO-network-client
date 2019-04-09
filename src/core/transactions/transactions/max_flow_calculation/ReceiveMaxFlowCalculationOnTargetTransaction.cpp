@@ -8,7 +8,7 @@ ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetT
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::ReceiveMaxFlowCalculationOnTargetTransactionType,
+        BaseTransaction::ReceiveMaxFlowCalculationOnTargetTransactionType,
         message->equivalent(),
         logger),
     mMessage(message),

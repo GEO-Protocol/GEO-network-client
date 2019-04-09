@@ -36,10 +36,10 @@ PublicKeysSharingSourceTransaction::PublicKeysSharingSourceTransaction(
     Logger &logger) :
     BaseTransaction(
         BaseTransaction::PublicKeysSharingSourceTransactionType,
-        mCommand->equivalent(),
+        command->equivalent(),
         logger),
     mCommand(command),
-    mContractorID(mCommand->contractorID()),
+    mContractorID(command->contractorID()),
     mCurrentKeyNumber(0),
     mKeysCount(crypto::TrustLineKeychain::kDefaultKeysSetSize),
     mCountSendingAttempts(0),

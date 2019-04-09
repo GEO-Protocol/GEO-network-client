@@ -8,7 +8,7 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
     SubsystemsController *subsystemsController,
     Logger &logger):
     BaseTransaction(
-        BaseTransaction::TransactionType::VoutesStatusResponsePaymentTransaction,
+        BaseTransaction::VoutesStatusResponsePaymentTransaction,
         message->equivalent(),
         logger),
     mContractorsManager(contractorsManager),
