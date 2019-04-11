@@ -6,7 +6,7 @@ HistoryAdditionalPaymentsTransaction::HistoryAdditionalPaymentsTransaction(
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::HistoryAdditionalPaymentsTransactionType,
+        BaseTransaction::HistoryAdditionalPaymentsTransactionType,
         command->equivalent(),
         logger),
     mCommand(command),

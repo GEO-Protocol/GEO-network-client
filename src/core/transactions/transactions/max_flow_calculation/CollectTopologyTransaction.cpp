@@ -12,7 +12,7 @@ CollectTopologyTransaction::CollectTopologyTransaction(
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::CollectTopologyTransactionType,
+        BaseTransaction::CollectTopologyTransactionType,
         equivalent,
         logger),
     mContractorAddresses(contractorAddresses),

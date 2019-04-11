@@ -8,7 +8,7 @@ MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTra
     bool iAmGateway) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::MaxFlowCalculationSourceFstLevelTransactionType,
+        BaseTransaction::MaxFlowCalculationSourceFstLevelTransactionType,
         message->equivalent(),
         logger),
     mMessage(message),

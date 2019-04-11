@@ -8,7 +8,7 @@ GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::GatewayNotificationSenderType,
+        BaseTransaction::GatewayNotificationSenderType,
         0,
         logger),
     mContractorsManager(contractorsManager),

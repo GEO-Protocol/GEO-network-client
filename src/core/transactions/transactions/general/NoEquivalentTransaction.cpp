@@ -4,7 +4,7 @@ NoEquivalentTransaction::NoEquivalentTransaction(
     BaseUserCommand::Shared command,
     Logger &logger):
     BaseTransaction(
-        BaseTransaction::TransactionType::NoEquivalentType,
+        BaseTransaction::NoEquivalentType,
         0,
         logger),
     mCommand(command),
@@ -15,7 +15,7 @@ NoEquivalentTransaction::NoEquivalentTransaction(
     TransactionMessage::Shared message,
     Logger &logger):
     BaseTransaction(
-        BaseTransaction::TransactionType::NoEquivalentType,
+        BaseTransaction::NoEquivalentType,
         0,
         logger),
     mCommand(nullptr),

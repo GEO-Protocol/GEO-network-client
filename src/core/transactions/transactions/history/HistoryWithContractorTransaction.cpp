@@ -6,7 +6,7 @@ HistoryWithContractorTransaction::HistoryWithContractorTransaction(
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::HistoryWithContractorTransactionType,
+        BaseTransaction::HistoryWithContractorTransactionType,
         command->equivalent(),
         logger),
     mCommand(command),

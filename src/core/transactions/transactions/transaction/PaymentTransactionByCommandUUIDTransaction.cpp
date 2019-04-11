@@ -6,7 +6,7 @@ PaymentTransactionByCommandUUIDTransaction::PaymentTransactionByCommandUUIDTrans
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::TransactionByCommandUUIDType,
+        BaseTransaction::TransactionByCommandUUIDType,
         0,      // none equivalent
         logger),
     mCommand(command),

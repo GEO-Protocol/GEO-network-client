@@ -9,7 +9,7 @@ MaxFlowCalculationTargetSndLevelTransaction::MaxFlowCalculationTargetSndLevelTra
     bool iAmGateway) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::MaxFlowCalculationTargetSndLevelTransactionType,
+        BaseTransaction::MaxFlowCalculationTargetSndLevelTransactionType,
         message->equivalent(),
         logger),
     mMessage(message),

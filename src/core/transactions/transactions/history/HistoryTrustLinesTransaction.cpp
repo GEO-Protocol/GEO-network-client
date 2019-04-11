@@ -6,7 +6,7 @@ HistoryTrustLinesTransaction::HistoryTrustLinesTransaction(
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::HistoryTrustLinesTransactionType,
+        BaseTransaction::HistoryTrustLinesTransactionType,
         command->equivalent(),
         logger),
     mCommand(command),

@@ -8,7 +8,7 @@ GatewayNotificationReceiverTransaction::GatewayNotificationReceiverTransaction(
     Logger &logger) :
 
     BaseTransaction(
-        BaseTransaction::TransactionType::GatewayNotificationReceiverType,
+        BaseTransaction::GatewayNotificationReceiverType,
         message->transactionUUID(),
         message->equivalent(),
         logger),
