@@ -445,7 +445,8 @@ void Core::connectCommandsInterfaceSignals ()
         boost::bind(
             &Core::onCommandReceivedSlot,
             this,
-            _1));
+            _1,
+            _2));
 }
 
 void Core::connectCommunicatorSignals()
@@ -589,9 +590,10 @@ void Core::connectSignalsToSlots()
 }
 
 void Core::onCommandReceivedSlot (
+    bool success,
     BaseUserCommand::Shared command)
 {
-    if (command->identifier() == SubsystemsInfluenceCommand::identifier()) {
+    if (command and command->identifier() == SubsystemsInfluenceCommand::identifier()) {
         // In case if network toggle command was received -
         // there is no reason to transfer it's processing to the transactions manager:
         // this command only enables or disables network for the node,
@@ -615,7 +617,7 @@ void Core::onCommandReceivedSlot (
     }
 
 #ifdef TESTS
-    if (command->identifier() == TrustLinesInfluenceCommand::identifier()) {
+    if (command and command->identifier() == TrustLinesInfluenceCommand::identifier()) {
         auto trustLinesInfluenceCommand = static_pointer_cast<TrustLinesInfluenceCommand>(command);
         mTrustLinesInfluenceController->setFlags(trustLinesInfluenceCommand->flags());
         mTrustLinesInfluenceController->setFirstParameter(
@@ -629,7 +631,7 @@ void Core::onCommandReceivedSlot (
 #endif
 
     try {
-        mTransactionsManager->processCommand(command);
+        mTransactionsManager->processCommand(success, command);
 
     } catch(exception &e) {
         mLog->logException("Core", e);

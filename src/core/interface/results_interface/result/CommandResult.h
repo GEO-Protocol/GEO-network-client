@@ -33,7 +33,7 @@ public:
         const string &commandIdentifier,
         const CommandUUID &commandUUID,
         const uint16_t resultCode,
-        string &resultInformation);
+        const string &resultInformation);
 
     const CommandUUID &commandUUID() const;
 

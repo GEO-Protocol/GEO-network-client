@@ -248,20 +248,22 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 buffer);
 
         } else {
-            throw RuntimeError(
+            return commandError(uuid, buffer, "unexpected command identifier received. " + identifier);
+            /*throw RuntimeError(
                 "CommandsParser::tryParseCommand: "
-                    "unexpected command identifier received. " + identifier);
+                    "unexpected command identifier received. " + identifier);*/
         }
 
     } catch (bad_alloc &) {
-        error() << "tryParseCommand: Memory allocation error occurred on command instance creation. "
+        const char *err = "tryParseCommand: Memory allocation error occurred on command instance creation. ";
+        error() << err
                 << "Command was dropped. ";
 
-        return commandIsInvalidOrIncomplete();
+        return commandError(uuid, buffer, err);
 
     } catch (exception &e){
         mLog.logException("CommandsParser", e);
-        return commandIsInvalidOrIncomplete();
+        return commandError(uuid, buffer, e.what());
     }
 
     return make_pair(
@@ -295,6 +297,18 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::commandIsInvalidOrIncomplete
     return make_pair(
         false,
         nullptr);
+}
+pair<bool, BaseUserCommand::Shared> CommandsParser::commandError(
+    const CommandUUID &uuid,
+    const string &buffer,
+    const string &str)
+{
+    return make_pair(
+        false,
+        BaseUserCommand::Shared(new ErrorUserCommand(
+            uuid,
+            buffer,
+            str)));
 }
 
 CommandsInterface::CommandsInterface(
@@ -404,8 +418,8 @@ void CommandsInterface::handleReceivedInfo(
 
         while (true) {
             auto flagAndCommand = mCommandsParser->processReceivedCommands();
-            if (flagAndCommand.first){
-                commandReceivedSignal(flagAndCommand.second);
+            if (flagAndCommand.second){
+                commandReceivedSignal(flagAndCommand.first, flagAndCommand.second);
             } else {
                 break;
             }
