@@ -34,6 +34,19 @@ TopologyCache::Shared TopologyCacheManager::cacheByAddress(
     return nodeAddressAndCache->second;
 }
 
+bool TopologyCacheManager::addIntoFirstLevelCache(
+    ContractorID contractorID,
+    TrustLineAmount amount)
+{
+    mFirstLvCache[contractorID] = amount;
+}
+
+bool TopologyCacheManager::isInFirstLevelCache(
+    ContractorID contractorID) const
+{
+    return mFirstLvCache.find(contractorID) != mFirstLvCache.end();
+}
+
 void TopologyCacheManager::updateCaches()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION

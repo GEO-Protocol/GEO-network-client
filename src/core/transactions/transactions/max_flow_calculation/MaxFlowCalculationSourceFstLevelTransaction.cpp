@@ -4,6 +4,7 @@ MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTra
     MaxFlowCalculationSourceFstLevelMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
+    TopologyCacheManager *topologyCacheManager,
     Logger &logger,
     bool iAmGateway) :
 
@@ -14,6 +15,7 @@ MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTra
     mMessage(message),
     mContractorsManager (contractorsManager),
     mTrustLinesManager(trustLinesManager),
+    mTopologyCacheManager(topologyCacheManager),
     mIAmGateway(iAmGateway)
 {}
 
@@ -38,9 +40,9 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
             mContractorsManager->ownAddresses(),
             outgoingFlows,
             incomingFlows);
-        outgoingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow();
+        outgoingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow(mTopologyCacheManager);
     } else {
-        outgoingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
+        outgoingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow(mTopologyCacheManager);
     }
     for (auto const &nodeIDWithOutgoingFlow : outgoingFlowIDs) {
         if (nodeIDWithOutgoingFlow == mMessage->idOnReceiverSide) {

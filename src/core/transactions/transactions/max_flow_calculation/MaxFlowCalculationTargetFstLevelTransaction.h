@@ -3,10 +3,10 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../contractors/ContractorsManager.h"
-#include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetFstLevelMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetSndLevelMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
+#include "../../../trust_lines/manager/TrustLinesManager.h"
 
 class MaxFlowCalculationTargetFstLevelTransaction : public BaseTransaction {
 
@@ -18,6 +18,7 @@ public:
         MaxFlowCalculationTargetFstLevelMessage::Shared message,
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
+        TopologyCacheManager *topologyCacheManager,
         Logger &logger,
         bool iAmGateway);
 
@@ -30,6 +31,7 @@ private:
     MaxFlowCalculationTargetFstLevelMessage::Shared mMessage;
     ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
+    TopologyCacheManager *mTopologyCacheManager;
     bool mIAmGateway;
 };
 

@@ -23,6 +23,13 @@ public:
     TopologyCache::Shared cacheByAddress(
         BaseAddress::Shared nodeAddress) const;
 
+    bool addIntoFirstLevelCache(
+        ContractorID contractorID,
+        TrustLineAmount amount);
+
+    bool isInFirstLevelCache(
+        ContractorID contractorID) const;
+
     void updateCaches();
 
     void setInitiatorCache();
@@ -71,6 +78,7 @@ private:
 private:
     unordered_map<string, TopologyCache::Shared> mCaches;
     map<DateTime, BaseAddress::Shared> msCache;
+    map<ContractorID, TrustLineAmount> mFirstLvCache;
 
     pair<bool, DateTime> mInitiatorCache;
     SerializedEquivalent mEquivalent;

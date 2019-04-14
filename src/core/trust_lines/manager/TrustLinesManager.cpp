@@ -779,7 +779,23 @@ void TrustLinesManager::resetTrustLineTotalReceiptsAmounts(
     trustLine->resetTotalReceiptsAmounts();
 }
 
-vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const
+bool TrustLinesManager::checkFirstLevelCache(
+    TopologyCacheManager *topologyCacheManager,
+    ContractorID contractorID,
+    TrustLineAmount amount) const
+{
+    auto nonZeroFlag = amount > TrustLine::kZeroAmount();
+    if(!topologyCacheManager) {
+        return nonZeroFlag;
+    }
+    if(nonZeroFlag) {
+        topologyCacheManager->addIntoFirstLevelCache(contractorID, amount);
+        return true;
+    }
+    return topologyCacheManager->isInFirstLevelCache(contractorID);
+}
+
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow(TopologyCacheManager *topologyCacheManager) const
 {
     vector<ContractorID> result;
     for (auto const &nodeIDAndTrustLine : mTrustLines) {
@@ -789,7 +805,7 @@ vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() co
         auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
             nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
-        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
+        if (checkFirstLevelCache(topologyCacheManager, nodeIDAndTrustLine.first, *trustLineAmountPtr)) {
             result.push_back(
                 nodeIDAndTrustLine.first);
         }
@@ -797,7 +813,7 @@ vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() co
     return result;
 }
 
-vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFlow() const
+vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFlow(TopologyCacheManager *topologyCacheManager) const
 {
     vector<ContractorID> result;
     for (auto const &nodeIDAndTrustLine : mTrustLines) {
@@ -810,7 +826,7 @@ vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFl
         auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
             nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
-        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
+        if (checkFirstLevelCache(topologyCacheManager, nodeIDAndTrustLine.first, *trustLineAmountPtr)) {
             result.push_back(
                 nodeIDAndTrustLine.first);
         }
@@ -818,7 +834,7 @@ vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFl
     return result;
 }
 
-vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const
+vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow(TopologyCacheManager *topologyCacheManager) const
 {
     vector<ContractorID> result;
     for (auto const &nodeIDAndTrustLine : mTrustLines) {
@@ -828,8 +844,7 @@ vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() co
         auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
             nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
-
-        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
+        if (checkFirstLevelCache(topologyCacheManager, nodeIDAndTrustLine.first, *trustLineAmountPtr)) {
             result.push_back(
                 nodeIDAndTrustLine.first);
         }
@@ -837,7 +852,7 @@ vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() co
     return result;
 }
 
-vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithIncomingFlow() const
+vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithIncomingFlow(TopologyCacheManager *topologyCacheManager) const
 {
     vector<ContractorID> result;
     for (auto const &nodeIDAndTrustLine : mTrustLines) {
@@ -847,8 +862,7 @@ vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithIncomingFl
         auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
             nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
-
-        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
+        if (checkFirstLevelCache(topologyCacheManager, nodeIDAndTrustLine.first, *trustLineAmountPtr)) {
             result.push_back(nodeIDAndTrustLine.first);
         }
     }
