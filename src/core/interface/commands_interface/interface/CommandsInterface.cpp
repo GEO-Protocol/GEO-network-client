@@ -58,23 +58,24 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::processReceivedCommands()
  */
 pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand()
 {
+    CommandUUID commandUUID;
+
     if (mBuffer.size() < kMinCommandSize) {
-        return commandIsInvalidOrIncomplete();
+        return commandError(commandUUID, mBuffer, "command length is less than: " + std::to_string(kMinCommandSize) + ".");
     }
 
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (nextCommandSeparatorIndex == string::npos) {
-        return commandIsInvalidOrIncomplete();
+        return commandError(commandUUID, mBuffer, "command must contain at leas one separator.");
     }
 
-    CommandUUID commandUUID;
     try {
         string hexUUID = mBuffer.substr(0, kUUIDHexRepresentationSize);
         commandUUID = boost::lexical_cast<uuid>(hexUUID);
 
     } catch (...) {
         cutBufferUpToNextCommand();
-        return commandIsInvalidOrIncomplete();
+        return commandError(commandUUID, mBuffer, "failed to parse CommandUUID.");
     }
 
 
@@ -95,7 +96,7 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand()
 
     if (commandIdentifier.size() == 0) {
         cutBufferUpToNextCommand();
-        return commandIsInvalidOrIncomplete();
+        return commandError(commandUUID, mBuffer, "command identifier is void.");
     }
 
     try {
@@ -116,7 +117,7 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand()
 
     } catch (std::exception &e) {
         cutBufferUpToNextCommand();
-        return commandIsInvalidOrIncomplete();
+        return commandError(commandUUID, mBuffer, e.what());
     }
 }
 
@@ -292,12 +293,6 @@ void CommandsParser::cutBufferUpToNextCommand()
     mBuffer.shrink_to_fit();
 }
 
-pair<bool, BaseUserCommand::Shared> CommandsParser::commandIsInvalidOrIncomplete()
-{
-    return make_pair(
-        false,
-        nullptr);
-}
 pair<bool, BaseUserCommand::Shared> CommandsParser::commandError(
     const CommandUUID &uuid,
     const string &buffer,

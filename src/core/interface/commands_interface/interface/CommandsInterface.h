@@ -85,7 +85,6 @@ private:
         const string &identifier,
         const string &buffer);
 
-    inline pair<bool, BaseUserCommand::Shared> commandIsInvalidOrIncomplete();
     inline pair<bool, BaseUserCommand::Shared> commandError(
         const CommandUUID &uuid,
         const string &buffer,
