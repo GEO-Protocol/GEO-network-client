@@ -68,11 +68,16 @@ void TrustLinesManager::loadTrustLinesFromStorage()
                     kTrustLine->contractorID());
             }
 
-            if (keyChain.ownKeysPresent(ioTransaction)) {
+            auto ownKeysSetAndContractorKeysSetAppropriate = keyChain.checkKeysSetAppropriate(
+                ioTransaction,
+                auditRecord->ownKeysSetHash(),
+                auditRecord->contractorKeysSetHash());
+
+            if (keyChain.ownKeysPresent(ioTransaction) and ownKeysSetAndContractorKeysSetAppropriate.first) {
                 kTrustLine->setIsOwnKeysPresent(true);
             }
 
-            if (keyChain.contractorKeysPresent(ioTransaction)) {
+            if (keyChain.contractorKeysPresent(ioTransaction) and ownKeysSetAndContractorKeysSetAppropriate.second) {
                 kTrustLine->setIsContractorKeysPresent(true);
             }
 

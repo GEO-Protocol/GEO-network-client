@@ -28,7 +28,9 @@ public:
         lamport::KeyHash::Shared ownKeyHash,
         lamport::Signature::Shared ownSignature,
         lamport::KeyHash::Shared contractorKeyHash,
-        lamport::Signature::Shared contractorSignature);
+        lamport::Signature::Shared contractorSignature,
+        lamport::KeyHash::Shared ownKeysSetHash,
+        lamport::KeyHash::Shared contractorKeysSetHash);
 
     AuditRecord(
         byte* buffer);
@@ -49,10 +51,20 @@ public:
 
     const lamport::Signature::Shared contractorSignature() const;
 
+    const lamport::KeyHash::Shared ownKeysSetHash() const;
+
+    const lamport::KeyHash::Shared contractorKeysSetHash() const;
+
     void setContractorSignature(
         lamport::Signature::Shared signature);
 
     bool isPendingState() const;
+
+    void setOwnKeysSetHash(
+        lamport::KeyHash::Shared ownKeysSetHash);
+
+    void setContractorKeysSetHash(
+        lamport::KeyHash::Shared contractorKeysSetHash);
 
     BytesShared serializeToBytes();
 
@@ -73,6 +85,8 @@ private:
     lamport::Signature::Shared mOwnSignature;
     lamport::KeyHash::Shared mContractorKeyHash;
     lamport::Signature::Shared mContractorSignature;
+    lamport::KeyHash::Shared mOwnKeysSetHash;
+    lamport::KeyHash::Shared mContractorKeysSetHash;
 };
 
 

@@ -13,7 +13,9 @@ AuditRecord::AuditRecord(
     mOwnKeyHash(nullptr),
     mOwnSignature(nullptr),
     mContractorKeyHash(nullptr),
-    mContractorSignature(nullptr)
+    mContractorSignature(nullptr),
+    mOwnKeysSetHash(nullptr),
+    mContractorKeysSetHash(nullptr)
 {}
 
 AuditRecord::AuditRecord(
@@ -24,7 +26,9 @@ AuditRecord::AuditRecord(
     lamport::KeyHash::Shared ownKeyHash,
     lamport::Signature::Shared ownSignature,
     lamport::KeyHash::Shared contractorKeyHash,
-    lamport::Signature::Shared contractorSignature):
+    lamport::Signature::Shared contractorSignature,
+    lamport::KeyHash::Shared ownKeysSetHash,
+    lamport::KeyHash::Shared contractorKeysSetHash):
 
     mAuditNumber(auditNumber),
     mIncomingAmount(incomingAmount),
@@ -33,7 +37,9 @@ AuditRecord::AuditRecord(
     mOwnKeyHash(ownKeyHash),
     mOwnSignature(ownSignature),
     mContractorKeyHash(contractorKeyHash),
-    mContractorSignature(contractorSignature)
+    mContractorSignature(contractorSignature),
+    mOwnKeysSetHash(ownKeysSetHash),
+    mContractorKeysSetHash(contractorKeysSetHash)
 {}
 
 AuditRecord::AuditRecord(
@@ -120,6 +126,16 @@ const lamport::Signature::Shared AuditRecord::contractorSignature() const
     return mContractorSignature;
 }
 
+const lamport::KeyHash::Shared AuditRecord::ownKeysSetHash() const
+{
+    return mOwnKeysSetHash;
+}
+
+const lamport::KeyHash::Shared AuditRecord::contractorKeysSetHash() const
+{
+    return mContractorKeysSetHash;
+}
+
 void AuditRecord::setContractorSignature(
     lamport::Signature::Shared signature)
 {
@@ -129,6 +145,18 @@ void AuditRecord::setContractorSignature(
 bool AuditRecord::isPendingState() const
 {
     return mContractorSignature == nullptr;
+}
+
+void AuditRecord::setOwnKeysSetHash(
+    lamport::KeyHash::Shared ownKeysSetHash)
+{
+    mOwnKeysSetHash = ownKeysSetHash;
+}
+
+void AuditRecord::setContractorKeysSetHash(
+    lamport::KeyHash::Shared contractorKeysSetHash)
+{
+    mContractorKeysSetHash = contractorKeysSetHash;
 }
 
 BytesShared AuditRecord::serializeToBytes()

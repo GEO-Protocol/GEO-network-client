@@ -29,6 +29,8 @@ public:
         lamport::Signature::Shared ownSignature,
         lamport::KeyHash::Shared contractorKeyHash,
         lamport::Signature::Shared contractorSignature,
+        lamport::KeyHash::Shared ownKeysSetHash,
+        lamport::KeyHash::Shared contractorKeysSetHash,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);
@@ -38,6 +40,8 @@ public:
         TrustLineID trustLineID,
         lamport::KeyHash::Shared ownKeyHash,
         lamport::Signature::Shared ownSignature,
+        lamport::KeyHash::Shared ownKeysSetHash,
+        lamport::KeyHash::Shared contractorKeysSetHash,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);

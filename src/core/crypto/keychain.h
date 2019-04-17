@@ -268,6 +268,8 @@ public:
         const lamport::Signature::Shared ownSignature,
         const KeyNumber contractorKeyNumber,
         const lamport::Signature::Shared contractorSignature,
+        const lamport::KeyHash::Shared ownKeysSetHash,
+        const lamport::KeyHash::Shared contractorKeysSetHash,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);
@@ -277,6 +279,8 @@ public:
         const AuditNumber auditNumber,
         const KeyNumber ownKeyNumber,
         const lamport::Signature::Shared ownSignature,
+        const lamport::KeyHash::Shared ownKeysSetHash,
+        const lamport::KeyHash::Shared contractorKeysSetHash,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);
@@ -351,10 +355,15 @@ public:
         IOTransaction::Shared ioTransaction);
 
     lamport::KeyHash::Shared ownPublicKeysHash(
-        IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction) const;
 
     lamport::KeyHash::Shared contractorPublicKeysHash(
-        IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction) const;
+
+    pair<bool, bool> checkKeysSetAppropriate(
+        IOTransaction::Shared ioTransaction,
+        lamport::KeyHash::Shared ownKeysSetHash,
+        lamport::KeyHash::Shared contractorKeysSetHash) const;
 
 protected:
     /**
