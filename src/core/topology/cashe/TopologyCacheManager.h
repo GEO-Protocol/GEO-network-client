@@ -24,8 +24,7 @@ public:
         BaseAddress::Shared nodeAddress) const;
 
     bool addIntoFirstLevelCache(
-        ContractorID contractorID,
-        TrustLineAmount amount);
+        ContractorID contractorID);
 
     bool isInFirstLevelCache(
         ContractorID contractorID) const;
@@ -68,6 +67,18 @@ private:
         return duration;
     }
 
+    static const byte kResetFirstLvCacheHours = 0;
+    static const byte kResetFirstLvCacheMinutes = 10;
+    static const byte kResetFirstLvCacheSeconds = 0;
+
+    static Duration& kResetFirstLvCacheDuration() {
+        static auto duration = Duration(
+            kResetFirstLvCacheHours,
+            kResetFirstLvCacheMinutes,
+            kResetFirstLvCacheSeconds);
+        return duration;
+    }
+
 private:
     LoggerStream info() const;
 
@@ -78,7 +89,10 @@ private:
 private:
     unordered_map<string, TopologyCache::Shared> mCaches;
     map<DateTime, BaseAddress::Shared> msCache;
-    map<ContractorID, TrustLineAmount> mFirstLvCache;
+
+    typedef shared_ptr<pair<ContractorID, DateTime> > FirstLvShared;
+    map<ContractorID, list<FirstLvShared>::iterator> mFirstLvCache;
+    list<FirstLvShared> mFirstLvCacheList;
 
     pair<bool, DateTime> mInitiatorCache;
     SerializedEquivalent mEquivalent;

@@ -35,10 +35,29 @@ TopologyCache::Shared TopologyCacheManager::cacheByAddress(
 }
 
 bool TopologyCacheManager::addIntoFirstLevelCache(
-    ContractorID contractorID,
-    TrustLineAmount amount)
+    ContractorID contractorID)
 {
-    mFirstLvCache[contractorID] = amount;
+    const auto &it = mFirstLvCache.find(contractorID);
+    if(it != mFirstLvCache.end()) {
+        it->second->get()->second = utc_now();
+        mFirstLvCacheList.splice(
+            mFirstLvCacheList.end(),
+            mFirstLvCacheList,
+            it->second);
+        mFirstLvCache[contractorID] = mFirstLvCacheList.begin();
+        return true;
+    }
+    mFirstLvCache[contractorID] =
+        mFirstLvCacheList.insert(
+            mFirstLvCacheList.end(),
+            make_shared<FirstLvShared::element_type>(
+                make_pair(
+                    contractorID,
+                    utc_now()
+                )
+            )
+        );
+    return true;
 }
 
 bool TopologyCacheManager::isInFirstLevelCache(
@@ -71,6 +90,16 @@ void TopologyCacheManager::updateCaches()
         info() << "updateCaches\t" << "reset Initiator cache";
 #endif
         mInitiatorCache.first = false;
+    }
+
+    DateTime now = utc_now();
+    for(auto current=mFirstLvCacheList.begin(); current!=mFirstLvCacheList.end(); ) {
+        auto &cache = *current;
+        if ((now - cache.get()->second) <= kResetFirstLvCacheDuration()) {
+            break;
+        }
+        mFirstLvCache.erase(cache.get()->first);
+        current = mFirstLvCacheList.erase(current);
     }
 }
 

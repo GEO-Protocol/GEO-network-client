@@ -789,7 +789,7 @@ bool TrustLinesManager::checkFirstLevelCache(
         return nonZeroFlag;
     }
     if(nonZeroFlag) {
-        topologyCacheManager->addIntoFirstLevelCache(contractorID, amount);
+        topologyCacheManager->addIntoFirstLevelCache(contractorID);
         return true;
     }
     return topologyCacheManager->isInFirstLevelCache(contractorID);
