@@ -89,7 +89,7 @@ noexcept
     return mContractorAddresses;
 }
 
-uint32_t InitChannelCommand::cryptoKey() const
+const string &InitChannelCommand::cryptoKey() const
 {
     return mCryptoKey;
 }

@@ -61,12 +61,14 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand()
     CommandUUID commandUUID;
 
     if (mBuffer.size() < kMinCommandSize) {
-        return commandError(commandUUID, mBuffer, "command length is less than: " + std::to_string(kMinCommandSize) + ".");
+        //return commandError(commandUUID, mBuffer, "command length is less than: " + std::to_string(kMinCommandSize) + ".");
+        return make_pair(false, nullptr);
     }
 
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (nextCommandSeparatorIndex == string::npos) {
-        return commandError(commandUUID, mBuffer, "command must contain at leas one separator.");
+        //return commandError(commandUUID, mBuffer, "command must contain at leas one separator.");
+        return make_pair(false, nullptr);
     }
 
     try {
@@ -75,7 +77,8 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand()
 
     } catch (...) {
         cutBufferUpToNextCommand();
-        return commandError(commandUUID, mBuffer, "failed to parse CommandUUID.");
+        //return commandError(commandUUID, mBuffer, "failed to parse CommandUUID.");
+        return make_pair(false, nullptr);
     }
 
 

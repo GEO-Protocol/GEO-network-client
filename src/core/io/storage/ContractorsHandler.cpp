@@ -63,7 +63,9 @@ void ContractorsHandler::saveContractor(
                           "Bad binding of ID; sqlite error: " + to_string(rc));
     }
     auto cryptoKey = contractor->cryptoKey();
-    rc = sqlite3_bind_blob(stmt, 2, &cryptoKey, sizeof(uint32_t), SQLITE_STATIC);
+    vector<uint8_t> cryptoKeyBlob;
+    cryptoKey.serialize(cryptoKeyBlob);
+    rc = sqlite3_bind_blob(stmt, 2, &cryptoKeyBlob[0], cryptoKeyBlob.size(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorsHandler::saveContractor: "
                           "Bad binding of cryptoKey; sqlite error: " + to_string(rc));
@@ -184,11 +186,14 @@ vector<Contractor::Shared> ContractorsHandler::allContractors()
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         auto id = (ContractorID)sqlite3_column_int(stmt, 0);
         auto idOnContractorSide = (ContractorID)sqlite3_column_int(stmt, 1);
-        uint32_t cryptoKey;
+
+        vector<uint8_t> cryptoKeyBlob(sqlite3_column_bytes(stmt, 2));
         memcpy(
-            &cryptoKey,
+            &cryptoKeyBlob[0],
             sqlite3_column_blob(stmt, 2),
-            sizeof(uint32_t));
+            cryptoKeyBlob.size());
+        MsgEncryptor::KeyTrio cryptoKey(cryptoKeyBlob);
+
         auto isChannelConfirmed = sqlite3_column_int(stmt, 3);
 
         try {

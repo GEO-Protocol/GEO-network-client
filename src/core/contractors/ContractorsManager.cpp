@@ -57,7 +57,7 @@ vector<Contractor::Shared> ContractorsManager::allContractors() const
 Contractor::Shared ContractorsManager::createContractor(
     IOTransaction::Shared ioTransaction,
     vector<BaseAddress::Shared> contractorAddresses,
-    uint32_t cryptoKey)
+    string cryptoKey)
 {
     auto contractorID = contractorIDByAddresses(
         contractorAddresses);
@@ -67,17 +67,17 @@ Contractor::Shared ContractorsManager::createContractor(
 
     auto id = nextFreeID(ioTransaction);
     info() << "New contractor initializing " << id;
-    if (cryptoKey == 0) {
+    if (cryptoKey == "") {
         // todo : generate new crypto key
         mContractors[id] = make_shared<Contractor>(
             id,
             contractorAddresses,
-            6789);
+            MsgEncryptor::generateKeyTrio());
     } else {
         mContractors[id] = make_shared<Contractor>(
             id,
             contractorAddresses,
-            cryptoKey);
+            MsgEncryptor::generateKeyTrio(cryptoKey));
     }
     ioTransaction->contractorsHandler()->saveContractor(
         mContractors[id]);

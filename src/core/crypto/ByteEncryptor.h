@@ -8,22 +8,35 @@
 class ByteEncryptor {
 public:
     typedef pair<BytesShared, size_t> Buffer;
-    struct PublicKey { uint8_t key[crypto_box_PUBLICKEYBYTES]; };
-    struct SecretKey { uint8_t key[crypto_box_SECRETKEYBYTES]; };
+    struct PublicKey {
+        PublicKey() {}
+        PublicKey(const string &str);
+        friend std::ostream &operator<< (std::ostream &out, PublicKey const &t);
+        uint8_t key[crypto_box_PUBLICKEYBYTES];
+    };
+    struct SecretKey {
+        SecretKey() {}
+        SecretKey(const string &str);
+        friend std::ostream &operator<< (std::ostream &out, SecretKey const &t);
+        uint8_t key[crypto_box_SECRETKEYBYTES];
+    };
     typedef std::shared_ptr<PublicKey> PublicKeyShared;
     typedef std::shared_ptr<SecretKey> SecretKeyShared;
 
     struct KeyPair {
+        KeyPair() {}
+        KeyPair(const string &str);
+        friend std::ostream &operator<< (std::ostream &out, KeyPair const &t);
         PublicKeyShared publicKey = NULL;
         SecretKeyShared secretKey = NULL;
     };
 
 public:
     explicit ByteEncryptor(
-        PublicKeyShared publicKey);
+        const PublicKeyShared &publicKey);
     ByteEncryptor(
-        PublicKeyShared publicKey,
-    SecretKeyShared secretKey);
+        const PublicKeyShared &publicKey,
+        const SecretKeyShared &secretKey);
 
 public:
     static KeyPair generateKeyPair();
@@ -39,6 +52,10 @@ protected:
     PublicKeyShared mPublicKey = NULL;
     SecretKeyShared mSecretKey = NULL;
 };
+
+std::ostream &operator<< (std::ostream &out, const ByteEncryptor::PublicKey &t);
+std::ostream &operator<< (std::ostream &out, const ByteEncryptor::SecretKey &t);
+std::ostream &operator<< (std::ostream &out, const ByteEncryptor::KeyPair &t);
 
 
 #endif //GEO_NETWORK_CLIENT_BYTEENCRYPTOR_H

@@ -21,7 +21,7 @@ public:
     Contractor::Shared createContractor(
         IOTransaction::Shared ioTransaction,
         vector<BaseAddress::Shared> contractorAddresses,
-        uint32_t cryptoKey = 0);
+        string cryptoKey = "");
 
     bool contractorPresent(
         ContractorID contractorID) const;

@@ -21,14 +21,14 @@ public:
     vector<BaseAddress::Shared> contractorAddresses() const
         noexcept;
 
-    uint32_t cryptoKey() const;
+    const string &cryptoKey() const;
 
     CommandResult::SharedConst responseOk(
         string &channelInfo) const;
 
 private:
     vector<BaseAddress::Shared> mContractorAddresses;
-    uint32_t mCryptoKey;
+    string mCryptoKey;
 };
 
 

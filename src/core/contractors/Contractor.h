@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_CONTRACTOR_H
 
 #include "../common/multiprecision/MultiprecisionUtils.h"
+#include "../crypto/MsgEncryptor.h"
 
 class Contractor {
 public:
@@ -11,12 +12,12 @@ public:
     Contractor(
         ContractorID id,
         vector<BaseAddress::Shared> &addresses,
-        uint32_t cryptoKey);
+        const MsgEncryptor::KeyTrio &cryptoKey);
 
     Contractor(
         ContractorID id,
         ContractorID idOnContractorSide,
-        uint32_t cryptoKey,
+        const MsgEncryptor::KeyTrio &cryptoKey,
         bool isConfirmed);
 
     Contractor(
@@ -31,7 +32,7 @@ public:
 
     void setOwnIdOnContractorSide(ContractorID id);
 
-    const uint32_t cryptoKey() const;
+    const MsgEncryptor::KeyTrio &cryptoKey() const;
 
     const bool isConfirmed() const;
 
@@ -66,7 +67,7 @@ public:
 private:
     ContractorID mID;
     ContractorID mOwnIdOnContractorSide;
-    uint32_t mCryptoKey;
+    MsgEncryptor::KeyTrio mCryptoKey;
     bool mIsConfirmed;
     vector<BaseAddress::Shared> mAddresses;
 };

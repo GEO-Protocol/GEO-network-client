@@ -1,13 +1,13 @@
 #include "ByteEncryptor.h"
 
 ByteEncryptor::ByteEncryptor(
-    ByteEncryptor::PublicKeyShared publicKey) :
+    const ByteEncryptor::PublicKeyShared &publicKey) :
     mPublicKey(publicKey)
 {}
 
 ByteEncryptor::ByteEncryptor(
-    ByteEncryptor::PublicKeyShared publicKey,
-    ByteEncryptor::SecretKeyShared secretKey) :
+    const ByteEncryptor::PublicKeyShared &publicKey,
+    const ByteEncryptor::SecretKeyShared &secretKey) :
     mPublicKey(publicKey),
     mSecretKey(secretKey)
 {}
@@ -19,8 +19,6 @@ ByteEncryptor::KeyPair ByteEncryptor::generateKeyPair() {
     crypto_box_keypair(
         keyPair.publicKey->key,
         keyPair.secretKey->key);
-    keyPair.publicKey->key[crypto_box_PUBLICKEYBYTES] = 0;
-    keyPair.secretKey->key[crypto_box_SECRETKEYBYTES] = 0;
     return keyPair;
 }
 
@@ -74,4 +72,58 @@ ByteEncryptor::Buffer ByteEncryptor::encrypt(const ByteEncryptor::Buffer &bytes)
 
 ByteEncryptor::Buffer ByteEncryptor::decrypt(const ByteEncryptor::Buffer &cipher) const {
     return decrypt(cipher.first.get(), cipher.second);
+}
+
+static void parseHex(uint8_t *out, const string &in) {
+    char b[3], i=0; b[2] = '\0';
+    for(const char *p=in.c_str(),*e=p+in.length(); p<e; p+=2,++i) {
+        memcpy(b, p, 2);
+        out[(int)i] = std::stoul(b, nullptr, 16);
+    }
+}
+
+std::string ByteEncryptor_parsePar(std::string &par, const std::string &separator) {
+    if(par.find(separator) != std::string::npos) {
+        std::string options = par.substr(par.find(separator)+1).c_str();
+        par = par.substr(0, par.find(separator));
+        return options;
+    }
+    return "";
+}
+
+ByteEncryptor::PublicKey::PublicKey(const string &str) {
+    parseHex(key, str);
+}
+
+ByteEncryptor::SecretKey::SecretKey(const string &str) {
+    parseHex(key, str);
+}
+
+ByteEncryptor::KeyPair::KeyPair(const string &str) {
+    ;
+}
+
+std::ostream &operator<< (std::ostream &out, const ByteEncryptor::PublicKey &t) {
+    std::stringstream ss;
+    char buf[4];
+    for(uint32_t i=0; i<crypto_box_PUBLICKEYBYTES; ++i) {
+        sprintf(buf, "%02x", t.key[i]);
+        ss << buf;
+    }
+    return (out << ss.str());
+}
+std::ostream &operator<< (std::ostream &out, const ByteEncryptor::SecretKey &t) {
+    std::stringstream ss;
+    char buf[4];
+    for(uint32_t i=0; i<crypto_box_SECRETKEYBYTES; ++i) {
+        sprintf(buf, "%02x", t.key[i]);
+        ss << buf;
+    }
+    return (out << ss.str());
+}
+std::ostream &operator<< (std::ostream &out, const ByteEncryptor::KeyPair &t) {
+    out << *t.publicKey
+        << "_"
+        << *t.secretKey;
+    return out;
 }

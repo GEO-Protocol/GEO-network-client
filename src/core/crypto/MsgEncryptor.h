@@ -6,7 +6,21 @@
 
 class MsgEncryptor : public ByteEncryptor {
 public:
+    struct KeyTrio : KeyPair {
+        KeyTrio();
+        KeyTrio(const string &str);
+        KeyTrio(const vector<uint8_t> &in) { deserialize(in); }
+        friend std::ostream &operator<< (std::ostream &out, KeyTrio const &t);
+        void serialize(vector<uint8_t> &out) const;
+        void deserialize(const vector<uint8_t> &in);
+        PublicKeyShared outputKey = NULL;
+    };
+
+public:
     MsgEncryptor();
+
+public:
+    static KeyTrio generateKeyTrio(const string &outputKey = "");
 
 public:
     Buffer encrypt(Message::Shared message);
@@ -14,6 +28,8 @@ public:
         BytesShared buffer,
         const size_t count);
 };
+
+std::ostream &operator<< (std::ostream &out, const MsgEncryptor::KeyTrio &t);
 
 
 #endif //GEO_NETWORK_CLIENT_MSGENCRYPTOR_H

@@ -3,7 +3,7 @@
 Contractor::Contractor(
     ContractorID id,
     vector<BaseAddress::Shared> &addresses,
-    uint32_t cryptoKey) :
+    const MsgEncryptor::KeyTrio &cryptoKey) :
     mID(id),
     mCryptoKey(cryptoKey),
     mAddresses(addresses),
@@ -13,7 +13,7 @@ Contractor::Contractor(
 Contractor::Contractor(
     ContractorID id,
     ContractorID idOnContractorSide,
-    uint32_t cryptoKey,
+    const MsgEncryptor::KeyTrio &cryptoKey,
     bool isConfirmed) :
     mID(id),
     mOwnIdOnContractorSide(idOnContractorSide),
@@ -63,7 +63,7 @@ void Contractor::setOwnIdOnContractorSide(
     mOwnIdOnContractorSide = id;
 }
 
-const uint32_t Contractor::cryptoKey() const
+const MsgEncryptor::KeyTrio &Contractor::cryptoKey() const
 {
     return mCryptoKey;
 }

@@ -28,7 +28,7 @@ TransactionResult::SharedConst InitChannelTransaction::run()
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
-        if (mCommand->cryptoKey() != 6789) {
+        if (mCommand->cryptoKey() == "") {
             info() << "Channel crypto key generation";
             mContractor = mContractorsManager->createContractor(
                 ioTransaction,
