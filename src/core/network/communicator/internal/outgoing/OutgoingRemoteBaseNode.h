@@ -9,6 +9,7 @@
 #include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../logger/Logger.h"
 #include "../../../../common/exceptions/Exception.h"
+#include "../../../../contractors/ContractorsManager.h"
 #include "../../../../crypto/MsgEncryptor.h"
 
 #include <boost/crc.hpp>
@@ -22,6 +23,7 @@ public:
     OutgoingRemoteBaseNode(
         UDPSocket &socket,
         IOService &ioService,
+        ContractorsManager *contractorsManager,
         Logger &logger)
         noexcept;
 
@@ -57,6 +59,7 @@ protected:
 protected:
     IOService &mIOService;
     UDPSocket &mSocket;
+    ContractorsManager *mContractorsManager;
     Logger &mLog;
 
     queue<pair<byte*, Packet::Size>> mPacketsQueue;

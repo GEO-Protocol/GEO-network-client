@@ -32,7 +32,7 @@ public:
 
     void setOwnIdOnContractorSide(ContractorID id);
 
-    const MsgEncryptor::KeyTrio &cryptoKey() const;
+    MsgEncryptor::KeyTrio &cryptoKey();
 
     const bool isConfirmed() const;
 

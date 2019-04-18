@@ -57,7 +57,7 @@ vector<Contractor::Shared> ContractorsManager::allContractors() const
 Contractor::Shared ContractorsManager::createContractor(
     IOTransaction::Shared ioTransaction,
     vector<BaseAddress::Shared> contractorAddresses,
-    string cryptoKey)
+    const string &cryptoKey)
 {
     auto contractorID = contractorIDByAddresses(
         contractorAddresses);
@@ -87,6 +87,20 @@ Contractor::Shared ContractorsManager::createContractor(
             address);
     }
     return mContractors[id];
+}
+
+void ContractorsManager::setCryptoKey(
+    IOTransaction::Shared ioTransaction,
+    ContractorID contractorID,
+    MsgEncryptor::PublicKeyShared cryptoKey)
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+
+    auto contractor = mContractors[contractorID];
+    contractor->cryptoKey().outputKey = cryptoKey;
+    ioTransaction->contractorsHandler()->saveCryptoKey(contractor);
 }
 
 bool ContractorsManager::contractorPresent(

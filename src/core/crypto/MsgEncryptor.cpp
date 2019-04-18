@@ -9,14 +9,14 @@ MsgEncryptor::MsgEncryptor() :
 MsgEncryptor::KeyTrio MsgEncryptor::generateKeyTrio(const string &outputKey) {
     MsgEncryptor::KeyTrio keyTrio;
     (ByteEncryptor::KeyPair &)keyTrio = generateKeyPair();
-    if(!outputKey.empty())
+    if(!outputKey.empty()) {
         keyTrio.outputKey = std::make_shared<PublicKey>(outputKey);
+    }
     return keyTrio;
 }
 
 ByteEncryptor::Buffer MsgEncryptor::encrypt(Message::Shared message) {
     auto bytesAndBytesCount = message->serializeToBytes();
-
     auto pair = ByteEncryptor::encrypt(
         bytesAndBytesCount.first.get() + Message::UnencryptedHeaderSize,
         bytesAndBytesCount.second - Message::UnencryptedHeaderSize,
@@ -69,20 +69,6 @@ void MsgEncryptor::KeyTrio::serialize(vector<uint8_t> &out) const {
 std::string ByteEncryptor_parsePar(std::string &par, const std::string &separator);
 
 MsgEncryptor::KeyTrio::KeyTrio() {
-    static bool test = true;
-    if(test) {
-        test = false;
-        auto keys = MsgEncryptor::generateKeyTrio();
-        stringstream ss;
-        ss << keys;
-        fprintf(stdout, "TEST trio1: %s\n", ss.str().c_str());
-        stringstream ss2;
-        ss2 << KeyTrio(ss.str());
-        fprintf(stdout, "TEST trio2: %s\n", ss2.str().c_str());
-        stringstream ss3;
-        ss3 << KeyTrio(ss2.str());
-        fprintf(stdout, "TEST trio3: %s\n", ss3.str().c_str());
-    }
 }
 
 MsgEncryptor::KeyTrio::KeyTrio(const string &str) {
@@ -102,6 +88,7 @@ void MsgEncryptor::KeyTrio::deserialize(const vector<uint8_t> &in) {
     uint32_t pairSize = crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES;
     const uint8_t *p = &in[0];
     if(in.size() >= crypto_box_PUBLICKEYBYTES) {
+        publicKey = std::make_shared<PublicKey>();
         mempcpy(
             publicKey->key,
             p,
@@ -110,6 +97,7 @@ void MsgEncryptor::KeyTrio::deserialize(const vector<uint8_t> &in) {
         p += crypto_box_PUBLICKEYBYTES;
     }
     if(in.size() >= pairSize) {
+        secretKey = std::make_shared<SecretKey>();
         mempcpy(
             secretKey->key,
             p,
@@ -118,6 +106,7 @@ void MsgEncryptor::KeyTrio::deserialize(const vector<uint8_t> &in) {
         p += crypto_box_SECRETKEYBYTES;
     }
     if(in.size() > (pairSize + crypto_box_PUBLICKEYBYTES)) {
+        outputKey = std::make_shared<PublicKey>();
         mempcpy(
             outputKey->key,
             p,

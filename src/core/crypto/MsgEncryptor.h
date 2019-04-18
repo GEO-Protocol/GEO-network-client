@@ -10,7 +10,6 @@ public:
         KeyTrio();
         KeyTrio(const string &str);
         KeyTrio(const vector<uint8_t> &in) { deserialize(in); }
-        friend std::ostream &operator<< (std::ostream &out, KeyTrio const &t);
         void serialize(vector<uint8_t> &out) const;
         void deserialize(const vector<uint8_t> &in);
         PublicKeyShared outputKey = NULL;
@@ -18,6 +17,7 @@ public:
 
 public:
     MsgEncryptor();
+    using ByteEncryptor::ByteEncryptor;
 
 public:
     static KeyTrio generateKeyTrio(const string &outputKey = "");

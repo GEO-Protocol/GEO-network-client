@@ -47,6 +47,16 @@ TransactionResult::SharedConst ConfirmChannelTransaction::run()
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
+        mContractorsManager->setCryptoKey(
+            ioTransaction,
+            contractorID,
+            mMessage->publicKey());
+    } catch (IOError &e) {
+        error() << "Error during saving CryptoKey. Details: " << e.what();
+        ioTransaction->rollback();
+        throw e;
+    }
+    try {
         mContractorsManager->setIDOnContractorSide(
             ioTransaction,
             contractorID,
@@ -61,7 +71,7 @@ TransactionResult::SharedConst ConfirmChannelTransaction::run()
         contractorID,
         mContractorsManager->ownAddresses(),
         mTransactionUUID,
-        contractorID);
+        *mContractorsManager->contractor(contractorID));
     return resultDone();
 }
 

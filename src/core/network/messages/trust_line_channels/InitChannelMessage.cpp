@@ -3,15 +3,18 @@
 InitChannelMessage::InitChannelMessage(
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
-    ContractorID contractorID)
+    Contractor &contractor)
     noexcept:
 
     TransactionMessage(
         0,
         senderAddresses,
         transactionUUID),
-    mContractorID(contractorID)
-{}
+    mContractorID(contractor.getID()),
+    mPublicKey(contractor.cryptoKey().publicKey)
+{
+    encrypt(mContractorID);
+}
 
 InitChannelMessage::InitChannelMessage(
     BytesShared buffer)
@@ -26,6 +29,12 @@ InitChannelMessage::InitChannelMessage(
         &mContractorID,
         buffer.get() + bytesBufferOffset,
         sizeof(ContractorID));
+
+    mPublicKey = make_shared<MsgEncryptor::PublicKey>();
+    memcpy(
+        mPublicKey->key,
+        buffer.get() + bytesBufferOffset + sizeof(ContractorID),
+        sizeof(mPublicKey->key));
 }
 
 
@@ -41,6 +50,12 @@ noexcept
     return mContractorID;
 }
 
+const MsgEncryptor::PublicKeyShared InitChannelMessage::publicKey() const
+noexcept
+{
+    return mPublicKey;
+}
+
 pair<BytesShared, size_t> InitChannelMessage::serializeToBytes() const
 {
     // todo: use serializer
@@ -48,7 +63,8 @@ pair<BytesShared, size_t> InitChannelMessage::serializeToBytes() const
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
-                        + sizeof(ContractorID);
+                        + sizeof(ContractorID)
+                        + sizeof(mPublicKey->key);
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -63,6 +79,11 @@ pair<BytesShared, size_t> InitChannelMessage::serializeToBytes() const
         dataBytesShared.get() + dataBytesOffset,
         &mContractorID,
         sizeof(ContractorID));
+    //----------------------------
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset + sizeof(ContractorID),
+        &mPublicKey->key,
+        sizeof(mPublicKey->key));
     //----------------------------
     return make_pair(
         dataBytesShared,

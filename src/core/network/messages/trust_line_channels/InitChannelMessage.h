@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_INITCHANNELMESSAGE_H
 
 #include "../base/transaction/TransactionMessage.h"
+#include "../../../contractors/Contractor.h"
 
 class InitChannelMessage : public TransactionMessage {
 
@@ -12,7 +13,7 @@ public:
     InitChannelMessage(
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
-        ContractorID contractorID)
+        Contractor &contractor)
         noexcept;
 
     InitChannelMessage(
@@ -25,12 +26,16 @@ public:
     const ContractorID contractorID() const
     noexcept;
 
+    const MsgEncryptor::PublicKeyShared publicKey() const
+    noexcept;
+
     const bool isAddToConfirmationRequiredMessagesHandler() const override;
 
     pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
     ContractorID mContractorID;
+    MsgEncryptor::PublicKeyShared mPublicKey;
 };
 
 

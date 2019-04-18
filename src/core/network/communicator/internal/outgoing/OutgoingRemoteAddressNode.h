@@ -15,6 +15,7 @@ public:
         BaseAddress::Shared address,
         UDPSocket &socket,
         IOService &ioService,
+        ContractorsManager *contractorsManager,
         Logger &logger)
         noexcept;
 

@@ -18,7 +18,7 @@ public:
 public:
     static const size_t UnencryptedHeaderSize =
         sizeof(SerializedProtocolVersion) +
-        sizeof(byte);
+        sizeof(ContractorID);
 
     enum ProtocolVersion {
         Latest = 0,
@@ -190,7 +190,7 @@ public:
         const SerializedType kMessageType = typeID();
         bool isMessageEncrypted = isEncrypted();
         size_t dataBytesOffset = 0;
-        const auto kBufferSize = sizeof(SerializedProtocolVersion) + sizeof(byte) + sizeof(kMessageType);
+        const auto kBufferSize = sizeof(SerializedProtocolVersion) + sizeof(ContractorID) + sizeof(kMessageType);
         auto buffer = tryMalloc(
             kBufferSize);
 
@@ -202,9 +202,9 @@ public:
 
         memcpy(
             buffer.get() + dataBytesOffset,
-            &isMessageEncrypted,
-            sizeof(byte));
-        dataBytesOffset += sizeof(byte);
+            &mContractorId,
+            sizeof(ContractorID));
+        dataBytesOffset += sizeof(ContractorID);
 
         memcpy(
             buffer.get() + dataBytesOffset,
@@ -227,19 +227,19 @@ public:
         return mSenderIncomingIP;
     }
 
-    virtual bool isEncrypted() const
-    {
-        return false;
-    }
+    ContractorID contractorId() const { return mContractorId; }
+    bool isEncrypted() const { return mContractorId != std::numeric_limits<ContractorID>::max(); }
+    void encrypt(ContractorID contractorID) { mContractorId = contractorID; }
 
 protected:
     virtual const size_t kOffsetToInheritedBytes() const
     {
-        return sizeof(SerializedProtocolVersion) + sizeof(byte) + sizeof(SerializedType);
+        return sizeof(SerializedProtocolVersion) + sizeof(ContractorID) + sizeof(SerializedType);
     }
 
 private:
     string mSenderIncomingIP;
+    ContractorID mContractorId = std::numeric_limits<ContractorID>::max();
 };
 
 #endif //GEO_NETWORK_CLIENT_MESSAGE_H

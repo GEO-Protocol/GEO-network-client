@@ -62,7 +62,8 @@ void ContractorsHandler::saveContractor(
         throw IOError("ContractorsHandler::saveContractor: "
                           "Bad binding of ID; sqlite error: " + to_string(rc));
     }
-    auto cryptoKey = contractor->cryptoKey();
+
+    auto &cryptoKey = contractor->cryptoKey();
     vector<uint8_t> cryptoKeyBlob;
     cryptoKey.serialize(cryptoKeyBlob);
     rc = sqlite3_bind_blob(stmt, 2, &cryptoKeyBlob[0], cryptoKeyBlob.size(), SQLITE_STATIC);
@@ -153,6 +154,50 @@ void ContractorsHandler::saveIdOnContractorSide(
 #endif
     } else {
         throw IOError("ContractorsHandler::saveContractorFull: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+
+    if (sqlite3_changes(mDataBase) == 0) {
+        throw ValueError("No data were modified");
+    }
+}
+
+void ContractorsHandler::saveCryptoKey(
+    Contractor::Shared contractor)
+{
+    string query = "UPDATE " + mTableName +
+                   " SET crypto_key = ? WHERE id = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorsHandler::saveCryptoKey: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+
+    auto &cryptoKey = contractor->cryptoKey();
+    vector<uint8_t> cryptoKeyBlob;
+    cryptoKey.serialize(cryptoKeyBlob);
+    rc = sqlite3_bind_blob(stmt, 1, &cryptoKeyBlob[0], cryptoKeyBlob.size(), SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorsHandler::saveCryptoKey: "
+                          "Bad binding of cryptoKey; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_bind_int(stmt, 2, contractor->getID());
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorsHandler::saveCryptoKey: "
+                          "Bad binding of ID; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "prepare inserting is completed successfully";
+#endif
+    } else {
+        throw IOError("ContractorsHandler::saveCryptoKey: "
                           "Run query; sqlite error: " + to_string(rc));
     }
 

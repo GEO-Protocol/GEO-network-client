@@ -23,8 +23,6 @@ public:
     const MessageType typeID() const
     noexcept;
 
-    bool isEncrypted() const;
-
     const bool isContractorGateway() const
     noexcept;
 

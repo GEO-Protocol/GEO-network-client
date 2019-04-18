@@ -4,6 +4,7 @@ OutgoingRemoteNode::OutgoingRemoteNode(
     Contractor::Shared remoteContractor,
     UDPSocket &socket,
     IOService &ioService,
+    ContractorsManager *contractorsManager,
     Logger &logger)
     noexcept :
 
@@ -11,6 +12,7 @@ OutgoingRemoteNode::OutgoingRemoteNode(
     OutgoingRemoteBaseNode(
         socket,
         ioService,
+        contractorsManager,
         logger
     )
 {}

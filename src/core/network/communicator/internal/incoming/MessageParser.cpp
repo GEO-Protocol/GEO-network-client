@@ -1,9 +1,11 @@
 #include "MessageParser.h"
 
 MessagesParser::MessagesParser(
+    ContractorsManager *contractorsManager,
     Logger *logger)
     noexcept:
 
+    mContractorsManager(contractorsManager),
     mLog(logger)
 {}
 
@@ -25,16 +27,20 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
             return messageInvalidOrIncomplete();
         }
 
-        byte isMessageEncrypted = *(reinterpret_cast<byte*>(buffer.get() + sizeof(SerializedProtocolVersion)));
-        if (isMessageEncrypted) {
-            auto pair = MsgEncryptor().decrypt(buffer, count);
+        ContractorID contractorID = *(reinterpret_cast<ContractorID*>(buffer.get() + sizeof(SerializedProtocolVersion)));
+        if (contractorID != std::numeric_limits<ContractorID>::max()) {
+            auto contractor = mContractorsManager->contractor(contractorID);
+            auto pair = MsgEncryptor(
+                contractor->cryptoKey().publicKey,
+                contractor->cryptoKey().secretKey
+            ).decrypt(buffer, count);
             buffer = pair.first;
             count = pair.second;
         }
 
         const Message::SerializedType kMessageIdentifier =
             *(reinterpret_cast<Message::SerializedType*>(buffer.get() +
-                sizeof(byte) + sizeof(SerializedProtocolVersion)));
+                sizeof(ContractorID) + sizeof(SerializedProtocolVersion)));
 
         switch(kMessageIdentifier) {
 

@@ -15,6 +15,7 @@ public:
         Contractor::Shared remoteContractor,
         UDPSocket &socket,
         IOService &ioService,
+        ContractorsManager *contractorsManager,
         Logger &logger)
         noexcept;
 

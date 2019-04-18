@@ -63,7 +63,7 @@ void Contractor::setOwnIdOnContractorSide(
     mOwnIdOnContractorSide = id;
 }
 
-const MsgEncryptor::KeyTrio &Contractor::cryptoKey() const
+MsgEncryptor::KeyTrio &Contractor::cryptoKey()
 {
     return mCryptoKey;
 }

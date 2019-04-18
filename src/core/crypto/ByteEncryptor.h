@@ -11,13 +11,11 @@ public:
     struct PublicKey {
         PublicKey() {}
         PublicKey(const string &str);
-        friend std::ostream &operator<< (std::ostream &out, PublicKey const &t);
         uint8_t key[crypto_box_PUBLICKEYBYTES];
     };
     struct SecretKey {
         SecretKey() {}
         SecretKey(const string &str);
-        friend std::ostream &operator<< (std::ostream &out, SecretKey const &t);
         uint8_t key[crypto_box_SECRETKEYBYTES];
     };
     typedef std::shared_ptr<PublicKey> PublicKeyShared;
@@ -26,7 +24,6 @@ public:
     struct KeyPair {
         KeyPair() {}
         KeyPair(const string &str);
-        friend std::ostream &operator<< (std::ostream &out, KeyPair const &t);
         PublicKeyShared publicKey = NULL;
         SecretKeyShared secretKey = NULL;
     };

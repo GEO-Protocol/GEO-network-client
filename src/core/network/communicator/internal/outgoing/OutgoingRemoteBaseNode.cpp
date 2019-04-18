@@ -3,11 +3,13 @@
 OutgoingRemoteBaseNode::OutgoingRemoteBaseNode(
     UDPSocket &socket,
     IOService &ioService,
+    ContractorsManager *contractorsManager,
     Logger &logger)
     noexcept :
 
     mIOService(ioService),
     mSocket(socket),
+    mContractorsManager(contractorsManager),
     mLog(logger),
     mNextAvailableChannelIndex(0),
     mCyclesStats(boost::posix_time::microsec_clock::universal_time(), 0),
@@ -82,7 +84,9 @@ uint32_t OutgoingRemoteBaseNode::crc32Checksum(
 
 MsgEncryptor::Buffer OutgoingRemoteBaseNode::preprocessMessage(Message::Shared message) const {
     if(!message->isEncrypted()) return message->serializeToBytes();
-    return MsgEncryptor().encrypt(message);
+    return MsgEncryptor(
+        mContractorsManager->contractor(message->contractorId())->cryptoKey().outputKey
+    ).encrypt(message);
 }
 
 void OutgoingRemoteBaseNode::populateQueueWithNewPackets(
