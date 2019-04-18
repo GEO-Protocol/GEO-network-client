@@ -25,6 +25,18 @@ Record::Record(
     mRecordType = recordType;
 }
 
+Record::Record(
+    const Record::RecordType recordType,
+    const TransactionUUID &operationUUID,
+    const GEOEpochTimestamp geoEpochTimestamp) :
+
+    mOperationUUID(operationUUID),
+    mTimestamp(dateTimeFromGEOEpochTimestamp(geoEpochTimestamp)),
+    mContractor(nullptr)
+{
+    mRecordType = recordType;
+}
+
 const bool Record::isTrustLineRecord() const
 {
     return false;

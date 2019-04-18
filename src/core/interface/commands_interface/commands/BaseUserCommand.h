@@ -113,6 +113,8 @@ public:
     // this response used during disabling start payment and trust line transactions
     CommandResult::SharedConst responseForbiddenRunTransaction() const
         noexcept;
+    CommandResult::SharedConst responseForbiddenRunDueObservingTransaction() const
+        noexcept;
 
     CommandResult::SharedConst responseEquivalentIsAbsent() const
         noexcept;

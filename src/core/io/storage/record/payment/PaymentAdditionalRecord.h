@@ -26,9 +26,8 @@ public:
 
     PaymentAdditionalRecord(
         const TransactionUUID &operationUUID,
-        const PaymentAdditionalOperationType operationType,
-        const TrustLineAmount &amount,
-        const GEOEpochTimestamp geoEpochTimestamp);
+        const GEOEpochTimestamp geoEpochTimestamp,
+        BytesShared recordBody);
 
     const PaymentAdditionalOperationType operationType() const;
 

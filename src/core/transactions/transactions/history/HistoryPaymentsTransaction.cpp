@@ -72,7 +72,8 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::resultOk(
                << kTokensSeparator << kRecord->contractor()->outputString()
                << kTokensSeparator << formattedOperationType
                << kTokensSeparator << kRecord->amount()
-               << kTokensSeparator << kRecord->balanceAfterOperation();
+               << kTokensSeparator << kRecord->balanceAfterOperation()
+               << kTokensSeparator << kRecord->payload();
     }
 
     auto result = stream.str();

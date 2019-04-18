@@ -973,11 +973,6 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
 void TransactionsManager::launchCoordinatorPaymentTransaction(
     CreditUsageCommand::Shared command)
 {
-    if (!isPaymentTransactionsAllowedDueToObserving) {
-        warning() << "It is forbid to run payment transactions due to observing";
-        // todo : inform about fail as result
-        return;
-    }
     try {
         auto transaction = make_shared<CoordinatorPaymentTransaction>(
             command,
@@ -990,6 +985,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mResourcesManager,
             mEquivalentsSubsystemsRouter->pathsManager(command->equivalent()),
             mKeysStore,
+            isPaymentTransactionsAllowedDueToObserving,
             mEventsInterface,
             mLog,
             mSubsystemsController);

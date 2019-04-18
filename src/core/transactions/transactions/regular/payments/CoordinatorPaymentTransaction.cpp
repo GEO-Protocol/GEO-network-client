@@ -11,6 +11,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     ResourcesManager *resourcesManager,
     PathsManager *pathsManager,
     Keystore *keystore,
+    bool isPaymentTransactionsAllowedDueToObserving,
     EventsInterface *eventsInterface,
     Logger &log,
     SubsystemsController *subsystemsController)
@@ -39,7 +40,8 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     mPreviousRejectedTrustLinesCount(0),
     mRebuildingAttemptsCount(0),
     mNeighborsKeysProblem(false),
-    mParticipantsKeysProblem(false)
+    mParticipantsKeysProblem(false),
+    mIsPaymentTransactionsAllowedDueToObserving(isPaymentTransactionsAllowedDueToObserving)
 {
     mStep = Stages::Coordinator_Initialization;
     mContractor = make_shared<Contractor>(command->contractorAddresses());
@@ -103,6 +105,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitializationStage()
 {
+    if (!mIsPaymentTransactionsAllowedDueToObserving) {
+        warning() << "It is forbid to run payment transactions due to observing";
+        return resultForbiddenRunDueObserving();
+    }
     if (!mSubsystemsController->isRunPaymentTransactions()) {
         debug() << "It is forbidden run payment transactions";
         return resultForbiddenRun();
@@ -172,7 +178,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
         mEquivalent,
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
-        mCommand->amount());
+        mCommand->amount(),
+        "receiver payload");
 
     mStep = Stages::Coordinator_ReceiverResponseProcessing;
     // delay 4 = 6sec for message delivery guarantee
@@ -1427,7 +1434,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultOK()
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultForbiddenRun()
 {
-    string transactionUUID = mTransactionUUID.stringUUID();
+    return transactionResultFromCommand(
+        mCommand->responseForbiddenRunTransaction());
+}
+
+TransactionResult::SharedConst CoordinatorPaymentTransaction::resultForbiddenRunDueObserving()
+{
     return transactionResultFromCommand(
         mCommand->responseForbiddenRunTransaction());
 }
@@ -2044,11 +2056,12 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory(
     ioTransaction->historyStorage()->savePaymentRecord(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
-            PaymentRecord::PaymentOperationType::OutgoingPaymentType,
+            PaymentRecord::OutgoingPaymentType,
             mContractor,
             mCommittedAmount,
             *mTrustLinesManager->totalBalance().get(),
-            mCommand->UUID()),
+            mCommand->UUID(),
+            "coord payload"),
         mEquivalent);
     debug() << "Operation saved";
 }

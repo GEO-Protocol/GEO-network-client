@@ -134,3 +134,9 @@ CommandResult::SharedConst BaseUserCommand::responseEquivalentIsAbsent() const
     return makeResult(604);
 }
 
+CommandResult::SharedConst BaseUserCommand::responseForbiddenRunDueObservingTransaction() const
+    noexcept
+{
+    return makeResult(605);
+}
+

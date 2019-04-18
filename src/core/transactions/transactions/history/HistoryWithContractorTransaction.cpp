@@ -60,7 +60,8 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
                    << kTokensSeparator << kUnixTimestampMicrosec
                    << kTokensSeparator << formattedOperationType
                    << kTokensSeparator << paymentRecord->amount()
-                   << kTokensSeparator << paymentRecord->balanceAfterOperation();
+                   << kTokensSeparator << paymentRecord->balanceAfterOperation()
+                   << kTokensSeparator << paymentRecord->payload();
 
         } else if (kRecord->isTrustLineRecord()) {
             formattedRecordType = "trustline";
