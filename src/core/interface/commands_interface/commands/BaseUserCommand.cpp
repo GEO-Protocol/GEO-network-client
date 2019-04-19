@@ -1,12 +1,6 @@
 #include "BaseUserCommand.h"
 
 BaseUserCommand::BaseUserCommand(
-    const string& identifier) :
-
-    mCommandIdentifier(identifier)
-{}
-
-BaseUserCommand::BaseUserCommand(
     const CommandUUID &commandUUID,
     const string &identifier) :
 

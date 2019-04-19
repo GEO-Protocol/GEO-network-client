@@ -87,7 +87,7 @@ private:
 
     inline pair<bool, BaseUserCommand::Shared> commandError(
         const CommandUUID &uuid,
-        const string &buffer,
+        const string &identifier,
         const string &str);
 
     void cutBufferUpToNextCommand();

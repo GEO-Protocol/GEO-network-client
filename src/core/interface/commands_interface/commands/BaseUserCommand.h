@@ -31,9 +31,6 @@ public:
     typedef shared_ptr<BaseUserCommand> Shared;
 public:
     BaseUserCommand(
-        const string& identifier);
-
-    BaseUserCommand(
         const CommandUUID &commandUUID,
         const string& identifier);
 

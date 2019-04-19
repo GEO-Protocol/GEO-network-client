@@ -18,6 +18,16 @@ public:
 
     inline const string &error() const { return mError; }
 
+    CommandResult::SharedConst responseError() const
+    {
+        return CommandResult::SharedConst(
+            new CommandResult(
+                identifier(),
+                UUID(),
+                605,
+                mError));
+    }
+
 protected:
     std::string mError;
 };

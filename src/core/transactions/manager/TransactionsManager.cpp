@@ -239,12 +239,7 @@ void TransactionsManager::processCommand(
 {
     if(!success and command) {
         return onCommandResultReady(
-            make_shared<const CommandResult>(
-                command->identifier(),
-                command->UUID(),
-                501,
-                ((ErrorUserCommand *)command.get())->error())
-        );
+            ((ErrorUserCommand *)command.get())->responseError());
     }
 
     // ToDo: sort calls in the call probability order.
