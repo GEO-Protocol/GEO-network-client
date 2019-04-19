@@ -156,6 +156,17 @@ DateTime TopologyCacheManager::closestTimeEvent() const
             result = utc_now() + kResetSenderCacheDuration();
         }
     }
+
+    if (!mFirstLvCacheList.empty()) {
+        auto nodeIdAndTime = mFirstLvCacheList.cbegin();
+        if ((*nodeIdAndTime)->second + kResetFirstLvCacheDuration() < result) {
+            result = (*nodeIdAndTime)->second + kResetFirstLvCacheDuration();
+        }
+    } else {
+        if (utc_now() + kResetFirstLvCacheDuration() < result) {
+            result = utc_now() + kResetFirstLvCacheDuration();
+        }
+    }
 #ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "closestTimeEvent " << result;
 #endif
