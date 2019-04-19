@@ -7,22 +7,8 @@ InitChannelCommand::InitChannelCommand(
         commandUUID,
         identifier())
 {
-    /// TEST, REMOVE THIS BLOCK
-    auto testSeparatorIdx = command.find("_");
-    if(testSeparatorIdx != string::npos) {
-        char temp[1024];
-        strcpy(temp, command.substr(testSeparatorIdx + 1).c_str());
-        if(temp[strlen(temp)-1] == '\n')
-            temp[strlen(temp)-1] = '\0';
-        mCryptoKey = temp;
-        ((char *)command.c_str())[testSeparatorIdx] = '\n';
-        ((char *)command.c_str())[testSeparatorIdx+1] = '\0';
-    }
-    ///
-
     std::string address, addressType;
     uint32_t addressesCount;
-    uint32_t dummy;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator) {
             throw ValueError("InitChannelCommand: there is no input ");
@@ -56,7 +42,7 @@ InitChannelCommand::InitChannelCommand(
         address.erase();
     };
     auto cryptoKeyParse = [&](auto &ctx) {
-        mCryptoKey = _attr(ctx);
+        mCryptoKey += _attr(ctx);
     };
 
     try {
@@ -83,12 +69,11 @@ InitChannelCommand::InitChannelCommand(
                     addressAddNumber,
                     addressTypeParse,
                     addressAddToVector)
-                > -(int_[cryptoKeyParse] > eol)
-                > eoi);
+            > -(+(char_[cryptoKeyParse] - eol) > eol)
+            > eoi);
 
     } catch(...) {
-        /// TEST, UNCOMMENT THIS LINE
-        //throw ValueError("InitChannelCommand: can't parse command.");
+        throw ValueError("InitChannelCommand: can't parse command.");
     }
 }
 
