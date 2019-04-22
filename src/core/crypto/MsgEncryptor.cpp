@@ -1,4 +1,5 @@
 #include "MsgEncryptor.h"
+#include "../network/messages/Message.hpp"
 
 MsgEncryptor::KeyTrio::Shared MsgEncryptor::generateKeyTrio(
     const string &outputKey)
@@ -15,7 +16,7 @@ MsgEncryptor::KeyTrio::Shared MsgEncryptor::generateKeyTrio(
 }
 
 ByteEncryptor::Buffer MsgEncryptor::encrypt(
-    Message::Shared message)
+    MessageShared message)
 {
     auto bytesAndBytesCount = message->serializeToBytes();
     auto pair = ByteEncryptor::encrypt(
@@ -89,8 +90,13 @@ MsgEncryptor::KeyTrio::KeyTrio(
     publicKey = std::make_shared<PublicKey>(p1);
 }
 
+MsgEncryptor::KeyTrio::KeyTrio(vector<byte> &in)
+{
+    deserialize(in);
+}
+
 void MsgEncryptor::KeyTrio::deserialize(
-    const vector<byte> &in)
+    vector<byte> &in)
 {
     uint32_t pairSize = PublicKey::kBytesSize + SecretKey::kBytesSize;
     const byte *p = &in[0];

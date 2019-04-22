@@ -2,22 +2,24 @@
 #define GEO_NETWORK_CLIENT_MSGENCRYPTOR_H
 
 #include "ByteEncryptor.h"
-#include "../network/messages/Message.hpp"
+
+class Message;
 
 class MsgEncryptor : public ByteEncryptor {
 public:
+    typedef shared_ptr<Message> MessageShared;
+
     struct KeyTrio : KeyPair {
         typedef std::shared_ptr<KeyTrio> Shared;
         KeyTrio();
-        KeyTrio(const string &str);
-        KeyTrio(const vector<byte> &in) { deserialize(in); }
+        explicit KeyTrio(const string &str);
+        explicit KeyTrio(vector<byte> &in);
         void serialize(vector<byte> &out) const;
-        void deserialize(const vector<byte> &in);
+        void deserialize(vector<byte> &in);
         PublicKey::Shared contractorPublicKey = nullptr;
     };
 
 public:
-    MsgEncryptor();
     using ByteEncryptor::ByteEncryptor;
 
 public:
@@ -25,7 +27,7 @@ public:
         const string &contractorPublicKey = "");
 
 public:
-    Buffer encrypt(Message::Shared message);
+    Buffer encrypt(MessageShared message);
     Buffer decrypt(
         BytesShared buffer,
         const size_t count);

@@ -12,7 +12,9 @@ InitChannelMessage::InitChannelMessage(
         transactionUUID),
     mContractorID(contractor->getID()),
     mPublicKey(contractor->cryptoKey()->publicKey)
-{}
+{
+    encrypt(contractor);
+}
 
 InitChannelMessage::InitChannelMessage(
     BytesShared buffer)
