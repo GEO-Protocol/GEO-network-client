@@ -11,7 +11,7 @@ InitChannelMessage::InitChannelMessage(
         senderAddresses,
         transactionUUID),
     mContractorID(contractor->getID()),
-    mPublicKey(contractor->cryptoKey().publicKey)
+    mPublicKey(contractor->cryptoKey()->publicKey)
 {}
 
 InitChannelMessage::InitChannelMessage(
@@ -48,7 +48,7 @@ noexcept
     return mContractorID;
 }
 
-const MsgEncryptor::PublicKeyShared InitChannelMessage::publicKey() const
+const MsgEncryptor::PublicKey::Shared InitChannelMessage::publicKey() const
 noexcept
 {
     return mPublicKey;

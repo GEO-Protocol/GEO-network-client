@@ -95,14 +95,18 @@ Contractor::Shared ContractorsManager::createContractor(
 void ContractorsManager::setCryptoKey(
     IOTransaction::Shared ioTransaction,
     ContractorID contractorID,
-    MsgEncryptor::PublicKeyShared cryptoKey)
+    MsgEncryptor::PublicKey::Shared cryptoKey)
 {
     if (!contractorPresent(contractorID)) {
         throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
     }
 
     auto contractor = mContractors[contractorID];
-    contractor->cryptoKey().contractorPublicKey = cryptoKey;
+    if (!contractor->cryptoKey()) {
+        throw NotFoundError(logHeader() + " This contractor does not support encryption " + to_string(contractorID));
+    }
+
+    contractor->cryptoKey()->contractorPublicKey = cryptoKey;
     ioTransaction->contractorsHandler()->saveCryptoKey(contractor);
 }
 

@@ -33,8 +33,8 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
             if (contractorID != std::numeric_limits<ContractorID>::max()) {
                 auto contractor = mContractorsManager->contractor(contractorID);
                 auto pair = MsgEncryptor(
-                    contractor->cryptoKey().publicKey,
-                    contractor->cryptoKey().secretKey
+                    contractor->cryptoKey()->publicKey,
+                    contractor->cryptoKey()->secretKey
                 ).decrypt(buffer, count);
                 buffer = pair.first;
             }

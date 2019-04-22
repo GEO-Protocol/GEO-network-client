@@ -3,7 +3,7 @@
 Contractor::Contractor(
     ContractorID id,
     vector<BaseAddress::Shared> &addresses,
-    const MsgEncryptor::KeyTrio &cryptoKey) :
+    const MsgEncryptor::KeyTrio::Shared &cryptoKey) :
     mID(id),
     mCryptoKey(cryptoKey),
     mAddresses(addresses),
@@ -13,7 +13,7 @@ Contractor::Contractor(
 Contractor::Contractor(
     ContractorID id,
     ContractorID idOnContractorSide,
-    const MsgEncryptor::KeyTrio &cryptoKey,
+    const MsgEncryptor::KeyTrio::Shared &cryptoKey,
     bool isConfirmed) :
     mID(id),
     mOwnIdOnContractorSide(idOnContractorSide),
@@ -63,7 +63,7 @@ void Contractor::setOwnIdOnContractorSide(
     mOwnIdOnContractorSide = id;
 }
 
-MsgEncryptor::KeyTrio &Contractor::cryptoKey()
+MsgEncryptor::KeyTrio::Shared Contractor::cryptoKey()
 {
     return mCryptoKey;
 }

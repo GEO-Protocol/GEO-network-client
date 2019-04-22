@@ -7,12 +7,13 @@
 class MsgEncryptor : public ByteEncryptor {
 public:
     struct KeyTrio : KeyPair {
+        typedef std::shared_ptr<KeyTrio> Shared;
         KeyTrio();
         KeyTrio(const string &str);
-        KeyTrio(const vector<uint8_t> &in) { deserialize(in); }
-        void serialize(vector<uint8_t> &out) const;
-        void deserialize(const vector<uint8_t> &in);
-        PublicKeyShared contractorPublicKey = NULL;
+        KeyTrio(const vector<byte> &in) { deserialize(in); }
+        void serialize(vector<byte> &out) const;
+        void deserialize(const vector<byte> &in);
+        PublicKey::Shared contractorPublicKey = nullptr;
     };
 
 public:
@@ -20,7 +21,7 @@ public:
     using ByteEncryptor::ByteEncryptor;
 
 public:
-    static KeyTrio generateKeyTrio(
+    static KeyTrio::Shared generateKeyTrio(
         const string &contractorPublicKey = "");
 
 public:

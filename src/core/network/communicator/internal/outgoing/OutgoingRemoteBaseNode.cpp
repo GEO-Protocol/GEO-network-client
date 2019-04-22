@@ -84,7 +84,7 @@ MsgEncryptor::Buffer OutgoingRemoteBaseNode::preprocessMessage(
         return message->serializeToBytes();
     }
     return MsgEncryptor(
-        mContractorsManager->contractor(message->contractorId())->cryptoKey().contractorPublicKey
+        mContractorsManager->contractor(message->contractorId())->cryptoKey()->contractorPublicKey
     ).encrypt(message);
 }
 

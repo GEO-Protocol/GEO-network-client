@@ -1,18 +1,15 @@
 #include "MsgEncryptor.h"
 
-MsgEncryptor::MsgEncryptor() :
-    ByteEncryptor(
-        defaultKeyPair().publicKey,
-        defaultKeyPair().secretKey)
-{}
-
-MsgEncryptor::KeyTrio MsgEncryptor::generateKeyTrio(
+MsgEncryptor::KeyTrio::Shared MsgEncryptor::generateKeyTrio(
     const string &outputKey)
 {
-    MsgEncryptor::KeyTrio keyTrio;
-    (ByteEncryptor::KeyPair &)keyTrio = generateKeyPair();
+    KeyTrio::Shared keyTrio = make_shared<KeyTrio>();
+    auto keyPair = generateKeyPair();
+    keyTrio->publicKey = keyPair->publicKey;
+    keyTrio->secretKey = keyPair->secretKey;
+
     if(!outputKey.empty()) {
-        keyTrio.contractorPublicKey = std::make_shared<PublicKey>(outputKey);
+        keyTrio->contractorPublicKey = std::make_shared<PublicKey>(outputKey);
     }
     return keyTrio;
 }
@@ -48,25 +45,25 @@ ByteEncryptor::Buffer MsgEncryptor::decrypt(
 }
 
 void MsgEncryptor::KeyTrio::serialize(
-    vector<uint8_t> &out) const
+    vector<byte> &out) const
 {
-    out.resize(crypto_box_PUBLICKEYBYTES * 2 + crypto_box_SECRETKEYBYTES);
-    uint8_t *p = &out[0];
+    out.resize(PublicKey::kBytesSize * 2 + SecretKey::kBytesSize);
+    byte *p = &out[0];
     mempcpy(
         p,
         publicKey->key,
-        crypto_box_PUBLICKEYBYTES);
-    p += crypto_box_PUBLICKEYBYTES;
+        PublicKey::kBytesSize);
+    p += PublicKey::kBytesSize;
     mempcpy(
         p,
         secretKey->key,
-        crypto_box_SECRETKEYBYTES);
-    p += crypto_box_SECRETKEYBYTES;
+        SecretKey::kBytesSize);
+    p += SecretKey::kBytesSize;
     if(contractorPublicKey) {
         mempcpy(
             p,
             contractorPublicKey->key,
-            crypto_box_PUBLICKEYBYTES);
+            PublicKey::kBytesSize);
     }
 }
 
@@ -93,32 +90,32 @@ MsgEncryptor::KeyTrio::KeyTrio(
 }
 
 void MsgEncryptor::KeyTrio::deserialize(
-    const vector<uint8_t> &in)
+    const vector<byte> &in)
 {
-    uint32_t pairSize = crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES;
-    const uint8_t *p = &in[0];
-    if(in.size() >= crypto_box_PUBLICKEYBYTES) {
+    uint32_t pairSize = PublicKey::kBytesSize + SecretKey::kBytesSize;
+    const byte *p = &in[0];
+    if(in.size() >= PublicKey::kBytesSize) {
         publicKey = std::make_shared<PublicKey>();
         mempcpy(
             publicKey->key,
             p,
-            crypto_box_PUBLICKEYBYTES);
-        p += crypto_box_PUBLICKEYBYTES;
+            PublicKey::kBytesSize);
+        p += PublicKey::kBytesSize;
     }
     if(in.size() >= pairSize) {
         secretKey = std::make_shared<SecretKey>();
         mempcpy(
             secretKey->key,
             p,
-            crypto_box_SECRETKEYBYTES);
-        p += crypto_box_SECRETKEYBYTES;
+            SecretKey::kBytesSize);
+        p += SecretKey::kBytesSize;
     }
-    if(in.size() > (pairSize + crypto_box_PUBLICKEYBYTES)) {
+    if(in.size() > (pairSize + PublicKey::kBytesSize)) {
         contractorPublicKey = std::make_shared<PublicKey>();
         mempcpy(
             contractorPublicKey->key,
             p,
-            crypto_box_PUBLICKEYBYTES);
+            PublicKey::kBytesSize);
     }
 }
 

@@ -26,7 +26,7 @@ public:
     const ContractorID contractorID() const
     noexcept;
 
-    const MsgEncryptor::PublicKeyShared publicKey() const
+    const MsgEncryptor::PublicKey::Shared publicKey() const
     noexcept;
 
     const bool isAddToConfirmationRequiredMessagesHandler() const override;
@@ -35,7 +35,7 @@ public:
 
 protected:
     ContractorID mContractorID;
-    MsgEncryptor::PublicKeyShared mPublicKey;
+    MsgEncryptor::PublicKey::Shared mPublicKey;
 };
 
 

@@ -34,7 +34,7 @@ TransactionResult::SharedConst InitChannelTransaction::run()
                 ioTransaction,
                 mCommand->contractorAddresses());
             info() << "Init channel to contractor with ID " << mContractor->getID()
-                   << " and crypto key " << *mContractor->cryptoKey().publicKey;
+                   << " and crypto key " << *mContractor->cryptoKey()->publicKey;
         } else {
             info() << "Channel crypto key: " << mCommand->cryptoKey();
             mContractor = mContractorsManager->createContractor(
@@ -64,7 +64,7 @@ TransactionResult::SharedConst InitChannelTransaction::run()
 TransactionResult::SharedConst InitChannelTransaction::resultOK()
 {
     stringstream ss;
-    ss << mContractor->getID() << kTokensSeparator << *mContractor->cryptoKey().publicKey;
+    ss << mContractor->getID() << kTokensSeparator << *mContractor->cryptoKey()->publicKey;
     auto channelInfo = ss.str();
     return transactionResultFromCommand(
         mCommand->responseOk(channelInfo));

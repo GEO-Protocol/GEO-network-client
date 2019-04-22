@@ -44,7 +44,7 @@ public:
     void setCryptoKey(
         IOTransaction::Shared ioTransaction,
         ContractorID contractorID,
-        MsgEncryptor::PublicKeyShared cryptoKey);
+        MsgEncryptor::PublicKey::Shared cryptoKey);
 
     vector<BaseAddress::Shared> ownAddresses() const;
 

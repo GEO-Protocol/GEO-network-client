@@ -9,35 +9,38 @@ class ByteEncryptor {
 public:
     typedef pair<BytesShared, size_t> Buffer;
     struct PublicKey {
+        typedef std::shared_ptr<PublicKey> Shared;
+        static const size_t kBytesSize = crypto_box_PUBLICKEYBYTES;
         PublicKey() {}
         PublicKey(const string &str);
-        uint8_t key[crypto_box_PUBLICKEYBYTES];
+        byte key[kBytesSize];
     };
     struct SecretKey {
+        typedef std::shared_ptr<SecretKey> Shared;
+        static const size_t kBytesSize = crypto_box_SECRETKEYBYTES;
         SecretKey() {}
         SecretKey(const string &str);
-        uint8_t key[crypto_box_SECRETKEYBYTES];
+        byte key[kBytesSize];
     };
-    typedef std::shared_ptr<PublicKey> PublicKeyShared;
-    typedef std::shared_ptr<SecretKey> SecretKeyShared;
 
     struct KeyPair {
+        typedef std::shared_ptr<KeyPair> Shared;
         KeyPair() {}
         KeyPair(const string &str);
-        PublicKeyShared publicKey = NULL;
-        SecretKeyShared secretKey = NULL;
+        PublicKey::Shared publicKey = nullptr;
+        SecretKey::Shared secretKey = nullptr;
     };
 
 public:
     explicit ByteEncryptor(
-        const PublicKeyShared &publicKey);
+        const PublicKey::Shared &publicKey);
     ByteEncryptor(
-        const PublicKeyShared &publicKey,
-        const SecretKeyShared &secretKey);
+        const PublicKey::Shared &publicKey,
+        const SecretKey::Shared &secretKey);
 
 public:
-    static KeyPair generateKeyPair();
-    static KeyPair defaultKeyPair();
+    static KeyPair::Shared generateKeyPair();
+    static KeyPair::Shared defaultKeyPair();
 
 public:
     Buffer encrypt(byte *bytes, size_t size, size_t headerSize = 0) const;
@@ -46,8 +49,8 @@ public:
     Buffer decrypt(const Buffer &cipher) const;
 
 protected:
-    PublicKeyShared mPublicKey = NULL;
-    SecretKeyShared mSecretKey = NULL;
+    PublicKey::Shared mPublicKey = nullptr;
+    SecretKey::Shared mSecretKey = nullptr;
 };
 
 std::ostream &operator<< (std::ostream &out, const ByteEncryptor::PublicKey &t);
