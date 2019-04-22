@@ -51,27 +51,22 @@ TransactionResult::SharedConst ConfirmChannelTransaction::run()
             ioTransaction,
             contractorID,
             mMessage->publicKey());
-    } catch (IOError &e) {
-        error() << "Error during saving CryptoKey. Details: " << e.what();
-        ioTransaction->rollback();
-        throw e;
-    }
-    try {
+
         mContractorsManager->setIDOnContractorSide(
             ioTransaction,
             contractorID,
             mMessage->contractorID());
     } catch (IOError &e) {
-        error() << "Error during saving ContractorID. Details: " << e.what();
+        error() << "Error during saving Contractor data. Details: " << e.what();
         ioTransaction->rollback();
         throw e;
     }
     info() << "Channel confirmed";
-    sendMessage<InitChannelMessage>(
+    sendMessage<ConfirmationMessage>(
         contractorID,
-        mContractorsManager->ownAddresses(),
-        mTransactionUUID,
-        *mContractorsManager->contractor(contractorID));
+        mEquivalent,
+        mContractorsManager->idOnContractorSide(contractorID),
+        mTransactionUUID);
     return resultDone();
 }
 

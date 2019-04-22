@@ -42,14 +42,9 @@ noexcept
         }
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        const Message::SerializedType kMessageType =
-            *(reinterpret_cast<Message::SerializedType*>(
-                bytesAndBytesCount.first.get() + sizeof(byte) + sizeof(SerializedProtocolVersion)));
-
         debug()
-            << "Message of type "
-            << static_cast<size_t>(kMessageType)
-            << " postponed for the sending";
+            << "Message of type " << message->typeID() << " encrypted("
+            << message->isEncrypted() <<") postponed for the sending";
 #endif
 
         populateQueueWithNewPackets(
@@ -82,10 +77,14 @@ uint32_t OutgoingRemoteBaseNode::crc32Checksum(
     return result.checksum();
 }
 
-MsgEncryptor::Buffer OutgoingRemoteBaseNode::preprocessMessage(Message::Shared message) const {
-    if(!message->isEncrypted()) return message->serializeToBytes();
+MsgEncryptor::Buffer OutgoingRemoteBaseNode::preprocessMessage(
+    Message::Shared message) const
+{
+    if(!message->isEncrypted()) {
+        return message->serializeToBytes();
+    }
     return MsgEncryptor(
-        mContractorsManager->contractor(message->contractorId())->cryptoKey().outputKey
+        mContractorsManager->contractor(message->contractorId())->cryptoKey().contractorPublicKey
     ).encrypt(message);
 }
 

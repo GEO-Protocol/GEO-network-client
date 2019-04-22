@@ -69,14 +69,16 @@ bool TopologyCacheManager::isInFirstLevelCache(
 void TopologyCacheManager::updateCaches()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "updateCaches\t" << "mCaches size: " << mCaches.size();
-    info() << "updateCaches\t" << "msCaches size: " << msCache.size();
+    debug() << "updateCaches\t" << "mCaches size: " << mCaches.size();
+    debug() << "updateCaches\t" << "msCaches size: " << msCache.size();
+    debug() << "updateCaches\t" << "mFirstLvCache size: " << mFirstLvCache.size();
+    debug() << "updateCaches\t" << "mFirstLvCacheList size: " << mFirstLvCacheList.size();
 #endif
     for (auto &timeAndNodeAddress : msCache) {
         if (utc_now() - timeAndNodeAddress.first > kResetSenderCacheDuration()) {
             auto keyAddress = timeAndNodeAddress.second;
 #ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
-            info() << "updateCaches delete cache\t" << keyAddress->fullAddress();
+            debug() << "updateCaches delete cache\t" << keyAddress->fullAddress();
 #endif
             mCaches.erase(keyAddress->fullAddress());
             msCache.erase(timeAndNodeAddress.first);
@@ -84,10 +86,10 @@ void TopologyCacheManager::updateCaches()
             break;
         }
     }
-    /////////////////////////////////////////////////////////////////////////////////////////////
+
     if (mInitiatorCache.first && utc_now() - mInitiatorCache.second > kResetInitiatorCacheDuration()) {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-        info() << "updateCaches\t" << "reset Initiator cache";
+        debug() << "updateCaches\t" << "reset Initiator cache";
 #endif
         mInitiatorCache.first = false;
     }
@@ -95,9 +97,12 @@ void TopologyCacheManager::updateCaches()
     DateTime now = utc_now();
     for(auto current=mFirstLvCacheList.begin(); current!=mFirstLvCacheList.end(); ) {
         auto &cache = *current;
-        if ((now - cache.get()->second) <= kResetFirstLvCacheDuration()) {
+        if ((now - cache.get()->second) <= kResetSenderCacheDuration()) {
             break;
         }
+#ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
+        debug() << "updateCaches delete first level cache\t" << cache.get()->first;
+#endif
         mFirstLvCache.erase(cache.get()->first);
         current = mFirstLvCacheList.erase(current);
     }
@@ -125,7 +130,7 @@ void TopologyCacheManager::removeCache(
     for (auto &timeAndNodeAddress : msCache) {
         if (timeAndNodeAddress.second == nodeAddress) {
 #ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
-            info() << "removeCache delete cache\t" << timeAndNodeAddress.second->fullAddress();
+            debug() << "removeCache delete cache\t" << timeAndNodeAddress.second->fullAddress();
 #endif
             mCaches.erase(timeAndNodeAddress.second->fullAddress());
             msCache.erase(timeAndNodeAddress.first);
@@ -159,16 +164,16 @@ DateTime TopologyCacheManager::closestTimeEvent() const
 
     if (!mFirstLvCacheList.empty()) {
         auto nodeIdAndTime = mFirstLvCacheList.cbegin();
-        if ((*nodeIdAndTime)->second + kResetFirstLvCacheDuration() < result) {
-            result = (*nodeIdAndTime)->second + kResetFirstLvCacheDuration();
+        if ((*nodeIdAndTime)->second + kResetSenderCacheDuration() < result) {
+            result = (*nodeIdAndTime)->second + kResetSenderCacheDuration();
         }
     } else {
-        if (utc_now() + kResetFirstLvCacheDuration() < result) {
-            result = utc_now() + kResetFirstLvCacheDuration();
+        if (utc_now() + kResetSenderCacheDuration() < result) {
+            result = utc_now() + kResetSenderCacheDuration();
         }
     }
 #ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "closestTimeEvent " << result;
+    debug() << "closestTimeEvent " << result;
 #endif
     return result;
 }
@@ -176,6 +181,11 @@ DateTime TopologyCacheManager::closestTimeEvent() const
 LoggerStream TopologyCacheManager::info() const
 {
     return mLog.info(logHeader());
+}
+
+LoggerStream TopologyCacheManager::debug() const
+{
+    return mLog.debug(logHeader());
 }
 
 LoggerStream TopologyCacheManager::warning() const

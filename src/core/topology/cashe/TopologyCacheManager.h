@@ -44,7 +44,7 @@ public:
 
 private:
     static const byte kResetSenderCacheHours = 0;
-    static const byte kResetSenderCacheMinutes = 10;
+    static const byte kResetSenderCacheMinutes = 2;
     static const byte kResetSenderCacheSeconds = 0;
 
     static Duration& kResetSenderCacheDuration() {
@@ -67,20 +67,10 @@ private:
         return duration;
     }
 
-    static const byte kResetFirstLvCacheHours = 0;
-    static const byte kResetFirstLvCacheMinutes = 10;
-    static const byte kResetFirstLvCacheSeconds = 0;
-
-    static Duration& kResetFirstLvCacheDuration() {
-        static auto duration = Duration(
-            kResetFirstLvCacheHours,
-            kResetFirstLvCacheMinutes,
-            kResetFirstLvCacheSeconds);
-        return duration;
-    }
-
 private:
     LoggerStream info() const;
+
+    LoggerStream debug() const;
 
     LoggerStream warning() const;
 

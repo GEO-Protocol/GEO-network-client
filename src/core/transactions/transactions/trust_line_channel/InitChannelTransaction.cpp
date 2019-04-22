@@ -28,7 +28,7 @@ TransactionResult::SharedConst InitChannelTransaction::run()
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
-        if (mCommand->cryptoKey() == "") {
+        if (mCommand->cryptoKey().empty()) {
             info() << "Channel crypto key generation";
             mContractor = mContractorsManager->createContractor(
                 ioTransaction,
@@ -40,13 +40,15 @@ TransactionResult::SharedConst InitChannelTransaction::run()
             mContractor = mContractorsManager->createContractor(
                 ioTransaction,
                 mCommand->contractorAddresses(),
-                mCommand->cryptoKey());
+                mCommand->cryptoKey(),
+                mCommand->contractorChannelID());
             info() << "Init channel to contractor with ID " << mContractor->getID();
+            info() << "Channel ID on contractor side " << mContractor->ownIdOnContractorSide();
             sendMessage<InitChannelMessage>(
                 mContractor->getID(),
                 mContractorsManager->ownAddresses(),
                 mTransactionUUID,
-                *mContractor);
+                mContractor);
         }
     } catch (ValueError &e) {
         error() << "Can't create channel. Details: " << e.what();

@@ -13,7 +13,7 @@ public:
     InitChannelMessage(
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
-        Contractor &contractor)
+        Contractor::Shared contractor)
         noexcept;
 
     InitChannelMessage(
@@ -21,7 +21,7 @@ public:
         noexcept;
 
     const MessageType typeID() const
-    noexcept;
+    noexcept override;
 
     const ContractorID contractorID() const
     noexcept;

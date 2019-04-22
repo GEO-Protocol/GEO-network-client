@@ -12,7 +12,7 @@ public:
         KeyTrio(const vector<uint8_t> &in) { deserialize(in); }
         void serialize(vector<uint8_t> &out) const;
         void deserialize(const vector<uint8_t> &in);
-        PublicKeyShared outputKey = NULL;
+        PublicKeyShared contractorPublicKey = NULL;
     };
 
 public:
@@ -20,7 +20,8 @@ public:
     using ByteEncryptor::ByteEncryptor;
 
 public:
-    static KeyTrio generateKeyTrio(const string &outputKey = "");
+    static KeyTrio generateKeyTrio(
+        const string &contractorPublicKey = "");
 
 public:
     Buffer encrypt(Message::Shared message);

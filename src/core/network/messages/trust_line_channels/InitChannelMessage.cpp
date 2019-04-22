@@ -3,18 +3,16 @@
 InitChannelMessage::InitChannelMessage(
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
-    Contractor &contractor)
+    Contractor::Shared contractor)
     noexcept:
 
     TransactionMessage(
         0,
         senderAddresses,
         transactionUUID),
-    mContractorID(contractor.getID()),
-    mPublicKey(contractor.cryptoKey().publicKey)
-{
-    encrypt(mContractorID);
-}
+    mContractorID(contractor->getID()),
+    mPublicKey(contractor->cryptoKey().publicKey)
+{}
 
 InitChannelMessage::InitChannelMessage(
     BytesShared buffer)

@@ -44,6 +44,9 @@ InitChannelCommand::InitChannelCommand(
     auto cryptoKeyParse = [&](auto &ctx) {
         mCryptoKey += _attr(ctx);
     };
+    auto contractorChannelIDParse = [&](auto &ctx) {
+        mContractorChannelID = _attr(ctx);
+    };
 
     try {
         parse(
@@ -69,7 +72,9 @@ InitChannelCommand::InitChannelCommand(
                     addressAddNumber,
                     addressTypeParse,
                     addressAddToVector)
-            > -(+(char_[cryptoKeyParse] - eol) > eol)
+            > -(+(char_[cryptoKeyParse] - char_(kTokensSeparator))
+                > char_(kTokensSeparator)
+                > +(int_[contractorChannelIDParse]) > eol)
             > eoi);
 
     } catch(...) {
@@ -93,6 +98,11 @@ noexcept
 const string &InitChannelCommand::cryptoKey() const
 {
     return mCryptoKey;
+}
+
+const ContractorID InitChannelCommand::contractorChannelID() const
+{
+    return mContractorChannelID;
 }
 
 CommandResult::SharedConst InitChannelCommand::responseOk(

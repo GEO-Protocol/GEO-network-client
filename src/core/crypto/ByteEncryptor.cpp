@@ -12,7 +12,8 @@ ByteEncryptor::ByteEncryptor(
     mSecretKey(secretKey)
 {}
 
-ByteEncryptor::KeyPair ByteEncryptor::generateKeyPair() {
+ByteEncryptor::KeyPair ByteEncryptor::generateKeyPair()
+{
     ByteEncryptor::KeyPair keyPair;
     keyPair.publicKey = std::make_shared<PublicKey>();
     keyPair.secretKey = std::make_shared<SecretKey>();
@@ -22,7 +23,8 @@ ByteEncryptor::KeyPair ByteEncryptor::generateKeyPair() {
     return keyPair;
 }
 
-ByteEncryptor::KeyPair ByteEncryptor::defaultKeyPair() {
+ByteEncryptor::KeyPair ByteEncryptor::defaultKeyPair()
+{
     ByteEncryptor::KeyPair keyPair;
     keyPair.publicKey = std::make_shared<PublicKey>();
     keyPair.secretKey = std::make_shared<SecretKey>();
@@ -33,13 +35,18 @@ ByteEncryptor::KeyPair ByteEncryptor::defaultKeyPair() {
     return keyPair;
 }
 
-ByteEncryptor::Buffer ByteEncryptor::encrypt(byte *bytes, size_t size, size_t headerSize) const {
-    if(!mPublicKey) ByteEncryptor::Buffer(NULL, 0);
+ByteEncryptor::Buffer ByteEncryptor::encrypt(
+    byte *bytes,
+    size_t size,
+    size_t headerSize) const
+{
+    if(!mPublicKey) {
+        ByteEncryptor::Buffer(NULL, 0);
+    }
     size_t len = size + crypto_box_SEALBYTES + headerSize;
     ByteEncryptor::Buffer cipher(
         tryMalloc(len),
-        len
-    );
+        len);
     crypto_box_seal(
         cipher.first.get() + headerSize,
         bytes,
@@ -48,13 +55,18 @@ ByteEncryptor::Buffer ByteEncryptor::encrypt(byte *bytes, size_t size, size_t he
     return cipher;
 }
 
-ByteEncryptor::Buffer ByteEncryptor::decrypt(byte *cipher, size_t size, size_t headerSize) const {
-    if(!mPublicKey || !mSecretKey) ByteEncryptor::Buffer(NULL, 0);
+ByteEncryptor::Buffer ByteEncryptor::decrypt(
+    byte *cipher,
+    size_t size,
+    size_t headerSize) const
+{
+    if(!mPublicKey || !mSecretKey) {
+        ByteEncryptor::Buffer(NULL, 0);
+    }
     size_t len = (size - crypto_box_SEALBYTES) + headerSize;
     ByteEncryptor::Buffer bytes(
         tryMalloc(len),
-        len
-    );
+        len);
     auto result = crypto_box_seal_open(
         bytes.first.get() + headerSize,
         cipher,
@@ -66,15 +78,26 @@ ByteEncryptor::Buffer ByteEncryptor::decrypt(byte *cipher, size_t size, size_t h
         bytes;
 }
 
-ByteEncryptor::Buffer ByteEncryptor::encrypt(const ByteEncryptor::Buffer &bytes) const {
-    return encrypt(bytes.first.get(), bytes.second);
+ByteEncryptor::Buffer ByteEncryptor::encrypt(
+    const ByteEncryptor::Buffer &bytes) const
+{
+    return encrypt(
+        bytes.first.get(),
+        bytes.second);
 }
 
-ByteEncryptor::Buffer ByteEncryptor::decrypt(const ByteEncryptor::Buffer &cipher) const {
-    return decrypt(cipher.first.get(), cipher.second);
+ByteEncryptor::Buffer ByteEncryptor::decrypt(
+    const ByteEncryptor::Buffer &cipher) const
+{
+    return decrypt(
+        cipher.first.get(),
+        cipher.second);
 }
 
-static void parseHex(uint8_t *out, const string &in) {
+static void parseHex(
+    uint8_t *out,
+    const string &in)
+{
     char b[3], i=0; b[2] = '\0';
     for(const char *p=in.c_str(),*e=p+in.length(); p<e; p+=2,++i) {
         memcpy(b, p, 2);
@@ -82,20 +105,27 @@ static void parseHex(uint8_t *out, const string &in) {
     }
 }
 
-std::string ByteEncryptor_parsePar(std::string &par, const std::string &separator) {
+std::string ByteEncryptor_parsePar(
+    std::string &par,
+    const std::string &separator)
+{
     if(par.find(separator) != std::string::npos) {
-        std::string options = par.substr(par.find(separator)+1).c_str();
+        std::string options = par.substr(par.find(separator)+1);
         par = par.substr(0, par.find(separator));
         return options;
     }
     return "";
 }
 
-ByteEncryptor::PublicKey::PublicKey(const string &str) {
+ByteEncryptor::PublicKey::PublicKey(
+    const string &str)
+{
     parseHex(key, str);
 }
 
-ByteEncryptor::SecretKey::SecretKey(const string &str) {
+ByteEncryptor::SecretKey::SecretKey(
+    const string &str)
+{
     parseHex(key, str);
 }
 
@@ -103,7 +133,10 @@ ByteEncryptor::KeyPair::KeyPair(const string &str) {
     ;
 }
 
-std::ostream &operator<< (std::ostream &out, const ByteEncryptor::PublicKey &t) {
+std::ostream &operator<< (
+    std::ostream &out,
+    const ByteEncryptor::PublicKey &t)
+{
     std::stringstream ss;
     char buf[4];
     for(uint32_t i=0; i<crypto_box_PUBLICKEYBYTES; ++i) {
@@ -112,7 +145,11 @@ std::ostream &operator<< (std::ostream &out, const ByteEncryptor::PublicKey &t) 
     }
     return (out << ss.str());
 }
-std::ostream &operator<< (std::ostream &out, const ByteEncryptor::SecretKey &t) {
+
+std::ostream &operator<< (
+    std::ostream &out,
+    const ByteEncryptor::SecretKey &t)
+{
     std::stringstream ss;
     char buf[4];
     for(uint32_t i=0; i<crypto_box_SECRETKEYBYTES; ++i) {
@@ -121,7 +158,11 @@ std::ostream &operator<< (std::ostream &out, const ByteEncryptor::SecretKey &t) 
     }
     return (out << ss.str());
 }
-std::ostream &operator<< (std::ostream &out, const ByteEncryptor::KeyPair &t) {
+
+std::ostream &operator<< (
+    std::ostream &out,
+    const ByteEncryptor::KeyPair &t)
+{
     out << *t.publicKey
         << "_"
         << *t.secretKey;
