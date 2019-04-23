@@ -24,23 +24,8 @@ public:
         const PaymentRecord::PaymentOperationType operationType,
         Contractor::Shared contractor,
         const TrustLineAmount &amount,
-        const TrustLineBalance &balanceAfterOperation);
-
-    PaymentRecord(
-        const TransactionUUID &operationUUID,
-        const PaymentRecord::PaymentOperationType operationType,
-        Contractor::Shared contractor,
-        const TrustLineAmount &amount,
         const TrustLineBalance &balanceAfterOperation,
-        const GEOEpochTimestamp geoEpochTimestamp);
-
-    PaymentRecord(
-        const TransactionUUID &operationUUID,
-        const PaymentRecord::PaymentOperationType operationType,
-        Contractor::Shared contractor,
-        const TrustLineAmount &amount,
-        const TrustLineBalance &balanceAfterOperation,
-        const CommandUUID &commandUUID);
+        const string payload = "");
 
     PaymentRecord(
         const TransactionUUID &operationUUID,
@@ -49,7 +34,12 @@ public:
         const TrustLineAmount &amount,
         const TrustLineBalance &balanceAfterOperation,
         const CommandUUID &commandUUID,
-        const GEOEpochTimestamp geoEpochTimestamp);
+        const string payload = "");
+
+    PaymentRecord(
+        const TransactionUUID &operationUUID,
+        const GEOEpochTimestamp geoEpochTimestamp,
+        BytesShared recordBody);
 
     const PaymentOperationType paymentOperationType() const;
 
@@ -59,7 +49,9 @@ public:
 
     const CommandUUID &commandUUID() const;
 
-    const bool isPaymentRecord() const;
+    const string payload() const;
+
+    const bool isPaymentRecord() const override;
 
     pair<BytesShared, size_t> serializedHistoryRecordBody() const override;
 
@@ -68,6 +60,7 @@ private:
     TrustLineAmount mAmount;
     TrustLineBalance mBalanceAfterOperation;
     CommandUUID mCommandUUID;
+    string mPayload;
 };
 
 #endif //GEO_NETWORK_CLIENT_PAYMENTRECORD_H

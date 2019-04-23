@@ -37,16 +37,14 @@ public:
 
     TrustLineRecord(
         const TransactionUUID &operationUUID,
-        const TrustLineRecord::TrustLineOperationType operationType,
-        Contractor::Shared contractor,
-        const TrustLineAmount &amount,
-        const GEOEpochTimestamp geoEpochTimestamp);
+        const GEOEpochTimestamp geoEpochTimestamp,
+        BytesShared recordBody);
 
     const TrustLineOperationType trustLineOperationType() const;
 
     const TrustLineAmount amount() const;
 
-    const bool isTrustLineRecord() const;
+    const bool isTrustLineRecord() const override;
 
     pair<BytesShared, size_t> serializedHistoryRecordBody() const override;
 

@@ -15,18 +15,26 @@ PaymentAdditionalRecord::PaymentAdditionalRecord(
 
 PaymentAdditionalRecord::PaymentAdditionalRecord(
     const TransactionUUID &operationUUID,
-    const PaymentAdditionalOperationType operationType,
-    const TrustLineAmount &amount,
-    const GEOEpochTimestamp geoEpochTimestamp):
-
+    const GEOEpochTimestamp geoEpochTimestamp,
+    BytesShared recordBody) :
     Record(
         Record::PaymentAdditionalRecordType,
         operationUUID,
-        nullptr,
-        geoEpochTimestamp),
-    mPaymentOperationType(operationType),
-    mAmount(amount)
-{}
+        geoEpochTimestamp)
+{
+    size_t dataBufferOffset = 0;
+    auto operationType
+        = new (recordBody.get() + dataBufferOffset) PaymentAdditionalRecord::SerializedPaymentOperationType;
+    dataBufferOffset += sizeof(
+        PaymentAdditionalRecord::SerializedPaymentOperationType);
+    mPaymentOperationType = (PaymentAdditionalOperationType)*operationType;
+
+    vector<byte> amountBytes(
+        recordBody.get() + dataBufferOffset,
+        recordBody.get() + dataBufferOffset + kTrustLineAmountBytesCount);
+    mAmount = bytesToTrustLineAmount(
+        amountBytes);
+}
 
 const PaymentAdditionalRecord::PaymentAdditionalOperationType PaymentAdditionalRecord::operationType() const
 {

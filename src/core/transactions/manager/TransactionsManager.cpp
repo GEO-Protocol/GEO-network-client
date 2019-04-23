@@ -234,8 +234,14 @@ BasePaymentTransaction::Shared TransactionsManager::deserializePaymentTransactio
 }
 
 void TransactionsManager::processCommand(
+    bool success,
     BaseUserCommand::Shared command)
 {
+    if(!success and command) {
+        return onCommandResultReady(
+            ((ErrorUserCommand *)command.get())->responseError());
+    }
+
     // ToDo: sort calls in the call probability order.
     // For example, max flows calculations would be called much often, then credit usage transactions.
     // So, why we are checking trust lines commands first, and max flow is only in the middle of the check sequence?
@@ -877,6 +883,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mLog,
                 mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent())),
             false,
@@ -903,6 +910,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
                 message,
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+                mEquivalentsSubsystemsRouter->topologyCacheManager(message->equivalent()),
                 mLog,
                 mEquivalentsSubsystemsRouter->iAmGateway(message->equivalent())),
             false,
@@ -973,11 +981,6 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
 void TransactionsManager::launchCoordinatorPaymentTransaction(
     CreditUsageCommand::Shared command)
 {
-    if (!isPaymentTransactionsAllowedDueToObserving) {
-        warning() << "It is forbid to run payment transactions due to observing";
-        // todo : inform about fail as result
-        return;
-    }
     try {
         auto transaction = make_shared<CoordinatorPaymentTransaction>(
             command,
@@ -990,6 +993,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mResourcesManager,
             mEquivalentsSubsystemsRouter->pathsManager(command->equivalent()),
             mKeysStore,
+            isPaymentTransactionsAllowedDueToObserving,
             mEventsInterface,
             mLog,
             mSubsystemsController);

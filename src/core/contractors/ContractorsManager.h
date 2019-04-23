@@ -21,7 +21,8 @@ public:
     Contractor::Shared createContractor(
         IOTransaction::Shared ioTransaction,
         vector<BaseAddress::Shared> contractorAddresses,
-        uint32_t cryptoKey = 0);
+        const string &cryptoKey = "",
+        const ContractorID channelIDOnContractorSide = 0);
 
     bool contractorPresent(
         ContractorID contractorID) const;
@@ -39,6 +40,11 @@ public:
         IOTransaction::Shared ioTransaction,
         ContractorID id,
         ContractorID idOnContractorSide);
+
+    void setCryptoKey(
+        IOTransaction::Shared ioTransaction,
+        ContractorID contractorID,
+        MsgEncryptor::PublicKey::Shared cryptoKey);
 
     vector<BaseAddress::Shared> ownAddresses() const;
 

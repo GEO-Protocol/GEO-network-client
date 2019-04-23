@@ -26,6 +26,9 @@ set(SOURCE_FILES
         internal/incoming/MessageParser.cpp
 
         # Outgoing
+        internal/outgoing/OutgoingRemoteBaseNode.h
+        internal/outgoing/OutgoingRemoteBaseNode.cpp
+
         internal/outgoing/OutgoingMessagesHandler.h
         internal/outgoing/OutgoingMessagesHandler.cpp
 

@@ -44,7 +44,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         lowBoundaryAmount += _attr(ctx);
         mIsLowBoundaryAmountPresent = true;
         flagLow++;
-        if (flagLow == 1 && _attr(ctx) == '0') {
+        if (flagLow > 1 && lowBoundaryAmount[0] == '0') {
             throw ValueError("HistoryPaymentsCommand: amount contains leading zero.");
         }
     };
@@ -55,7 +55,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         highBoundaryAmount += _attr(ctx);
         mIsHighBoundaryAmountPresent = true;
         flagHigh++;
-        if (flagHigh == 1 && _attr(ctx) == '0') {
+        if (flagHigh > 1 && highBoundaryAmount[0] == '0') {
             throw ValueError("HistoryPaymentsCommand: amount contains leading zero.");
         }
     };
@@ -103,32 +103,45 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
                 > char_(kTokensSeparator)
                 > *(int_[historyCountParse])
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[timeFromPresentNull]))
-                > -(int_[timeFromPresentNumber])
+                > (
+                    (parserString::string("null")[timeFromPresentNull]) |
+                    *(int_[timeFromPresentNumber]))
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[timeToPresentNull]))
-                > -(int_[timeToPresentNumber])
+                > (
+                    (parserString::string("null")[timeToPresentNull]) |
+                    *(int_[timeToPresentNumber]))
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[setLowBoundaryAmountNull]))
-                > -(*(digit [lowBoundaryAmountAddNumber] > !alpha > !punct))
+                >(
+                    (parserString::string("null")[setLowBoundaryAmountNull]) |
+                    *(digit [lowBoundaryAmountAddNumber] > !alpha > !punct))
                 > char_(kTokensSeparator)
-                > -(+(char_("null")[setHighBoundaryAmountNull]))
-                > -(*(digit [highBoundaryAmountAddNumber] > !alpha > !punct))
+                >(
+                    (parserString::string("null")[setHighBoundaryAmountNull]) |
+                    *(digit [highBoundaryAmountAddNumber] > !alpha > !punct ))
                 > char_(kTokensSeparator)
-                    > -(+(char_("null")[paymentRecordUUIDNull] >char_(kTokensSeparator)))
-                    > -(UUIDLexeme<
-                            decltype(addUUID8Digits),
-                            decltype(addUUID4Digits),
-                            decltype(addUUID12Digits)>(
-                                    addUUID8Digits,
-                                    addUUID4Digits,
-                                    addUUID12Digits))
-                > int_[equivalentParse]
+                >(
+                    parserString::string("null")[paymentRecordUUIDNull] |
+                    UUIDLexeme<
+                        decltype(addUUID8Digits),
+                        decltype(addUUID4Digits),
+                        decltype(addUUID12Digits)>(
+                            addUUID8Digits,
+                            addUUID4Digits,
+                            addUUID12Digits))
+                > char_(kTokensSeparator)
+                > *(int_[equivalentParse])
                 > eol > eoi));
 
-        mLowBoundaryAmount = TrustLineAmount(lowBoundaryAmount);
-        mHighBoundaryAmount = TrustLineAmount(highBoundaryAmount);
-        mPaymentRecordCommandUUID = boost::lexical_cast<uuids::uuid>(paymentRecordCommandUUID);
+        if(mIsLowBoundaryAmountPresent){
+            mLowBoundaryAmount = TrustLineAmount(lowBoundaryAmount);
+        }
+        if(mIsHighBoundaryAmountPresent){
+            mHighBoundaryAmount = TrustLineAmount(highBoundaryAmount);
+        }
+        if(mIsPaymentRecordCommandUUIDPresent){
+            mPaymentRecordCommandUUID = boost::lexical_cast<uuids::uuid>(paymentRecordCommandUUID);
+        }
+
     } catch(...) {
         throw ValueError("HistoryPaymentsCommand: cannot parse command.");
     }

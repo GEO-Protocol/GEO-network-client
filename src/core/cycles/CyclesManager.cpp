@@ -144,6 +144,8 @@ vector<Path::Shared>* CyclesManager::cyclesVector(
             return &mFiveNodesCycles;
         case CycleClosingState::SixNodes:
             return &mSixNodesCycles;
+        default:
+            throw ValueError("Unexpected Cycle closing state " + to_string(currentCycleClosingState));
     }
 }
 

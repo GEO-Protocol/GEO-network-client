@@ -39,7 +39,7 @@ sqlite3* CommunicatorStorageHandler::connection(
     if (mDBConnection != nullptr)
         return mDBConnection;
     string dataBasePath = directory + "/" + dataBaseName;
-    int rc = sqlite3_open_v2(dataBasePath.c_str(), &mDBConnection, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    int rc = sqlite3_open_v2(dataBasePath.c_str(), &mDBConnection, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
     if (rc == SQLITE_OK) {
     } else {
         throw IOError("CommunicatorStorageHandler::connection "

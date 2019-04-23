@@ -14,6 +14,9 @@ set(SOURCE_FILES
         lamportscheme.cpp
         lamportscheme.h
 
+        ByteEncryptor.cpp
+        ByteEncryptor.h
+
         MsgEncryptor.cpp
         MsgEncryptor.h)
 

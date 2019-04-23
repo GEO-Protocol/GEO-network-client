@@ -1,12 +1,6 @@
 #include "BaseUserCommand.h"
 
 BaseUserCommand::BaseUserCommand(
-    const string& identifier) :
-
-    mCommandIdentifier(identifier)
-{}
-
-BaseUserCommand::BaseUserCommand(
     const CommandUUID &commandUUID,
     const string &identifier) :
 
@@ -132,5 +126,11 @@ CommandResult::SharedConst BaseUserCommand::responseEquivalentIsAbsent() const
     noexcept
 {
     return makeResult(604);
+}
+
+CommandResult::SharedConst BaseUserCommand::responseForbiddenRunDueObservingTransaction() const
+    noexcept
+{
+    return makeResult(605);
 }
 

@@ -36,6 +36,7 @@ public:
         ResourcesManager *resourcesManager,
         PathsManager *pathsManager,
         Keystore *keystore,
+        bool isPaymentTransactionsAllowedDueToObserving,
         EventsInterface *eventsInterface,
         Logger &log,
         SubsystemsController *subsystemsController)
@@ -108,6 +109,7 @@ protected:
     // Results handlers
     TransactionResult::SharedConst resultOK();
     TransactionResult::SharedConst resultForbiddenRun();
+    TransactionResult::SharedConst resultForbiddenRunDueObserving();
     TransactionResult::SharedConst resultNoPathsError();
     TransactionResult::SharedConst resultProtocolError();
     TransactionResult::SharedConst resultNoResponseError();
@@ -269,17 +271,17 @@ protected:
      * @param ioTransaction pointer on database transaction
      */
     void savePaymentOperationIntoHistory(
-        IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction) override;
 
     /**
      * check if reservations on current node are valid before committing
      * (all reservations should be outgoing)
      * @return true if reservations are valid
      */
-    bool checkReservationsDirections() const;
+    bool checkReservationsDirections() const override;
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const override;
 
     /**
      * check if built path is valid before adding it to mPathStats
@@ -357,5 +359,7 @@ protected:
 
     // count failed attempts to connect with Receiver
     uint8_t mCountReceiverInaccessible;
+
+    bool mIsPaymentTransactionsAllowedDueToObserving;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H

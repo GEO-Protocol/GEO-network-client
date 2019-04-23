@@ -30,7 +30,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     mTTLRequestWasSend(false),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr),
-    mBlockNumberObtainingInProcess(false)
+    mBlockNumberObtainingInProcess(false),
+    mPayload("")
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -65,7 +66,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     mTTLRequestWasSend(false),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr),
-    mBlockNumberObtainingInProcess(false)
+    mBlockNumberObtainingInProcess(false),
+    mPayload("")
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -223,6 +225,17 @@ BasePaymentTransaction::BasePaymentTransaction(
         &mMaximalClaimingBlockNumber,
         buffer.get() + bytesBufferOffset,
         sizeof(BlockNumber));
+    bytesBufferOffset += sizeof(BlockNumber);
+
+    byte *payloadLength = new (buffer.get() + bytesBufferOffset) byte;
+    if (*payloadLength > 0) {
+        bytesBufferOffset += sizeof(byte);
+        mPayload = string(
+            buffer.get() + bytesBufferOffset,
+            buffer.get() + bytesBufferOffset + *payloadLength);
+    } else {
+        mPayload = "";
+    }
 
     if (mStep != Stages::Common_Observing) {
         mStep = Stages::Common_Recovery;
@@ -1292,7 +1305,9 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
                         + sizeof(SerializedRecordsCount)
                         + reservationsSizeInBytes()
                         + sizeof(SerializedRecordsCount)
-                        + sizeof(BlockNumber);
+                        + sizeof(BlockNumber)
+                        + sizeof(byte)
+                        + mPayload.length();
     for (const auto &participant : mPaymentParticipants) {
         bytesCount += sizeof(PaymentNodeID) + participant.second->serializedSize() + lamport::PublicKey::keySize();
     }
@@ -1393,6 +1408,21 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
         dataBytesShared.get() + dataBytesOffset,
         &mMaximalClaimingBlockNumber,
         sizeof(BlockNumber));
+    dataBytesOffset += sizeof(BlockNumber);
+
+    auto payloadLength = (byte)mPayload.length();
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &payloadLength,
+        sizeof(byte));
+
+    if (payloadLength > 0) {
+        dataBytesOffset += sizeof(byte);
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            mPayload.c_str(),
+            payloadLength);
+    }
 
     return make_pair(
         dataBytesShared,

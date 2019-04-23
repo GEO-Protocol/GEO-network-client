@@ -1,46 +1,39 @@
-//
-// Created by minyor on 08.04.19.
-//
-
 #ifndef GEO_NETWORK_CLIENT_MSGENCRYPTOR_H
 #define GEO_NETWORK_CLIENT_MSGENCRYPTOR_H
 
+#include "ByteEncryptor.h"
 
-#include <sodium.h>
-#include "../common/Types.h"
+class Message;
 
-class MsgEncryptor {
+class MsgEncryptor : public ByteEncryptor {
 public:
-    typedef pair<BytesShared, size_t> Buffer;
-    struct PublicKey { uint8_t key[crypto_box_PUBLICKEYBYTES+1]; };
-    struct SecretKey { uint8_t key[crypto_box_SECRETKEYBYTES+1]; };
-    typedef std::shared_ptr<PublicKey> PublicKeyShared;
-    typedef std::shared_ptr<SecretKey> SecretKeyShared;
+    typedef shared_ptr<Message> MessageShared;
 
-    struct KeyPair {
-        PublicKeyShared publicKey = NULL;
-        SecretKeyShared secretKey = NULL;
+    struct KeyTrio : KeyPair {
+        typedef std::shared_ptr<KeyTrio> Shared;
+        KeyTrio();
+        explicit KeyTrio(const string &str);
+        explicit KeyTrio(vector<byte> &in);
+        void serialize(vector<byte> &out) const;
+        void deserialize(vector<byte> &in);
+        PublicKey::Shared contractorPublicKey = nullptr;
     };
 
 public:
-    explicit MsgEncryptor(
-        PublicKeyShared publicKey);
-    MsgEncryptor(
-        PublicKeyShared publicKey,
-        SecretKeyShared secretKey);
+    using ByteEncryptor::ByteEncryptor;
 
 public:
-    static KeyPair generateKeyPair();
-    static KeyPair defaultKeyPair();
+    static KeyTrio::Shared generateKeyTrio(
+        const string &contractorPublicKey = "");
 
 public:
-    Buffer encrypt(const Buffer &msg) const;
-    Buffer decrypt(const Buffer &cipher) const;
-
-private:
-    PublicKeyShared mPublicKey = NULL;
-    SecretKeyShared mSecretKey = NULL;
+    Buffer encrypt(MessageShared message);
+    Buffer decrypt(
+        BytesShared buffer,
+        const size_t count);
 };
+
+std::ostream &operator<< (std::ostream &out, const MsgEncryptor::KeyTrio &t);
 
 
 #endif //GEO_NETWORK_CLIENT_MSGENCRYPTOR_H

@@ -27,6 +27,7 @@ OutgoingRemoteNode *OutgoingNodesHandler::handler(
             contractor,
             mSocket,
             mIOService,
+            mContractorsManager,
             mLog);
     }
 
@@ -45,6 +46,7 @@ OutgoingRemoteAddressNode *OutgoingNodesHandler::handler(
             address,
             mSocket,
             mIOService,
+            mContractorsManager,
             mLog);
     }
 

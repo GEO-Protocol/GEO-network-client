@@ -263,8 +263,9 @@ void HistoryStorage::savePaymentMainOutgoingRecord(
     const SerializedEquivalent equivalent)
 {
     string query = "INSERT INTO " + mMainTableName
-                   + "(operation_uuid, operation_timestamp, equivalent, record_type, record_body, record_body_bytes_count, "
-                       "command_uuid) VALUES(?, ?, ?, ?, ?, ?, ?);";
+                   + "(operation_uuid, operation_timestamp, equivalent, record_type, "
+                     "record_body, record_body_bytes_count, command_uuid) "
+                     "VALUES(?, ?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -335,7 +336,8 @@ void HistoryStorage::savePaymentMainIncomingRecord(
     const SerializedEquivalent equivalent)
 {
     string query = "INSERT INTO " + mMainTableName
-                   + "(operation_uuid, operation_timestamp, equivalent, record_type, record_body, record_body_bytes_count) "
+                   + "(operation_uuid, operation_timestamp, equivalent, "
+                     "record_type, record_body, record_body_bytes_count) "
                        "VALUES(?, ?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
@@ -1012,32 +1014,10 @@ TrustLineRecord::Shared HistoryStorage::deserializeTrustLineRecord(
         sqlite3_column_blob(stmt, 2),
         recordBodyBytesCount);
 
-    size_t dataBufferOffset = 0;
-    TrustLineRecord::SerializedTrustLineOperationType* operationType =
-        new (recordBody.get() + dataBufferOffset) TrustLineRecord::SerializedTrustLineOperationType;
-    dataBufferOffset += sizeof(
-        TrustLineRecord::SerializedTrustLineOperationType);
-
-    Contractor::Shared contractor = make_shared<Contractor>(
-        recordBody.get() + dataBufferOffset);
-    dataBufferOffset += contractor->serializedSize();
-
-    TrustLineAmount amount(0);
-    if (*operationType != TrustLineRecord::TrustLineOperationType::Closing &&
-        *operationType != TrustLineRecord::TrustLineOperationType::Rejecting) {
-        vector<byte> amountBytes(
-            recordBody.get() + dataBufferOffset,
-            recordBody.get() + dataBufferOffset + kTrustLineAmountBytesCount);
-
-        amount = bytesToTrustLineAmount(
-            amountBytes);
-    }
     return make_shared<TrustLineRecord>(
         operationUUID,
-        (TrustLineRecord::TrustLineOperationType) *operationType,
-        contractor,
-        amount,
-        timestamp);
+        timestamp,
+        recordBody);
 }
 
 PaymentRecord::Shared HistoryStorage::deserializePaymentRecord(
@@ -1052,36 +1032,10 @@ PaymentRecord::Shared HistoryStorage::deserializePaymentRecord(
         sqlite3_column_blob(stmt, 2),
         recordBodyBytesCount);
 
-    size_t dataBufferOffset = 0;
-    PaymentRecord::SerializedPaymentOperationType *operationType
-        = new (recordBody.get() + dataBufferOffset) PaymentRecord::SerializedPaymentOperationType;
-    dataBufferOffset += sizeof(
-        PaymentRecord::SerializedPaymentOperationType);
-
-    Contractor::Shared contractor = make_shared<Contractor>(
-        recordBody.get() + dataBufferOffset);
-    dataBufferOffset += contractor->serializedSize();
-
-    vector<byte> amountBytes(
-        recordBody.get() + dataBufferOffset,
-        recordBody.get() + dataBufferOffset + kTrustLineAmountBytesCount);
-    TrustLineAmount amount = bytesToTrustLineAmount(
-        amountBytes);
-    dataBufferOffset += kTrustLineAmountBytesCount;
-
-    vector<byte> balanceBytes(
-        recordBody.get() + dataBufferOffset,
-        recordBody.get() + dataBufferOffset + kTrustLineBalanceSerializeBytesCount);
-    TrustLineBalance balanceAfterOperation = bytesToTrustLineBalance(
-        balanceBytes);
-
     return make_shared<PaymentRecord>(
         operationUUID,
-        (PaymentRecord::PaymentOperationType) *operationType,
-        contractor,
-        amount,
-        balanceAfterOperation,
-        timestamp);
+        timestamp,
+        recordBody);
 }
 
 PaymentAdditionalRecord::Shared HistoryStorage::deserializePaymentAdditionalRecord(
@@ -1096,23 +1050,10 @@ PaymentAdditionalRecord::Shared HistoryStorage::deserializePaymentAdditionalReco
         sqlite3_column_blob(stmt, 2),
         recordBodyBytesCount);
 
-    size_t dataBufferOffset = 0;
-    PaymentAdditionalRecord::SerializedPaymentOperationType* operationType
-        = new (recordBody.get() + dataBufferOffset) PaymentAdditionalRecord::SerializedPaymentOperationType;
-    dataBufferOffset += sizeof(
-        PaymentRecord::SerializedPaymentOperationType);
-
-    vector<byte> amountBytes(
-        recordBody.get() + dataBufferOffset,
-        recordBody.get() + dataBufferOffset + kTrustLineAmountBytesCount);
-    TrustLineAmount amount = bytesToTrustLineAmount(
-            amountBytes);
-
     return make_shared<PaymentAdditionalRecord>(
         operationUUID,
-        (PaymentAdditionalRecord::PaymentAdditionalOperationType) *operationType,
-        amount,
-        timestamp);
+        timestamp,
+        recordBody);
 }
 
 LoggerStream HistoryStorage::info() const

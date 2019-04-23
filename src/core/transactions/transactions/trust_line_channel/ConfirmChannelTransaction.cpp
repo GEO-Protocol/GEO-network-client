@@ -47,21 +47,26 @@ TransactionResult::SharedConst ConfirmChannelTransaction::run()
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
+        mContractorsManager->setCryptoKey(
+            ioTransaction,
+            contractorID,
+            mMessage->publicKey());
+
         mContractorsManager->setIDOnContractorSide(
             ioTransaction,
             contractorID,
             mMessage->contractorID());
     } catch (IOError &e) {
-        error() << "Error during saving ContractorID. Details: " << e.what();
+        error() << "Error during saving Contractor data. Details: " << e.what();
         ioTransaction->rollback();
         throw e;
     }
     info() << "Channel confirmed";
-    sendMessage<InitChannelMessage>(
+    sendMessage<ConfirmationMessage>(
         contractorID,
-        mContractorsManager->ownAddresses(),
-        mTransactionUUID,
-        contractorID);
+        mEquivalent,
+        mContractorsManager->idOnContractorSide(contractorID),
+        mTransactionUUID);
     return resultDone();
 }
 

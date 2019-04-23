@@ -51,4 +51,7 @@ typedef uint32_t ContractorID;
 
 typedef uint64_t BlockNumber;
 
+typedef uint64_t PayloadLength;
+typedef uint8_t EquivalentRegisterAddressLength;
+
 #endif //GEO_NETWORK_CLIENT_TYPES_H

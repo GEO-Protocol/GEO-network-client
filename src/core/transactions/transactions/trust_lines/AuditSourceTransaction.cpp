@@ -114,9 +114,11 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
     auto keyChain = mKeysStore->keychain(
         mTrustLines->trustLineID(mContractorID));
     try {
+        auto ownPublicKeysHash = keyChain.ownPublicKeysHash(ioTransaction);
+        auto contractorPublicKeysHash = keyChain.contractorPublicKeysHash(ioTransaction);
         auto serializedAuditData = getOwnSerializedAuditData(
-            keyChain.ownPublicKeysHash(ioTransaction),
-            keyChain.contractorPublicKeysHash(ioTransaction));
+            ownPublicKeysHash,
+            contractorPublicKeysHash);
         mOwnSignatureAndKeyNumber = keyChain.sign(
             ioTransaction,
             serializedAuditData.first,
@@ -127,6 +129,8 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
             mAuditNumber,
             mOwnSignatureAndKeyNumber.second,
             mOwnSignatureAndKeyNumber.first,
+            ownPublicKeysHash,
+            contractorPublicKeysHash,
             mTrustLines->incomingTrustAmount(
                 mContractorID),
             mTrustLines->outgoingTrustAmount(

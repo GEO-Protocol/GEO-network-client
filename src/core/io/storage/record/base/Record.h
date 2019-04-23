@@ -44,6 +44,11 @@ protected:
         Contractor::Shared contractor,
         const GEOEpochTimestamp geoEpochTimestamp);
 
+    Record(
+        const Record::RecordType recordType,
+        const TransactionUUID &operationUUID,
+        const GEOEpochTimestamp geoEpochTimestamp);
+
 protected:
     RecordType mRecordType;
     TransactionUUID mOperationUUID;

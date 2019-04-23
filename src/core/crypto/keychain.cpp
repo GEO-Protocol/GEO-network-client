@@ -363,6 +363,8 @@ namespace crypto {
         const lamport::Signature::Shared ownSignature,
         const KeyNumber contractorKeyNumber,
         const lamport::Signature::Shared contractorSignature,
+        const lamport::KeyHash::Shared ownKeysSetHash,
+        const lamport::KeyHash::Shared contractorKeysSetHash,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance)
@@ -381,6 +383,8 @@ namespace crypto {
             ownSignature,
             contractorKeyHash,
             contractorSignature,
+            ownKeysSetHash,
+            contractorKeysSetHash,
             incomingAmount,
             outgoingAmount,
             balance);
@@ -400,6 +404,8 @@ namespace crypto {
         const AuditNumber auditNumber,
         const KeyNumber ownKeyNumber,
         const lamport::Signature::Shared ownSignature,
+        const lamport::KeyHash::Shared ownKeysSetHash,
+        const lamport::KeyHash::Shared contractorKeysSetHash,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance)
@@ -413,6 +419,8 @@ namespace crypto {
             mTrustLineID,
             ownKeyHash,
             ownSignature,
+            ownKeysSetHash,
+            contractorKeysSetHash,
             incomingAmount,
             outgoingAmount,
             balance);
@@ -598,15 +606,17 @@ namespace crypto {
         AuditRecord::Shared auditRecord)
     {
         ioTransaction->auditHandler()->saveFullAudit(
-                auditRecord->auditNumber(),
-                mTrustLineID,
-                auditRecord->contractorKeyHash(),
-                auditRecord->contractorSignature(),
-                auditRecord->ownKeyHash(),
-                auditRecord->ownSignature(),
-                auditRecord->outgoingAmount(),
-                auditRecord->incomingAmount(),
-                auditRecord->balance() * (-1));
+            auditRecord->auditNumber(),
+            mTrustLineID,
+            auditRecord->contractorKeyHash(),
+            auditRecord->contractorSignature(),
+            auditRecord->ownKeyHash(),
+            auditRecord->ownSignature(),
+            auditRecord->ownKeysSetHash(),
+            auditRecord->contractorKeysSetHash(),
+            auditRecord->outgoingAmount(),
+            auditRecord->incomingAmount(),
+            auditRecord->balance() * (-1));
 
         ioTransaction->ownKeysHandler()->invalidKeyByHash(
             mTrustLineID,
@@ -670,7 +680,7 @@ namespace crypto {
     }
 
     lamport::KeyHash::Shared TrustLineKeychain::ownPublicKeysHash(
-        IOTransaction::Shared ioTransaction)
+        IOTransaction::Shared ioTransaction) const
     {
         auto currentKeysSetSequenceNumber = ioTransaction->ownKeysHandler()->maxKeySetSequenceNumber(
             mTrustLineID);
@@ -689,7 +699,7 @@ namespace crypto {
     }
 
     lamport::KeyHash::Shared TrustLineKeychain::contractorPublicKeysHash(
-        IOTransaction::Shared ioTransaction)
+        IOTransaction::Shared ioTransaction) const
     {
         auto currentKeysSetSequenceNumber = ioTransaction->contractorKeysHandler()->maxKeySetSequenceNumber(
             mTrustLineID);
@@ -705,6 +715,20 @@ namespace crypto {
         crypto_generichash_final(&state, keyHashBuffer, lamport::KeyHash::kBytesSize);
         return make_shared<lamport::KeyHash>(
             keyHashBuffer);
+    }
+
+    pair<bool, bool> TrustLineKeychain::checkKeysSetAppropriate(
+        IOTransaction::Shared ioTransaction,
+        lamport::KeyHash::Shared auditOwnKeysSetHash,
+        lamport::KeyHash::Shared auditContractorKeysSetHash) const
+    {
+        auto ownKeysSetHash = ownPublicKeysHash(
+            ioTransaction);
+        auto contractorKeysSetHash = contractorPublicKeysHash(
+            ioTransaction);
+        return make_pair(
+            *auditOwnKeysSetHash == *ownKeysSetHash,
+            *auditContractorKeysSetHash == *contractorKeysSetHash);
     }
 
     void TrustLineKeychain::keyNumberGuard(

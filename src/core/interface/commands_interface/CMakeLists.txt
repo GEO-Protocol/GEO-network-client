@@ -11,6 +11,8 @@ set(SOURCE_FILES
         commands/BaseUserCommand.h
         commands/BaseUserCommand.cpp
 
+        commands/ErrorUserCommand.h
+
         commands/trust_line_channels/InitChannelCommand.h
         commands/trust_line_channels/InitChannelCommand.cpp
         commands/trust_line_channels/ContractorListCommand.h

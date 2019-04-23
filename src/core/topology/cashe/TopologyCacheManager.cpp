@@ -34,17 +34,51 @@ TopologyCache::Shared TopologyCacheManager::cacheByAddress(
     return nodeAddressAndCache->second;
 }
 
+bool TopologyCacheManager::addIntoFirstLevelCache(
+    ContractorID contractorID)
+{
+    const auto &it = mFirstLvCache.find(contractorID);
+    if(it != mFirstLvCache.end()) {
+        it->second->get()->second = utc_now();
+        mFirstLvCacheList.splice(
+            mFirstLvCacheList.end(),
+            mFirstLvCacheList,
+            it->second);
+        mFirstLvCache[contractorID] = mFirstLvCacheList.begin();
+        return true;
+    }
+    mFirstLvCache[contractorID] =
+        mFirstLvCacheList.insert(
+            mFirstLvCacheList.end(),
+            make_shared<FirstLvShared::element_type>(
+                make_pair(
+                    contractorID,
+                    utc_now()
+                )
+            )
+        );
+    return true;
+}
+
+bool TopologyCacheManager::isInFirstLevelCache(
+    ContractorID contractorID) const
+{
+    return mFirstLvCache.find(contractorID) != mFirstLvCache.end();
+}
+
 void TopologyCacheManager::updateCaches()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "updateCaches\t" << "mCaches size: " << mCaches.size();
-    info() << "updateCaches\t" << "msCaches size: " << msCache.size();
+    debug() << "updateCaches\t" << "mCaches size: " << mCaches.size();
+    debug() << "updateCaches\t" << "msCaches size: " << msCache.size();
+    debug() << "updateCaches\t" << "mFirstLvCache size: " << mFirstLvCache.size();
+    debug() << "updateCaches\t" << "mFirstLvCacheList size: " << mFirstLvCacheList.size();
 #endif
     for (auto &timeAndNodeAddress : msCache) {
         if (utc_now() - timeAndNodeAddress.first > kResetSenderCacheDuration()) {
             auto keyAddress = timeAndNodeAddress.second;
 #ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
-            info() << "updateCaches delete cache\t" << keyAddress->fullAddress();
+            debug() << "updateCaches delete cache\t" << keyAddress->fullAddress();
 #endif
             mCaches.erase(keyAddress->fullAddress());
             msCache.erase(timeAndNodeAddress.first);
@@ -52,12 +86,25 @@ void TopologyCacheManager::updateCaches()
             break;
         }
     }
-    /////////////////////////////////////////////////////////////////////////////////////////////
+
     if (mInitiatorCache.first && utc_now() - mInitiatorCache.second > kResetInitiatorCacheDuration()) {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-        info() << "updateCaches\t" << "reset Initiator cache";
+        debug() << "updateCaches\t" << "reset Initiator cache";
 #endif
         mInitiatorCache.first = false;
+    }
+
+    DateTime now = utc_now();
+    for(auto current=mFirstLvCacheList.begin(); current!=mFirstLvCacheList.end(); ) {
+        auto &cache = *current;
+        if ((now - cache.get()->second) <= kResetSenderCacheDuration()) {
+            break;
+        }
+#ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
+        debug() << "updateCaches delete first level cache\t" << cache.get()->first;
+#endif
+        mFirstLvCache.erase(cache.get()->first);
+        current = mFirstLvCacheList.erase(current);
     }
 }
 
@@ -83,7 +130,7 @@ void TopologyCacheManager::removeCache(
     for (auto &timeAndNodeAddress : msCache) {
         if (timeAndNodeAddress.second == nodeAddress) {
 #ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
-            info() << "removeCache delete cache\t" << timeAndNodeAddress.second->fullAddress();
+            debug() << "removeCache delete cache\t" << timeAndNodeAddress.second->fullAddress();
 #endif
             mCaches.erase(timeAndNodeAddress.second->fullAddress());
             msCache.erase(timeAndNodeAddress.first);
@@ -114,8 +161,19 @@ DateTime TopologyCacheManager::closestTimeEvent() const
             result = utc_now() + kResetSenderCacheDuration();
         }
     }
+
+    if (!mFirstLvCacheList.empty()) {
+        auto nodeIdAndTime = mFirstLvCacheList.cbegin();
+        if ((*nodeIdAndTime)->second + kResetSenderCacheDuration() < result) {
+            result = (*nodeIdAndTime)->second + kResetSenderCacheDuration();
+        }
+    } else {
+        if (utc_now() + kResetSenderCacheDuration() < result) {
+            result = utc_now() + kResetSenderCacheDuration();
+        }
+    }
 #ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "closestTimeEvent " << result;
+    debug() << "closestTimeEvent " << result;
 #endif
     return result;
 }
@@ -123,6 +181,11 @@ DateTime TopologyCacheManager::closestTimeEvent() const
 LoggerStream TopologyCacheManager::info() const
 {
     return mLog.info(logHeader());
+}
+
+LoggerStream TopologyCacheManager::debug() const
+{
+    return mLog.debug(logHeader());
 }
 
 LoggerStream TopologyCacheManager::warning() const

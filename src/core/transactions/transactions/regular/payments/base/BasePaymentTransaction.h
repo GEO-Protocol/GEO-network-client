@@ -509,6 +509,8 @@ protected:
 
     BlockNumber mMaximalClaimingBlockNumber;
     bool mBlockNumberObtainingInProcess;
+
+    string mPayload;
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

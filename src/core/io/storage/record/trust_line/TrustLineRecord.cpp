@@ -29,19 +29,35 @@ TrustLineRecord::TrustLineRecord(
 
 TrustLineRecord::TrustLineRecord(
     const TransactionUUID &operationUUID,
-    const TrustLineRecord::TrustLineOperationType operationType,
-    Contractor::Shared contractor,
-    const TrustLineAmount &amount,
-    const GEOEpochTimestamp geoEpochTimestamp) :
-
+    const GEOEpochTimestamp geoEpochTimestamp,
+    BytesShared recordBody):
     Record(
-        Record::RecordType::TrustLineRecordType,
+        Record::TrustLineRecordType,
         operationUUID,
-        contractor,
-        geoEpochTimestamp),
-    mTrustLineOperationType(operationType),
-    mAmount(amount)
-{}
+        geoEpochTimestamp)
+{
+    size_t dataBufferOffset = 0;
+    auto* operationType =
+        new (recordBody.get() + dataBufferOffset) TrustLineRecord::SerializedTrustLineOperationType;
+    dataBufferOffset += sizeof(
+        TrustLineRecord::SerializedTrustLineOperationType);
+    mTrustLineOperationType = (TrustLineOperationType)*operationType;
+
+    mContractor = make_shared<Contractor>(
+        recordBody.get() + dataBufferOffset);
+    dataBufferOffset += mContractor->serializedSize();
+
+    mAmount = 0;
+    if (*operationType != TrustLineRecord::TrustLineOperationType::Closing &&
+        *operationType != TrustLineRecord::TrustLineOperationType::Rejecting) {
+        vector<byte> amountBytes(
+            recordBody.get() + dataBufferOffset,
+            recordBody.get() + dataBufferOffset + kTrustLineAmountBytesCount);
+
+        mAmount = bytesToTrustLineAmount(
+            amountBytes);
+    }
+}
 
 const bool TrustLineRecord::isTrustLineRecord() const
 {

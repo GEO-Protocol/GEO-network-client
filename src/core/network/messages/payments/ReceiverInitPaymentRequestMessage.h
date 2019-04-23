@@ -3,7 +3,6 @@
 
 #include "base/RequestMessage.h"
 
-
 class ReceiverInitPaymentRequestMessage:
     public RequestMessage {
 
@@ -16,11 +15,20 @@ public:
         const SerializedEquivalent equivalent,
         vector<BaseAddress::Shared> &senderAddresses,
         const TransactionUUID &transactionUUID,
-        const TrustLineAmount &amount);
+        const TrustLineAmount &amount,
+        const string payload);
 
     ReceiverInitPaymentRequestMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
+
+    const string payload() const;
+
+protected:
+    virtual pair<BytesShared, size_t> serializeToBytes() const override;
+
+private:
+    string mPayload;
 };
 #endif //GEO_NETWORK_CLIENT_RECEIVERINITPAYMENTMESSAGE_H

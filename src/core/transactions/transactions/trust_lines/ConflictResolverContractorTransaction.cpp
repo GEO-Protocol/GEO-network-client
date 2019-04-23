@@ -439,6 +439,7 @@ void ConflictResolverContractorTransaction::acceptContractorAuditData(
     IOTransaction::Shared ioTransaction,
     TrustLineKeychain *keyChain)
 {
+    // todo : change ownKeysSetHash with contractorKeysSetHash
     keyChain->acceptAudit(
         ioTransaction,
         mMessage->auditRecord());

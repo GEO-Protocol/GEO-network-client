@@ -33,6 +33,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     mTransactionShouldBeRejected(false)
 {
     mStep = Stages::Receiver_CoordinatorRequestApproving;
+    mPayload = message->payload();
 }
 
 ReceiverPaymentTransaction::ReceiverPaymentTransaction(
@@ -807,7 +808,8 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
             PaymentRecord::PaymentOperationType::IncomingPaymentType,
             mPaymentParticipants[kCoordinatorPaymentNodeID],
             mCommittedAmount,
-            *mTrustLinesManager->totalBalance().get()),
+            *mTrustLinesManager->totalBalance().get(),
+            mPayload),
         mEquivalent);
     debug() << "Operation saved";
 }

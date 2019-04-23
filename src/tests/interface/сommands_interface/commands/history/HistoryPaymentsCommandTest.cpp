@@ -3,9 +3,11 @@
 
 TEST_CASE("Testing HistoryPaymentsCommand")
 {
-    REQUIRE_NOTHROW(HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"1\t2\t3\t4\t11\t6\t47183823-2574-4bfd-b411-99ed177dd3e4\t8\n"));
+    REQUIRE_NOTHROW(HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"1\t1\t1\t1\t1\t1\t47183823-2574-4bfd-b411-99ed177dd3e4\t8\n"));
 
-    REQUIRE_NOTHROW(HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"1\t2\t3\t4\tnull\t11\t47183823-2574-4bfd-b411-99ed177dd3e4\t8\n"));
+    REQUIRE_NOTHROW(HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"1\t2\tnull\tnull\tnull\tnull\tnull\t8\n"));
+
+    REQUIRE_NOTHROW(HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"1\t2\t3\t4\tnull\t11\t47183823-2574-4bfd-b411-99ed177d3e43\t8\n"));
 
     REQUIRE_NOTHROW(HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s,"1\t2\t3\tnull\t11\t11\t47183823-2574-4bfd-b411-99ed177dd3e4\t8\n"));
 
@@ -17,9 +19,9 @@ TEST_CASE("Testing HistoryPaymentsCommand")
 
         REQUIRE_THROWS(HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t3\t4\t5\t06\t47183823-2574-4bfd-b411-99ed177d3e43\t8\n"));
 
-        REQUIRE_THROWS(HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t3\t4\t0\t6\t47183823-2574-4bfd-b411-99ed177d3e43\t8\n"));
+        REQUIRE_NOTHROW(HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t3\t4\t0\t6\t47183823-2574-4bfd-b411-99ed177d3e43\t8\n"));
 
-        REQUIRE_THROWS(HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t3\t4\t5\t0\t47183823-2574-4bfd-b411-99ed177d3e43\t8\n"));
+        REQUIRE_NOTHROW(HistoryPaymentsCommand("47183823-2574-4bfd-b411-99ed177d3e43"s, "1\t2\t3\t4\t5\t0\t47183823-2574-4bfd-b411-99ed177d3e43\t8\n"));
     }
 
     SECTION("Double separator")
