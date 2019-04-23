@@ -29,12 +29,13 @@ InitChannelMessage::InitChannelMessage(
         &mContractorID,
         buffer.get() + bytesBufferOffset,
         sizeof(ContractorID));
+    bytesBufferOffset += sizeof(ContractorID);
 
     mPublicKey = make_shared<MsgEncryptor::PublicKey>();
     memcpy(
         mPublicKey->key,
-        buffer.get() + bytesBufferOffset + sizeof(ContractorID),
-        sizeof(mPublicKey->key));
+        buffer.get() + bytesBufferOffset,
+        mPublicKey->kBytesSize);
 }
 
 
@@ -64,7 +65,7 @@ pair<BytesShared, size_t> InitChannelMessage::serializeToBytes() const
 
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(ContractorID)
-                        + sizeof(mPublicKey->key);
+                        + mPublicKey->kBytesSize;
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -79,11 +80,12 @@ pair<BytesShared, size_t> InitChannelMessage::serializeToBytes() const
         dataBytesShared.get() + dataBytesOffset,
         &mContractorID,
         sizeof(ContractorID));
+    dataBytesOffset += sizeof(ContractorID);
     //----------------------------
     memcpy(
-        dataBytesShared.get() + dataBytesOffset + sizeof(ContractorID),
+        dataBytesShared.get() + dataBytesOffset,
         &mPublicKey->key,
-        sizeof(mPublicKey->key));
+        mPublicKey->kBytesSize);
     //----------------------------
     return make_pair(
         dataBytesShared,
