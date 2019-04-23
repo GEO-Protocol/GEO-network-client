@@ -19,10 +19,12 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
         mContractorID = _attr(ctx);
     };
     auto amountAddNumber = [&](auto &ctx) {
-        if(amount.front() == '0'&& isdigit(amount.back())){ throw ValueError("SetOutgoingTrustLineCommand: amount contains leading zero.");}
+        if(amount.front() == '0' && isdigit(amount.back())){
+            throw ValueError("SetOutgoingTrustLineCommand: amount contains leading zero.");
+        }
         amount += _attr(ctx);
         flagAmount++;
-        if (flagAmount == 1 && _attr(ctx) == '0') {
+        if (flagAmount > 1 && amount.front() == '0') {
             throw ValueError("SetOutgoingTrustLineCommand: amount contains leading zero.");
         }
     };
