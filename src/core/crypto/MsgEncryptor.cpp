@@ -116,7 +116,7 @@ void MsgEncryptor::KeyTrio::deserialize(
             SecretKey::kBytesSize);
         p += SecretKey::kBytesSize;
     }
-    if(in.size() > (pairSize + PublicKey::kBytesSize)) {
+    if(in.size() >= (pairSize + PublicKey::kBytesSize)) {
         contractorPublicKey = std::make_shared<PublicKey>();
         mempcpy(
             contractorPublicKey->key,
