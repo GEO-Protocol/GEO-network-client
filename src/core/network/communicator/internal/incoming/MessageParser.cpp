@@ -1,15 +1,17 @@
 #include "MessageParser.h"
 
 MessagesParser::MessagesParser(
+    ContractorsManager *contractorsManager,
     Logger *logger)
     noexcept:
 
+    mContractorsManager(contractorsManager),
     mLog(logger)
 {}
 
 pair<bool, Message::Shared> MessagesParser::processBytesSequence(
     BytesShared buffer,
-    const size_t count)
+    size_t count)
 {
     if (count < kMinimalMessageSize || buffer == nullptr) {
         return messageInvalidOrIncomplete();
@@ -25,14 +27,28 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
             return messageInvalidOrIncomplete();
         }
 
-        byte isMessageEncrypted = *(reinterpret_cast<byte*>(buffer.get() + sizeof(SerializedProtocolVersion)));
-        if (isMessageEncrypted) {
-            // todo : decrypt message
+        ContractorID contractorID = *(reinterpret_cast<ContractorID*>(
+            buffer.get() + sizeof(SerializedProtocolVersion)));
+        try {
+            if (contractorID != std::numeric_limits<ContractorID>::max()) {
+                auto contractor = mContractorsManager->contractor(contractorID);
+                auto pair = MsgEncryptor(
+                    contractor->cryptoKey()->publicKey,
+                    contractor->cryptoKey()->secretKey
+                ).decrypt(buffer, count);
+                buffer = pair.first;
+            }
+        } catch (NotFoundError &) {
+            warning() << "There is no contractor with ID " << contractorID;
+            return messageInvalidOrIncomplete();
+        } catch (std::exception &e) {
+            warning() << "Can't decrypt message " << e.what();
+            return messageInvalidOrIncomplete();
         }
 
         const Message::SerializedType kMessageIdentifier =
             *(reinterpret_cast<Message::SerializedType*>(buffer.get() +
-                sizeof(byte) + sizeof(SerializedProtocolVersion)));
+                sizeof(ContractorID) + sizeof(SerializedProtocolVersion)));
 
         switch(kMessageIdentifier) {
 
@@ -244,6 +260,7 @@ MessagesParser &MessagesParser::operator=(
     noexcept
 {
     mLog = other.mLog;
+    return *this;
 }
 
 pair<bool, Message::Shared> MessagesParser::messageInvalidOrIncomplete()

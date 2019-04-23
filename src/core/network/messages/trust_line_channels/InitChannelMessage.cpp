@@ -3,15 +3,18 @@
 InitChannelMessage::InitChannelMessage(
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
-    ContractorID contractorID)
+    Contractor::Shared contractor)
     noexcept:
 
     TransactionMessage(
         0,
         senderAddresses,
         transactionUUID),
-    mContractorID(contractorID)
-{}
+    mContractorID(contractor->getID()),
+    mPublicKey(contractor->cryptoKey()->publicKey)
+{
+    encrypt(contractor);
+}
 
 InitChannelMessage::InitChannelMessage(
     BytesShared buffer)
@@ -26,6 +29,13 @@ InitChannelMessage::InitChannelMessage(
         &mContractorID,
         buffer.get() + bytesBufferOffset,
         sizeof(ContractorID));
+    bytesBufferOffset += sizeof(ContractorID);
+
+    mPublicKey = make_shared<MsgEncryptor::PublicKey>();
+    memcpy(
+        mPublicKey->key,
+        buffer.get() + bytesBufferOffset,
+        mPublicKey->kBytesSize);
 }
 
 
@@ -41,6 +51,12 @@ noexcept
     return mContractorID;
 }
 
+const MsgEncryptor::PublicKey::Shared InitChannelMessage::publicKey() const
+noexcept
+{
+    return mPublicKey;
+}
+
 pair<BytesShared, size_t> InitChannelMessage::serializeToBytes() const
 {
     // todo: use serializer
@@ -48,7 +64,8 @@ pair<BytesShared, size_t> InitChannelMessage::serializeToBytes() const
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
-                        + sizeof(ContractorID);
+                        + sizeof(ContractorID)
+                        + mPublicKey->kBytesSize;
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -63,6 +80,12 @@ pair<BytesShared, size_t> InitChannelMessage::serializeToBytes() const
         dataBytesShared.get() + dataBytesOffset,
         &mContractorID,
         sizeof(ContractorID));
+    dataBytesOffset += sizeof(ContractorID);
+    //----------------------------
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &mPublicKey->key,
+        mPublicKey->kBytesSize);
     //----------------------------
     return make_pair(
         dataBytesShared,

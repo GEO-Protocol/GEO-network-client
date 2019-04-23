@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_MESSAGE_H
 
 #include "../../common/memory/MemoryUtils.h"
+#include "../../contractors/Contractor.h"
 #include "../communicator/internal/common/Packet.hpp"
 
 #include <limits>
@@ -16,6 +17,10 @@ public:
     typedef uint16_t SerializedType;
 
 public:
+    static const size_t UnencryptedHeaderSize =
+        sizeof(SerializedProtocolVersion) +
+        sizeof(ContractorID);
+
     enum ProtocolVersion {
         Latest = 0,
     };
@@ -186,7 +191,7 @@ public:
         const SerializedType kMessageType = typeID();
         bool isMessageEncrypted = isEncrypted();
         size_t dataBytesOffset = 0;
-        const auto kBufferSize = sizeof(SerializedProtocolVersion) + sizeof(byte) + sizeof(kMessageType);
+        const auto kBufferSize = sizeof(SerializedProtocolVersion) + sizeof(ContractorID) + sizeof(kMessageType);
         auto buffer = tryMalloc(
             kBufferSize);
 
@@ -196,11 +201,12 @@ public:
             sizeof(SerializedProtocolVersion));
         dataBytesOffset += sizeof(SerializedProtocolVersion);
 
+        ContractorID ownIdOnContractorSide = this->ownIdOnContractorSide();
         memcpy(
             buffer.get() + dataBytesOffset,
-            &isMessageEncrypted,
-            sizeof(byte));
-        dataBytesOffset += sizeof(byte);
+            &ownIdOnContractorSide,
+            sizeof(ContractorID));
+        dataBytesOffset += sizeof(ContractorID);
 
         memcpy(
             buffer.get() + dataBytesOffset,
@@ -223,19 +229,32 @@ public:
         return mSenderIncomingIP;
     }
 
-    bool isEncrypted() const
+    bool isEncrypted() const { return mContractorId != std::numeric_limits<ContractorID>::max(); }
+
+    ContractorID contractorId() const { return mContractorId; }
+    ContractorID ownIdOnContractorSide() const
     {
-        return false;
+        return isEncrypted() ?
+            mContractor->ownIdOnContractorSide() :
+            std::numeric_limits<ContractorID>::max();
+    }
+
+    void encrypt(Contractor::Shared contractor)
+    {
+        mContractor = contractor;
+        mContractorId = contractor->getID();
     }
 
 protected:
     virtual const size_t kOffsetToInheritedBytes() const
     {
-        return sizeof(SerializedProtocolVersion) + sizeof(byte) + sizeof(SerializedType);
+        return sizeof(SerializedProtocolVersion) + sizeof(ContractorID) + sizeof(SerializedType);
     }
 
 private:
     string mSenderIncomingIP;
+    ContractorID mContractorId = std::numeric_limits<ContractorID>::max();
+    Contractor::Shared mContractor;
 };
 
 #endif //GEO_NETWORK_CLIENT_MESSAGE_H

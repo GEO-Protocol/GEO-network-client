@@ -58,13 +58,24 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::processReceivedCommands()
  */
 pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand()
 {
+    if (mBuffer.empty()) {
+        return make_pair(false, nullptr);
+    }
     if (mBuffer.size() < kMinCommandSize) {
-        return commandIsInvalidOrIncomplete();
+        cutBufferUpToNextCommand();
+        return commandError(
+            CommandUUID::empty(),
+            "",
+            "command length is less than: " + std::to_string(kMinCommandSize) + ".");
     }
 
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (nextCommandSeparatorIndex == string::npos) {
-        return commandIsInvalidOrIncomplete();
+        cutBufferUpToNextCommand();
+        return commandError(
+            CommandUUID::empty(),
+            "",
+            "command must contain at leas one separator.");
     }
 
     CommandUUID commandUUID;
@@ -74,9 +85,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand()
 
     } catch (...) {
         cutBufferUpToNextCommand();
-        return commandIsInvalidOrIncomplete();
+        return commandError(
+            CommandUUID::empty(),
+            "",
+            "failed to parse CommandUUID.");
     }
-
 
     string commandIdentifier;
     const size_t identifierOffset = kUUIDHexRepresentationSize + 1;
@@ -93,9 +106,12 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand()
     }
     nextTokenOffset += 1;
 
-    if (commandIdentifier.size() == 0) {
+    if (commandIdentifier.empty()) {
         cutBufferUpToNextCommand();
-        return commandIsInvalidOrIncomplete();
+        return commandError(
+            commandUUID,
+            "",
+            "command identifier is void.");
     }
 
     try {
@@ -116,7 +132,10 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand()
 
     } catch (std::exception &e) {
         cutBufferUpToNextCommand();
-        return commandIsInvalidOrIncomplete();
+        return commandError(
+            commandUUID,
+            commandIdentifier,
+            e.what());
     }
 }
 
@@ -248,20 +267,27 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 buffer);
 
         } else {
-            throw RuntimeError(
-                "CommandsParser::tryParseCommand: "
-                    "unexpected command identifier received. " + identifier);
+            return commandError(
+                uuid,
+                identifier,
+                "unexpected command identifier received. " + identifier);
         }
 
     } catch (bad_alloc &) {
-        error() << "tryParseCommand: Memory allocation error occurred on command instance creation. "
-                << "Command was dropped. ";
+        const char *err = "tryParseCommand: Memory allocation error occurred on command instance creation. ";
+        error() << err << "Command was dropped. ";
 
-        return commandIsInvalidOrIncomplete();
+        return commandError(
+            uuid,
+            buffer,
+            err);
 
     } catch (exception &e){
         mLog.logException("CommandsParser", e);
-        return commandIsInvalidOrIncomplete();
+        return commandError(
+            uuid,
+            identifier,
+            e.what());
     }
 
     return make_pair(
@@ -290,11 +316,18 @@ void CommandsParser::cutBufferUpToNextCommand()
     mBuffer.shrink_to_fit();
 }
 
-pair<bool, BaseUserCommand::Shared> CommandsParser::commandIsInvalidOrIncomplete()
+pair<bool, BaseUserCommand::Shared> CommandsParser::commandError(
+    const CommandUUID &uuid,
+    const string &identifier,
+    const string &str)
 {
     return make_pair(
         false,
-        nullptr);
+        BaseUserCommand::Shared(
+            new ErrorUserCommand(
+                uuid,
+                identifier,
+                str)));
 }
 
 CommandsInterface::CommandsInterface(
@@ -326,9 +359,9 @@ CommandsInterface::CommandsInterface(
     }
 
     try {
-        mFIFOStreamDescriptor = unique_ptr<as::posix::stream_descriptor> (new as::posix::stream_descriptor(
+        mFIFOStreamDescriptor = make_unique<as::posix::stream_descriptor>(
             mIOService,
-            mFIFODescriptor));
+            mFIFODescriptor);
         mFIFOStreamDescriptor->non_blocking(true);
 
     } catch (std::bad_alloc &) {
@@ -337,9 +370,9 @@ CommandsInterface::CommandsInterface(
     }
 
     try {
-        mReadTimeoutTimer = unique_ptr<as::deadline_timer> (new as::deadline_timer(
+        mReadTimeoutTimer = make_unique<as::deadline_timer>(
             mIOService,
-            boost::posix_time::seconds(2)));
+            boost::posix_time::seconds(2));
 
     } catch (std::bad_alloc &) {
         throw MemoryError(
@@ -348,7 +381,7 @@ CommandsInterface::CommandsInterface(
     }
 
     try {
-        mCommandsParser = unique_ptr<CommandsParser> (new CommandsParser(mLog));
+        mCommandsParser = make_unique<CommandsParser>(mLog);
 
     } catch (std::bad_alloc &) {
         throw MemoryError(
@@ -404,8 +437,8 @@ void CommandsInterface::handleReceivedInfo(
 
         while (true) {
             auto flagAndCommand = mCommandsParser->processReceivedCommands();
-            if (flagAndCommand.first){
-                commandReceivedSignal(flagAndCommand.second);
+            if (flagAndCommand.second){
+                commandReceivedSignal(flagAndCommand.first, flagAndCommand.second);
             } else {
                 break;
             }

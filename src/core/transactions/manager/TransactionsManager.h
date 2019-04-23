@@ -4,6 +4,7 @@
 #include "../scheduler/TransactionsScheduler.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../interface/events_interface/interface/EventsInterface.h"
+#include "../../interface/commands_interface/commands/ErrorUserCommand.h"
 
 /*
  * Transactions
@@ -111,6 +112,7 @@ public:
         TrustLinesInfluenceController *trustLinesInfluenceController);
 
     void processCommand(
+        bool success,
         BaseUserCommand::Shared command);
 
     void processMessage(

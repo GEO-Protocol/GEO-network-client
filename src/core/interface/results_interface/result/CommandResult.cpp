@@ -16,7 +16,7 @@ CommandResult::CommandResult(
     const string &commandIdentifier,
     const CommandUUID &commandUUID,
     const uint16_t resultCode,
-    string &resultInformation) :
+    const string &resultInformation) :
 
     mCommandUUID(commandUUID),
     mTimestampCompleted(utc_now()),

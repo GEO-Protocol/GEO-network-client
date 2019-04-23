@@ -22,6 +22,7 @@ Communicator::Communicator(
         make_unique<IncomingMessagesHandler>(
             IOService,
             *mSocket,
+            mContractorsManager,
             mTailManager,
             logger)),
 

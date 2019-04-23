@@ -12,7 +12,13 @@ set(SOURCE_FILES
         lamportkeys.h
 
         lamportscheme.cpp
-        lamportscheme.h)
+        lamportscheme.h
+
+        ByteEncryptor.cpp
+        ByteEncryptor.h
+
+        MsgEncryptor.cpp
+        MsgEncryptor.h)
 
 add_library(crypto ${SOURCE_FILES})
 target_link_libraries(

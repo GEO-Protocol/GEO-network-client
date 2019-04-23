@@ -26,6 +26,9 @@ public:
     void saveIdOnContractorSide(
         Contractor::Shared contractor);
 
+    void saveCryptoKey(
+        Contractor::Shared contractor);
+
     vector<Contractor::Shared> allContractors();
 
     vector<ContractorID> allIDs();

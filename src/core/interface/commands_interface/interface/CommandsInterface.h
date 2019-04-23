@@ -5,6 +5,7 @@
 
 #include "../../../logger/Logger.h"
 
+#include "../commands/ErrorUserCommand.h"
 #include "../commands/trust_line_channels/InitChannelCommand.h"
 #include "../commands/trust_lines/InitTrustLineCommand.h"
 #include "../commands/trust_lines/SetOutgoingTrustLineCommand.h"
@@ -84,7 +85,10 @@ private:
         const string &identifier,
         const string &buffer);
 
-    inline pair<bool, BaseUserCommand::Shared> commandIsInvalidOrIncomplete();
+    inline pair<bool, BaseUserCommand::Shared> commandError(
+        const CommandUUID &uuid,
+        const string &identifier,
+        const string &str);
 
     void cutBufferUpToNextCommand();
 
@@ -129,7 +133,7 @@ private:
  */
 class CommandsInterface: public BaseFIFOInterface {
 public:
-    signals::signal<void(BaseUserCommand::Shared)> commandReceivedSignal;
+    signals::signal<void(bool, BaseUserCommand::Shared)> commandReceivedSignal;
 
 public:
     explicit CommandsInterface(

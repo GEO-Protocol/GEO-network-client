@@ -42,7 +42,10 @@ InitChannelCommand::InitChannelCommand(
         address.erase();
     };
     auto cryptoKeyParse = [&](auto &ctx) {
-        mCryptoKey = _attr(ctx);
+        mCryptoKey += _attr(ctx);
+    };
+    auto contractorChannelIDParse = [&](auto &ctx) {
+        mContractorChannelID = _attr(ctx);
     };
 
     try {
@@ -69,8 +72,11 @@ InitChannelCommand::InitChannelCommand(
                     addressAddNumber,
                     addressTypeParse,
                     addressAddToVector)
-                > -(int_[cryptoKeyParse] > eol)
-                > eoi);
+            > -(+(char_[cryptoKeyParse] - char_(kTokensSeparator))
+                > char_(kTokensSeparator)
+                > +(int_[contractorChannelIDParse]) > eol)
+            > eoi);
+
     } catch(...) {
         throw ValueError("InitChannelCommand: can't parse command.");
     }
@@ -89,9 +95,14 @@ noexcept
     return mContractorAddresses;
 }
 
-uint32_t InitChannelCommand::cryptoKey() const
+const string &InitChannelCommand::cryptoKey() const
 {
     return mCryptoKey;
+}
+
+const ContractorID InitChannelCommand::contractorChannelID() const
+{
+    return mContractorChannelID;
 }
 
 CommandResult::SharedConst InitChannelCommand::responseOk(

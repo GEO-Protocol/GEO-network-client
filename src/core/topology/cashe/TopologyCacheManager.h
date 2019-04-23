@@ -23,6 +23,12 @@ public:
     TopologyCache::Shared cacheByAddress(
         BaseAddress::Shared nodeAddress) const;
 
+    bool addIntoFirstLevelCache(
+        ContractorID contractorID);
+
+    bool isInFirstLevelCache(
+        ContractorID contractorID) const;
+
     void updateCaches();
 
     void setInitiatorCache();
@@ -38,7 +44,7 @@ public:
 
 private:
     static const byte kResetSenderCacheHours = 0;
-    static const byte kResetSenderCacheMinutes = 10;
+    static const byte kResetSenderCacheMinutes = 2;
     static const byte kResetSenderCacheSeconds = 0;
 
     static Duration& kResetSenderCacheDuration() {
@@ -64,6 +70,8 @@ private:
 private:
     LoggerStream info() const;
 
+    LoggerStream debug() const;
+
     LoggerStream warning() const;
 
     const string logHeader() const;
@@ -71,6 +79,10 @@ private:
 private:
     unordered_map<string, TopologyCache::Shared> mCaches;
     map<DateTime, BaseAddress::Shared> msCache;
+
+    typedef shared_ptr<pair<ContractorID, DateTime> > FirstLvShared;
+    map<ContractorID, list<FirstLvShared>::iterator> mFirstLvCache;
+    list<FirstLvShared> mFirstLvCacheList;
 
     pair<bool, DateTime> mInitiatorCache;
     SerializedEquivalent mEquivalent;

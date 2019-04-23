@@ -20,6 +20,7 @@ public:
     IncomingMessagesHandler(
         IOService &ioService,
         UDPSocket &socket,
+        ContractorsManager *contractorsManager,
         TailManager &tailManager,
         Logger &logger)
         noexcept;

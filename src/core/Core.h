@@ -103,6 +103,7 @@ private:
     void connectSignalsToSlots();
 
     void onCommandReceivedSlot(
+        bool success,
         BaseUserCommand::Shared command);
 
     void onClearTopologyCacheSlot(

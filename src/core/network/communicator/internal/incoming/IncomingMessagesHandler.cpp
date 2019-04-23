@@ -4,6 +4,7 @@
 IncomingMessagesHandler::IncomingMessagesHandler(
     IOService &ioService,
     UDPSocket &socket,
+    ContractorsManager *contractorsManager,
     TailManager &tailManager,
     Logger &logger)
     noexcept:
@@ -11,7 +12,7 @@ IncomingMessagesHandler::IncomingMessagesHandler(
     mSocket(socket),
     mIOService(ioService),
     mLog(logger),
-    mMessagesParser(&logger),
+    mMessagesParser(contractorsManager, &logger),
 
     mTailManager(tailManager),
     mRemoteNodesHandler(

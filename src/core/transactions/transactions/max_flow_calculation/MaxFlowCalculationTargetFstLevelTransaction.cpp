@@ -4,6 +4,7 @@ MaxFlowCalculationTargetFstLevelTransaction::MaxFlowCalculationTargetFstLevelTra
     MaxFlowCalculationTargetFstLevelMessage::Shared message,
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
+    TopologyCacheManager *topologyCacheManager,
     Logger &logger,
     bool iAmGateway) :
 
@@ -14,6 +15,7 @@ MaxFlowCalculationTargetFstLevelTransaction::MaxFlowCalculationTargetFstLevelTra
     mMessage(message),
     mContractorsManager (contractorsManager),
     mTrustLinesManager(manager),
+    mTopologyCacheManager(topologyCacheManager),
     mIAmGateway(iAmGateway)
 {}
 
@@ -38,9 +40,9 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
             outgoingFlows,
             incomingFlows);
         if (mMessage->isTargetGateway()) {
-            incomingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithIncomingFlow();
+            incomingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithIncomingFlow(mTopologyCacheManager);
         } else {
-            incomingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
+            incomingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow(mTopologyCacheManager);
         }
     } else {
         incomingFlowIDs = mTrustLinesManager->firstLevelNonGatewayNeighborsWithIncomingFlow();

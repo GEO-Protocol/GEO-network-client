@@ -2,6 +2,8 @@
 #define MESSAGEPARSER_H
 
 #include "../../../../common/memory/MemoryUtils.h"
+#include "../../../../contractors/ContractorsManager.h"
+#include "../../../../crypto/MsgEncryptor.h"
 
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
 
@@ -73,12 +75,13 @@ using namespace std;
 class MessagesParser {
 public:
     MessagesParser(
+        ContractorsManager *contractorsManager,
         Logger *logger)
         noexcept;
 
     pair<bool, Message::Shared> processBytesSequence(
         BytesShared buffer,
-        const size_t count);
+        size_t count);
 
     MessagesParser& operator= (
         const MessagesParser &other)
@@ -106,6 +109,7 @@ protected:
     noexcept;
 
 protected:
+    ContractorsManager *mContractorsManager;
     Logger *mLog;
 };
 

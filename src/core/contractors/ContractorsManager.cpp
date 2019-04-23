@@ -57,7 +57,8 @@ vector<Contractor::Shared> ContractorsManager::allContractors() const
 Contractor::Shared ContractorsManager::createContractor(
     IOTransaction::Shared ioTransaction,
     vector<BaseAddress::Shared> contractorAddresses,
-    uint32_t cryptoKey)
+    const string &cryptoKey,
+    const ContractorID channelIDOnContractorSide)
 {
     auto contractorID = contractorIDByAddresses(
         contractorAddresses);
@@ -67,17 +68,19 @@ Contractor::Shared ContractorsManager::createContractor(
 
     auto id = nextFreeID(ioTransaction);
     info() << "New contractor initializing " << id;
-    if (cryptoKey == 0) {
-        // todo : generate new crypto key
+    if (cryptoKey.empty()) {
         mContractors[id] = make_shared<Contractor>(
             id,
             contractorAddresses,
-            6789);
+            MsgEncryptor::generateKeyTrio());
     } else {
         mContractors[id] = make_shared<Contractor>(
             id,
             contractorAddresses,
-            cryptoKey);
+            MsgEncryptor::generateKeyTrio(cryptoKey));
+        mContractors[id]->setOwnIdOnContractorSide(
+            channelIDOnContractorSide);
+        mContractors[id]->confirm();
     }
     ioTransaction->contractorsHandler()->saveContractor(
         mContractors[id]);
@@ -87,6 +90,24 @@ Contractor::Shared ContractorsManager::createContractor(
             address);
     }
     return mContractors[id];
+}
+
+void ContractorsManager::setCryptoKey(
+    IOTransaction::Shared ioTransaction,
+    ContractorID contractorID,
+    MsgEncryptor::PublicKey::Shared cryptoKey)
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+
+    auto contractor = mContractors[contractorID];
+    if (!contractor->cryptoKey()) {
+        throw NotFoundError(logHeader() + " This contractor does not support encryption " + to_string(contractorID));
+    }
+
+    contractor->cryptoKey()->contractorPublicKey = cryptoKey;
+    ioTransaction->contractorsHandler()->saveCryptoKey(contractor);
 }
 
 bool ContractorsManager::contractorPresent(
