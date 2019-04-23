@@ -23,11 +23,15 @@ public:
     TopologyCache::Shared cacheByAddress(
         BaseAddress::Shared nodeAddress) const;
 
+    typedef std::pair<vector<ContractorID>, vector<ContractorID>> NeighborsResultPair;
+
     bool addIntoFirstLevelCache(
         ContractorID contractorID);
 
     bool isInFirstLevelCache(
         ContractorID contractorID) const;
+
+    vector<ContractorID> checkFirstLevelCache(NeighborsResultPair pair);
 
     void updateCaches();
 

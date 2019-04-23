@@ -40,9 +40,13 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
             outgoingFlows,
             incomingFlows);
         if (mMessage->isTargetGateway()) {
-            incomingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithIncomingFlow(mTopologyCacheManager);
+            incomingFlowIDs = mTopologyCacheManager->checkFirstLevelCache(
+                mTrustLinesManager->firstLevelGatewayNeighborsWithIncomingFlow()
+            );
         } else {
-            incomingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow(mTopologyCacheManager);
+            incomingFlowIDs = mTopologyCacheManager->checkFirstLevelCache(
+                mTrustLinesManager->firstLevelNeighborsWithIncomingFlow()
+            );
         }
     } else {
         incomingFlowIDs = mTrustLinesManager->firstLevelNonGatewayNeighborsWithIncomingFlow();

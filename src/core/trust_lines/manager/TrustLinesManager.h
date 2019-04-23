@@ -45,6 +45,8 @@ public:
         KeysSharing,
     };
 
+    typedef std::pair<vector<ContractorID>, vector<ContractorID>> NeighborsResultPair;
+
 public:
     TrustLinesManager(
         const SerializedEquivalent equivalent,
@@ -324,13 +326,13 @@ public:
         ContractorID contractorID,
         TrustLineAmount amount) const;
 
-    vector<ContractorID> firstLevelNeighborsWithOutgoingFlow(TopologyCacheManager *topologyCacheManager = NULL) const;
+    NeighborsResultPair firstLevelNeighborsWithOutgoingFlow() const;
 
-    vector<ContractorID> firstLevelGatewayNeighborsWithOutgoingFlow(TopologyCacheManager *topologyCacheManager = NULL) const;
+    NeighborsResultPair firstLevelGatewayNeighborsWithOutgoingFlow() const;
 
-    vector<ContractorID> firstLevelNeighborsWithIncomingFlow(TopologyCacheManager *topologyCacheManager = NULL) const;
+    NeighborsResultPair firstLevelNeighborsWithIncomingFlow() const;
 
-    vector<ContractorID> firstLevelGatewayNeighborsWithIncomingFlow(TopologyCacheManager *topologyCacheManager = NULL) const;
+    NeighborsResultPair firstLevelGatewayNeighborsWithIncomingFlow() const;
 
     vector<ContractorID> firstLevelNonGatewayNeighborsWithIncomingFlow() const;
 

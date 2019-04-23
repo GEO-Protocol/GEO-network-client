@@ -800,9 +800,9 @@ bool TrustLinesManager::checkFirstLevelCache(
     return topologyCacheManager->isInFirstLevelCache(contractorID);
 }
 
-vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow(TopologyCacheManager *topologyCacheManager) const
+TrustLinesManager::NeighborsResultPair TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const
 {
-    vector<ContractorID> result;
+    vector<ContractorID> resultPos, resultNeg;
     for (auto const &nodeIDAndTrustLine : mTrustLines) {
         if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
@@ -810,17 +810,22 @@ vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow(Topo
         auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
             nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
-        if (checkFirstLevelCache(topologyCacheManager, nodeIDAndTrustLine.first, *trustLineAmountPtr)) {
-            result.push_back(
+        auto nonZeroFlag = *trustLineAmountPtr > TrustLine::kZeroAmount();
+        if (nonZeroFlag) {
+            resultPos.push_back(
+                nodeIDAndTrustLine.first);
+        }
+        else {
+            resultNeg.push_back(
                 nodeIDAndTrustLine.first);
         }
     }
-    return result;
+    return make_pair(resultPos, resultNeg);
 }
 
-vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFlow(TopologyCacheManager *topologyCacheManager) const
+TrustLinesManager::NeighborsResultPair TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFlow() const
 {
-    vector<ContractorID> result;
+    vector<ContractorID> resultPos, resultNeg;
     for (auto const &nodeIDAndTrustLine : mTrustLines) {
         if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
@@ -831,17 +836,22 @@ vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFl
         auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
             nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
-        if (checkFirstLevelCache(topologyCacheManager, nodeIDAndTrustLine.first, *trustLineAmountPtr)) {
-            result.push_back(
+        auto nonZeroFlag = *trustLineAmountPtr > TrustLine::kZeroAmount();
+        if (nonZeroFlag) {
+            resultPos.push_back(
+                nodeIDAndTrustLine.first);
+        }
+        else {
+            resultNeg.push_back(
                 nodeIDAndTrustLine.first);
         }
     }
-    return result;
+    return make_pair(resultPos, resultNeg);
 }
 
-vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow(TopologyCacheManager *topologyCacheManager) const
+TrustLinesManager::NeighborsResultPair TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const
 {
-    vector<ContractorID> result;
+    vector<ContractorID> resultPos, resultNeg;
     for (auto const &nodeIDAndTrustLine : mTrustLines) {
         if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
@@ -849,17 +859,22 @@ vector<ContractorID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow(Topo
         auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
             nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
-        if (checkFirstLevelCache(topologyCacheManager, nodeIDAndTrustLine.first, *trustLineAmountPtr)) {
-            result.push_back(
+        auto nonZeroFlag = *trustLineAmountPtr > TrustLine::kZeroAmount();
+        if (nonZeroFlag) {
+            resultPos.push_back(
+                nodeIDAndTrustLine.first);
+        }
+        else {
+            resultNeg.push_back(
                 nodeIDAndTrustLine.first);
         }
     }
-    return result;
+    return make_pair(resultPos, resultNeg);
 }
 
-vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithIncomingFlow(TopologyCacheManager *topologyCacheManager) const
+TrustLinesManager::NeighborsResultPair TrustLinesManager::firstLevelGatewayNeighborsWithIncomingFlow() const
 {
-    vector<ContractorID> result;
+    vector<ContractorID> resultPos, resultNeg;
     for (auto const &nodeIDAndTrustLine : mTrustLines) {
         if (!nodeIDAndTrustLine.second->isContractorGateway()) {
             continue;
@@ -867,11 +882,17 @@ vector<ContractorID> TrustLinesManager::firstLevelGatewayNeighborsWithIncomingFl
         auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
             nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
-        if (checkFirstLevelCache(topologyCacheManager, nodeIDAndTrustLine.first, *trustLineAmountPtr)) {
-            result.push_back(nodeIDAndTrustLine.first);
+        auto nonZeroFlag = *trustLineAmountPtr > TrustLine::kZeroAmount();
+        if (nonZeroFlag) {
+            resultPos.push_back(
+                nodeIDAndTrustLine.first);
+        }
+        else {
+            resultNeg.push_back(
+                nodeIDAndTrustLine.first);
         }
     }
-    return result;
+    return make_pair(resultPos, resultNeg);
 }
 
 vector<ContractorID> TrustLinesManager::firstLevelNonGatewayNeighborsWithIncomingFlow() const

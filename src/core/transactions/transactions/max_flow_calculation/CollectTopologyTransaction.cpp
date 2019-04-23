@@ -28,7 +28,7 @@ TransactionResult::SharedConst CollectTopologyTransaction::run()
 {
     debug() << "Collect topology to " << mContractorAddresses.size() << " contractors";
     // Check if Node does not have outgoing FlowAmount;
-    if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().empty()){
+    if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().first.empty()){
         return resultDone();
     }
     sendMessagesToContractors();
@@ -85,7 +85,7 @@ void CollectTopologyTransaction::sendMessagesToContractors()
 void CollectTopologyTransaction::sendMessagesOnFirstLevel()
 {
     if (mIamGateway) {
-        auto outgoingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow();
+        auto outgoingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow().first;
         for (auto const &nodeIDOutgoingFlow : outgoingFlowIDs) {
             auto contractorAddress = mContractorsManager->contractorMainAddress(nodeIDOutgoingFlow);
             if (isNodeListedInTransactionContractors(contractorAddress)) {
@@ -97,7 +97,7 @@ void CollectTopologyTransaction::sendMessagesOnFirstLevel()
                 mContractorsManager->idOnContractorSide(nodeIDOutgoingFlow));
         }
     } else {
-        auto outgoingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
+        auto outgoingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().first;
         auto outgoingFlowIDIt = outgoingFlowIDs.begin();
         while (outgoingFlowIDIt != outgoingFlowIDs.end()) {
             auto contractorAddress = mContractorsManager->contractorMainAddress(*outgoingFlowIDIt);

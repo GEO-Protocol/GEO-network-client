@@ -118,9 +118,13 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel()
 {
     vector<ContractorID> incomingFlowIDs;
     if (mMessage->isSenderGateway()) {
-        incomingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithIncomingFlow(mTopologyCacheManager);
+        incomingFlowIDs = mTopologyCacheManager->checkFirstLevelCache(
+            mTrustLinesManager->firstLevelGatewayNeighborsWithIncomingFlow()
+        );
     } else {
-        incomingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow(mTopologyCacheManager);
+        incomingFlowIDs = mTopologyCacheManager->checkFirstLevelCache(
+            mTrustLinesManager->firstLevelNeighborsWithIncomingFlow()
+        );
     }
     auto initiatorContractorID = mContractorsManager->contractorIDByAddress(mMessage->senderAddresses.at(0));
 

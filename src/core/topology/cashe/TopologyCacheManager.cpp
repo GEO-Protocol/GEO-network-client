@@ -60,6 +60,19 @@ bool TopologyCacheManager::addIntoFirstLevelCache(
     return true;
 }
 
+vector<ContractorID> TopologyCacheManager::checkFirstLevelCache(TopologyCacheManager::NeighborsResultPair pair)
+{
+    for(auto contractorID: pair.first) {
+        addIntoFirstLevelCache(contractorID);
+    }
+    for(auto contractorID: pair.second) {
+        if(!isInFirstLevelCache(contractorID))
+            continue;
+        pair.first.push_back(contractorID);
+    }
+    return pair.first;
+}
+
 bool TopologyCacheManager::isInFirstLevelCache(
     ContractorID contractorID) const
 {

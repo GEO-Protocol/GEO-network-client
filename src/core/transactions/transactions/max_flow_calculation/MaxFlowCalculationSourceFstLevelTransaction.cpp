@@ -40,9 +40,13 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
             mContractorsManager->ownAddresses(),
             outgoingFlows,
             incomingFlows);
-        outgoingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow(mTopologyCacheManager);
+        outgoingFlowIDs = mTopologyCacheManager->checkFirstLevelCache(
+            mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow()
+        );
     } else {
-        outgoingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow(mTopologyCacheManager);
+        outgoingFlowIDs = mTopologyCacheManager->checkFirstLevelCache(
+            mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow()
+        );
     }
     for (auto const &nodeIDWithOutgoingFlow : outgoingFlowIDs) {
         if (nodeIDWithOutgoingFlow == mMessage->idOnReceiverSide) {
