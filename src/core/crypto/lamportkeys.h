@@ -4,9 +4,6 @@
 #include "memory.h"
 
 #include <sodium.h>
-// todo : solve boost issues
-//#include <boost/noncopyable.hpp>
-//#include <boost/predef/other/endian.h>
 #include <memory>
 
 

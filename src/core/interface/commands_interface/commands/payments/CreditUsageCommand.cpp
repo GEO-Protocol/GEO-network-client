@@ -54,6 +54,9 @@ CreditUsageCommand::CreditUsageCommand(
     auto equivalentParse = [&](auto &ctx) {
         mEquivalent = _attr(ctx);
     };
+    auto payloadParse = [&](auto &ctx) {
+        mPayload += _attr(ctx);
+    };
 
     try {
         parse(
@@ -81,8 +84,13 @@ CreditUsageCommand::CreditUsageCommand(
                         addressAddToVector)
                 >*(digit [amountAddNumber] > !alpha > !punct)
                 > char_(kTokensSeparator)
-                > +(int_[equivalentParse]) > eol > eoi));
+                > +(int_[equivalentParse])
+                > -(char_(kTokensSeparator) > *(char_[payloadParse] - eol))
+                > eol > eoi));
         mAmount = TrustLineAmount(amount);
+        if (mPayload.length() > std::numeric_limits<PayloadLength>::max()) {
+            throw ValueError("Payload length is too big");
+        }
     } catch(...) {
         throw ValueError("CreditUsageCommand: cannot parse command.");
     }
@@ -107,6 +115,11 @@ const TrustLineAmount& CreditUsageCommand::amount() const
 const SerializedEquivalent CreditUsageCommand::equivalent() const
 {
     return mEquivalent;
+}
+
+const std::string CreditUsageCommand::payload() const
+{
+    return mPayload;
 }
 
 CommandResult::SharedConst CreditUsageCommand::responseOK(

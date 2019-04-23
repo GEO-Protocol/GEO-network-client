@@ -24,6 +24,8 @@ public:
 
     const SerializedEquivalent equivalent() const;
 
+    const std::string payload() const;
+
 public:
     // Results handlers
     CommandResult::SharedConst responseOK(
@@ -34,6 +36,7 @@ private:
     vector<BaseAddress::Shared> mContractorAddresses;
     TrustLineAmount mAmount;
     SerializedEquivalent mEquivalent;
+    std::string mPayload;
 };
 
 #endif //GEO_NETWORK_CLIENT_CREDITUSAGECOMMAND_H

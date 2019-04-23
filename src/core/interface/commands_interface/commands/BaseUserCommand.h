@@ -45,12 +45,12 @@ public:
 
     template<typename addChar, typename addNumber, typename addType, typename addToVector>
     inline auto addressLexeme(size_t mContractorAddressesCount, addChar addressChar,
-                              addNumber addressNumber, addType addresType, addToVector addressToVector) {
+                              addNumber addressNumber, addType addressType, addToVector addressToVector) {
         return lexeme[expect[
             repeat(mContractorAddressesCount)
             [
-                parserString::string(std::to_string(BaseAddress::IPv4_IncludingPort))[addresType]
-                > *(char_[addresType] - char_(kTokensSeparator))
+                parserString::string(std::to_string(BaseAddress::IPv4_IncludingPort))[addressType]
+                > *(char_[addressType] - char_(kTokensSeparator))
                 > char_(kTokensSeparator)
                 > repeat(3)
                 [
@@ -78,7 +78,7 @@ public:
         > *(char_[addUUID4Digits] - char_(kUUIDSeparator)) > char_(kUUIDSeparator)[addUUID4Digits]
         > *(char_[addUUID4Digits] - char_(kUUIDSeparator)) > char_(kUUIDSeparator)[addUUID4Digits]
         > *(char_[addUUID4Digits] - char_(kUUIDSeparator)) > char_(kUUIDSeparator)[addUUID4Digits]
-        > *(char_[addUUID12Digits] - char_(kTokensSeparator)) > char_(kTokensSeparator)[addUUID12Digits]];
+        > *(char_[addUUID12Digits] - char_(kTokensSeparator)) > *(char_(kTokensSeparator)[addUUID12Digits] -char_(kTokensSeparator) )];
     }
     // TODO: remove noexcept
     // TODO: split methods into classes

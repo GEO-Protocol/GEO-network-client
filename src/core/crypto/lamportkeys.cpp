@@ -131,34 +131,20 @@ const string KeyHash::toString() const
 
 bool operator== (const KeyHash &kh1, const KeyHash &kh2)
 {
-#ifdef BOOST_BIG_ENDIAN
-    //todo
-#endif
-
-    // todo : solve boost issues
-//#ifdef BOOST_LITTLE_ENDIAN
     for (int i = KeyHash::kBytesSize - 1; i >= 0; --i){
         if (kh1.mData[i] != kh2.mData[i])
             return false;
     }
     return true;
-//#endif
 }
 
 bool operator!= (const KeyHash &kh1, const KeyHash &kh2)
 {
-#ifdef BOOST_BIG_ENDIAN_BYTE
-        //todo
-#endif
-
-    // todo : solve boost issues
-//#ifdef BOOST_LITTLE_ENDIAN_BYTE
     for (int i = KeyHash::kBytesSize - 1; i >= 0; --i){
         if (kh1.mData[i] != kh2.mData[i])
             return true;
     }
     return false;
-//#endif
 }
 
 }

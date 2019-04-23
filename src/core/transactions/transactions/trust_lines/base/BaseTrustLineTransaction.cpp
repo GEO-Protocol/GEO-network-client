@@ -74,7 +74,7 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getOwnSerializedAuditData(
                         + kTrustLineBalanceSerializeBytesCount
                         + lamport::KeyHash::kBytesSize
                         + lamport::KeyHash::kBytesSize
-                        + sizeof(byte)
+                        + sizeof(EquivalentRegisterAddressLength)
                         + mFeaturesManager->getEquivalentsRegistryAddress().length();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -130,12 +130,12 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getOwnSerializedAuditData(
     info() << "Contractor keys hash: " << contractorPublicKeysHash->toString();
 
     auto equivalentRegistryAddress = mFeaturesManager->getEquivalentsRegistryAddress();
-    auto equivalentsRegistryAddressLength = (byte)equivalentRegistryAddress.length();
+    auto equivalentsRegistryAddressLength = (EquivalentRegisterAddressLength)equivalentRegistryAddress.length();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &equivalentsRegistryAddressLength,
-        sizeof(byte));
-    dataBytesOffset += sizeof(byte);
+        sizeof(EquivalentRegisterAddressLength));
+    dataBytesOffset += sizeof(EquivalentRegisterAddressLength);
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         equivalentRegistryAddress.c_str(),
@@ -157,7 +157,7 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getContractorSerializedAudit
                         + kTrustLineBalanceSerializeBytesCount
                         + lamport::KeyHash::kBytesSize
                         + lamport::KeyHash::kBytesSize
-                        + sizeof(byte)
+                        + sizeof(EquivalentRegisterAddressLength)
                         + mFeaturesManager->getEquivalentsRegistryAddress().length();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -214,12 +214,12 @@ pair<BytesShared, size_t> BaseTrustLineTransaction::getContractorSerializedAudit
     info() << "Own keys hash: " << ownPublicKeysHash->toString();
 
     auto equivalentRegistryAddress = mFeaturesManager->getEquivalentsRegistryAddress();
-    auto equivalentsRegistryAddressLength = (byte)equivalentRegistryAddress.length();
+    auto equivalentsRegistryAddressLength = (EquivalentRegisterAddressLength)equivalentRegistryAddress.length();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &equivalentsRegistryAddressLength,
-        sizeof(byte));
-    dataBytesOffset += sizeof(byte);
+        sizeof(EquivalentRegisterAddressLength));
+    dataBytesOffset += sizeof(EquivalentRegisterAddressLength);
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         equivalentRegistryAddress.c_str(),

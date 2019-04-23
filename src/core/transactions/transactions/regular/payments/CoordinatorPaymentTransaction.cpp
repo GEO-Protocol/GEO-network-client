@@ -179,7 +179,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
         mContractorsManager->ownAddresses(),
         currentTransactionUUID(),
         mCommand->amount(),
-        "receiver payload");
+        mCommand->payload());
 
     mStep = Stages::Coordinator_ReceiverResponseProcessing;
     // delay 4 = 6sec for message delivery guarantee
@@ -2061,7 +2061,7 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory(
             mCommittedAmount,
             *mTrustLinesManager->totalBalance().get(),
             mCommand->UUID(),
-            "coord payload"),
+            mCommand->payload()),
         mEquivalent);
     debug() << "Operation saved";
 }
