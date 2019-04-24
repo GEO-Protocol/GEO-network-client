@@ -37,6 +37,11 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
                     contractor->cryptoKey()->secretKey
                 ).decrypt(buffer, count);
                 buffer = pair.first;
+                if(!buffer) {
+                    warning() << "processBytesSequence: "
+                        << "Message decryption error. Message dropped.";
+                    return messageInvalidOrIncomplete();
+                }
             }
         } catch (NotFoundError &) {
             warning() << "There is no contractor with ID " << contractorID;
