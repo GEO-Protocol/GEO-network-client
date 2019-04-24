@@ -53,10 +53,7 @@ bool TopologyCacheManager::addIntoFirstLevelCache(
             make_shared<FirstLvShared::element_type>(
                 make_pair(
                     contractorID,
-                    utc_now()
-                )
-            )
-        );
+                    utc_now())));
     return true;
 }
 

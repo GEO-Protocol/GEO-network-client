@@ -59,7 +59,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
                 TrustLineAmount(0)));
     }
     // Check if Node does not have outgoing FlowAmount;
-    if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().empty()){
+    if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().first.empty()){
         return resultFinalOk();
     }
 

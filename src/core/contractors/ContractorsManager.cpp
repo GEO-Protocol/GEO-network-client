@@ -69,21 +69,25 @@ Contractor::Shared ContractorsManager::createContractor(
     auto id = nextFreeID(ioTransaction);
     info() << "New contractor initializing " << id;
     if (cryptoKey.empty()) {
-        mContractors[id] = make_shared<Contractor>(
+        auto contractor = make_shared<Contractor>(
             id,
             contractorAddresses,
             MsgEncryptor::generateKeyTrio());
+        mContractors[id] = contractor;
+        ioTransaction->contractorsHandler()->saveContractor(
+            mContractors[id]);
     } else {
-        mContractors[id] = make_shared<Contractor>(
+        auto contractor = make_shared<Contractor>(
             id,
             contractorAddresses,
             MsgEncryptor::generateKeyTrio(cryptoKey));
-        mContractors[id]->setOwnIdOnContractorSide(
+        contractor->setOwnIdOnContractorSide(
             channelIDOnContractorSide);
-        mContractors[id]->confirm();
+        contractor->confirm();
+        mContractors[id] = contractor;
+        ioTransaction->contractorsHandler()->saveContractorFull(
+            mContractors[id]);
     }
-    ioTransaction->contractorsHandler()->saveContractor(
-        mContractors[id]);
     for (const auto &address : contractorAddresses) {
         ioTransaction->addressHandler()->saveAddress(
             id,
@@ -92,9 +96,10 @@ Contractor::Shared ContractorsManager::createContractor(
     return mContractors[id];
 }
 
-void ContractorsManager::setCryptoKey(
+void ContractorsManager::setConfirmationInfo(
     IOTransaction::Shared ioTransaction,
     ContractorID contractorID,
+    ContractorID idOnContractorSide,
     MsgEncryptor::PublicKey::Shared cryptoKey)
 {
     if (!contractorPresent(contractorID)) {
@@ -107,7 +112,10 @@ void ContractorsManager::setCryptoKey(
     }
 
     contractor->cryptoKey()->contractorPublicKey = cryptoKey;
-    ioTransaction->contractorsHandler()->saveCryptoKey(contractor);
+    contractor->setOwnIdOnContractorSide(idOnContractorSide);
+    contractor->confirm();
+    ioTransaction->contractorsHandler()->saveConfirmationInfo(
+        contractor);
 }
 
 bool ContractorsManager::contractorPresent(
@@ -141,21 +149,6 @@ const ContractorID ContractorsManager::idOnContractorSide(
         throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
     }
     return mContractors.at(contractorID)->ownIdOnContractorSide();
-}
-
-void ContractorsManager::setIDOnContractorSide(
-    IOTransaction::Shared ioTransaction,
-    ContractorID contractorID,
-    ContractorID idOnContractorSide)
-{
-    if (!contractorPresent(contractorID)) {
-        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
-    }
-
-    auto contractor = mContractors[contractorID];
-    contractor->setOwnIdOnContractorSide(idOnContractorSide);
-    ioTransaction->contractorsHandler()->saveIdOnContractorSide(contractor);
-    contractor->confirm();
 }
 
 ContractorID ContractorsManager::contractorIDByAddresses(

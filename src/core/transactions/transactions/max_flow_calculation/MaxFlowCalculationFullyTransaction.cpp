@@ -52,7 +52,7 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::sendRequestFo
             contractorAddress);
     }
     // Check if Node does not have outgoing FlowAmount;
-    if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().empty()){
+    if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().first.empty()){
         mMaxFlows.reserve(mCommand->contractorAddresses().size());
         for (const auto &contractorIDAndAddress : mContractorIDs) {
             mMaxFlows.emplace_back(

@@ -64,7 +64,7 @@ void ContractorsHandler::saveContractor(
     }
 
     auto cryptoKey = contractor->cryptoKey();
-    vector<uint8_t> cryptoKeyBlob;
+    vector<byte> cryptoKeyBlob;
     if(cryptoKey)
         cryptoKey->serialize(cryptoKeyBlob);
     rc = sqlite3_bind_blob(stmt, 2, &cryptoKeyBlob[0], cryptoKeyBlob.size(), SQLITE_STATIC);
@@ -90,8 +90,8 @@ void ContractorsHandler::saveContractorFull(
     Contractor::Shared contractor)
 {
     string query = "INSERT INTO " + mTableName +
-                   "(id, id_on_contractor_side) "
-                   "VALUES (?, ?);";
+                   "(id, id_on_contractor_side, crypto_key, is_confirmed) "
+                   "VALUES (?, ?, ?, 1);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -109,6 +109,15 @@ void ContractorsHandler::saveContractorFull(
         throw IOError("ContractorsHandler::saveContractorFull: "
                           "Bad binding of ID on contractor side; sqlite error: " + to_string(rc));
     }
+    auto cryptoKey = contractor->cryptoKey();
+    vector<byte> cryptoKeyBlob;
+    if(cryptoKey)
+        cryptoKey->serialize(cryptoKeyBlob);
+    rc = sqlite3_bind_blob(stmt, 3, &cryptoKeyBlob[0], cryptoKeyBlob.size(), SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorsHandler::saveContractorFull: "
+                          "Bad binding of cryptoKey; sqlite error: " + to_string(rc));
+    }
 
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -123,71 +132,36 @@ void ContractorsHandler::saveContractorFull(
     }
 }
 
-void ContractorsHandler::saveIdOnContractorSide(
+void ContractorsHandler::saveConfirmationInfo(
     Contractor::Shared contractor)
 {
     string query = "UPDATE " + mTableName +
-                   " SET id_on_contractor_side = ?, is_confirmed = 1 WHERE id = ?;";
+                   " SET id_on_contractor_side = ?, crypto_key = ?, is_confirmed = 1 WHERE id = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
-        throw IOError("ContractorsHandler::saveIdOnContractorSide: "
+        throw IOError("ContractorsHandler::saveConfirmationInfo: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_bind_int(stmt, 1, contractor->ownIdOnContractorSide());
     if (rc != SQLITE_OK) {
-        throw IOError("ContractorsHandler::saveIdOnContractorSide: "
+        throw IOError("ContractorsHandler::saveConfirmationInfo: "
                           "Bad binding of ID on contractor side; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, 2, contractor->getID());
-    if (rc != SQLITE_OK) {
-        throw IOError("ContractorsHandler::saveIdOnContractorSide: "
-                          "Bad binding of ID; sqlite error: " + to_string(rc));
-    }
-
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "prepare inserting is completed successfully";
-#endif
-    } else {
-        throw IOError("ContractorsHandler::saveContractorFull: "
-                          "Run query; sqlite error: " + to_string(rc));
-    }
-
-    if (sqlite3_changes(mDataBase) == 0) {
-        throw ValueError("No data were modified");
-    }
-}
-
-void ContractorsHandler::saveCryptoKey(
-    Contractor::Shared contractor)
-{
-    string query = "UPDATE " + mTableName +
-                   " SET crypto_key = ? WHERE id = ?;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
-    if (rc != SQLITE_OK) {
-        throw IOError("ContractorsHandler::saveCryptoKey: "
-                          "Bad query; sqlite error: " + to_string(rc));
-    }
-
     auto cryptoKey = contractor->cryptoKey();
-    vector<uint8_t> cryptoKeyBlob;
-    if(cryptoKey)
+    vector<byte> cryptoKeyBlob;
+    if(cryptoKey) {
         cryptoKey->serialize(cryptoKeyBlob);
-    rc = sqlite3_bind_blob(stmt, 1, &cryptoKeyBlob[0], cryptoKeyBlob.size(), SQLITE_STATIC);
+    }
+    rc = sqlite3_bind_blob(stmt, 2, &cryptoKeyBlob[0], cryptoKeyBlob.size(), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("ContractorsHandler::saveCryptoKey: "
+        throw IOError("ContractorsHandler::saveConfirmationInfo: "
                           "Bad binding of cryptoKey; sqlite error: " + to_string(rc));
     }
-
-    rc = sqlite3_bind_int(stmt, 2, contractor->getID());
+    rc = sqlite3_bind_int(stmt, 3, contractor->getID());
     if (rc != SQLITE_OK) {
-        throw IOError("ContractorsHandler::saveCryptoKey: "
+        throw IOError("ContractorsHandler::saveConfirmationInfo: "
                           "Bad binding of ID; sqlite error: " + to_string(rc));
     }
 
@@ -196,11 +170,11 @@ void ContractorsHandler::saveCryptoKey(
     sqlite3_finalize(stmt);
     if (rc == SQLITE_DONE) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "prepare inserting is completed successfully";
+        info() << "updateing is completed successfully";
 #endif
     } else {
-        throw IOError("ContractorsHandler::saveCryptoKey: "
-                          "Run query; sqlite error: " + to_string(rc));
+        throw IOError("ContractorsHandler::saveConfirmationInfo: "
+                      "Run query; sqlite error: " + to_string(rc));
     }
 
     if (sqlite3_changes(mDataBase) == 0) {

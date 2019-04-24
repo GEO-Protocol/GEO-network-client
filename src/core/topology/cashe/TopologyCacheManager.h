@@ -44,7 +44,7 @@ public:
 
 private:
     static const byte kResetSenderCacheHours = 0;
-    static const byte kResetSenderCacheMinutes = 2;
+    static const byte kResetSenderCacheMinutes = 10;
     static const byte kResetSenderCacheSeconds = 0;
 
     static Duration& kResetSenderCacheDuration() {

@@ -47,15 +47,11 @@ TransactionResult::SharedConst ConfirmChannelTransaction::run()
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {
-        mContractorsManager->setCryptoKey(
+        mContractorsManager->setConfirmationInfo(
             ioTransaction,
             contractorID,
+            mMessage->contractorID(),
             mMessage->publicKey());
-
-        mContractorsManager->setIDOnContractorSide(
-            ioTransaction,
-            contractorID,
-            mMessage->contractorID());
     } catch (IOError &e) {
         error() << "Error during saving Contractor data. Details: " << e.what();
         ioTransaction->rollback();

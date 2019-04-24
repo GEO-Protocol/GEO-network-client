@@ -36,14 +36,10 @@ public:
     const ContractorID idOnContractorSide(
         ContractorID contractorID) const;
 
-    void setIDOnContractorSide(
-        IOTransaction::Shared ioTransaction,
-        ContractorID id,
-        ContractorID idOnContractorSide);
-
-    void setCryptoKey(
+    void setConfirmationInfo(
         IOTransaction::Shared ioTransaction,
         ContractorID contractorID,
+        ContractorID idOnContractorSide,
         MsgEncryptor::PublicKey::Shared cryptoKey);
 
     vector<BaseAddress::Shared> ownAddresses() const;

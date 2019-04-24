@@ -14,7 +14,6 @@
 #include "../../io/storage/IOTransaction.h"
 #include "../../crypto/keychain.h"
 #include "../../contractors/ContractorsManager.h"
-#include "../../topology/cashe/TopologyCacheManager.h"
 
 #include <unordered_map>
 #include <vector>
@@ -44,6 +43,8 @@ public:
         Audit,
         KeysSharing,
     };
+
+    typedef std::pair<vector<ContractorID>, vector<ContractorID>> NeighborsResultPair;
 
 public:
     TrustLinesManager(
@@ -319,20 +320,15 @@ public:
     void resetTrustLineTotalReceiptsAmounts(
         ContractorID contractorID);
 
-    bool checkFirstLevelCache(
-        TopologyCacheManager *topologyCacheManager,
-        ContractorID contractorID,
-        TrustLineAmount amount) const;
+    NeighborsResultPair firstLevelNeighborsWithOutgoingFlow() const;
 
-    vector<ContractorID> firstLevelNeighborsWithOutgoingFlow(TopologyCacheManager *topologyCacheManager = NULL) const;
+    NeighborsResultPair firstLevelGatewayNeighborsWithOutgoingFlow() const;
 
-    vector<ContractorID> firstLevelGatewayNeighborsWithOutgoingFlow(TopologyCacheManager *topologyCacheManager = NULL) const;
+    NeighborsResultPair firstLevelNeighborsWithIncomingFlow() const;
 
-    vector<ContractorID> firstLevelNeighborsWithIncomingFlow(TopologyCacheManager *topologyCacheManager = NULL) const;
+    NeighborsResultPair firstLevelGatewayNeighborsWithIncomingFlow() const;
 
-    vector<ContractorID> firstLevelGatewayNeighborsWithIncomingFlow(TopologyCacheManager *topologyCacheManager = NULL) const;
-
-    vector<ContractorID> firstLevelNonGatewayNeighborsWithIncomingFlow() const;
+    NeighborsResultPair firstLevelNonGatewayNeighborsWithIncomingFlow() const;
 
     vector<ContractorID> firstLevelNeighborsWithPositiveBalance() const;
 
