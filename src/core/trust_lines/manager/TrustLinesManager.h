@@ -14,7 +14,6 @@
 #include "../../io/storage/IOTransaction.h"
 #include "../../crypto/keychain.h"
 #include "../../contractors/ContractorsManager.h"
-#include "../../topology/cashe/TopologyCacheManager.h"
 
 #include <unordered_map>
 #include <vector>
@@ -321,11 +320,6 @@ public:
     void resetTrustLineTotalReceiptsAmounts(
         ContractorID contractorID);
 
-    bool checkFirstLevelCache(
-        TopologyCacheManager *topologyCacheManager,
-        ContractorID contractorID,
-        TrustLineAmount amount) const;
-
     NeighborsResultPair firstLevelNeighborsWithOutgoingFlow() const;
 
     NeighborsResultPair firstLevelGatewayNeighborsWithOutgoingFlow() const;
@@ -334,7 +328,7 @@ public:
 
     NeighborsResultPair firstLevelGatewayNeighborsWithIncomingFlow() const;
 
-    vector<ContractorID> firstLevelNonGatewayNeighborsWithIncomingFlow() const;
+    NeighborsResultPair firstLevelNonGatewayNeighborsWithIncomingFlow() const;
 
     vector<ContractorID> firstLevelNeighborsWithPositiveBalance() const;
 

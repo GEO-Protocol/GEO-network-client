@@ -116,24 +116,21 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
 
 void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel()
 {
-    vector<ContractorID> incomingFlowIDs;
+    pair<vector<ContractorID>, vector<ContractorID>> incomingFlowIDs;
     if (mMessage->isSenderGateway()) {
-        incomingFlowIDs = mTopologyCacheManager->checkFirstLevelCache(
-            mTrustLinesManager->firstLevelGatewayNeighborsWithIncomingFlow()
-        );
+        incomingFlowIDs = mTrustLinesManager->firstLevelGatewayNeighborsWithIncomingFlow();
     } else {
-        incomingFlowIDs = mTopologyCacheManager->checkFirstLevelCache(
-            mTrustLinesManager->firstLevelNeighborsWithIncomingFlow()
-        );
+        incomingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
     }
-    auto initiatorContractorID = mContractorsManager->contractorIDByAddress(mMessage->senderAddresses.at(0));
+    auto initiatorContractorID = mContractorsManager->contractorIDByAddress(
+        mMessage->senderAddresses.at(0));
 
-    for (auto const &nodeIDWithIncomingFlow : incomingFlowIDs) {
+    for (auto const &nodeIDWithIncomingFlow : incomingFlowIDs.first) {
         if (nodeIDWithIncomingFlow == initiatorContractorID) {
             continue;
         }
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-        info() << "sendFirst\t" << nodeIDWithIncomingFlow;
+        info() << "sendFirst: " << nodeIDWithIncomingFlow;
 #endif
         sendMessage<MaxFlowCalculationTargetFstLevelMessage>(
             nodeIDWithIncomingFlow,

@@ -784,22 +784,6 @@ void TrustLinesManager::resetTrustLineTotalReceiptsAmounts(
     trustLine->resetTotalReceiptsAmounts();
 }
 
-bool TrustLinesManager::checkFirstLevelCache(
-    TopologyCacheManager *topologyCacheManager,
-    ContractorID contractorID,
-    TrustLineAmount amount) const
-{
-    auto nonZeroFlag = amount > TrustLine::kZeroAmount();
-    if(!topologyCacheManager) {
-        return nonZeroFlag;
-    }
-    if(nonZeroFlag) {
-        topologyCacheManager->addIntoFirstLevelCache(contractorID);
-        return true;
-    }
-    return topologyCacheManager->isInFirstLevelCache(contractorID);
-}
-
 TrustLinesManager::NeighborsResultPair TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const
 {
     vector<ContractorID> resultPos, resultNeg;
@@ -810,8 +794,7 @@ TrustLinesManager::NeighborsResultPair TrustLinesManager::firstLevelNeighborsWit
         auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
             nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
-        auto nonZeroFlag = *trustLineAmountPtr > TrustLine::kZeroAmount();
-        if (nonZeroFlag) {
+        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             resultPos.push_back(
                 nodeIDAndTrustLine.first);
         }
@@ -836,8 +819,7 @@ TrustLinesManager::NeighborsResultPair TrustLinesManager::firstLevelGatewayNeigh
         auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
             nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
-        auto nonZeroFlag = *trustLineAmountPtr > TrustLine::kZeroAmount();
-        if (nonZeroFlag) {
+        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             resultPos.push_back(
                 nodeIDAndTrustLine.first);
         }
@@ -859,8 +841,7 @@ TrustLinesManager::NeighborsResultPair TrustLinesManager::firstLevelNeighborsWit
         auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
             nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
-        auto nonZeroFlag = *trustLineAmountPtr > TrustLine::kZeroAmount();
-        if (nonZeroFlag) {
+        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             resultPos.push_back(
                 nodeIDAndTrustLine.first);
         }
@@ -882,12 +863,10 @@ TrustLinesManager::NeighborsResultPair TrustLinesManager::firstLevelGatewayNeigh
         auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
             nodeIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
-        auto nonZeroFlag = *trustLineAmountPtr > TrustLine::kZeroAmount();
-        if (nonZeroFlag) {
+        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             resultPos.push_back(
                 nodeIDAndTrustLine.first);
-        }
-        else {
+        } else {
             resultNeg.push_back(
                 nodeIDAndTrustLine.first);
         }
@@ -895,9 +874,9 @@ TrustLinesManager::NeighborsResultPair TrustLinesManager::firstLevelGatewayNeigh
     return make_pair(resultPos, resultNeg);
 }
 
-vector<ContractorID> TrustLinesManager::firstLevelNonGatewayNeighborsWithIncomingFlow() const
+TrustLinesManager::NeighborsResultPair TrustLinesManager::firstLevelNonGatewayNeighborsWithIncomingFlow() const
 {
-    vector<ContractorID> result;
+    vector<ContractorID> resultPos, resultNeg;
     for (auto const &nodeIDAndTrustLine : mTrustLines) {
         if (nodeIDAndTrustLine.second->state() != TrustLine::Active) {
             continue;
@@ -910,10 +889,14 @@ vector<ContractorID> TrustLinesManager::firstLevelNonGatewayNeighborsWithIncomin
         auto trustLineAmountPtr = trustLineAmountShared.get();
 
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
-            result.push_back(nodeIDAndTrustLine.first);
+            resultPos.push_back(
+                nodeIDAndTrustLine.first);
+        } else {
+            resultNeg.push_back(
+                nodeIDAndTrustLine.first);
         }
     }
-    return result;
+    return make_pair(resultPos, resultNeg);
 }
 
 vector<pair<BaseAddress::Shared, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlows() const

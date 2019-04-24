@@ -23,10 +23,7 @@ public:
     void saveContractorFull(
         Contractor::Shared contractor);
 
-    void saveIdOnContractorSide(
-        Contractor::Shared contractor);
-
-    void saveCryptoKey(
+    void saveConfirmationInfo(
         Contractor::Shared contractor);
 
     vector<Contractor::Shared> allContractors();

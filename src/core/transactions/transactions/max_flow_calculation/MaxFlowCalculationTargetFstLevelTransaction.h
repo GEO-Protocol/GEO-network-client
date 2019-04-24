@@ -7,6 +7,7 @@
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetSndLevelMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../topology/cashe/TopologyCacheManager.h"
 
 class MaxFlowCalculationTargetFstLevelTransaction : public BaseTransaction {
 

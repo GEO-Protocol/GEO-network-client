@@ -23,15 +23,11 @@ public:
     TopologyCache::Shared cacheByAddress(
         BaseAddress::Shared nodeAddress) const;
 
-    typedef std::pair<vector<ContractorID>, vector<ContractorID>> NeighborsResultPair;
-
     bool addIntoFirstLevelCache(
         ContractorID contractorID);
 
     bool isInFirstLevelCache(
         ContractorID contractorID) const;
-
-    vector<ContractorID> checkFirstLevelCache(NeighborsResultPair pair);
 
     void updateCaches();
 
@@ -48,7 +44,7 @@ public:
 
 private:
     static const byte kResetSenderCacheHours = 0;
-    static const byte kResetSenderCacheMinutes = 2;
+    static const byte kResetSenderCacheMinutes = 10;
     static const byte kResetSenderCacheSeconds = 0;
 
     static Duration& kResetSenderCacheDuration() {
