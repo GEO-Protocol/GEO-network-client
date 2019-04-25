@@ -19,7 +19,7 @@ Please, follow the link for [releases changelog](https://github.com/GEO-Protocol
 1. Ensure requirements: `libboost`, `libsodium23`
 1. `git clone git@github.com:GEO-Protocol/GEO-network-client.git geo-client`
 1. `cd geo-client`
-1. `cmake && make`
+1. `cmake ./ && make`
 
 Client build would be available in `./bin/` as `geo_network_client`.
 <br/>
@@ -27,7 +27,10 @@ Client build would be available in `./bin/` as `geo_network_client`.
 <br/>
 
 # How to use
-Please, follow the [documentation](https://github.com/GEO-Protocol/Documentation/blob/master/node.md) link for the detailed instructions how to [run the node](https://github.com/GEO-Protocol/Documentation/blob/master/node.md#how-to-run) and [how to communicate with it](https://github.com/GEO-Protocol/Documentation/blob/master/node.md#node-communication).
+First of all: **you do not need to build the client for your own**. <br/> 
+Just use our [docker image](https://hub.docker.com/r/geoprotocol/network-client-beta) and you are ready to go.
+
+Please, follow the [documentation](https://github.com/GEO-Protocol/Documentation/tree/master/client) link for the detailed instructions how to [run the node](https://github.com/GEO-Protocol/Documentation/tree/master/client/tutorials).
 <br/>
 <br/>
 <br/>
