@@ -38,6 +38,8 @@ ByteEncryptor::Buffer MsgEncryptor::decrypt(
         buffer.get() + Message::UnencryptedHeaderSize,
         count - Message::UnencryptedHeaderSize,
         Message::UnencryptedHeaderSize);
+    if(!pair.first)
+        return pair;
     memcpy(
         pair.first.get(),
         buffer.get(),
