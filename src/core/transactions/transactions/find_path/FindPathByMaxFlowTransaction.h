@@ -19,14 +19,9 @@ public:
         const TransactionUUID &requestedTransactionUUID,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,
-        PathsManager *pathsManager,
         ResourcesManager *resourcesManager,
-        TrustLinesManager *manager,
-        TopologyTrustLinesManager *topologyTrustLineManager,
-        TopologyCacheManager *topologyCacheManager,
-        MaxFlowCacheManager *maxFlowCacheManager,
-        bool iAmGateway,
-        TailManager &tailManager,
+        EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
+        TailManager *tailManager,
         Logger &logger);
 
 protected:

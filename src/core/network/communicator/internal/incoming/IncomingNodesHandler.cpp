@@ -3,7 +3,7 @@
 
 IncomingNodesHandler::IncomingNodesHandler(
     MessagesParser &messagesParser,
-    TailManager &tailManager,
+    TailManager *tailManager,
     Logger &logger)
     noexcept :
 

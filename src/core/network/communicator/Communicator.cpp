@@ -4,7 +4,7 @@
 Communicator::Communicator(
     IOService &IOService,
     ContractorsManager *contractorsManager,
-    TailManager &tailManager,
+    TailManager *tailManager,
     Logger &logger):
 
     mIOService(IOService),

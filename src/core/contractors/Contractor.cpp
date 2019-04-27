@@ -147,7 +147,7 @@ size_t Contractor::serializedSize() const
 string Contractor::toString() const
 {
     stringstream ss;
-    ss << mID << " " << mOwnIdOnContractorSide << " " << mCryptoKey << " " << mIsConfirmed << " ";
+    ss << mID << " " << mOwnIdOnContractorSide << " " << " " << mIsConfirmed << " ";
     for (const auto &address : mAddresses) {
         ss << address->fullAddress() << " ";
     }

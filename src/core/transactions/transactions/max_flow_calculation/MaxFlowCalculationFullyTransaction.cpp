@@ -3,26 +3,19 @@
 MaxFlowCalculationFullyTransaction::MaxFlowCalculationFullyTransaction(
     const InitiateMaxFlowCalculationFullyCommand::Shared command,
     ContractorsManager *contractorsManager,
-    TrustLinesManager *trustLinesManager,
-    TopologyTrustLinesManager *topologyTrustLineManager,
-    TopologyCacheManager *topologyCacheManager,
-    MaxFlowCacheManager *maxFlowCacheManager,
-    bool iAmGateway,
-    TailManager &tailManager,
+    EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
+    TailManager *tailManager,
     Logger &logger) :
 
     BaseCollectTopologyTransaction(
         BaseTransaction::MaxFlowCalculationFullyTransactionType,
         command->equivalent(),
         contractorsManager,
-        trustLinesManager,
-        topologyTrustLineManager,
-        topologyCacheManager,
-        maxFlowCacheManager,
+        equivalentsSubsystemsRouter,
         tailManager,
         logger),
     mCommand(command),
-    mIamGateway(iAmGateway)
+    mIamGateway(equivalentsSubsystemsRouter->iAmGateway(command->equivalent()))
 {}
 
 TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::sendRequestForCollectingTopology()
@@ -36,7 +29,7 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::sendRequestFo
         info() << contractor->fullAddress();
     }
 
-    auto ownAddress = mContractorsManager->ownAddresses().at(0);
+    auto ownAddress = mContractorsManager->selfContractor()->mainAddress();
     for (const auto &contractorAddress : mCommand->contractorAddresses()) {
         if (contractorAddress == ownAddress) {
             warning() << "Attempt to initialise operation against itself was prevented. Canceled.";

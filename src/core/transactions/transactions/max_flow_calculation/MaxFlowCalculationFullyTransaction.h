@@ -15,23 +15,19 @@ public:
     MaxFlowCalculationFullyTransaction(
         const InitiateMaxFlowCalculationFullyCommand::Shared command,
         ContractorsManager *contractorsManager,
-        TrustLinesManager *trustLinesManager,
-        TopologyTrustLinesManager *topologyTrustLineManager,
-        TopologyCacheManager *topologyCacheManager,
-        MaxFlowCacheManager *maxFlowCacheManager,
-        bool iAmGateway,
-        TailManager &tailManager,
+        EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
+        TailManager *tailManager,
         Logger &logger);
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const override;
 
 private:
-    TransactionResult::SharedConst sendRequestForCollectingTopology();
+    TransactionResult::SharedConst sendRequestForCollectingTopology() override;
 
-    TransactionResult::SharedConst processCollectingTopology();
+    TransactionResult::SharedConst processCollectingTopology() override;
 
-    TransactionResult::SharedConst applyCustomLogic();
+    TransactionResult::SharedConst applyCustomLogic() override;
 
     TrustLineAmount calculateMaxFlow(
         ContractorID contractorID);

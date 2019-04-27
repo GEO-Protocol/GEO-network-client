@@ -21,7 +21,7 @@ public:
         IOService &ioService,
         UDPSocket &socket,
         ContractorsManager *contractorsManager,
-        TailManager &tailManager,
+        TailManager *tailManager,
         Logger &logger)
         noexcept;
 
@@ -58,7 +58,7 @@ protected:
 protected:
     UDPSocket &mSocket;
     IOService &mIOService;
-    TailManager &mTailManager;
+    TailManager *mTailManager;
     Logger &mLog;
 
     boost::array<byte, kMaxIncomingBufferSize> mIncomingBuffer;

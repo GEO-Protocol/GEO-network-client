@@ -21,7 +21,7 @@ public:
     IncomingRemoteNode(
         const UDPEndpoint &endpoint,
         MessagesParser &messagesParser,
-        TailManager &tailManager,
+        TailManager *tailManager,
         Logger &logger)
         noexcept;
 
@@ -71,7 +71,7 @@ protected:
     vector<Message::Shared> mCollectedMessages;
 
     MessagesParser &mMessagesParser;
-    TailManager &mTailManager;
+    TailManager *mTailManager;
     Logger &mLog;
 };
 

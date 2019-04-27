@@ -31,7 +31,7 @@ public:
     explicit Communicator(
         IOService &ioService,
         ContractorsManager *contractorsManager,
-        TailManager &tailManager,
+        TailManager *tailManager,
         Logger &logger)
         noexcept(false);
 
@@ -104,7 +104,7 @@ protected:
 protected:
     IOService &mIOService;
     unique_ptr<CommunicatorStorageHandler> mCommunicatorStorageHandler;
-    TailManager &mTailManager;
+    TailManager *mTailManager;
     Logger &mLog;
 
     unique_ptr<UDPSocket> mSocket;

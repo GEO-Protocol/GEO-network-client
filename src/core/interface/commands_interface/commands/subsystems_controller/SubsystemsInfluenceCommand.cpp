@@ -57,8 +57,8 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
-                *(int_[flagsAdd])
-                > -(char_(kTokensSeparator)
+                +(int_[flagsAdd])
+                > (eol | (char_(kTokensSeparator)
                 > addressLexeme<
                     decltype(addressAddChar),
                     decltype(addressAddNumber),
@@ -69,7 +69,7 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
                         addressAddNumber,
                         addressTypeParse,
                         addressAddToVector)
-                    > -((digit [forbiddenAmountAdd] > !alpha > !punct) > eol))
+                    > -((digit [forbiddenAmountAdd] > !alpha > !punct) > eol)))
                 > eoi));
 
         mForbiddenAmount = TrustLineAmount(forbiddenAmount);

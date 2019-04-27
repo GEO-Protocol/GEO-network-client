@@ -55,14 +55,12 @@ ByteEncryptor::Buffer ByteEncryptor::decrypt(
     ByteEncryptor::Buffer bytes(
         tryMalloc(len),
         len);
-    printf("ByteEncryptor::decrypt 01\n");
     auto result = crypto_box_seal_open(
         bytes.first.get() + headerSize,
         cipher,
         size,
         mPublicKey->key,
         mSecretKey->key);
-    printf("ByteEncryptor::decrypt 02\n");
     return result ?
         ByteEncryptor::Buffer(nullptr, 0) :
         bytes;

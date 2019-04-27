@@ -203,7 +203,7 @@ int Core::initCommunicator()
         mCommunicator = make_unique<Communicator>(
             mIOService,
             mContractorsManager.get(),
-            *mTailManager,
+            mTailManager.get(),
             *mLog);
 
         info() << "Network communicator is successfully initialised";
@@ -309,7 +309,7 @@ int Core::initTransactionsManager()
             mKeysStore.get(),
             mFeaturesManager.get(),
             mEventsInterface.get(),
-            *mTailManager,
+            mTailManager.get(),
             *mLog,
             mSubsystemsController.get(),
             mTrustLinesInfluenceController.get());
@@ -593,7 +593,7 @@ void Core::onCommandReceivedSlot (
     bool success,
     BaseUserCommand::Shared command)
 {
-    if (command and command->identifier() == SubsystemsInfluenceCommand::identifier()) {
+    if (command and success and command->identifier() == SubsystemsInfluenceCommand::identifier()) {
         // In case if network toggle command was received -
         // there is no reason to transfer it's processing to the transactions manager:
         // this command only enables or disables network for the node,
@@ -617,7 +617,7 @@ void Core::onCommandReceivedSlot (
     }
 
 #ifdef TESTS
-    if (command and command->identifier() == TrustLinesInfluenceCommand::identifier()) {
+    if (command and success and command->identifier() == TrustLinesInfluenceCommand::identifier()) {
         auto trustLinesInfluenceCommand = static_pointer_cast<TrustLinesInfluenceCommand>(command);
         mTrustLinesInfluenceController->setFlags(trustLinesInfluenceCommand->flags());
         mTrustLinesInfluenceController->setFirstParameter(

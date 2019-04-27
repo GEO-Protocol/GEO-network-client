@@ -106,7 +106,7 @@ public:
         Keystore *keystore,
         FeaturesManager *featuresManager,
         EventsInterface *eventsInterface,
-        TailManager &tailManager,
+        TailManager *tailManager,
         Logger &logger,
         SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController);
@@ -504,7 +504,7 @@ private:
     Keystore *mKeysStore;
     FeaturesManager *mFeaturesManager;
     EventsInterface *mEventsInterface;
-    TailManager &mTailManager;
+    TailManager *mTailManager;
     Logger &mLog;
     bool isPaymentTransactionsAllowedDueToObserving;
 

@@ -4,6 +4,7 @@
 #include "base/CyclesBaseFiveSixNodesInitTransaction.h"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesInBetweenMessage.hpp"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
+#include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
 class CyclesFiveNodesInitTransaction :
     public CyclesBaseFiveSixNodesInitTransaction{
@@ -14,7 +15,7 @@ public:
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
         CyclesManager *cyclesManager,
-        TailManager &tailManager,
+        TailManager *tailManager,
         Logger &logger);
 
 protected:
@@ -24,6 +25,6 @@ protected:
     TransactionResult::SharedConst runCollectDataAndSendMessagesStage();
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
-    TailManager &mTailManager;
+    TailManager *mTailManager;
 };
 #endif //GEO_NETWORK_CLIENT_CYCLESFIVENODESINITTRANSACTION_H

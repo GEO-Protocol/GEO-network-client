@@ -5,32 +5,24 @@ FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
     const TransactionUUID &requestedTransactionUUID,
     const SerializedEquivalent equivalent,
     ContractorsManager *contractorsManager,
-    PathsManager *pathsManager,
     ResourcesManager *resourcesManager,
-    TrustLinesManager *manager,
-    TopologyTrustLinesManager *topologyTrustLineManager,
-    TopologyCacheManager *topologyCacheManager,
-    MaxFlowCacheManager *maxFlowCacheManager,
-    bool iAmGateway,
-    TailManager &tailManager,
+    EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
+    TailManager *tailManager,
     Logger &logger) :
 
     BaseCollectTopologyTransaction(
         BaseTransaction::FindPathByMaxFlowTransactionType,
         equivalent,
         contractorsManager,
-        manager,
-        topologyTrustLineManager,
-        topologyCacheManager,
-        maxFlowCacheManager,
+        equivalentsSubsystemsRouter,
         tailManager,
         logger),
 
     mContractorAddress(contractorAddress),
     mRequestedTransactionUUID(requestedTransactionUUID),
-    mPathsManager(pathsManager),
+    mPathsManager(equivalentsSubsystemsRouter->pathsManager(equivalent)),
     mResourcesManager(resourcesManager),
-    mIamGateway(iAmGateway)
+    mIamGateway(equivalentsSubsystemsRouter->iAmGateway(equivalent))
 {}
 
 TransactionResult::SharedConst FindPathByMaxFlowTransaction::sendRequestForCollectingTopology()
@@ -75,8 +67,8 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::processCollectingTo
     }
 
     mPathsManager->buildPaths(
-            mContractorAddress,
-            mContractorID);
+        mContractorAddress,
+        mContractorID);
 
     mResourcesManager->putResource(
         make_shared<PathsResource>(

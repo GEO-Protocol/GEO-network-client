@@ -3,29 +3,22 @@
 InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
     InitiateMaxFlowCalculationCommand::Shared command,
     ContractorsManager *contractorsManager,
-    TrustLinesManager *trustLinesManager,
-    TopologyTrustLinesManager *topologyTrustLineManager,
-    TopologyCacheManager *topologyCacheManager,
-    MaxFlowCacheManager *maxFlowCacheManager,
-    bool iAmGateway,
-    TailManager &tailManager,
+    EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
+    TailManager *tailManager,
     Logger &logger) :
 
     BaseCollectTopologyTransaction(
         BaseTransaction::InitiateMaxFlowCalculationTransactionType,
         command->equivalent(),
         contractorsManager,
-        trustLinesManager,
-        topologyTrustLineManager,
-        topologyCacheManager,
-        maxFlowCacheManager,
+        equivalentsSubsystemsRouter,
         tailManager,
         logger),
     mCommand(command),
     mResultStep(1),
     mGatewayResponseProcessed(false),
     mShortMaxFlowsCalculated(false),
-    mIamGateway(iAmGateway)
+    mIamGateway(equivalentsSubsystemsRouter->iAmGateway(command->equivalent()))
 {}
 
 TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendRequestForCollectingTopology()

@@ -3,10 +3,7 @@
 
 #include "BaseTransaction.h"
 
-#include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../topology/manager/TopologyTrustLinesManager.h"
-#include "../../../topology/cashe/TopologyCacheManager.h"
-#include "../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../equivalents/EquivalentsSubsystemsRouter.h"
 
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
@@ -22,23 +19,8 @@ public:
         const TransactionType type,
         const SerializedEquivalent equivalent,
         ContractorsManager *contractorsManager,
-        TrustLinesManager *trustLinesManager,
-        TopologyTrustLinesManager *topologyTrustLineManager,
-        TopologyCacheManager *topologyCacheManager,
-        MaxFlowCacheManager *maxFlowCacheManager,
-        TailManager &tailManager,
-        Logger &logger);
-
-    BaseCollectTopologyTransaction(
-        const TransactionType type,
-        const TransactionUUID &transactionUUID,
-        const SerializedEquivalent equivalent,
-        ContractorsManager *contractorsManager,
-        TrustLinesManager *trustLinesManager,
-        TopologyTrustLinesManager *topologyTrustLineManager,
-        TopologyCacheManager *topologyCacheManager,
-        MaxFlowCacheManager *maxFlowCacheManager,
-        TailManager &tailManager,
+        EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
+        TailManager *tailManager,
         Logger &logger);
 
     TransactionResult::SharedConst run() override;
@@ -69,7 +51,10 @@ protected:
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
     set<ContractorID> mGateways;
-    TailManager &mTailManager;
+    TailManager *mTailManager;
+
+private:
+    EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
 };
 
 

@@ -20,7 +20,7 @@ public:
         ContractorsManager *contractorsManager,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         EquivalentsCyclesSubsystemsRouter *equivalentsCyclesSubsystemsRouter,
-        TailManager &tailManager,
+        TailManager *tailManager,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -74,7 +74,7 @@ private:
     vector<SerializedEquivalent> mGatewaysEquivalents;
     DateTime mTransactionStarted;
     DateTime mPreviousStepStarted;
-    TailManager &mTailManager;
+    TailManager *mTailManager;
 };
 
 

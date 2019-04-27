@@ -5,7 +5,7 @@ IncomingMessagesHandler::IncomingMessagesHandler(
     IOService &ioService,
     UDPSocket &socket,
     ContractorsManager *contractorsManager,
-    TailManager &tailManager,
+    TailManager *tailManager,
     Logger &logger)
     noexcept:
 

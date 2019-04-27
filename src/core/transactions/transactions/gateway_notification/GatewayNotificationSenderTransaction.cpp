@@ -4,7 +4,7 @@ GatewayNotificationSenderTransaction::GatewayNotificationSenderTransaction(
     ContractorsManager *contractorsManager,
     EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
     EquivalentsCyclesSubsystemsRouter *equivalentsCyclesSubsystemsRouter,
-    TailManager &tailManager,
+    TailManager *tailManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -71,7 +71,7 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::sendGateway
 TransactionResult::SharedConst GatewayNotificationSenderTransaction::processRoutingTablesResponse()
 {
     /// Take messages from TailManager instead of BaseTransaction's 'mContext'
-    auto &mContext = mTailManager.getRoutingTableTail();
+    auto &mContext = mTailManager->getRoutingTableTail();
 
     if (allNeighborsResponseReceive.empty()) {
         mEquivalentsCyclesSubsystemsRouter->clearRoutingTables();
