@@ -8,8 +8,7 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     bool iAmGateway,
     SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger)
-    noexcept:
+    Logger &logger):
 
     BaseTransaction(
         BaseTransaction::AcceptTrustLineTransaction,
@@ -148,7 +147,6 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::sendTrustLineErrorCon
 }
 
 const string AcceptTrustLineTransaction::logHeader() const
-    noexcept
 {
     stringstream s;
     s << "[AcceptTrustLineTA: " << currentTransactionUUID() << " " << mEquivalent << "]";

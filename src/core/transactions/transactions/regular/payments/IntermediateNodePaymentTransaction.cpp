@@ -62,7 +62,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 {}
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
-    noexcept {
+{
     try {
         switch (mStep) {
             case Stages::IntermediateNode_PreviousNeighborRequestProcessing:

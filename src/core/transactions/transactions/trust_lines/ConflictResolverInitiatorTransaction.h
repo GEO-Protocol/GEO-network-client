@@ -37,7 +37,7 @@ public:
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
     enum Stages {
@@ -46,9 +46,8 @@ protected:
         Recovery = 3,
     };
 
-protected: // log
-    const string logHeader() const
-    noexcept;
+protected:
+    const string logHeader() const override;
 
 private:
     TransactionResult::SharedConst runInitializationStage();

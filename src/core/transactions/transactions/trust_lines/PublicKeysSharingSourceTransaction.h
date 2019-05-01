@@ -38,7 +38,7 @@ public:
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
     enum Stages {
@@ -47,8 +47,8 @@ protected:
         ResponseProcessing = 3,
     };
 
-protected: // log
-    const string logHeader() const;
+protected:
+    const string logHeader() const override;
 
 protected:
     TransactionResult::SharedConst resultOK();

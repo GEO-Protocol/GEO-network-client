@@ -26,18 +26,16 @@ public:
         bool iAmGateway,
         SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger)
-    noexcept;
+        Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
-protected: // trust lines history shortcuts
+protected:
     void populateHistory(
         IOTransaction::Shared ioTransaction,
         TrustLineRecord::TrustLineOperationType operationType);
 
-    const string logHeader() const
-    noexcept;
+    const string logHeader() const override;
 
 private:
     TransactionResult::SharedConst sendTrustLineErrorConfirmation(

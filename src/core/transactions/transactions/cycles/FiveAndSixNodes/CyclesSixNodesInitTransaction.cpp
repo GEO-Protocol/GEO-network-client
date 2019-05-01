@@ -13,8 +13,8 @@ CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
         contractorsManager,
         trustLinesManager,
         cyclesManager,
-        logger),
-    mTailManager(tailManager)
+        tailManager,
+        logger)
 {}
 
 TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndSendMessagesStage()

@@ -209,7 +209,6 @@ pair<BytesShared, size_t> ConflictResolverInitiatorTransaction::serializeToBytes
 }
 
 const string ConflictResolverInitiatorTransaction::logHeader() const
-    noexcept
 {
     stringstream s;
     s << "[ConflictResolverInitiatorTA: " << currentTransactionUUID() << " " << mEquivalent << "]";

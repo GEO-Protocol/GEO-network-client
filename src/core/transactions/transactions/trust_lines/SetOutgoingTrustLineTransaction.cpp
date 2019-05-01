@@ -13,8 +13,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     FeaturesManager *featuresManager,
     EventsInterface *eventsInterface,
     TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger)
-    noexcept :
+    Logger &logger):
 
     BaseTrustLineTransaction(
         BaseTransaction::SetOutgoingTrustLineTransaction,
@@ -425,7 +424,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::resultUnexpected
 }
 
 const string SetOutgoingTrustLineTransaction::logHeader() const
-    noexcept
 {
     stringstream s;
     s << "[SetOutgoingTrustLineTA: " << currentTransactionUUID() << " " << mEquivalent << "]";

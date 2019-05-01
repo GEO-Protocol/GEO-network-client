@@ -36,20 +36,17 @@ CloseIncomingTrustLineCommand::CloseIncomingTrustLineCommand(
 }
 
 const string &CloseIncomingTrustLineCommand::identifier()
-    noexcept
 {
     static const string identifier = "DELETE:contractors/incoming-trust-line";
     return identifier;
 }
 
 const ContractorID CloseIncomingTrustLineCommand::contractorID() const
-    noexcept
 {
     return mContractorID;
 }
 
 const SerializedEquivalent CloseIncomingTrustLineCommand::equivalent() const
-    noexcept
 {
     return mEquivalent;
 }

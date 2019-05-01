@@ -20,9 +20,10 @@ public:
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLinesManager,
         CyclesManager *cyclesManager,
+        TailManager *tailManager,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
     enum Stages {
@@ -32,7 +33,6 @@ protected:
 
     virtual TransactionResult::SharedConst runCollectDataAndSendMessagesStage() = 0;
     virtual TransactionResult::SharedConst runParseMessageAndCreateCyclesStage() = 0;
-    virtual const string logHeader() const = 0;
 
 protected:
     static const uint16_t mkWaitingForResponseTime = 5000;
@@ -41,6 +41,7 @@ protected:
     ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLinesManager;
     CyclesManager *mCyclesManager;
+    TailManager *mTailManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESINITTRANSACTION_H

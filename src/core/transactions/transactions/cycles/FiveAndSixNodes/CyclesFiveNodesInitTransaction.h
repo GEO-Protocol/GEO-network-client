@@ -19,12 +19,9 @@ public:
         Logger &logger);
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const override;
 
-protected:
-    TransactionResult::SharedConst runCollectDataAndSendMessagesStage();
-    TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
-
-    TailManager *mTailManager;
+    TransactionResult::SharedConst runCollectDataAndSendMessagesStage() override;
+    TransactionResult::SharedConst runParseMessageAndCreateCyclesStage() override;
 };
 #endif //GEO_NETWORK_CLIENT_CYCLESFIVENODESINITTRANSACTION_H

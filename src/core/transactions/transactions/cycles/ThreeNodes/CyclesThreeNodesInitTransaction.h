@@ -23,7 +23,7 @@ public:
         CyclesManager *cyclesManager,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
     enum Stages {
@@ -36,7 +36,7 @@ protected:
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const override;
 
     vector<BaseAddress::Shared> getNeighborsWithContractor();
 

@@ -93,11 +93,10 @@ public:
         MaxFlowCalculationFullyTransactionType = 409,
 
         // TrustLine list
-        ContractorsList = 500,
-        TrustLinesList = 501,
-        TrustLineOneByAddress = 502,
-        TrustLineOneByID = 503,
-        EquivalentsList = 504,
+        TrustLinesList = 500,
+        TrustLineOneByAddress = 501,
+        TrustLineOneByID = 502,
+        EquivalentsList = 503,
 
         // TotalBalances
         TotalBalancesTransactionType = 600,
@@ -114,6 +113,8 @@ public:
         // Channels
         OpenChannelTransaction = 900,
         ConfirmChannelTransaction = 901,
+        ContractorsList = 902,
+        ChannelInfo = 903,
 
         // Transactions
         TransactionByCommandUUIDType = 1000,

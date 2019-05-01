@@ -6,6 +6,7 @@ CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(
     ContractorsManager *contractorsManager,
     TrustLinesManager *trustLinesManager,
     CyclesManager *cyclesManager,
+    TailManager *tailManager,
     Logger &logger) :
     BaseTransaction(
         type,
@@ -13,7 +14,8 @@ CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(
         logger),
     mContractorsManager(contractorsManager),
     mTrustLinesManager(trustLinesManager),
-    mCyclesManager(cyclesManager)
+    mCyclesManager(cyclesManager),
+    mTailManager(tailManager)
 {}
 
 TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::run() {

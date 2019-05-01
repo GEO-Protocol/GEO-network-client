@@ -17,11 +17,10 @@ public:
         TrustLinesManager *manager,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
-protected: // log
-    const string logHeader() const
-    noexcept;
+protected:
+    const string logHeader() const override;
 
 private:
     ContractorID mContractorID;

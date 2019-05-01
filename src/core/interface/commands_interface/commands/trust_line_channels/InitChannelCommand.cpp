@@ -83,14 +83,12 @@ InitChannelCommand::InitChannelCommand(
 }
 
 const string &InitChannelCommand::identifier()
-noexcept
 {
     static const string identifier = "INIT:contractors/channel";
     return identifier;
 }
 
 vector<BaseAddress::Shared> InitChannelCommand::contractorAddresses() const
-noexcept
 {
     return mContractorAddresses;
 }

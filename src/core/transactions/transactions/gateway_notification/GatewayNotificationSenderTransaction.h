@@ -23,7 +23,7 @@ public:
         TailManager *tailManager,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
     enum Stages {
@@ -36,7 +36,7 @@ protected:
 
     TransactionResult::SharedConst processRoutingTablesResponse();
 
-    const string logHeader() const;
+    const string logHeader() const override;
 
 private:
     static const uint32_t kCollectingRoutingTablesMilliseconds = 6000;

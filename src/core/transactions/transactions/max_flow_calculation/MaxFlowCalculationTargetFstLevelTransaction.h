@@ -23,10 +23,10 @@ public:
         Logger &logger,
         bool iAmGateway);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const override;
 
 private:
     MaxFlowCalculationTargetFstLevelMessage::Shared mMessage;

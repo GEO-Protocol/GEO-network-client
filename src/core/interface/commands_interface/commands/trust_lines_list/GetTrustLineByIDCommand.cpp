@@ -34,20 +34,17 @@ GetTrustLineByIDCommand::GetTrustLineByIDCommand(
 }
 
 const string &GetTrustLineByIDCommand::identifier()
-    noexcept
 {
     static const string identifier = "GET:contractors/trust-lines/one/id";
     return identifier;
 }
 
 const ContractorID GetTrustLineByIDCommand::contractorID() const
-    noexcept
 {
     return mContractorID;
 }
 
 const SerializedEquivalent GetTrustLineByIDCommand::equivalent() const
-    noexcept
 {
     return mEquivalent;
 }

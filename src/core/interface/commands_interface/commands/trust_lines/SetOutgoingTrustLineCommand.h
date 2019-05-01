@@ -23,17 +23,13 @@ public:
         const CommandUUID &commandUUID,
         const string &commandBuffer);
 
-    static const string &identifier()
-        noexcept;
+    static const string &identifier();
 
-    const ContractorID contractorID() const
-        noexcept;
+    const ContractorID contractorID() const;
 
-    const TrustLineAmount &amount() const
-        noexcept;
+    const TrustLineAmount &amount() const;
 
-    const SerializedEquivalent equivalent() const
-        noexcept;
+    const SerializedEquivalent equivalent() const;
 
 private:
     ContractorID mContractorID;

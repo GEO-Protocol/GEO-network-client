@@ -13,8 +13,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     FeaturesManager *featuresManager,
     EventsInterface *eventsInterface,
     TrustLinesInfluenceController *trustLinesInfluenceController,
-    Logger &logger)
-    noexcept :
+    Logger &logger):
 
     BaseTrustLineTransaction(
         BaseTransaction::CloseIncomingTrustLineTransactionType,
@@ -385,7 +384,6 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::resultUnexpect
 }
 
 const string CloseIncomingTrustLineTransaction::logHeader() const
-noexcept
 {
     stringstream s;
     s << "[CloseIncomingTrustLineTA: " << currentTransactionUUID() << " " << mEquivalent << "]";

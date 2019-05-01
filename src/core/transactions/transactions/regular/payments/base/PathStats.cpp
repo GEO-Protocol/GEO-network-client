@@ -1,8 +1,7 @@
 #include "PathStats.h"
 
 PathStats::PathStats(
-    const Path::Shared path)
-    noexcept :
+    const Path::Shared path):
 
     mPath(path),
     mIntermediateNodesStates(
@@ -23,7 +22,6 @@ PathStats::PathStats(
 void PathStats::setNodeState(
     const SerializedPositionInPath positionInPath,
     const PathStats::NodeState state)
-    throw (ValueError)
 {
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(positionInPath > 0);
@@ -38,7 +36,6 @@ void PathStats::setNodeState(
  * that was calculated due to amount reservation process.
  */
 const TrustLineAmount& PathStats::maxFlow() const
-    noexcept
 {
     return mMaxPathFlow;
 }
@@ -50,7 +47,6 @@ const TrustLineAmount& PathStats::maxFlow() const
  */
 void PathStats::shortageMaxFlow(
     const TrustLineAmount& kAmount)
-    throw (ValueError)
 {
     if (mMaxPathFlow == 0) {
         mMaxPathFlow = kAmount;
@@ -67,7 +63,6 @@ void PathStats::shortageMaxFlow(
 }
 
 const Path::Shared PathStats::path () const
-    noexcept
 {
     return mPath;
 }
@@ -85,7 +80,6 @@ bool PathStats::containsIntermediateNodes() const
  * or last in the path is already processed.
  */
 const pair<BaseAddress::Shared, SerializedPositionInPath> PathStats::currentIntermediateNodeAndPos () const
-    throw (NotFoundError)
 {
     for (SerializedPositionInPath idx = 0; idx < mIntermediateNodesStates.size(); ++idx)
         if (mIntermediateNodesStates[idx] != PathStats::ReservationApproved &&
@@ -107,7 +101,6 @@ const pair<BaseAddress::Shared, SerializedPositionInPath> PathStats::currentInte
  * @throws NotFoundError - in case if all nodes of this path are already processed.
  */
 const pair<BaseAddress::Shared, SerializedPositionInPath> PathStats::nextIntermediateNodeAndPos() const
-    throw (NotFoundError)
 {
     for (SerializedPositionInPath idx = 0; idx < mIntermediateNodesStates.size(); ++idx) {
         if (0 == idx &&
@@ -126,26 +119,22 @@ const pair<BaseAddress::Shared, SerializedPositionInPath> PathStats::nextInterme
 }
 
 const bool PathStats::reservationRequestSentToAllNodes() const
-    noexcept
 {
     return mIntermediateNodesStates.at(
         mIntermediateNodesStates.size()-1) != ReservationRequestDoesntSent;
 }
 
 const bool PathStats::isNeighborAmountReserved() const
-    noexcept
 {
     return mIntermediateNodesStates[0] == PathStats::NeighbourReservationApproved;
 }
 
 const bool PathStats::isWaitingForNeighborReservationResponse() const
-    noexcept
 {
     return mIntermediateNodesStates[0] == PathStats::NeighbourReservationRequestSent;
 }
 
 const bool PathStats::isWaitingForNeighborReservationPropagationResponse() const
-    noexcept
 {
     return mIntermediateNodesStates[0] == PathStats::ReservationRequestSent;
 }
@@ -155,7 +144,6 @@ const bool PathStats::isWaitingForNeighborReservationPropagationResponse() const
  * is now waiting for the response to it.
  */
 const bool PathStats::isWaitingForReservationResponse() const
-    noexcept
 {
     if (mPath->length() == 1) {
         // Return
@@ -169,7 +157,6 @@ const bool PathStats::isWaitingForReservationResponse() const
 }
 
 const bool PathStats::isReadyToSendNextReservationRequest() const
-    noexcept
 {
     return !isWaitingForReservationResponse() &&
            !isWaitingForNeighborReservationResponse() &&
@@ -177,7 +164,6 @@ const bool PathStats::isReadyToSendNextReservationRequest() const
 }
 
 const bool PathStats::isLastIntermediateNodeProcessed() const
-    noexcept
 {
     return
             mIntermediateNodesStates[mIntermediateNodesStates.size()-1] !=
@@ -189,7 +175,6 @@ const bool PathStats::isLastIntermediateNodeProcessed() const
 }
 
 const bool PathStats::isLastIntermediateNodeApproved() const
-    noexcept
 {
     return mIntermediateNodesStates[mIntermediateNodesStates.size()-1] ==
                    PathStats::NeighbourReservationApproved ||
@@ -198,13 +183,11 @@ const bool PathStats::isLastIntermediateNodeApproved() const
 }
 
 const bool PathStats::isValid() const
-    noexcept
 {
     return mIsValid;
 }
 
 void PathStats::setUnusable()
-    noexcept
 {
     mIsValid = false;
     mMaxPathFlow = 0;

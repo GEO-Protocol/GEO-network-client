@@ -23,17 +23,15 @@ public:
         ResourcesManager *resourcesManager,
         Keystore *keystore,
         Logger &log,
-        SubsystemsController *subsystemsController)
-        noexcept;
+        SubsystemsController *subsystemsController);
 
-    TransactionResult::SharedConst run()
-        noexcept;
+    TransactionResult::SharedConst run() override;
 
     /**
      * @return length of cycle which is closing by current transaction
      * used in CyclesManager for resolving cycle closing conflicts
      */
-    const SerializedPathLengthSize cycleLength() const;
+    const SerializedPathLengthSize cycleLength() const override;
 
 protected:
     // Stages handlers
@@ -46,7 +44,7 @@ protected:
     /**
      * process the reservation of transaction amount on cycle path
      */
-    TransactionResult::SharedConst runAmountReservationStage ();
+    TransactionResult::SharedConst runAmountReservationStage();
 
     /**
      * reaction on reservation request message from last intermediate node in path
@@ -79,7 +77,7 @@ protected:
      * on this stage node can commit transaction or reject it
      * and send result to all participants
      */
-    TransactionResult::SharedConst runVotesConsistencyCheckingStage();
+    TransactionResult::SharedConst runVotesConsistencyCheckingStage() override;
 
     /**
      * rollback current transaction because of cycle closing conflict
@@ -137,10 +135,10 @@ protected:
     TransactionResult::SharedConst propagateVotesListAndWaitForVotingResult();
 
 protected:
-    TransactionResult::SharedConst approve();
+    TransactionResult::SharedConst approve() override;
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const override;
 
     /**
      * check if path is valid cycle
@@ -162,14 +160,14 @@ protected:
      * @param ioTransaction pointer on database transaction
      */
     void savePaymentOperationIntoHistory(
-        IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction) override;
 
     /**
      * check if reservations on current node are valid before committing
      * (there are should be one incoming and one outgoing reservations with the same amount)
      * @return true if reservations are valid
      */
-    bool checkReservationsDirections() const;
+    bool checkReservationsDirections() const override;
 
 protected:
     // Contains special stats data, such as current max flow,

@@ -42,7 +42,7 @@ public:
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
     enum Stages {
@@ -60,13 +60,12 @@ protected:
 
     TransactionResult::SharedConst resultUnexpectedError();
 
-protected: // trust lines history shortcuts
+protected:
     void populateHistory(
         IOTransaction::Shared ioTransaction,
         TrustLineRecord::TrustLineOperationType operationType);
 
-    const string logHeader() const
-    noexcept;
+    const string logHeader() const override;
 
 private:
     TransactionResult::SharedConst runInitializationStage();

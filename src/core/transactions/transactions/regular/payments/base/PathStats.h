@@ -22,61 +22,44 @@ public:
 
 public:
     PathStats (
-        const Path::Shared path)
-        noexcept;
+        const Path::Shared path);
 
     void setNodeState (
         const SerializedPositionInPath positionInPath,
-        const NodeState state)
-        throw(ValueError);
+        const NodeState state);
 
-    const TrustLineAmount &maxFlow () const
-        noexcept;
+    const TrustLineAmount &maxFlow () const;
 
     void shortageMaxFlow (
-        const TrustLineAmount &kAmount)
-        throw(ValueError);
+        const TrustLineAmount &kAmount);
 
-    const Path::Shared path () const
-        noexcept;
+    const Path::Shared path () const;
 
     bool containsIntermediateNodes() const;
 
-    const pair<BaseAddress::Shared, SerializedPositionInPath> currentIntermediateNodeAndPos () const
-        throw (NotFoundError);
+    const pair<BaseAddress::Shared, SerializedPositionInPath> currentIntermediateNodeAndPos () const;
 
-    const pair<BaseAddress::Shared, SerializedPositionInPath> nextIntermediateNodeAndPos () const
-        throw (NotFoundError);
+    const pair<BaseAddress::Shared, SerializedPositionInPath> nextIntermediateNodeAndPos () const;
 
-    const bool reservationRequestSentToAllNodes () const
-        noexcept;
+    const bool reservationRequestSentToAllNodes () const;
 
-    const bool isNeighborAmountReserved () const
-        noexcept;
+    const bool isNeighborAmountReserved () const;
 
-    const bool isWaitingForNeighborReservationResponse () const
-        noexcept;
+    const bool isWaitingForNeighborReservationResponse () const;
 
-    const bool isWaitingForNeighborReservationPropagationResponse () const
-        noexcept;
+    const bool isWaitingForNeighborReservationPropagationResponse () const;
 
-    const bool isWaitingForReservationResponse () const
-        noexcept;
+    const bool isWaitingForReservationResponse () const;
 
-    const bool isReadyToSendNextReservationRequest () const
-        noexcept;
+    const bool isReadyToSendNextReservationRequest () const;
 
-    const bool isLastIntermediateNodeProcessed () const
-        noexcept;
+    const bool isLastIntermediateNodeProcessed () const;
 
-    const bool isLastIntermediateNodeApproved() const
-        noexcept;
+    const bool isLastIntermediateNodeApproved() const;
 
-    const bool isValid () const
-        noexcept;
+    const bool isValid () const;
 
-    void setUnusable ()
-        noexcept;
+    void setUnusable ();
 
 protected:
     const Path::Shared mPath;

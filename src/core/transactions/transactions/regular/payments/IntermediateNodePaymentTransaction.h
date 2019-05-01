@@ -37,8 +37,7 @@ public:
         Logger &log,
         SubsystemsController *subsystemsController);
 
-    TransactionResult::SharedConst run()
-        noexcept;
+    TransactionResult::SharedConst run() override;
 
     /**
      * @return Address of coordinator node of current transaction
@@ -102,7 +101,7 @@ protected:
 protected:
     // Intermediate node must launch closing cycles 3 and 4 transactions.
     // Therefore this methods are overridden.
-    TransactionResult::SharedConst approve();
+    TransactionResult::SharedConst approve() override;
 
     /**
      * reduce amount reservations (incoming and outgoing) on specified path
@@ -118,14 +117,14 @@ protected:
      * @param ioTransaction pointer on database transaction
      */
     void savePaymentOperationIntoHistory(
-        IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction) override;
 
     /**
      * check if reservations on current node are valid before committing
      * (all outgoing amounts on paths have equals incoming amounts)
      * @return true if reservations are valid
      */
-    bool checkReservationsDirections() const;
+    bool checkReservationsDirections() const override;
 
     TransactionResult::SharedConst sendErrorMessageOnCoordinatorRequest(
         ResponseMessage::OperationState errorState);
@@ -140,7 +139,7 @@ protected:
 
     void sendErrorMessageOnFinalAmountsConfiguration();
 
-    const string logHeader() const;
+    const string logHeader() const override;
 
 protected:
     // message on which current transaction was started

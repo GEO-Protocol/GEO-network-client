@@ -38,20 +38,17 @@ ShareKeysCommand::ShareKeysCommand(
 }
 
 const string &ShareKeysCommand::identifier()
-    noexcept
 {
     static const string identifier = "SET:contractors/trust-line-keys";
     return identifier;
 }
 
 const ContractorID ShareKeysCommand::contractorID() const
-    noexcept
 {
     return mContractorID;
 }
 
 const SerializedEquivalent ShareKeysCommand::equivalent() const
-    noexcept
 {
     return mEquivalent;
 }

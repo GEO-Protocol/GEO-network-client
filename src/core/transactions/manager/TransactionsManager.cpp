@@ -340,6 +340,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<ContractorListCommand>(
                 command));
 
+    } else if (command->identifier() == GetChannelInfoCommand::identifier()){
+        launchGetChannelInfoTransaction(
+            static_pointer_cast<GetChannelInfoCommand>(
+                command));
+
     } else if (command->identifier() == PaymentTransactionByCommandUUIDCommand::identifier()){
         launchPaymentTransactionByCommandUUIDTransaction(
             static_pointer_cast<PaymentTransactionByCommandUUIDCommand>(
@@ -1831,6 +1836,19 @@ void TransactionsManager::launchGetContractorListTransaction(
 {
     prepareAndSchedule(
         make_shared<GetContractorListTransaction>(
+            command,
+            mContractorsManager,
+            mLog),
+        true,
+        false,
+        false);
+}
+
+void TransactionsManager::launchGetChannelInfoTransaction(
+    GetChannelInfoCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<GetChannelInfoTransaction>(
             command,
             mContractorsManager,
             mLog),

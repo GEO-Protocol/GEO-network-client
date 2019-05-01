@@ -89,7 +89,6 @@ TransactionResult::SharedConst InitChannelTransaction::resultUnexpectedError()
 }
 
 const string InitChannelTransaction::logHeader() const
-    noexcept
 {
     stringstream s;
     s << "[InitChannelTA: " << currentTransactionUUID() << " " << mEquivalent << "]";

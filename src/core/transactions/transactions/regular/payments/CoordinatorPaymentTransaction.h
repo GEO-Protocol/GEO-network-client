@@ -26,7 +26,7 @@ public:
 
 public:
     CoordinatorPaymentTransaction(
-        const CreditUsageCommand::Shared kCommand,
+        const CreditUsageCommand::Shared command,
         bool iAmGateway,
         ContractorsManager *contractorsManager,
         TrustLinesManager *trustLines,
@@ -39,11 +39,9 @@ public:
         bool isPaymentTransactionsAllowedDueToObserving,
         EventsInterface *eventsInterface,
         Logger &log,
-        SubsystemsController *subsystemsController)
-        noexcept;
+        SubsystemsController *subsystemsController);
 
-    TransactionResult::SharedConst run()
-        noexcept;
+    TransactionResult::SharedConst run() override;
 
     const CommandUUID& commandUUID() const;
 
@@ -100,10 +98,10 @@ protected:
 protected:
     // Coordinator must return command result on transaction finishing.
     // Therefore this methods are overridden.
-    TransactionResult::SharedConst approve();
+    TransactionResult::SharedConst approve() override;
 
     TransactionResult::SharedConst reject(
-        const char *message);
+        const char *message) override;
 
 protected:
     // Results handlers

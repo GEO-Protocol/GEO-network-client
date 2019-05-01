@@ -2,8 +2,7 @@
 
 EquivalentListCommand::EquivalentListCommand(
     const CommandUUID &uuid,
-    const string& commandBuffer)
-    noexcept:
+    const string& commandBuffer):
 
     BaseUserCommand(
         uuid,

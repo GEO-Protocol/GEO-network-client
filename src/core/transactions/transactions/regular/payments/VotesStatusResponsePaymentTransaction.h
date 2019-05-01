@@ -22,10 +22,10 @@ public:
         SubsystemsController *subsystemsController,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const override;
 
 protected:
     VotesStatusRequestMessage::Shared mRequest;

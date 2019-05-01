@@ -14,8 +14,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     bool isPaymentTransactionsAllowedDueToObserving,
     EventsInterface *eventsInterface,
     Logger &log,
-    SubsystemsController *subsystemsController)
-    noexcept :
+    SubsystemsController *subsystemsController):
 
     BasePaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction,
@@ -48,7 +47,6 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
-    noexcept
 {
     while (true) {
         debug() << "run: stage: " << mStep;

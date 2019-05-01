@@ -64,7 +64,6 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 {}
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
-    noexcept
 {
     try {
         debug() << "mStep: " << mStep;

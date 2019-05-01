@@ -19,10 +19,10 @@ public:
         ContractorsManager *contractorsManager,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const override;
 
 private:
     GetFirstLevelContractorsCommand::Shared mCommand;

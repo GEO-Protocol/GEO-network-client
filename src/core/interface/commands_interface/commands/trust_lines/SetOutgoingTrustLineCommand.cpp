@@ -51,26 +51,22 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
 }
 
 const string &SetOutgoingTrustLineCommand::identifier()
-    noexcept
 {
     static const string identifier = "SET:contractors/trust-lines";
     return identifier;
 }
 
 const ContractorID SetOutgoingTrustLineCommand::contractorID() const
-    noexcept
 {
     return mContractorID;
 }
 
 const TrustLineAmount &SetOutgoingTrustLineCommand::amount() const
-    noexcept
 {
     return mAmount;
 }
 
 const SerializedEquivalent SetOutgoingTrustLineCommand::equivalent() const
-    noexcept
 {
     return mEquivalent;
 }

@@ -48,7 +48,6 @@ TransactionResult::SharedConst CheckTrustLineTransaction::run()
 }
 
 const string CheckTrustLineTransaction::logHeader() const
-    noexcept
 {
     stringstream s;
     s << "[CheckTrustLineTransaction: " << currentTransactionUUID() << " " << mEquivalent << "]";

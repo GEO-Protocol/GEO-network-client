@@ -28,7 +28,7 @@ public:
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
     enum Stages {
@@ -36,8 +36,8 @@ protected:
         NextKeyProcessing = 2,
     };
 
-protected: // log
-    const string logHeader() const;
+protected:
+    const string logHeader() const override;
 
 private:
     TransactionResult::SharedConst runPublicKeyReceiverInitStage();

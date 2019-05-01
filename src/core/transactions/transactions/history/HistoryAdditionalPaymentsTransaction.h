@@ -18,10 +18,10 @@ public:
         StorageHandler *storageHandler,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const override;
 
 private:
     TransactionResult::SharedConst resultOk(

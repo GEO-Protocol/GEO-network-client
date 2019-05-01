@@ -37,8 +37,7 @@ public:
         Logger &log,
         SubsystemsController *subsystemsController);
 
-    TransactionResult::SharedConst run()
-    noexcept;
+    TransactionResult::SharedConst run() override;
 
     /**
      * @return coordinator address of current transaction
@@ -49,7 +48,7 @@ public:
      * @return length of cycle which is closing by current transaction
      * used in CyclesManager for resolving cycle closing conflicts
      */
-    const SerializedPathLengthSize cycleLength() const;
+    const SerializedPathLengthSize cycleLength() const override;
 
 protected:
     /**
@@ -109,7 +108,7 @@ protected:
     TransactionResult::SharedConst runRollbackByOtherTransactionStage();
 
 protected:
-    TransactionResult::SharedConst approve();
+    TransactionResult::SharedConst approve() override;
 
 protected:
     /**
@@ -117,14 +116,14 @@ protected:
      * @param ioTransaction pointer on database transaction
      */
     void savePaymentOperationIntoHistory(
-        IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction) override;
 
     /**
      * check if reservations on current node are valid before committing
      * (there are should be one incoming and one outgoing reservations with the same amount)
      * @return true if reservations are valid
      */
-    bool checkReservationsDirections() const;
+    bool checkReservationsDirections() const override;
 
     TransactionResult::SharedConst sendErrorMessageOnPreviousNodeRequest(
         ResponseCycleMessage::OperationState errorState);
@@ -137,7 +136,7 @@ protected:
 
     void sendErrorMessageOnFinalAmountsConfiguration();
 
-    const string logHeader() const;
+    const string logHeader() const override;
 
 protected:
     // message on which current transaction was started

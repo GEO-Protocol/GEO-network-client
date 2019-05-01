@@ -15,11 +15,9 @@ public:
         const CommandUUID &commandUUID,
         const string &commandBuffer);
 
-    static const string &identifier()
-        noexcept;
+    static const string &identifier();
 
-    vector<BaseAddress::Shared> contractorAddresses() const
-        noexcept;
+    vector<BaseAddress::Shared> contractorAddresses() const;
 
     const string &cryptoKey() const;
 

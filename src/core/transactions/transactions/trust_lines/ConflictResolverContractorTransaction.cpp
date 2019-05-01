@@ -455,7 +455,6 @@ void ConflictResolverContractorTransaction::acceptContractorAuditData(
 }
 
 const string ConflictResolverContractorTransaction::logHeader() const
-    noexcept
 {
     stringstream s;
     s << "[ConflictResolverContractorTA: " << currentTransactionUUID() << " " << mEquivalent << "]";

@@ -3,8 +3,7 @@
 GetContractorListTransaction::GetContractorListTransaction(
     ContractorListCommand::Shared command,
     ContractorsManager *contractorsManager,
-    Logger &logger)
-    noexcept :
+    Logger &logger):
     BaseTransaction(
         BaseTransaction::ContractorsList,
         0,

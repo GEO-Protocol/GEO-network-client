@@ -13,14 +13,11 @@ public:
         const CommandUUID &commandUUID,
         const string &commandBuffer);
 
-    static const string &identifier()
-    noexcept;
+    static const string &identifier();
 
-    const ContractorID contractorID() const
-    noexcept;
+    const ContractorID contractorID() const;
 
-    const SerializedEquivalent equivalent() const
-    noexcept;
+    const SerializedEquivalent equivalent() const;
 
     CommandResult::SharedConst resultOk(
         string &neighbor) const;

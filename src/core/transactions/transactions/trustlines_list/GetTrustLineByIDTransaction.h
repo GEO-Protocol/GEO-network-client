@@ -17,12 +17,12 @@ public:
         Logger &logger)
         noexcept;
 
-    TransactionResult::SharedConst run();
-
-    TransactionResult::SharedConst resultTrustLineIsAbsent();
+    TransactionResult::SharedConst run() override;
 
 protected:
-    const string logHeader() const;
+    TransactionResult::SharedConst resultTrustLineIsAbsent();
+
+    const string logHeader() const override;
 
 private:
     GetTrustLineByIDCommand::Shared mCommand;

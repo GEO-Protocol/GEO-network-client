@@ -12,8 +12,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     ResourcesManager *resourcesManager,
     Keystore *keystore,
     Logger &log,
-    SubsystemsController *subsystemsController)
-noexcept :
+    SubsystemsController *subsystemsController):
 
     BasePaymentTransaction(
         BaseTransaction::Payments_CycleCloserInitiatorTransaction,
@@ -35,7 +34,6 @@ noexcept :
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
-    noexcept
 {
     try {
         switch (mStep) {

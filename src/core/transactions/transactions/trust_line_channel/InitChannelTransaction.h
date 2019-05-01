@@ -19,7 +19,7 @@ public:
         StorageHandler *storageHandler,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
     TransactionResult::SharedConst resultOK();
@@ -30,9 +30,8 @@ protected:
 
     TransactionResult::SharedConst resultUnexpectedError();
 
-protected: // trust lines history shortcuts
-    const string logHeader() const
-    noexcept;
+protected:
+    const string logHeader() const override;
 
 protected:
     InitChannelCommand::Shared mCommand;

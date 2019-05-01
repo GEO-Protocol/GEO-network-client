@@ -8,7 +8,9 @@ set(SOURCE_FILES
     ConfirmChannelTransaction.cpp
 
     GetContractorListTransaction.h
-    GetContractorListTransaction.cpp)
+    GetContractorListTransaction.cpp
+    GetChannelInfoTransaction.h
+    GetChannelInfoTransaction.cpp)
 
 add_library(transactions__channels ${SOURCE_FILES})
 target_link_libraries(transactions__channels

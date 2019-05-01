@@ -28,11 +28,10 @@ public:
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
-protected: // log
-    const string logHeader() const
-    noexcept;
+protected:
+    const string logHeader() const override;
 
 private:
     pair<BytesShared, size_t> getSerializedReceipt(

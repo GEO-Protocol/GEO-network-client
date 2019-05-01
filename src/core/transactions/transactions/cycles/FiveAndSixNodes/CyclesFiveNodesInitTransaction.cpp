@@ -13,16 +13,13 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
         contractorsManager,
         trustLinesManager,
         cyclesManager,
-        logger),
-    mTailManager(tailManager)
+        tailManager,
+        logger)
 {}
 
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAndSendMessagesStage()
 {
     info() << "runCollectDataAndSendMessagesStage";
-    debug() << "Cycles five tails count " << mTailManager->getCyclesFiveTail().size();
-    debug() << "Cycles six tails count " << mTailManager->getCyclesSixTail().size();
-    debug() << "Topology tails count " << mTailManager->getFlowTail().size();
     vector<BaseAddress::Shared> path;
     path.push_back(
         mContractorsManager->selfContractor()->mainAddress());

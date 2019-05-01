@@ -35,20 +35,17 @@ InitTrustLineCommand::InitTrustLineCommand(
 }
 
 const string &InitTrustLineCommand::identifier()
-noexcept
 {
     static const string identifier = "INIT:contractors/trust-line";
     return identifier;
 }
 
 const ContractorID InitTrustLineCommand::contractorID() const
-noexcept
 {
     return mContractorID;
 }
 
 const SerializedEquivalent InitTrustLineCommand::equivalent() const
-noexcept
 {
     return mEquivalent;
 }

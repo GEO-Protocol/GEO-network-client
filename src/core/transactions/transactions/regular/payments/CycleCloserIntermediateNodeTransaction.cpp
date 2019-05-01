@@ -62,7 +62,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
 {}
 
 TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::run()
-    noexcept {
+{
     try {
         switch (mStep) {
             case Stages::IntermediateNode_PreviousNeighborRequestProcessing:

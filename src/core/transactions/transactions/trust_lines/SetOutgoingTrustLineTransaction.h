@@ -42,10 +42,9 @@ public:
         FeaturesManager *featuresManager,
         EventsInterface *eventsInterface,
         TrustLinesInfluenceController *trustLinesInfluenceController,
-        Logger &logger)
-        noexcept;
+        Logger &logger);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run() override;
 
 protected:
     TransactionResult::SharedConst resultOK();
@@ -58,14 +57,13 @@ protected:
 
     TransactionResult::SharedConst resultUnexpectedError();
 
-protected: // trust lines history shortcuts
+protected:
     void populateHistory(
         IOTransaction::Shared ioTransaction,
         TrustLineRecord::TrustLineOperationType operationType);
 
-protected: // log
-    const string logHeader() const
-        noexcept;
+protected:
+    const string logHeader() const override;
 
 private:
     TransactionResult::SharedConst runInitializationStage();
