@@ -22,6 +22,20 @@ TrustLinesManager::TrustLinesManager(
 #endif
 }
 
+bool isInMigration();
+void startMigration();
+void terminateMigration();
+
+static bool isInMigrationFlag = false;
+bool isInMigration() { return isInMigrationFlag; }
+void startMigration() { isInMigrationFlag = true; }
+void terminateMigration() {
+    if(isInMigration()) {
+        cout << "MIGRATION: " << "All data has been generated. Exiting" << endl;
+        exit(-1);
+    }
+}
+
 void TrustLinesManager::loadTrustLinesFromStorage()
 {
     auto ioTransaction = mStorageHandler->beginTransaction();
@@ -31,6 +45,12 @@ void TrustLinesManager::loadTrustLinesFromStorage()
 
     for (auto const &kTrustLine : kTrustLines) {
         auto keyChain = mKeysStore->keychain(kTrustLine->trustLineID());
+        if(!keyChain.ownKeysPresent(ioTransaction)) {
+            keyChain.generateKeyPairsSet(ioTransaction);
+            info() << "MIGRATION: " << "OwnKeys has been generated " << kTrustLines.size();
+            startMigration();
+            continue;
+        }
         try {
             auto auditRecord = ioTransaction->auditHandler()->getActualAudit(
                 kTrustLine->trustLineID());

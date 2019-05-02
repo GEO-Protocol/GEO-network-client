@@ -1,5 +1,7 @@
 #include "EquivalentsSubsystemsRouter.h"
 
+void terminateMigration();
+
 EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     StorageHandler *storageHandler,
     Keystore *keystore,
@@ -89,6 +91,8 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                     mLogger)));
         info() << "Paths Manager is successfully initialized";
     }
+
+    terminateMigration();
 
     for (const auto &trustLinesManager : mTrustLinesManagers) {
         for (const auto &contractorID : trustLinesManager.second->contractorsShouldBePinged()) {
