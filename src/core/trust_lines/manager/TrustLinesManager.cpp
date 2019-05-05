@@ -1,4 +1,5 @@
 ﻿#include "TrustLinesManager.h"
+#include "../../features/FeaturesManager.h"
 
 
 TrustLinesManager::TrustLinesManager(
@@ -24,6 +25,7 @@ TrustLinesManager::TrustLinesManager(
 
 bool isInMigration();
 void startMigration();
+FeaturesManager &getMigrationFeaturesManager();
 void terminateMigration();
 
 static bool isInMigrationFlag = false;
@@ -34,6 +36,92 @@ void terminateMigration() {
         cout << "MIGRATION: " << "All data has been generated. Exiting" << endl;
         exit(-1);
     }
+}
+
+pair<BytesShared, size_t> TrustLinesManager::getOwnSerializedAuditData(
+    lamport::KeyHash::Shared ownPublicKeysHash,
+    lamport::KeyHash::Shared contractorPublicKeysHash,
+    const AuditNumber auditNumber,
+    const TrustLineAmount &incomingAmount,
+    const TrustLineAmount &outgoingAmount,
+    const TrustLineBalance &balance)
+{
+    string era = getMigrationFeaturesManager().getEquivalentsRegistryAddress();
+    size_t bytesCount = sizeof(AuditNumber)
+                        + kTrustLineAmountBytesCount
+                        + kTrustLineAmountBytesCount
+                        + kTrustLineBalanceSerializeBytesCount
+                        + lamport::KeyHash::kBytesSize
+                        + lamport::KeyHash::kBytesSize
+                        + sizeof(EquivalentRegisterAddressLength)
+                        + era.length();
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &auditNumber,
+        sizeof(auditNumber));
+    dataBytesOffset += sizeof(auditNumber);
+    info() << "own audit " << auditNumber;
+
+    vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(
+        incomingAmount);
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        incomingAmountBufferBytes.data(),
+        kTrustLineAmountBytesCount);
+    dataBytesOffset += kTrustLineAmountBytesCount;
+    info() << "own incoming amount " << incomingAmount;
+
+    vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(
+        outgoingAmount);
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        outgoingAmountBufferBytes.data(),
+        kTrustLineAmountBytesCount);
+    dataBytesOffset += kTrustLineAmountBytesCount;
+    info() << "own outgoing amount " << outgoingAmount;
+
+    vector<byte> balanceBufferBytes = trustLineBalanceToBytes(
+        balance);
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        balanceBufferBytes.data(),
+        kTrustLineBalanceSerializeBytesCount);
+    dataBytesOffset += kTrustLineBalanceSerializeBytesCount;
+    info() << "own balance " << balance;
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        ownPublicKeysHash->data(),
+        lamport::KeyHash::kBytesSize);
+    dataBytesOffset += lamport::KeyHash::kBytesSize;
+    info() << "Own keys hash: " << ownPublicKeysHash->toString();
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        contractorPublicKeysHash->data(),
+        lamport::KeyHash::kBytesSize);
+    dataBytesOffset += lamport::KeyHash::kBytesSize;
+    info() << "Contractor keys hash: " << contractorPublicKeysHash->toString();
+
+    auto equivalentRegistryAddress = era;
+    auto equivalentsRegistryAddressLength = (EquivalentRegisterAddressLength)equivalentRegistryAddress.length();
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &equivalentsRegistryAddressLength,
+        sizeof(EquivalentRegisterAddressLength));
+    dataBytesOffset += sizeof(EquivalentRegisterAddressLength);
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        equivalentRegistryAddress.c_str(),
+        equivalentRegistryAddress.length());
+    info() << "own equivalents registry address: " << equivalentRegistryAddress;
+
+    return make_pair(
+        dataBytesShared,
+        bytesCount);
 }
 
 void TrustLinesManager::loadTrustLinesFromStorage()
@@ -57,6 +145,46 @@ void TrustLinesManager::loadTrustLinesFromStorage()
             kTrustLine->setAuditNumber(auditRecord->auditNumber());
             kTrustLine->setIncomingTrustAmount(auditRecord->incomingAmount());
             kTrustLine->setOutgoingTrustAmount(auditRecord->outgoingAmount());
+
+            uint64_t ownKeysSetHashSum = 0;
+            auto p = auditRecord->ownKeysSetHash()->data();
+            for(size_t i=0; i<lamport::KeyHash::kBytesSize; ++i) ownKeysSetHashSum += p[i];
+            if(!ownKeysSetHashSum) {
+                try {
+                    auto ownPublicKeysHash = keyChain.ownPublicKeysHash(ioTransaction);
+                    auto contractorPublicKeysHash = keyChain.contractorPublicKeysHash(ioTransaction);
+                    auto serializedAuditData = getOwnSerializedAuditData(
+                        ownPublicKeysHash,
+                        contractorPublicKeysHash,
+                        auditRecord->auditNumber(),
+                        auditRecord->incomingAmount(),
+                        auditRecord->outgoingAmount(),
+                        auditRecord->balance());
+                    auto mOwnSignatureAndKeyNumber = keyChain.sign(
+                        ioTransaction,
+                        serializedAuditData.first,
+                        serializedAuditData.second);
+
+                    keyChain.saveOwnAuditPart(
+                        ioTransaction,
+                        auditRecord->auditNumber(),
+                        mOwnSignatureAndKeyNumber.second,
+                        mOwnSignatureAndKeyNumber.first,
+                        ownPublicKeysHash,
+                        contractorPublicKeysHash,
+                        auditRecord->incomingAmount(),
+                        auditRecord->outgoingAmount(),
+                        auditRecord->balance());
+                } catch(IOError &e) {
+                    ioTransaction->rollback();
+                    warning() << "MIGRATION: Attempt to set outgoing trust line to the node " << kTrustLine->contractorID() << " failed. "
+                              << "Can't sign audit data. IO transaction can't be completed. "
+                              << "Details are: " << e.what();
+                }
+                info() << "MIGRATION: " << "Audit has been generated ";
+                startMigration();
+                continue;
+            }
 
             if (!auditRecord->isPendingState()) {
                 auto totalIncomingReceiptsAmount = keyChain.incomingCommittedReceiptsAmountsSum(

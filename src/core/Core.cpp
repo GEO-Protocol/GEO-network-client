@@ -80,6 +80,11 @@ int Core::initSubsystems()
         return initCode;
     }
 
+    initCode = initFeaturesManager(conf);
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initCommandsInterface();
     if (initCode != 0) {
         return initCode;
@@ -132,11 +137,6 @@ int Core::initSubsystems()
 
     initCode = initEquivalentsSubsystemsRouter(
         equivalentsOnWhichIAmIsGateway);
-    if (initCode != 0) {
-        return initCode;
-    }
-
-    initCode = initFeaturesManager(conf);
     if (initCode != 0) {
         return initCode;
     }
@@ -423,6 +423,11 @@ int Core::initTopologyEventDelayedTask()
     }
 }
 
+FeaturesManager *migrationFeaturesManager = nullptr;
+FeaturesManager &getMigrationFeaturesManager() {
+    return *migrationFeaturesManager;
+}
+
 int Core::initFeaturesManager(
     const json &conf)
 {
@@ -431,6 +436,7 @@ int Core::initFeaturesManager(
             mSettings->equivalentsRegistryAddress(&conf),
             mStorageHandler.get(),
             *mLog);
+        ::migrationFeaturesManager = mFeaturesManager.get();
         info() << "Features Manager is successfully initialized";
         return 0;
     } catch (const std::exception &e) {

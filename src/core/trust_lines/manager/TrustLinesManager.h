@@ -382,6 +382,14 @@ public:
     void printTLFlows();
 
 protected:
+    pair<BytesShared, size_t> getOwnSerializedAuditData(
+        lamport::KeyHash::Shared ownPublicKeysHash,
+        lamport::KeyHash::Shared contractorPublicKeysHash,
+        const AuditNumber auditNumber,
+        const TrustLineAmount &incomingAmount,
+        const TrustLineAmount &outgoingAmount,
+        const TrustLineBalance &balance);
+
     /**
      * Reads trust lines info from the internal storage and initialises internal trust lines map.
      * Ignores obsolete trust lines (outgoing 0, incoming 0, and balance 0).
