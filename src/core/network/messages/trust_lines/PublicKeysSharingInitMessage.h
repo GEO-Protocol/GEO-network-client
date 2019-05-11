@@ -29,7 +29,7 @@ public:
 
     const KeysCount keysCount() const;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     virtual pair<BytesShared, size_t> serializeToBytes() const override;
 

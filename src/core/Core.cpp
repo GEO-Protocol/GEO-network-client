@@ -428,7 +428,9 @@ int Core::initFeaturesManager(
 {
     try {
         mFeaturesManager = make_unique<FeaturesManager>(
+            mIOService,
             mSettings->equivalentsRegistryAddress(&conf),
+            mContractorsManager->selfContractor()->outputString(),
             mStorageHandler.get(),
             *mLog);
         info() << "Features Manager is successfully initialized";
@@ -506,6 +508,11 @@ void Core::connectCommunicatorSignals()
             contractorID);
     }
     mEquivalentsSubsystemsRouter->clearContractorsShouldBePinged();
+
+    mFeaturesManager->sendAddressesSignal.connect(
+        boost::bind(
+            &Core::onSendOwnAddressesSlot,
+            this));
 }
 
 void Core::connectObservingSignals()
@@ -854,6 +861,11 @@ void Core::onProcessPongMessageSlot(
 {
     mCommunicator->processPongMessage(
         contractorID);
+}
+
+void Core::onSendOwnAddressesSlot()
+{
+    mTransactionsManager->launchUpdateChannelAddressesInitiatorTransaction();
 }
 
 void Core::writePIDFile()

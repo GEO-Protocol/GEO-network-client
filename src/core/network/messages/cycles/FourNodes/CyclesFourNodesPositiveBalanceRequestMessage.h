@@ -12,7 +12,7 @@ public:
 public:
     using CyclesFourNodesNegativeBalanceRequestMessage::CyclesFourNodesNegativeBalanceRequestMessage;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 };
 
 

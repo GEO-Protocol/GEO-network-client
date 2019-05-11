@@ -10,12 +10,12 @@ public:
 
 public:
     PongMessage(
-        ContractorID idOnReceiverSide) noexcept;
+        ContractorID idOnReceiverSide);
 
     PongMessage(
-        BytesShared buffer) noexcept;
+        BytesShared buffer);
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 };
 
 

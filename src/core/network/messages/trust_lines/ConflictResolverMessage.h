@@ -28,9 +28,9 @@ public:
 
     const vector<ReceiptRecord::Shared> outgoingReceipts() const;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
-    const bool isAddToConfirmationRequiredMessagesHandler() const;
+    const bool isAddToConfirmationRequiredMessagesHandler() const override;
 
     const bool isCheckCachedResponse() const override;
 

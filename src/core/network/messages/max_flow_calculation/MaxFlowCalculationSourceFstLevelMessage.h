@@ -12,7 +12,7 @@ public:
 public:
     using SenderMessage::SenderMessage;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 };
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCEFSTLEVELMESSAGE_H

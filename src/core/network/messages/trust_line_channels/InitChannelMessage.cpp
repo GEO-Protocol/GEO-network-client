@@ -3,8 +3,7 @@
 InitChannelMessage::InitChannelMessage(
     vector<BaseAddress::Shared> senderAddresses,
     const TransactionUUID &transactionUUID,
-    Contractor::Shared contractor)
-    noexcept:
+    Contractor::Shared contractor):
 
     TransactionMessage(
         0,
@@ -17,8 +16,7 @@ InitChannelMessage::InitChannelMessage(
 }
 
 InitChannelMessage::InitChannelMessage(
-    BytesShared buffer)
-    noexcept :
+    BytesShared buffer):
     TransactionMessage(buffer)
 {
     // todo: use deserializer
@@ -40,19 +38,16 @@ InitChannelMessage::InitChannelMessage(
 
 
 const Message::MessageType InitChannelMessage::typeID() const
-noexcept
 {
     return Message::Channel_Init;
 }
 
 const ContractorID InitChannelMessage::contractorID() const
-noexcept
 {
     return mContractorID;
 }
 
 const MsgEncryptor::PublicKey::Shared InitChannelMessage::publicKey() const
-noexcept
 {
     return mPublicKey;
 }

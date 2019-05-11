@@ -32,11 +32,11 @@ public:
     ParticipantsVotesMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     const map<PaymentNodeID, lamport::Signature::Shared>& participantsSignatures() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const override;
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     map<PaymentNodeID, lamport::Signature::Shared> mParticipantsSignatures;

@@ -34,7 +34,7 @@ public:
     FinalAmountsConfigurationResponseMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     const OperationState state() const;
 

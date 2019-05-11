@@ -36,7 +36,7 @@ public:
 
     const KeyNumber keyNumber() const;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     const bool isCheckCachedResponse() const override;
 

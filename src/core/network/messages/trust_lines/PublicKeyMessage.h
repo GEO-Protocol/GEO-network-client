@@ -32,11 +32,11 @@ public:
 
     const lamport::PublicKey::Shared publicKey() const;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     const bool isCheckCachedResponse() const override;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const override;
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
     const size_t kOffsetToInheritedBytes() const override;

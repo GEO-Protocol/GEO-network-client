@@ -14,16 +14,14 @@ public:
         const SerializedEquivalent equivalent,
         ContractorID idOnReceiverSide,
         vector<BaseAddress::Shared> targetAddresses,
-        bool isTargetGateway)
-        noexcept;
+        bool isTargetGateway);
 
     MaxFlowCalculationTargetFstLevelMessage(
-        BytesShared buffer)
-        noexcept;
+        BytesShared buffer);
 
     bool isTargetGateway() const;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     pair<BytesShared, size_t> serializeToBytes() const override;
 

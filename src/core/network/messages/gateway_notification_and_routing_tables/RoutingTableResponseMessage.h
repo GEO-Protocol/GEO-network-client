@@ -19,7 +19,7 @@ public:
     RoutingTableResponseMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     pair<BytesShared, size_t> serializeToBytes() const override;
 

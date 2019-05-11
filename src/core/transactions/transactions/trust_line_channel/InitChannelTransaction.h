@@ -33,7 +33,7 @@ protected:
 protected:
     const string logHeader() const override;
 
-protected:
+private:
     InitChannelCommand::Shared mCommand;
     Contractor::Shared mContractor;
     ContractorsManager *mContractorsManager;

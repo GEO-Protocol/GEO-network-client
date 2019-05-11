@@ -171,6 +171,8 @@ private:
     void onResourceCollectedSlot(
         BaseResource::Shared resource);
 
+    void onSendOwnAddressesSlot();
+
     void writePIDFile();
 
     void updateProcessName();

@@ -32,7 +32,7 @@ public:
 
     const lamport::KeyHash::Shared hashConfirmation() const;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     pair<BytesShared, size_t> serializeToBytes() const override;
 

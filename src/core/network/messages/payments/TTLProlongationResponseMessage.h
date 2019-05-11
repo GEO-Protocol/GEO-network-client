@@ -25,14 +25,14 @@ public:
     TTLProlongationResponseMessage(
         BytesShared buffer);
 
-    const Message::MessageType typeID() const;
+    const Message::MessageType typeID() const override;
 
     const OperationState state() const;
 
 protected:
     typedef byte SerializedOperationState;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const override;
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
     OperationState mState;

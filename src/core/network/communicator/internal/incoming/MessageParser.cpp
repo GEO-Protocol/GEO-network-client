@@ -69,6 +69,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::Channel_Init:
             return messageCollected<InitChannelMessage>(buffer);
 
+        case Message::Channel_UpdateAddresses:
+            return messageCollected<UpdateChannelAddressesMessage>(buffer);
+
         /*
          * Trust lines messages
          */

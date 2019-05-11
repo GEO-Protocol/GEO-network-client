@@ -1,16 +1,14 @@
 #include "PongMessage.h"
 
 PongMessage::PongMessage(
-    ContractorID idOnReceiverSide)
-    noexcept:
+    ContractorID idOnReceiverSide):
     SenderMessage(
         0,
         idOnReceiverSide)
 {}
 
 PongMessage::PongMessage(
-    BytesShared buffer)
-    noexcept:
+    BytesShared buffer):
     SenderMessage(buffer)
 {}
 

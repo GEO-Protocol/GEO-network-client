@@ -13,6 +13,8 @@
 #include "../transactions/trust_line_channel/ConfirmChannelTransaction.h"
 #include "../transactions/trust_line_channel/GetContractorListTransaction.h"
 #include "../transactions/trust_line_channel/GetChannelInfoTransaction.h"
+#include "../transactions/trust_line_channel/UpdateChannelAddressesInitiatorTransaction.h"
+#include "../transactions/trust_line_channel/UpdateChannelAddressesTargetTransaction.h"
 
 #include "../transactions/trust_lines/OpenTrustLineTransaction.h"
 #include "../transactions/trust_lines/AcceptTrustLineTransaction.h"
@@ -127,7 +129,7 @@ public:
         bool allowPaymentTransactions);
 
     /*
-     * Find paths transactions
+     * List of transactions which calls not from TransactionsManager
      */
     void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
@@ -151,6 +153,8 @@ public:
         const TransactionUUID& transactionUUID,
         BlockNumber maximalClaimingBlockNumber);
 
+    void launchUpdateChannelAddressesInitiatorTransaction();
+
 protected: // Transactions
     /*
      * Channel transactions
@@ -166,6 +170,9 @@ protected: // Transactions
 
     void launchGetChannelInfoTransaction(
         GetChannelInfoCommand::Shared command);
+
+    void launchUpdateChannelAddressesTargetTransaction(
+        UpdateChannelAddressesMessage::Shared message);
 
     /*
      * Trust lines transactions

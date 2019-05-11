@@ -115,6 +115,8 @@ public:
         ConfirmChannelTransaction = 901,
         ContractorsList = 902,
         ChannelInfo = 903,
+        UpdateChannelAddressesInitiator = 904,
+        UpdateChannelAddressesTarget = 905,
 
         // Transactions
         TransactionByCommandUUIDType = 1000,

@@ -29,7 +29,8 @@ ContractorsManager::ContractorsManager(
     for (const auto &contractor : ioTransaction->contractorsHandler()->allContractors()) {
         auto contractorAddresses = ioTransaction->addressHandler()->contractorAddresses(
             contractor->getID());
-        contractor->setAddresses(contractorAddresses);
+        contractor->setAddresses(
+            contractorAddresses);
         mContractors.insert(
             make_pair(
                 contractor->getID(),
@@ -237,6 +238,23 @@ ContractorID ContractorsManager::contractorIDByAddress(
 Contractor::Shared ContractorsManager::selfContractor() const
 {
     return mSelf;
+}
+
+void ContractorsManager::updateContractorAddresses(
+    IOTransaction::Shared ioTransaction,
+    ContractorID contractorID,
+    vector<BaseAddress::Shared> newAddresses)
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+    ioTransaction->addressHandler()->removeAddresses(contractorID);
+    for (const auto &address : newAddresses) {
+        ioTransaction->addressHandler()->saveAddress(
+            contractorID,
+            address);
+    }
+    mContractors.at(contractorID)->setAddresses(newAddresses);
 }
 
 const string ContractorsManager::logHeader() const

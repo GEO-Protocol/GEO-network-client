@@ -10,12 +10,12 @@ public:
 
 public:
     PingMessage(
-        ContractorID idOnReceiverSide) noexcept;
+        ContractorID idOnReceiverSide);
 
     PingMessage(
-        BytesShared buffer) noexcept;
+        BytesShared buffer);
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 };
 
 

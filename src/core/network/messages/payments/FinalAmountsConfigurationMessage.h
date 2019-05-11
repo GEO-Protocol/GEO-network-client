@@ -37,7 +37,7 @@ public:
     FinalAmountsConfigurationMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     const map<PaymentNodeID, Contractor::Shared> &paymentParticipants() const;
 
@@ -51,7 +51,6 @@ public:
 
     const lamport::KeyHash::Shared transactionPublicKeyHash() const;
 
-protected:
     pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:

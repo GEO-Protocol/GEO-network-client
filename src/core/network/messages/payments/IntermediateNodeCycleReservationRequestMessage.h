@@ -26,8 +26,7 @@ public:
 
     SerializedPathLengthSize cycleLength() const;
 
-protected:
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     virtual pair<BytesShared, size_t> serializeToBytes() const override;
 

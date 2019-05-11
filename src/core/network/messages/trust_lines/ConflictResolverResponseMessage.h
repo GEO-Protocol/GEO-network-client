@@ -11,8 +11,7 @@ public:
 public:
     using ConfirmationMessage::ConfirmationMessage;
 
-protected:
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 };
 
 

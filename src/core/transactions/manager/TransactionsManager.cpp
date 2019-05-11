@@ -471,6 +471,10 @@ void TransactionsManager::processMessage(
         launchConfirmChannelTransaction(
             static_pointer_cast<InitChannelMessage>(message));
 
+    } else if (message->typeID() == Message::Channel_UpdateAddresses) {
+        launchUpdateChannelAddressesTargetTransaction(
+            static_pointer_cast<UpdateChannelAddressesMessage>(message));
+
     /*
      * General
      */
@@ -519,6 +523,57 @@ void TransactionsManager::launchConfirmChannelTransaction(
     prepareAndSchedule(
         transaction,
         false,
+        false,
+        true);
+}
+
+void TransactionsManager::launchGetContractorListTransaction(
+    ContractorListCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<GetContractorListTransaction>(
+            command,
+            mContractorsManager,
+            mLog),
+        true,
+        false,
+        false);
+}
+
+void TransactionsManager::launchGetChannelInfoTransaction(
+    GetChannelInfoCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<GetChannelInfoTransaction>(
+            command,
+            mContractorsManager,
+            mLog),
+        true,
+        false,
+        false);
+}
+
+void TransactionsManager::launchUpdateChannelAddressesTargetTransaction(
+    UpdateChannelAddressesMessage::Shared message)
+{
+    prepareAndSchedule(
+        make_shared<UpdateChannelAddressesTargetTransaction>(
+            message,
+            mContractorsManager,
+            mStorageHandler,
+            mLog),
+        false,
+        false,
+        true);
+}
+
+void TransactionsManager::launchUpdateChannelAddressesInitiatorTransaction()
+{
+    prepareAndSchedule(
+        make_shared<UpdateChannelAddressesInitiatorTransaction>(
+            mContractorsManager,
+            mLog),
+        true,
         false,
         true);
 }
@@ -1764,7 +1819,6 @@ void TransactionsManager::launchGetTrustLinesTransaction(
             false,
             false);
     }
-
 }
 
 void TransactionsManager::launchGetTrustLineByAddressTransaction(
@@ -1825,32 +1879,6 @@ void TransactionsManager::launchGetEquivalentListTransaction(
         make_shared<GetEquivalentListTransaction>(
             command,
             mEquivalentsSubsystemsRouter,
-            mLog),
-        true,
-        false,
-        false);
-}
-
-void TransactionsManager::launchGetContractorListTransaction(
-    ContractorListCommand::Shared command)
-{
-    prepareAndSchedule(
-        make_shared<GetContractorListTransaction>(
-            command,
-            mContractorsManager,
-            mLog),
-        true,
-        false,
-        false);
-}
-
-void TransactionsManager::launchGetChannelInfoTransaction(
-    GetChannelInfoCommand::Shared command)
-{
-    prepareAndSchedule(
-        make_shared<GetChannelInfoTransaction>(
-            command,
-            mContractorsManager,
             mLog),
         true,
         false,

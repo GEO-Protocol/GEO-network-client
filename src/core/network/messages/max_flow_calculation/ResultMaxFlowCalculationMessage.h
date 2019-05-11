@@ -22,9 +22,9 @@ public:
     ResultMaxFlowCalculationMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
-    const bool isAddToConfirmationNotStronglyRequiredMessagesHandler() const;
+    const bool isAddToConfirmationNotStronglyRequiredMessagesHandler() const override;
 
     virtual pair<BytesShared, size_t> serializeToBytes() const override;
 

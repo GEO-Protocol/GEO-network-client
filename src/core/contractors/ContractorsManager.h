@@ -60,6 +60,11 @@ public:
     ContractorID contractorIDByAddresses(
         vector<BaseAddress::Shared> &checkedAddresses) const;
 
+    void updateContractorAddresses(
+        IOTransaction::Shared ioTransaction,
+        ContractorID contractorID,
+        vector<BaseAddress::Shared> newAddresses);
+
 protected:
     const ContractorID nextFreeID(
         IOTransaction::Shared ioTransaction) const;

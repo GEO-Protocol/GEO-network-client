@@ -32,12 +32,12 @@ public:
 
     const KeyNumber keyNumber() const;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
-    uint32_t mKeyNumber;
+    KeyNumber mKeyNumber;
     lamport::Signature::Shared mSignature;
 };
 

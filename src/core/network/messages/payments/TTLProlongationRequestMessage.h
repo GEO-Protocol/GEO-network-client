@@ -12,9 +12,7 @@ public:
 public:
     using TransactionMessage::TransactionMessage;
 
-protected:
-    const MessageType typeID() const;
-
+    const MessageType typeID() const override;
 };
 
 

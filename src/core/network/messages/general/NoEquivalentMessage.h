@@ -11,7 +11,7 @@ public:
 public:
     using TransactionMessage::TransactionMessage;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 };
 
 

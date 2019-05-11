@@ -23,7 +23,7 @@ public:
 
     BaseAddress::Shared nextNodeInPathAddress() const;
 
-    const Message::MessageType typeID() const;
+    const Message::MessageType typeID() const override;
 
     virtual pair<BytesShared, size_t> serializeToBytes() const override;
 

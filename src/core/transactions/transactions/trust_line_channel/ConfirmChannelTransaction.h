@@ -24,7 +24,7 @@ public:
 protected:
     const string logHeader() const override;
 
-protected:
+private:
     InitChannelMessage::Shared mMessage;
     ContractorsManager *mContractorsManager;
     StorageHandler *mStorageHandler;

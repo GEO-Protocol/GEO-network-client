@@ -21,7 +21,7 @@ public:
     CyclesThreeNodesBalancesRequestMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     vector<BaseAddress::Shared> neighbors();
 

@@ -25,6 +25,9 @@ public:
     vector<BaseAddress::Shared> contractorAddresses(
         ContractorID contractorID);
 
+    void removeAddresses(
+        ContractorID contractorID);
+
 private:
     LoggerStream info() const;
 

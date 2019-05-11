@@ -13,21 +13,16 @@ public:
     InitChannelMessage(
         vector<BaseAddress::Shared> senderAddresses,
         const TransactionUUID &transactionUUID,
-        Contractor::Shared contractor)
-        noexcept;
+        Contractor::Shared contractor);
 
     InitChannelMessage(
-        BytesShared buffer)
-        noexcept;
+        BytesShared buffer);
 
-    const MessageType typeID() const
-    noexcept override;
+    const MessageType typeID() const override;
 
-    const ContractorID contractorID() const
-    noexcept;
+    const ContractorID contractorID() const;
 
-    const MsgEncryptor::PublicKey::Shared publicKey() const
-    noexcept;
+    const MsgEncryptor::PublicKey::Shared publicKey() const;
 
     const bool isAddToConfirmationRequiredMessagesHandler() const override;
 
