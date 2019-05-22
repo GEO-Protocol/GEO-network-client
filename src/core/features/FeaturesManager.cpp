@@ -42,6 +42,9 @@ FeaturesManager::FeaturesManager(
         if (dataBaseOwnAddresses != ownAddresses) {
             info() << "There is different value of " << kOwnAddressesFieldName
                    << " feature in database: " << dataBaseOwnAddresses;
+            ioTransaction->featuresHandler()->saveFeature(
+                kOwnAddressesFieldName,
+                ownAddresses);
             mNotificationTimer = make_unique<as::steady_timer>(
                 mIOService);
             mNotificationTimer->expires_from_now(

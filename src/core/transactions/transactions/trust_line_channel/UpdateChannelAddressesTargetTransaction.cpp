@@ -18,6 +18,10 @@ UpdateChannelAddressesTargetTransaction::UpdateChannelAddressesTargetTransaction
 TransactionResult::SharedConst UpdateChannelAddressesTargetTransaction::run()
 {
     info() << "Contractor " << mMessage->idOnReceiverSide << " send new addresses:";
+    if (mMessage->newSenderAddresses().empty()) {
+        warning() << "Empty addresses";
+        return resultDone();
+    }
     for (const auto &address : mMessage->newSenderAddresses()) {
         info() << address->fullAddress();
     }

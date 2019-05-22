@@ -73,10 +73,10 @@ pair<BytesShared, size_t> UpdateChannelAddressesMessage::serializeToBytes() cons
     dataBytesOffset += sizeof(byte);
     //----------------------------
     for (const auto &address : mNewSenderAddresses) {
-        auto serializedAddress = address->serializeToBytes().get();
+        auto serializedAddress = address->serializeToBytes();
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            serializedAddress,
+            serializedAddress.get(),
             address->serializedSize());
         dataBytesOffset += address->serializedSize();
     }

@@ -9,7 +9,7 @@ class BaseAddress {
 
 public:
     typedef shared_ptr<BaseAddress> Shared;
-    typedef uint8_t SerializedType;
+    typedef byte SerializedType;
 
     enum AddressType {
         /*

@@ -20,17 +20,14 @@ public:
 public:
     SenderMessage(
         const SerializedEquivalent equivalent,
-        ContractorID idOnReceiverSide)
-        noexcept;
+        ContractorID idOnReceiverSide);
 
     SenderMessage(
         const SerializedEquivalent equivalent,
-        vector<BaseAddress::Shared> &senderAddresses)
-        noexcept;
+        vector<BaseAddress::Shared> &senderAddresses);
 
     SenderMessage(
-        BytesShared buffer)
-        noexcept;
+        BytesShared buffer);
 
     virtual pair<BytesShared, size_t> serializeToBytes() const override;
 

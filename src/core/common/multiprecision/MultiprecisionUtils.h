@@ -138,10 +138,10 @@ inline TrustLineBalance bytesToTrustLineBalance(
 inline BaseAddress::Shared deserializeAddress(
     byte* offset)
 {
-    const uint16_t kAddressType =
+    auto addressType =
             *(reinterpret_cast<BaseAddress::SerializedType *>(offset));
 
-    switch (kAddressType) {
+    switch (addressType) {
         case BaseAddress::IPv4_IncludingPort: {
             return make_shared<IPv4WithPortAddress>(
                 offset);

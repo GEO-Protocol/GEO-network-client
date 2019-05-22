@@ -3,8 +3,7 @@
 
 SenderMessage::SenderMessage(
     const SerializedEquivalent equivalent,
-    ContractorID idOnReceiverSide)
-    noexcept :
+    ContractorID idOnReceiverSide):
     EquivalentMessage(
         equivalent),
     idOnReceiverSide(idOnReceiverSide),
@@ -13,16 +12,14 @@ SenderMessage::SenderMessage(
 
 SenderMessage::SenderMessage(
     const SerializedEquivalent equivalent,
-    vector<BaseAddress::Shared> &senderAddresses)
-    noexcept :
+    vector<BaseAddress::Shared> &senderAddresses):
     EquivalentMessage(
         equivalent),
     senderAddresses(senderAddresses)
 {}
 
 SenderMessage::SenderMessage(
-    BytesShared buffer)
-    noexcept:
+    BytesShared buffer):
     EquivalentMessage(buffer)
 {
     auto bytesBufferOffset = EquivalentMessage::kOffsetToInheritedBytes();
