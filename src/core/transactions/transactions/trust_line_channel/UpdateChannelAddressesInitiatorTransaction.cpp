@@ -15,6 +15,7 @@ TransactionResult::SharedConst UpdateChannelAddressesInitiatorTransaction::run()
     info() << "run";
     for (const auto &contractor : mContractorsManager->allContractors()) {
         info() << "inform contractor " << contractor->getID() << " " << contractor->mainAddress()->fullAddress();
+        // todo : apply logic for guaranteed delivery of this message
         sendMessage<UpdateChannelAddressesMessage>(
             contractor->getID(),
             contractor->ownIdOnContractorSide(),

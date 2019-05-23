@@ -250,6 +250,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<InitChannelCommand>(
                 command));
 
+    } else if (command->identifier() == SetChannelContractorAddressesCommand::identifier()) {
+        launchSetChannelContractorAddressesTransaction(
+            static_pointer_cast<SetChannelContractorAddressesCommand>(
+                command));
+
     } else if (command->identifier() == InitTrustLineCommand::identifier()) {
         launchInitTrustLineTransaction(
             static_pointer_cast<InitTrustLineCommand>(
@@ -565,6 +570,20 @@ void TransactionsManager::launchUpdateChannelAddressesTargetTransaction(
         false,
         false,
         true);
+}
+
+void TransactionsManager::launchSetChannelContractorAddressesTransaction(
+    SetChannelContractorAddressesCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<SetChannelContractorAddressesTransaction>(
+            command,
+            mContractorsManager,
+            mStorageHandler,
+            mLog),
+        true,
+        false,
+        false);
 }
 
 void TransactionsManager::launchUpdateChannelAddressesInitiatorTransaction()

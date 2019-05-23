@@ -161,6 +161,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == SetChannelContractorAddressesCommand::identifier()) {
+            command = new SetChannelContractorAddressesCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == InitTrustLineCommand::identifier()) {
             command = new InitTrustLineCommand(
                 uuid,

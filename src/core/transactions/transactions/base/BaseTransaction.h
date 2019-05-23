@@ -117,6 +117,7 @@ public:
         ChannelInfo = 903,
         UpdateChannelAddressesInitiator = 904,
         UpdateChannelAddressesTarget = 905,
+        SetChannelContractorAddresses = 906,
 
         // Transactions
         TransactionByCommandUUIDType = 1000,

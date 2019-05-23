@@ -1439,7 +1439,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultForbiddenRun
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultForbiddenRunDueObserving()
 {
     return transactionResultFromCommand(
-        mCommand->responseForbiddenRunTransaction());
+        mCommand->responseForbiddenRunDueObservingTransaction());
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultNoPathsError()

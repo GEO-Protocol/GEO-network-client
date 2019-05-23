@@ -85,8 +85,3 @@ pair<BytesShared, size_t> UpdateChannelAddressesMessage::serializeToBytes() cons
         dataBytesShared,
         bytesCount);
 }
-
-const bool UpdateChannelAddressesMessage::isAddToConfirmationRequiredMessagesHandler() const
-{
-    return true;
-}

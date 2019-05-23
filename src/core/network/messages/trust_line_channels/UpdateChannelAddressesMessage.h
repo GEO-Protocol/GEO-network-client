@@ -22,8 +22,6 @@ public:
 
     vector<BaseAddress::Shared> newSenderAddresses() const;
 
-    const bool isAddToConfirmationRequiredMessagesHandler() const override;
-
     pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
