@@ -118,6 +118,8 @@ public:
         UpdateChannelAddressesInitiator = 904,
         UpdateChannelAddressesTarget = 905,
         SetChannelContractorAddresses = 906,
+        SetChannelContractorCryptoKey = 907,
+        RegenerateChannelCryptoKey = 908,
 
         // Transactions
         TransactionByCommandUUIDType = 1000,

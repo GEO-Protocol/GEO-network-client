@@ -166,6 +166,16 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == SetChannelContractorCryptoKeyCommand::identifier()) {
+            command = new SetChannelContractorCryptoKeyCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == RegenerateChannelCryptoKeyCommand::identifier()) {
+            command = new RegenerateChannelCryptoKeyCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == InitTrustLineCommand::identifier()) {
             command = new InitTrustLineCommand(
                 uuid,

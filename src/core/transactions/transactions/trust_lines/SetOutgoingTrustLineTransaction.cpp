@@ -202,7 +202,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
     sendMessage<AuditMessage>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         mTransactionUUID,
         mAuditNumber,
         mTrustLines->incomingTrustAmount(mContractorID),
@@ -225,7 +225,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
             sendMessage<AuditMessage>(
                 mContractorID,
                 mEquivalent,
-                mContractorsManager->idOnContractorSide(mContractorID),
+                mContractorsManager->contractor(mContractorID),
                 mTransactionUUID,
                 mAuditNumber,
                 mTrustLines->incomingTrustAmount(mContractorID),

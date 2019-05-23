@@ -15,6 +15,20 @@ MsgEncryptor::KeyTrio::Shared MsgEncryptor::generateKeyTrio(
     return keyTrio;
 }
 
+MsgEncryptor::KeyTrio::Shared MsgEncryptor::generateKeyTrio(
+    PublicKey::Shared contractorPublicKey)
+{
+    KeyTrio::Shared keyTrio = make_shared<KeyTrio>();
+    auto keyPair = generateKeyPair();
+    keyTrio->publicKey = keyPair->publicKey;
+    keyTrio->secretKey = keyPair->secretKey;
+
+    if(contractorPublicKey) {
+        keyTrio->contractorPublicKey = contractorPublicKey;
+    }
+    return keyTrio;
+}
+
 ByteEncryptor::Buffer MsgEncryptor::encrypt(
     MessageShared message)
 {

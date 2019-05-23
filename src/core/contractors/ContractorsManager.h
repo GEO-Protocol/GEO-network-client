@@ -42,6 +42,15 @@ public:
         ContractorID idOnContractorSide,
         MsgEncryptor::PublicKey::Shared cryptoKey);
 
+    void updateContractorCryptoKey(
+        IOTransaction::Shared ioTransaction,
+        ContractorID contractorID,
+        const string cryptoKey);
+
+    void regenerateCryptoKey(
+        IOTransaction::Shared ioTransaction,
+        ContractorID contractorID);
+
     vector<BaseAddress::Shared> ownAddresses() const;
 
     vector<BaseAddress::Shared> contractorAddresses(

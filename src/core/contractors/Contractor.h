@@ -34,6 +34,9 @@ public:
 
     MsgEncryptor::KeyTrio::Shared cryptoKey();
 
+    void setCryptoKey(
+        MsgEncryptor::KeyTrio::Shared cryptoKey);
+
     const bool isConfirmed() const;
 
     void confirm();

@@ -2,7 +2,7 @@
 
 AuditMessage::AuditMessage(
     const SerializedEquivalent equivalent,
-    ContractorID idOnSenderSide,
+    Contractor::Shared contractor,
     const TransactionUUID &transactionUUID,
     const AuditNumber auditNumber,
     const TrustLineAmount &incomingAmount,
@@ -11,14 +11,16 @@ AuditMessage::AuditMessage(
     const lamport::Signature::Shared signature):
     TransactionMessage(
         equivalent,
-        idOnSenderSide,
+        contractor->ownIdOnContractorSide(),
         transactionUUID),
     mAuditNumber(auditNumber),
     mIncomingAmount(incomingAmount),
     mOutgoingAmount(outgoingAmount),
     mSignature(signature),
     mKeyNumber(keyNumber)
-{}
+{
+    encrypt(contractor);
+}
 
 AuditMessage::AuditMessage(
     BytesShared buffer) :

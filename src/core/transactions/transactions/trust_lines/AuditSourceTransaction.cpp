@@ -167,7 +167,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
     sendMessage<AuditMessage>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         mTransactionUUID,
         mAuditNumber,
         mTrustLines->incomingTrustAmount(mContractorID),
@@ -250,7 +250,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
     sendMessage<AuditMessage>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         mTransactionUUID,
         mAuditNumber,
         mTrustLines->incomingTrustAmount(mContractorID),
@@ -275,7 +275,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
             sendMessage<AuditMessage>(
                 mContractorID,
                 mEquivalent,
-                mContractorsManager->idOnContractorSide(mContractorID),
+                mContractorsManager->contractor(mContractorID),
                 mTransactionUUID,
                 mAuditNumber,
                 mTrustLines->incomingTrustAmount(mContractorID),

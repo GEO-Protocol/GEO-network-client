@@ -68,6 +68,12 @@ MsgEncryptor::KeyTrio::Shared Contractor::cryptoKey()
     return mCryptoKey;
 }
 
+void Contractor::setCryptoKey(
+    MsgEncryptor::KeyTrio::Shared cryptoKey)
+{
+    mCryptoKey = cryptoKey;
+}
+
 const bool Contractor::isConfirmed() const
 {
     return mIsConfirmed;

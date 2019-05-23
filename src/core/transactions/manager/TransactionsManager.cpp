@@ -255,6 +255,16 @@ void TransactionsManager::processCommand(
             static_pointer_cast<SetChannelContractorAddressesCommand>(
                 command));
 
+    } else if (command->identifier() == SetChannelContractorCryptoKeyCommand::identifier()) {
+        launchSetChannelContractorCryptoKeyTransaction(
+            static_pointer_cast<SetChannelContractorCryptoKeyCommand>(
+                command));
+
+    } else if (command->identifier() == RegenerateChannelCryptoKeyCommand::identifier()) {
+        launchRegenerateChannelCryptoKeyTransaction(
+            static_pointer_cast<RegenerateChannelCryptoKeyCommand>(
+                command));
+
     } else if (command->identifier() == InitTrustLineCommand::identifier()) {
         launchInitTrustLineTransaction(
             static_pointer_cast<InitTrustLineCommand>(
@@ -578,6 +588,34 @@ void TransactionsManager::launchSetChannelContractorAddressesTransaction(
     prepareAndSchedule(
         make_shared<SetChannelContractorAddressesTransaction>(
             command,
+            mContractorsManager,
+            mStorageHandler,
+            mLog),
+        true,
+        false,
+        false);
+}
+
+void TransactionsManager::launchSetChannelContractorCryptoKeyTransaction(
+    SetChannelContractorCryptoKeyCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<SetChannelContractorCryptoKeyTransaction>(
+            command,
+            mContractorsManager,
+            mStorageHandler,
+            mLog),
+        true,
+        false,
+        true);
+}
+
+void TransactionsManager::launchRegenerateChannelCryptoKeyTransaction(
+    RegenerateChannelCryptoKeyCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<RegenerateChannelCryptoKeyTransaction>(
+           command,
             mContractorsManager,
             mStorageHandler,
             mLog),

@@ -119,6 +119,46 @@ void ContractorsManager::setConfirmationInfo(
         contractor);
 }
 
+void ContractorsManager::updateContractorCryptoKey(
+    IOTransaction::Shared ioTransaction,
+    ContractorID contractorID,
+    const string cryptoKey)
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+
+    auto contractor = mContractors[contractorID];
+    if (!contractor->cryptoKey()) {
+        throw NotFoundError(logHeader() + " This contractor does not support encryption " + to_string(contractorID));
+    }
+
+    contractor->cryptoKey()->contractorPublicKey = make_shared<MsgEncryptor::PublicKey>(cryptoKey);
+    ioTransaction->contractorsHandler()->updateCryptoKey(
+        contractor);
+}
+
+void ContractorsManager::regenerateCryptoKey(
+    IOTransaction::Shared ioTransaction,
+    ContractorID contractorID)
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+
+    auto contractor = mContractors[contractorID];
+    if (!contractor->cryptoKey()) {
+        throw NotFoundError(logHeader() + " This contractor does not support encryption " + to_string(contractorID));
+    }
+
+    auto regeneratedCryptoKey = MsgEncryptor::generateKeyTrio(
+        contractor->cryptoKey()->contractorPublicKey);
+    contractor->setCryptoKey(
+        regeneratedCryptoKey);
+    ioTransaction->contractorsHandler()->updateCryptoKey(
+        contractor);
+}
+
 bool ContractorsManager::contractorPresent(
     ContractorID contractorID) const
 {

@@ -17,7 +17,11 @@ set(SOURCE_FILES
     UpdateChannelAddressesTargetTransaction.h
     UpdateChannelAddressesTargetTransaction.cpp
     SetChannelContractorAddressesTransaction.h
-    SetChannelContractorAddressesTransaction.cpp)
+    SetChannelContractorAddressesTransaction.cpp
+    SetChannelContractorCryptoKeyTransaction.h
+    SetChannelContractorCryptoKeyTransaction.cpp
+    RegenerateChannelCryptoKeyTransaction.h
+    RegenerateChannelCryptoKeyTransaction.cpp)
 
 add_library(transactions__channels ${SOURCE_FILES})
 target_link_libraries(transactions__channels

@@ -26,6 +26,9 @@ public:
     static KeyTrio::Shared generateKeyTrio(
         const string &contractorPublicKey = "");
 
+    static KeyTrio::Shared generateKeyTrio(
+        PublicKey::Shared contractorPublicKey);
+
 public:
     Buffer encrypt(MessageShared message);
     Buffer decrypt(
