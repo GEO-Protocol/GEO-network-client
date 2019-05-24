@@ -14,14 +14,14 @@ public:
 public:
     PublicKeyHashConfirmation(
         const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
         KeyNumber number,
         lamport::KeyHash::Shared hashConfirmation);
 
     PublicKeyHashConfirmation(
         const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
         OperationState state);
 

@@ -97,7 +97,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             Message::TrustLines_Audit,
             kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
             mEquivalent,
-            mContractorsManager->idOnContractorSide(mContractorID),
+            mContractorsManager->contractor(mContractorID),
             currentTransactionUUID(),
             mOwnSignatureAndKeyNumber.second,
             mOwnSignatureAndKeyNumber.first);
@@ -225,7 +225,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
         Message::TrustLines_Audit,
         kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         currentTransactionUUID(),
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);

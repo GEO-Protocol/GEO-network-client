@@ -111,7 +111,8 @@ public:
          * Channel
          */
         Channel_Init = 600,
-        Channel_UpdateAddresses = 601,
+        Channel_Confirm = 601,
+        Channel_UpdateAddresses = 602,
 
         /*
          * Gateway notification & Routing tables

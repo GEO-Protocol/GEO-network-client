@@ -24,8 +24,6 @@ public:
 
     const MsgEncryptor::PublicKey::Shared publicKey() const;
 
-    const bool isAddToConfirmationRequiredMessagesHandler() const override;
-
     pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:

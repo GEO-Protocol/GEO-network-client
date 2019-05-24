@@ -14,13 +14,7 @@ public:
 public:
     PublicKeyMessage(
         const SerializedEquivalent equivalent,
-        const TransactionUUID &transactionUUID,
-        const KeyNumber number,
-        const lamport::PublicKey::Shared publicKey);
-
-    PublicKeyMessage(
-        const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
         const KeyNumber number,
         const lamport::PublicKey::Shared publicKey);

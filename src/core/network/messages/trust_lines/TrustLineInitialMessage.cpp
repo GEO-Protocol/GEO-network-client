@@ -2,16 +2,18 @@
 
 TrustLineInitialMessage::TrustLineInitialMessage(
     const SerializedEquivalent equivalent,
-    ContractorID idOnSenderSide,
+    Contractor::Shared contractor,
     const TransactionUUID &transactionUUID,
     bool isContractorGateway):
 
     TransactionMessage(
         equivalent,
-        idOnSenderSide,
+        contractor->ownIdOnContractorSide(),
         transactionUUID),
     mIsContractorGateway(isContractorGateway)
-{}
+{
+    encrypt(contractor);
+}
 
 TrustLineInitialMessage::TrustLineInitialMessage(
     BytesShared buffer):

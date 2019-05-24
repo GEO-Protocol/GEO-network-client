@@ -14,14 +14,14 @@ public:
 public:
     AuditResponseMessage(
         const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
         const KeyNumber keyNumber,
         const lamport::Signature::Shared signature);
 
     AuditResponseMessage(
         const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
         OperationState state);
 

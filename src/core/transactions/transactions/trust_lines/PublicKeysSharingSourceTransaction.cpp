@@ -118,7 +118,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
     sendMessage<PublicKeysSharingInitMessage>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         mTransactionUUID,
         mKeysCount,
         mCurrentKeyNumber,
@@ -180,7 +180,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runCommandPub
     sendMessage<PublicKeysSharingInitMessage>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         mTransactionUUID,
         mKeysCount,
         mCurrentKeyNumber,
@@ -202,7 +202,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
                 sendMessage<PublicKeysSharingInitMessage>(
                     mContractorID,
                     mEquivalent,
-                    mContractorsManager->idOnContractorSide(mContractorID),
+                    mContractorsManager->contractor(mContractorID),
                     mTransactionUUID,
                     mKeysCount,
                     mCurrentKeyNumber,
@@ -211,7 +211,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
                 sendMessage<PublicKeyMessage>(
                     mContractorID,
                     mEquivalent,
-                    mContractorsManager->idOnContractorSide(mContractorID),
+                    mContractorsManager->contractor(mContractorID),
                     mTransactionUUID,
                     mCurrentKeyNumber,
                     mCurrentPublicKey);
@@ -315,7 +315,7 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
     sendMessage<PublicKeyMessage>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         mTransactionUUID,
         mCurrentKeyNumber,
         mCurrentPublicKey);

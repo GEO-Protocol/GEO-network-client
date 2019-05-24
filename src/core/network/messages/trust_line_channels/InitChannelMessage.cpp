@@ -86,8 +86,3 @@ pair<BytesShared, size_t> InitChannelMessage::serializeToBytes() const
         dataBytesShared,
         bytesCount);
 }
-
-const bool InitChannelMessage::isAddToConfirmationRequiredMessagesHandler() const
-{
-    return true;
-}

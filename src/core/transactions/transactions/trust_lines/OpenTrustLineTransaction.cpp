@@ -138,7 +138,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
     sendMessage<TrustLineInitialMessage>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         mTransactionUUID,
         mIAmGateway);
     mCountSendingAttempts++;
@@ -187,7 +187,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
     sendMessage<TrustLineInitialMessage>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         mTransactionUUID,
         mIAmGateway);
     mCountSendingAttempts++;
@@ -207,7 +207,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
             sendMessage<TrustLineInitialMessage>(
                 mContractorID,
                 mEquivalent,
-                mContractorsManager->idOnContractorSide(mContractorID),
+                mContractorsManager->contractor(mContractorID),
                 mTransactionUUID,
                 mIAmGateway);
             mCountSendingAttempts++;

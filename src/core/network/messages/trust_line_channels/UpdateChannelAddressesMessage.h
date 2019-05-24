@@ -10,10 +10,9 @@ public:
 
 public:
     UpdateChannelAddressesMessage(
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
-        vector<BaseAddress::Shared> newSenderAddresses,
-        Contractor::Shared contractor);
+        vector<BaseAddress::Shared> newSenderAddresses);
 
     UpdateChannelAddressesMessage(
         BytesShared buffer);

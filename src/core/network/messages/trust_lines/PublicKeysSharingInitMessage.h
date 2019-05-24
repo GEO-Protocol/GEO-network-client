@@ -11,14 +11,7 @@ public:
 public:
     PublicKeysSharingInitMessage(
         const SerializedEquivalent equivalent,
-        const TransactionUUID &transactionUUID,
-        const KeysCount keysCount,
-        const KeyNumber number,
-        const lamport::PublicKey::Shared publicKey);
-
-    PublicKeysSharingInitMessage(
-        const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
         const KeysCount keysCount,
         const KeyNumber number,

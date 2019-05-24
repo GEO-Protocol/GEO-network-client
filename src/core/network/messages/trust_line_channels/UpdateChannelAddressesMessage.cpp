@@ -1,13 +1,12 @@
 #include "UpdateChannelAddressesMessage.h"
 
 UpdateChannelAddressesMessage::UpdateChannelAddressesMessage(
-    ContractorID idOnSenderSide,
+    Contractor::Shared contractor,
     const TransactionUUID &transactionUUID,
-    vector<BaseAddress::Shared> newSenderAddresses,
-    Contractor::Shared contractor) :
+    vector<BaseAddress::Shared> newSenderAddresses) :
     TransactionMessage(
         0,
-        idOnSenderSide,
+        contractor->ownIdOnContractorSide(),
         transactionUUID),
     mNewSenderAddresses(newSenderAddresses)
 {

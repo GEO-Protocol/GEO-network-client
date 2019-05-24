@@ -2,29 +2,19 @@
 
 PublicKeyMessage::PublicKeyMessage(
     const SerializedEquivalent equivalent,
+    Contractor::Shared contractor,
     const TransactionUUID &transactionUUID,
     const KeyNumber number,
     const lamport::PublicKey::Shared publicKey):
     TransactionMessage(
         equivalent,
+        contractor->ownIdOnContractorSide(),
         transactionUUID),
     mNumber(number),
     mPublicKey(publicKey)
-{}
-
-PublicKeyMessage::PublicKeyMessage(
-    const SerializedEquivalent equivalent,
-    ContractorID idOnSenderSide,
-    const TransactionUUID &transactionUUID,
-    const KeyNumber number,
-    const lamport::PublicKey::Shared publicKey):
-    TransactionMessage(
-        equivalent,
-        idOnSenderSide,
-        transactionUUID),
-    mNumber(number),
-    mPublicKey(publicKey)
-{}
+{
+    encrypt(contractor);
+}
 
 PublicKeyMessage::PublicKeyMessage(
     BytesShared buffer) :

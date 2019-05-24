@@ -11,7 +11,7 @@ public:
 public:
     TrustLineInitialMessage(
         const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
         bool isContractorGateway);
 

@@ -3,7 +3,6 @@
 
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
-#include "../../../messages/trust_line_channels/InitChannelMessage.h"
 #include "../../../messages/gateway_notification_and_routing_tables/GatewayNotificationMessage.h"
 
 #include <boost/signals2.hpp>
@@ -74,12 +73,7 @@ protected:
 protected: // messages handlers
     /**
      * Adds "message" to the queue for further re-sending.
-     * Removes all messages of type "SetIncomingTrustLineMessage" with contractor UUID = "contractorUUID",
-     * to prevent messages order collision.
      */
-    void addChannelInitInTheQueue(
-        TransactionMessage::Shared message);
-
     void updateGatewayNotificationInTheQueue(
         TransactionMessage::Shared message);
 

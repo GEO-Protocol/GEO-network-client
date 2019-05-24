@@ -3,7 +3,7 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../network/messages/trust_line_channels/InitChannelMessage.h"
-#include "../../../network/messages/base/transaction/ConfirmationMessage.h"
+#include "../../../network/messages/trust_line_channels/ConfirmChannelMessage.h"
 
 #include "../../../contractors/ContractorsManager.h"
 

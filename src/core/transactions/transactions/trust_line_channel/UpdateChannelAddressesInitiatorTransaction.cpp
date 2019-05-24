@@ -18,10 +18,9 @@ TransactionResult::SharedConst UpdateChannelAddressesInitiatorTransaction::run()
         // todo : apply logic for guaranteed delivery of this message
         sendMessage<UpdateChannelAddressesMessage>(
             contractor->getID(),
-            contractor->ownIdOnContractorSide(),
+            contractor,
             mTransactionUUID,
-            mContractorsManager->ownAddresses(),
-            contractor);
+            mContractorsManager->ownAddresses());
     }
     info() << "All contractors were informed";
     return resultDone();

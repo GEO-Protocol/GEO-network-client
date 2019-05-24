@@ -32,6 +32,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         try {
             if (contractorID != std::numeric_limits<ContractorID>::max()) {
                 auto contractor = mContractorsManager->contractor(contractorID);
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+                debug() << "Message encrypted by contractor " << contractorID;
+#endif
                 auto pair = MsgEncryptor(
                     contractor->cryptoKey()->publicKey,
                     contractor->cryptoKey()->secretKey
@@ -68,6 +71,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
          */
         case Message::Channel_Init:
             return messageCollected<InitChannelMessage>(buffer);
+
+        case Message::Channel_Confirm:
+            return messageCollected<ConfirmChannelMessage>(buffer);
 
         case Message::Channel_UpdateAddresses:
             return messageCollected<UpdateChannelAddressesMessage>(buffer);
