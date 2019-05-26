@@ -32,7 +32,8 @@ static bool isInMigrationFlag = false;
 bool isInMigration() { return isInMigrationFlag; }
 void startMigration() { isInMigrationFlag = true; }
 void terminateMigration() {
-    if(isInMigration()) {
+    //if(isInMigration())
+    {
         cout << "MIGRATION: " << "All data has been generated. Exiting" << endl;
         exit(-1);
     }
