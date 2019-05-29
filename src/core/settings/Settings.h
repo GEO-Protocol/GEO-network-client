@@ -29,6 +29,9 @@ public:
     string equivalentsRegistryAddress(
         const json *conf = nullptr) const;
 
+    json providers(
+        const json *conf = nullptr) const;
+
     json loadParsedJSON() const;
 };
 

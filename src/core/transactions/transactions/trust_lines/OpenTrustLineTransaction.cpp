@@ -98,7 +98,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
     if (mTrustLines->trustLineIsPresent(mContractorID)) {
         if (mTrustLines->trustLineState(mContractorID) != TrustLine::Archived) {
             warning() << "Trust line already present.";
-            return resultProtocolError();
+            return resultTrustLineAlreadyExist();
         } else {
             info() << "Reopening of archived TL";
         }
@@ -304,6 +304,12 @@ TransactionResult::SharedConst OpenTrustLineTransaction::resultProtocolError()
 {
     return transactionResultFromCommand(
         mCommand->responseProtocolError());
+}
+
+TransactionResult::SharedConst OpenTrustLineTransaction::resultTrustLineAlreadyExist()
+{
+    return transactionResultFromCommand(
+        mCommand->responseAlreadyCreated());
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::resultUnexpectedError()

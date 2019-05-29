@@ -5,6 +5,7 @@
 #include "../../../common/exceptions/ValueError.h"
 #include "../../results_interface/result/CommandResult.h"
 #include "../../../contractors/addresses/IPv4WithPortAddress.h"
+#include "../../../contractors/addresses/GNSAddress.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/spirit/home/x3.hpp>
@@ -55,17 +56,21 @@ public:
                     > char_('.')[addressChar]
                 ]
                 > int_[addressNumber]
-                > char_(':')[addressChar]
+                > char_(kAddressSeparator)[addressChar]
                 > int_[addressNumber]
                 > (char_(kTokensSeparator)|eol)[addressToVector]
 
-//                                         | //OR
-//
-//                  parserString::string(std::to_string(<NEW_ADDRESS_TYPE>) [addressTypeParse]
-//                  > *(char_[addressTypeParse] -char_(kTokensSeparator))
-//                  > char_(kTokensSeparator)
-//                  > <NEW_PARSE_RULE>
-                ]
+                                         | //OR
+
+                parserString::string(std::to_string(BaseAddress::GNS)) [addressType]
+                > *(char_[addressType] - char_(kTokensSeparator))
+                > char_(kTokensSeparator)
+                > +(char_[addressChar] - char_(kGNSAddressSeparator))
+                > char_(kGNSAddressSeparator)[addressChar]
+                > +(char_[addressChar] - (char_(kTokensSeparator)|eol))
+                > (char_(kTokensSeparator)|eol)[addressToVector]
+
+            ]
         ]];
     }
 
@@ -86,6 +91,8 @@ public:
     CommandResult::SharedConst responsePostponedByReservations() const
         noexcept;
     CommandResult::SharedConst responseProtocolError() const
+        noexcept;
+    CommandResult::SharedConst responseAlreadyCreated() const
         noexcept;
     CommandResult::SharedConst responseTrustLineIsAbsent() const
         noexcept;

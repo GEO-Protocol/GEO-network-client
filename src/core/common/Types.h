@@ -54,4 +54,6 @@ typedef uint64_t BlockNumber;
 typedef uint64_t PayloadLength;
 typedef uint8_t EquivalentRegisterAddressLength;
 
+typedef uint32_t ProviderParticipantID;
+
 #endif //GEO_NETWORK_CLIENT_TYPES_H

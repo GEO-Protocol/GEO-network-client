@@ -3,13 +3,10 @@
 OutgoingRemoteBaseNode::OutgoingRemoteBaseNode(
     UDPSocket &socket,
     IOService &ioService,
-    ContractorsManager *contractorsManager,
-    Logger &logger)
-    noexcept :
+    Logger &logger):
 
     mIOService(ioService),
     mSocket(socket),
-    mContractorsManager(contractorsManager),
     mLog(logger),
     mNextAvailableChannelIndex(0),
     mCyclesStats(boost::posix_time::microsec_clock::universal_time(), 0),
@@ -75,17 +72,6 @@ uint32_t OutgoingRemoteBaseNode::crc32Checksum(
     boost::crc_32_type result;
     result.process_bytes(data, bytesCount);
     return result.checksum();
-}
-
-MsgEncryptor::Buffer OutgoingRemoteBaseNode::preprocessMessage(
-    Message::Shared message) const
-{
-    if(!message->isEncrypted()) {
-        return message->serializeToBytes();
-    }
-    return MsgEncryptor(
-        mContractorsManager->contractor(message->contractorId())->cryptoKey()->contractorPublicKey
-    ).encrypt(message);
 }
 
 void OutgoingRemoteBaseNode::populateQueueWithNewPackets(
@@ -213,10 +199,109 @@ void OutgoingRemoteBaseNode::populateQueueWithNewPackets(
         (uint8_t *)&crcChecksum + messageCrc32ChecksumBytesProcessed,
         checksumLeftover);
 
-    messageContentBytesProcessed += checksumLeftover;
-
     mPacketsQueue.push(
         make_pair(
             buffer,
             kLastPacketSize));
+}
+
+void OutgoingRemoteBaseNode::beginPacketsSending()
+{
+    if (mPacketsQueue.empty()) {
+        return;
+    }
+
+    UDPEndpoint endpoint;
+    try {
+        endpoint = remoteEndpoint();
+        debug() << "Endpoint address " << endpoint.address().to_string();
+        debug() << "Endpoint port " << endpoint.port();
+    } catch  (exception &) {
+        errors()
+            << "Endpoint can't be fetched from Contractor. "
+            << "No messages can be sent. Outgoing queue cleared.";
+
+        while (!mPacketsQueue.empty()) {
+            const auto packetDataAndSize = mPacketsQueue.front();
+            free(packetDataAndSize.first);
+            mPacketsQueue.pop();
+        }
+
+        return;
+    }
+
+    // The next code inserts delay between sending packets in case of high traffic.
+    const auto kShortSendingTimeInterval = boost::posix_time::milliseconds(20);
+    const auto kTimeoutFromLastSending = boost::posix_time::microsec_clock::universal_time() - mCyclesStats.first;
+    if (kTimeoutFromLastSending < kShortSendingTimeInterval) {
+        // Increasing short sendings counter.
+        mCyclesStats.second += 1;
+
+        const auto kMaxShortSendings = 30;
+        if (mCyclesStats.second > kMaxShortSendings) {
+            mCyclesStats.second = 0;
+            mSendingDelayTimer.expires_from_now(kShortSendingTimeInterval);
+            mSendingDelayTimer.async_wait([this] (const boost::system::error_code &_){
+                this->beginPacketsSending();
+                debug() << "Sending delayed";
+
+            });
+            return;
+        }
+
+    } else {
+        mCyclesStats.second = 0;
+    }
+
+    const auto packetDataAndSize = mPacketsQueue.front();
+    mSocket.async_send_to(
+        boost::asio::buffer(
+            packetDataAndSize.first,
+            packetDataAndSize.second),
+        endpoint,
+        [this, endpoint] (const boost::system::error_code &error, const size_t bytesTransferred) {
+            const auto packetDataAndSize = mPacketsQueue.front();
+            if (bytesTransferred != packetDataAndSize.second) {
+                if (error) {
+                    errors() << "beginPacketsSending: "
+                             << "Next packet can't be sent to the node (" << remoteInfo() << "). "
+                             << "Error code: " << error.value();
+                }
+
+                // Removing packet from the memory
+                free(packetDataAndSize.first);
+                mPacketsQueue.pop();
+                if (!mPacketsQueue.empty()) {
+                    beginPacketsSending();
+                }
+
+                return;
+            }
+
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+            const PacketHeader::ChannelIndex channelIndex =
+                    *(new(packetDataAndSize.first + PacketHeader::kChannelIndexOffset) PacketHeader::ChannelIndex);
+
+            const PacketHeader::PacketIndex packetIndex =
+                    *(new(packetDataAndSize.first + PacketHeader::kPacketIndexOffset) PacketHeader::PacketIndex) + 1;
+
+            const PacketHeader::TotalPacketsCount totalPacketsCount =
+                    *(new(packetDataAndSize.first + PacketHeader::kPacketsCountOffset) PacketHeader::TotalPacketsCount);
+
+            this->debug() << setw(4) << bytesTransferred <<  "B TX [ => ] "
+                          << endpoint.address() << ":" << endpoint.port() << "; "
+                          << "Channel: " << setw(10) << static_cast<size_t>(channelIndex) << "; "
+                          << "Packet: " << setw(3) << static_cast<size_t>(packetIndex)
+                          << "/" << static_cast<size_t>(totalPacketsCount);
+#endif
+
+            // Removing packet from the memory
+            free(packetDataAndSize.first);
+            mPacketsQueue.pop();
+
+            mCyclesStats.first = boost::posix_time::microsec_clock::universal_time();
+            if (!mPacketsQueue.empty()) {
+                beginPacketsSending();
+            }
+        });
 }

@@ -57,8 +57,7 @@ public:
         const TransactionUUID& transactionUUID);
 
 protected:
-    const string logHeader() const
-    noexcept;
+    const string logHeader() const override;
 
     void initialObservingRequest();
 
@@ -155,7 +154,6 @@ private:
     // number of block getting with last response and response time
     pair<BlockNumber, DateTime> mLastUpdatedBlockNumber;
 
-    IOService &mIOService;
     as::steady_timer mBlockNumberRequestTimer;
     as::steady_timer mClaimsTimer;
     as::steady_timer mTransactionsTimer;

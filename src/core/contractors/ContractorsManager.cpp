@@ -12,7 +12,16 @@ ContractorsManager::ContractorsManager(
         if (addressStr.first == "ipv4") {
             try {
                 selfAddresses.push_back(
-                    make_shared<IPv4WithPortAddress>(
+                        make_shared<IPv4WithPortAddress>(
+                                addressStr.second));
+            } catch (...) {
+                throw ValueError("ContractorsManager: can't create own address of type " + addressStr.first);
+            }
+
+        } else if (addressStr.first == "gns") {
+            try {
+                selfAddresses.push_back(
+                    make_shared<GNSAddress>(
                         addressStr.second));
             } catch (...) {
                 throw ValueError("ContractorsManager: can't create own address of type " + addressStr.first);
@@ -37,10 +46,15 @@ ContractorsManager::ContractorsManager(
                 contractor));
     }
 #ifdef DEBUG_LOG_TRUST_LINES_PROCESSING
+    debug() << "Contractors:";
     for (const auto &contractor : mContractors) {
         debug() << contractor.second->toString();
     }
-    debug() << "Own address " << mSelf->mainAddress()->fullAddress();
+    debug() << "Own addresses:";
+    for (const auto &address : mSelf->addresses()) {
+        debug() << address->fullAddress();
+    }
+    debug() << "Main address " << mSelf->mainAddress()->fullAddress();
 #endif
 }
 

@@ -3,6 +3,7 @@
 
 #include "../Constraints.h"
 #include "../../contractors/addresses/IPv4WithPortAddress.h"
+#include "../../contractors/addresses/GNSAddress.h"
 
 #include <boost/endian/arithmetic.hpp>
 #include <vector>
@@ -146,6 +147,9 @@ inline BaseAddress::Shared deserializeAddress(
             return make_shared<IPv4WithPortAddress>(
                 offset);
         }
+        case BaseAddress::GNS:
+            return make_shared<GNSAddress>(
+                offset);
         default: {
             // todo : need correct reaction
             return nullptr;

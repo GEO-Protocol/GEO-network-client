@@ -1,7 +1,6 @@
 #ifndef GEO_NETWORK_CLIENT_ADDRESSHANDLER_H
 #define GEO_NETWORK_CLIENT_ADDRESSHANDLER_H
 
-#include "../../contractors/addresses/IPv4WithPortAddress.h"
 #include "../../logger/Logger.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/multiprecision/MultiprecisionUtils.h"

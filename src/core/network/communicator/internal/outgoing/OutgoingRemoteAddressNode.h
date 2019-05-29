@@ -15,16 +15,19 @@ public:
         BaseAddress::Shared address,
         UDPSocket &socket,
         IOService &ioService,
-        ContractorsManager *contractorsManager,
-        Logger &logger)
-        noexcept;
+        Logger &logger);
 
 protected:
-    void beginPacketsSending();
+    MsgEncryptor::Buffer preprocessMessage(
+        Message::Shared message) const override;
 
-    LoggerStream errors() const;
+    UDPEndpoint remoteEndpoint() const override;
 
-    LoggerStream debug() const;
+    string remoteInfo() const override;
+
+    LoggerStream errors() const override;
+
+    LoggerStream debug() const override;
 
 protected:
     BaseAddress::Shared mAddress;

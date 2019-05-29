@@ -5,11 +5,13 @@ Communicator::Communicator(
     IOService &IOService,
     ContractorsManager *contractorsManager,
     TailManager *tailManager,
+    ProvidingHandler *providingHandler,
     Logger &logger):
 
     mIOService(IOService),
     mContractorsManager(contractorsManager),
     mTailManager(tailManager),
+    mProvidingHandler(providingHandler),
     mLog(logger),
     mSocket(
         make_unique<UDPSocket>(
@@ -92,6 +94,12 @@ Communicator::Communicator(
     mPingMessagesHandler->signalOutgoingMessageReady.connect(
         boost::bind(
             &Communicator::onPingMessageReadyToResend,
+            this,
+            _1));
+
+    mProvidingHandler->sendPingMessageSignal.connect(
+        boost::bind(
+            &Communicator::onPingMessageToProviderReady,
             this,
             _1));
 }
@@ -297,6 +305,18 @@ void Communicator::onPingMessageReadyToResend(
     mOutgoingMessagesHandler->sendMessage(
         addresseeAndMessage.second,
         addresseeAndMessage.first);
+}
+
+void Communicator::onPingMessageToProviderReady(
+    Provider::Shared provider)
+{
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+    debug() << "Provider ping " << provider->mainAddress()->fullAddress();
+#endif
+
+//    mOutgoingMessagesHandler->sendMessage(
+//        message,
+//        providerAddress);
 }
 
 void Communicator::onClearTopologyCache(

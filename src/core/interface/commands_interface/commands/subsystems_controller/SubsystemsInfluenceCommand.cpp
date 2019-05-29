@@ -42,6 +42,9 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
                 mForbiddenNodeAddress = make_shared<IPv4WithPortAddress>(address);
                 break;
             }
+            case BaseAddress::GNS:
+                mForbiddenNodeAddress = make_shared<GNSAddress>(address);
+                break;
             default:
                 throw ValueError("SubsystemsInfluenceCommand: cannot parse command. "
                     "Error occurred while parsing 'Contractor Address' token.");

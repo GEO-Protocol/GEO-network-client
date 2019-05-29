@@ -3,7 +3,7 @@
 
 #include "OutgoingRemoteBaseNode.h"
 
-#include "../../../../contractors/Contractor.h"
+#include "../../../../contractors/ContractorsManager.h"
 
 class OutgoingRemoteNode : public OutgoingRemoteBaseNode {
 public:
@@ -12,22 +12,27 @@ public:
 
 public:
     OutgoingRemoteNode(
-        Contractor::Shared remoteContractor,
+        ContractorID remoteContractorID,
         UDPSocket &socket,
         IOService &ioService,
         ContractorsManager *contractorsManager,
-        Logger &logger)
-        noexcept;
+        Logger &logger);
 
 protected:
-    void beginPacketsSending();
+    MsgEncryptor::Buffer preprocessMessage(
+        Message::Shared message) const override;
 
-    LoggerStream errors() const;
+    UDPEndpoint remoteEndpoint() const override;
 
-    LoggerStream debug() const;
+    string remoteInfo() const override;
+
+    LoggerStream errors() const override;
+
+    LoggerStream debug() const override;
 
 protected:
-    Contractor::Shared mRemoteContractor;
+    ContractorID mRemoteContractorID;
+    ContractorsManager *mContractorsManager;
 };
 
 

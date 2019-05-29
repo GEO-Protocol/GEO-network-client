@@ -29,6 +29,7 @@ public:
         /*
          * GNS
          */
+        GNS = 41,
     };
 
     virtual const AddressType typeID() const = 0;

@@ -18,6 +18,7 @@
 #include "observing/ObservingHandler.h"
 #include "delayed_tasks/TopologyEventDelayedTask.h"
 #include "features/FeaturesManager.h"
+#include "providing/ProvidingHandler.h"
 
 #include "logger/Logger.h"
 
@@ -79,6 +80,9 @@ private:
     int initStorageHandler();
 
     int initContractorsManager(
+        const json &conf);
+
+    int initProvidingHandler(
         const json &conf);
 
     int initSubsystemsController();
@@ -218,6 +222,7 @@ protected:
     unique_ptr<TopologyEventDelayedTask> mTopologyEventDelayedTask;
     unique_ptr<TailManager> mTailManager;
     unique_ptr<FeaturesManager> mFeaturesManager;
+    unique_ptr<ProvidingHandler> mProvidingHandler;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

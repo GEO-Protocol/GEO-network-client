@@ -92,3 +92,19 @@ string Settings::equivalentsRegistryAddress(
         return "";
     }
 }
+
+json Settings::providers(
+    const json *conf) const
+{
+    if (conf == nullptr) {
+        auto j = loadParsedJSON();
+        conf = &j;
+    }
+    try {
+        auto result = (*conf).at("providers");
+        return result;
+    } catch (...) {
+        // todo : throw RuntimeError
+        return nullptr;
+    }
+}

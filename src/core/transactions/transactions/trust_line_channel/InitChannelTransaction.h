@@ -35,6 +35,8 @@ protected:
 
     TransactionResult::SharedConst resultProtocolError();
 
+    TransactionResult::SharedConst resultChannelAlreadyExist();
+
     TransactionResult::SharedConst resultUnexpectedError();
 
 private:

@@ -9,7 +9,9 @@ set(SOURCE_FILES
         addresses/BaseAddress.h
         addresses/BaseAddress.cpp
         addresses/IPv4WithPortAddress.h
-        addresses/IPv4WithPortAddress.cpp)
+        addresses/IPv4WithPortAddress.cpp
+        addresses/GNSAddress.h
+        addresses/GNSAddress.cpp)
 
 add_library(contractors ${SOURCE_FILES})
 target_link_libraries(contractors

@@ -11,24 +11,20 @@
 class LoggerMixin {
 public:
     LoggerMixin(
-        Logger &logger)
-        noexcept:
+        Logger &logger):
         mLog(logger){}
 
     virtual const string logHeader() const = 0;
 
-    LoggerStream info() const
-        noexcept {
+    LoggerStream info() const {
         return mLog.info(logHeader());
     }
 
-    LoggerStream warning() const
-        noexcept {
+    LoggerStream warning() const {
         return mLog.warning(logHeader());
     }
 
-    LoggerStream debug() const
-        noexcept {
+    LoggerStream debug() const {
         return mLog.debug(logHeader());
     }
 

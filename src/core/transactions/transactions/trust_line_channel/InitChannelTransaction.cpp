@@ -71,7 +71,7 @@ TransactionResult::SharedConst InitChannelTransaction::runInitializationStage()
         }
     } catch (ValueError &e) {
         error() << "Can't create channel. Details: " << e.what();
-        return resultProtocolError();
+        return resultChannelAlreadyExist();
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Error during creating channel. Details: " << e.what();
@@ -128,6 +128,12 @@ TransactionResult::SharedConst InitChannelTransaction::resultProtocolError()
 {
     return transactionResultFromCommand(
         mCommand->responseProtocolError());
+}
+
+TransactionResult::SharedConst InitChannelTransaction::resultChannelAlreadyExist()
+{
+    return transactionResultFromCommand(
+        mCommand->responseAlreadyCreated());
 }
 
 TransactionResult::SharedConst InitChannelTransaction::resultUnexpectedError()

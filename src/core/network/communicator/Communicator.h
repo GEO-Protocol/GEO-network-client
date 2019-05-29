@@ -10,9 +10,8 @@
 #include "internal/queue/ConfirmationNotStronglyRequiredMessagesHandler.h"
 #include "internal/queue/ConfirmationResponseMessagesHandler.h"
 #include "internal/queue/PingMessagesHandler.h"
-#include "../../io/storage/StorageHandler.h"
-#include "../../trust_lines/manager/TrustLinesManager.h"
 #include <boost/asio/steady_timer.hpp>
+#include "../../providing/ProvidingHandler.h"
 
 #include "../../io/storage/CommunicatorStorageHandler.h"
 
@@ -32,6 +31,7 @@ public:
         IOService &ioService,
         ContractorsManager *contractorsManager,
         TailManager *tailManager,
+        ProvidingHandler *providingHandler,
         Logger &logger)
         noexcept(false);
 
@@ -85,6 +85,9 @@ protected:
     void onPingMessageReadyToResend(
         pair<ContractorID, PingMessage::Shared>);
 
+    void onPingMessageToProviderReady(
+        Provider::Shared provider);
+
     void onClearTopologyCache(
         const SerializedEquivalent equivalent,
         BaseAddress::Shared nodeAddress);
@@ -105,6 +108,7 @@ protected:
     IOService &mIOService;
     unique_ptr<CommunicatorStorageHandler> mCommunicatorStorageHandler;
     TailManager *mTailManager;
+    ProvidingHandler *mProvidingHandler;
     Logger &mLog;
 
     unique_ptr<UDPSocket> mSocket;

@@ -7,7 +7,6 @@ ObservingHandler::ObservingHandler(
     ResourcesManager *resourcesManager,
     Logger &logger) :
     LoggerMixin(logger),
-    mIOService(ioService),
     mObservingCommunicator(
         make_unique<ObservingCommunicator>(
             ioService,
@@ -856,7 +855,6 @@ void ObservingHandler::getActualBlockNumber()
 }
 
 const string ObservingHandler::logHeader() const
-    noexcept
 {
     return "[ObservingHandler]";
 }

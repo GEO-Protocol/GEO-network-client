@@ -61,7 +61,7 @@ set(SOURCE_FILES
         internal/queue/PingMessagesHandler.cpp
 
         internal/incoming/TailManager.h
-        internal/incoming/TailManager.cpp)
+        internal/incoming/TailManager.cpp internal/outgoing/OutgoingRemoteProvider.cpp internal/outgoing/OutgoingRemoteProvider.h)
 
 
 add_library(network__communicator ${SOURCE_FILES})

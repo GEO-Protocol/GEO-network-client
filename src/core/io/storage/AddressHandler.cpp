@@ -124,6 +124,12 @@ vector<BaseAddress::Shared> AddressHandler::contractorAddresses(
                             addressBytes));
                     break;
                 }
+                case BaseAddress::GNS: {
+                    result.push_back(
+                        make_shared<GNSAddress>(
+                            addressBytes));
+                    break;
+                }
                 default: {
                     throw ValueError("AddressHandler::contractorAddresses: "
                                              "Invalid address type: " + to_string(addressType));

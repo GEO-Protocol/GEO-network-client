@@ -100,6 +100,11 @@ int Core::initSubsystems()
         return initCode;
     }
 
+    initCode = initProvidingHandler(conf);
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initTailManager();
     if (initCode != 0) {
         return initCode;
@@ -204,6 +209,7 @@ int Core::initCommunicator()
             mIOService,
             mContractorsManager.get(),
             mTailManager.get(),
+            mProvidingHandler.get(),
             *mLog);
 
         info() << "Network communicator is successfully initialised";
@@ -361,6 +367,23 @@ int Core::initContractorsManager(
             mStorageHandler.get(),
             *mLog);
         info() << "Contractors manager is successfully initialised";
+        return 0;
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initProvidingHandler(
+    const json &conf)
+{
+    try {
+        mProvidingHandler = make_unique<ProvidingHandler>(
+            mSettings->providers(&conf),
+            mIOService,
+            mContractorsManager->selfContractor(),
+            *mLog);
+        info() << "Providing handler is successfully initialised";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);

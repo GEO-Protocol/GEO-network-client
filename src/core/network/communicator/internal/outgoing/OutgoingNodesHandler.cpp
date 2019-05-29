@@ -21,10 +21,9 @@ OutgoingRemoteNode *OutgoingNodesHandler::handler(
     const ContractorID contractorID)
     noexcept
 {
-    auto contractor = mContractorsManager->contractor(contractorID);
     if (0 == mNodes.count(contractorID)) {
         mNodes[contractorID] = make_unique<OutgoingRemoteNode>(
-            contractor,
+            contractorID,
             mSocket,
             mIOService,
             mContractorsManager,
@@ -46,7 +45,6 @@ OutgoingRemoteAddressNode *OutgoingNodesHandler::handler(
             address,
             mSocket,
             mIOService,
-            mContractorsManager,
             mLog);
     }
 

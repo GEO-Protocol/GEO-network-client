@@ -56,6 +56,12 @@ CommandResult::SharedConst BaseUserCommand::responseProtocolError() const
     return makeResult(401);
 }
 
+CommandResult::SharedConst BaseUserCommand::responseAlreadyCreated() const
+    noexcept
+{
+    return makeResult(402);
+}
+
 CommandResult::SharedConst BaseUserCommand::responseTrustLineIsAbsent() const
     noexcept
 {

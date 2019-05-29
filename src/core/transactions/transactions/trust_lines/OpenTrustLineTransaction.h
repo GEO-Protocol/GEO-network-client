@@ -58,6 +58,8 @@ protected:
 
     TransactionResult::SharedConst resultProtocolError();
 
+    TransactionResult::SharedConst resultTrustLineAlreadyExist();
+
     TransactionResult::SharedConst resultUnexpectedError();
 
 protected:

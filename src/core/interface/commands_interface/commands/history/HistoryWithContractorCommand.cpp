@@ -9,6 +9,7 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
         identifier())
 {
     std::string address, addressType;
+    size_t contractorAddressesCount;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("HistoryWithContractorCommand: input is empty.");
@@ -21,7 +22,7 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
         mHistoryCount = _attr(ctx);
     };
     auto contractorAddressesCountParse = [&](auto &ctx) {
-        mContractorAddressesCount = _attr(ctx);
+        contractorAddressesCount = _attr(ctx);
     };
     auto addressTypeParse = [&](auto &ctx) {
         addressType += _attr(ctx);
@@ -44,6 +45,13 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
                 addressType.erase();
                 break;
             }
+            case BaseAddress::GNS: {
+                mContractorAddresses.push_back(
+                    make_shared<GNSAddress>(
+                        address));
+                addressType.erase();
+                break;
+            }
             default:
                 throw ValueError("HistoryWithContractorCommand: cannot parse command. "
                     "Error occurred while parsing 'Contractor Address' token.");
@@ -62,7 +70,7 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
                 > char_(kTokensSeparator)
                 > *(int_[historyCountParse] - char_(kTokensSeparator))
                 > char_(kTokensSeparator)  > *(int_[contractorAddressesCountParse] - char_(kTokensSeparator))));
-        mContractorAddresses.reserve(mContractorAddressesCount);
+        mContractorAddresses.reserve(contractorAddressesCount);
 
 
         parse(
@@ -79,7 +87,7 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
                     decltype(addressAddNumber),
                     decltype(addressTypeParse),
                     decltype(addressAddToVector)>(
-                        mContractorAddressesCount,
+                        contractorAddressesCount,
                         addressAddChar,
                         addressAddNumber,
                         addressTypeParse,

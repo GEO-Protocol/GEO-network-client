@@ -9,7 +9,6 @@
 #include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../logger/Logger.h"
 #include "../../../../common/exceptions/Exception.h"
-#include "../../../../contractors/ContractorsManager.h"
 #include "../../../../crypto/MsgEncryptor.h"
 
 #include <boost/crc.hpp>
@@ -23,9 +22,7 @@ public:
     OutgoingRemoteBaseNode(
         UDPSocket &socket,
         IOService &ioService,
-        ContractorsManager *contractorsManager,
-        Logger &logger)
-        noexcept;
+        Logger &logger);
 
     virtual ~OutgoingRemoteBaseNode();
 
@@ -41,7 +38,10 @@ protected:
         size_t bytesCount)
     const noexcept;
 
-    MsgEncryptor::Buffer preprocessMessage(Message::Shared message) const;
+    virtual MsgEncryptor::Buffer preprocessMessage(
+        Message::Shared message) const = 0;
+
+    virtual UDPEndpoint remoteEndpoint() const = 0;
 
     void populateQueueWithNewPackets(
         byte* messageData,
@@ -50,7 +50,9 @@ protected:
     PacketHeader::ChannelIndex nextChannelIndex()
         noexcept;
 
-    virtual void beginPacketsSending() = 0;
+    void beginPacketsSending();
+
+    virtual string remoteInfo() const = 0;
 
     virtual LoggerStream errors() const = 0;
 
@@ -59,7 +61,6 @@ protected:
 protected:
     IOService &mIOService;
     UDPSocket &mSocket;
-    ContractorsManager *mContractorsManager;
     Logger &mLog;
 
     queue<pair<byte*, Packet::Size>> mPacketsQueue;
