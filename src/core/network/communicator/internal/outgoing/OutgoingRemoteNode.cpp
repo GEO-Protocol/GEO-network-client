@@ -15,17 +15,6 @@ OutgoingRemoteNode::OutgoingRemoteNode(
     mContractorsManager(contractorsManager)
 {}
 
-MsgEncryptor::Buffer OutgoingRemoteNode::preprocessMessage(
-    Message::Shared message) const
-{
-    if(!message->isEncrypted()) {
-        return message->serializeToBytes();
-    }
-    return MsgEncryptor(
-        mContractorsManager->contractor(message->contractorId())->cryptoKey()->contractorPublicKey
-    ).encrypt(message);
-}
-
 UDPEndpoint OutgoingRemoteNode::remoteEndpoint() const
 {
     auto remoteContractor = mContractorsManager->contractor(

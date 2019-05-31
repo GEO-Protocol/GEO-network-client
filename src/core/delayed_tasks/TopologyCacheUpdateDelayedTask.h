@@ -1,9 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_TOPOLOGYCACHEUPDATEDELAYEDTASK_H
 #define GEO_NETWORK_CLIENT_TOPOLOGYCACHEUPDATEDELAYEDTASK_H
 
-#include "../topology/cashe/TopologyCacheManager.h"
+#include "../topology/cache/TopologyCacheManager.h"
 #include "../topology/manager/TopologyTrustLinesManager.h"
-#include "../topology/cashe/MaxFlowCacheManager.h"
+#include "../topology/cache/MaxFlowCacheManager.h"
 
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio.hpp>

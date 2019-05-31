@@ -5,8 +5,8 @@
 #include "../../../contractors/ContractorsManager.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../topology/manager/TopologyTrustLinesManager.h"
-#include "../../../topology/cashe/TopologyCacheManager.h"
-#include "../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../topology/cache/TopologyCacheManager.h"
+#include "../../../topology/cache/MaxFlowCacheManager.h"
 
 #include "../../../network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"

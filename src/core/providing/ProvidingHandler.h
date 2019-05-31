@@ -15,6 +15,17 @@ class ProvidingHandler : protected LoggerMixin {
 
 public:
     typedef signals::signal<void(Provider::Shared)> SendPingMessageSignal;
+    typedef uint8_t SerializedType;
+    typedef uint32_t MessageSize;
+
+    enum ProtocolVersion {
+        Latest = 0,
+    };
+
+    enum MessageType {
+        Providing_Ping = 1,
+        Providing_Pong = 2,
+    };
 
 public:
     ProvidingHandler(
@@ -23,15 +34,24 @@ public:
         Contractor::Shared selfContractor,
         Logger &logger);
 
+    Provider::Shared getProviderForAddress(
+        GNSAddress::Shared gnsAddress);
+
+    IPv4WithPortAddress::Shared getIPv4AddressForGNS(
+        GNSAddress::Shared gnsAddress);
+
+    void setIPv4AddressForGNS(
+        GNSAddress::Shared gnsAddress,
+        IPv4WithPortAddress::Shared ipv4Address);
+
+    Provider::Shared mainProvider() const;
+
 protected:
     const string logHeader() const override;
 
 private:
     void updateAddressForProviders(
         const boost::system::error_code &errorCode);
-
-    Provider::Shared getProviderForAddress(
-        GNSAddress::Shared gnsAddress);
 
 public:
     mutable SendPingMessageSignal sendPingMessageSignal;
@@ -44,6 +64,8 @@ private:
     vector<Provider::Shared> mProvidersForPing;
     Contractor::Shared mSelfContractor;
     as::steady_timer mUpdatingAddressTimer;
+
+    map<string, IPv4WithPortAddress::Shared> mCachedAddresses;
 };
 
 

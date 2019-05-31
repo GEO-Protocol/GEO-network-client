@@ -7,8 +7,8 @@
 #include "../../../../../contractors/ContractorsManager.h"
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../io/storage/StorageHandler.h"
-#include "../../../../../topology/cashe/TopologyCacheManager.h"
-#include "../../../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../../../topology/cache/TopologyCacheManager.h"
+#include "../../../../../topology/cache/MaxFlowCacheManager.h"
 #include "../../../../../resources/manager/ResourcesManager.h"
 #include "../../../../../resources/resources/BlockNumberRecourse.h"
 

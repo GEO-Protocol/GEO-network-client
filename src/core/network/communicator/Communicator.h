@@ -85,9 +85,6 @@ protected:
     void onPingMessageReadyToResend(
         pair<ContractorID, PingMessage::Shared>);
 
-    void onPingMessageToProviderReady(
-        Provider::Shared provider);
-
     void onClearTopologyCache(
         const SerializedEquivalent equivalent,
         BaseAddress::Shared nodeAddress);
@@ -108,7 +105,6 @@ protected:
     IOService &mIOService;
     unique_ptr<CommunicatorStorageHandler> mCommunicatorStorageHandler;
     TailManager *mTailManager;
-    ProvidingHandler *mProvidingHandler;
     Logger &mLog;
 
     unique_ptr<UDPSocket> mSocket;

@@ -3,8 +3,8 @@
 
 #include "base/BaseTrustLineTransaction.h"
 #include "../../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
-#include "../../../topology/cashe/TopologyCacheManager.h"
-#include "../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../topology/cache/TopologyCacheManager.h"
+#include "../../../topology/cache/MaxFlowCacheManager.h"
 #include "../../../interface/events_interface/interface/EventsInterface.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../network/messages/trust_lines/AuditMessage.h"

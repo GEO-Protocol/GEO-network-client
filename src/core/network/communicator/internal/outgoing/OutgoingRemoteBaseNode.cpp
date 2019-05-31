@@ -23,7 +23,7 @@ PacketHeader::ChannelIndex OutgoingRemoteBaseNode::nextChannelIndex()
 }
 
 void OutgoingRemoteBaseNode::sendMessage(
-    Message::Shared message)
+    pair<BytesShared, size_t> bytesAndBytesCount)
 noexcept
 {
     try {
@@ -32,16 +32,13 @@ noexcept
         // Otherwise - it must be initialised.
         bool packetsSendingAlreadyScheduled = !mPacketsQueue.empty();
 
-        auto bytesAndBytesCount = preprocessMessage(message);
         if (bytesAndBytesCount.second > Message::maxSize()) {
             errors() << "Message is too big to be transferred via the network";
             return;
         }
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        debug()
-            << "Message of type " << message->typeID() << " encrypted("
-            << message->isEncrypted() <<") postponed for the sending";
+        debug() << "Message postponed for the sending";
 #endif
 
         populateQueueWithNewPackets(

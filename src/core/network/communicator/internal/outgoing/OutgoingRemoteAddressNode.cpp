@@ -13,12 +13,6 @@ OutgoingRemoteAddressNode::OutgoingRemoteAddressNode(
     mAddress(address)
 {}
 
-MsgEncryptor::Buffer OutgoingRemoteAddressNode::preprocessMessage(
-    Message::Shared message) const
-{
-    return message->serializeToBytes();
-}
-
 UDPEndpoint OutgoingRemoteAddressNode::remoteEndpoint() const
 {
     return as::ip::udp::endpoint(

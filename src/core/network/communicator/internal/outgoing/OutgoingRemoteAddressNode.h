@@ -18,9 +18,6 @@ public:
         Logger &logger);
 
 protected:
-    MsgEncryptor::Buffer preprocessMessage(
-        Message::Shared message) const override;
-
     UDPEndpoint remoteEndpoint() const override;
 
     string remoteInfo() const override;

@@ -9,7 +9,6 @@
 #include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../logger/Logger.h"
 #include "../../../../common/exceptions/Exception.h"
-#include "../../../../crypto/MsgEncryptor.h"
 
 #include <boost/crc.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -27,7 +26,7 @@ public:
     virtual ~OutgoingRemoteBaseNode();
 
     void sendMessage(
-        Message::Shared message)
+        pair<BytesShared, size_t>)
         noexcept;
 
     bool containsPacketsInQueue() const;
@@ -37,9 +36,6 @@ protected:
         byte* data,
         size_t bytesCount)
     const noexcept;
-
-    virtual MsgEncryptor::Buffer preprocessMessage(
-        Message::Shared message) const = 0;
 
     virtual UDPEndpoint remoteEndpoint() const = 0;
 

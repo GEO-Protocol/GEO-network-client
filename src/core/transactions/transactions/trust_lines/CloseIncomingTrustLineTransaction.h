@@ -5,8 +5,8 @@
 #include "../../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
 #include "../../../network/messages/trust_lines/AuditMessage.h"
 #include "../../../topology/manager/TopologyTrustLinesManager.h"
-#include "../../../topology/cashe/TopologyCacheManager.h"
-#include "../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../topology/cache/TopologyCacheManager.h"
+#include "../../../topology/cache/MaxFlowCacheManager.h"
 #include "../../../interface/events_interface/interface/EventsInterface.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 

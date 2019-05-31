@@ -93,6 +93,27 @@ Provider::Shared ProvidingHandler::getProviderForAddress(
     return nullptr;
 }
 
+IPv4WithPortAddress::Shared ProvidingHandler::getIPv4AddressForGNS(
+    GNSAddress::Shared gnsAddress)
+{
+    if (0 == mCachedAddresses.count(gnsAddress->fullAddress())) {
+        return nullptr;
+    }
+    return mCachedAddresses[gnsAddress->fullAddress()];
+}
+
+void ProvidingHandler::setIPv4AddressForGNS(
+    GNSAddress::Shared gnsAddress,
+    IPv4WithPortAddress::Shared ipv4Address)
+{
+    mCachedAddresses[gnsAddress->fullAddress()] = ipv4Address;
+}
+
+Provider::Shared ProvidingHandler::mainProvider() const
+{
+    return mProviders.at(0);
+}
+
 const string ProvidingHandler::logHeader() const
 {
     return "[ProvidingHandler]";
