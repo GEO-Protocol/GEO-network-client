@@ -35,12 +35,6 @@ set(SOURCE_FILES
         internal/outgoing/OutgoingNodesHandler.h
         internal/outgoing/OutgoingNodesHandler.cpp
 
-        internal/outgoing/OutgoingRemoteNode.h
-        internal/outgoing/OutgoingRemoteNode.cpp
-
-        internal/outgoing/OutgoingRemoteAddressNode.h
-        internal/outgoing/OutgoingRemoteAddressNode.cpp
-
         # Confirmation required messages queue
         internal/queue/ConfirmationRequiredMessagesQueue.h
         internal/queue/ConfirmationRequiredMessagesQueue.cpp
@@ -61,7 +55,7 @@ set(SOURCE_FILES
         internal/queue/PingMessagesHandler.cpp
 
         internal/incoming/TailManager.h
-        internal/incoming/TailManager.cpp internal/outgoing/OutgoingRemoteProvider.cpp internal/outgoing/OutgoingRemoteProvider.h)
+        internal/incoming/TailManager.cpp)
 
 
 add_library(network__communicator ${SOURCE_FILES})

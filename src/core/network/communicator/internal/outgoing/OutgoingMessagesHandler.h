@@ -3,6 +3,8 @@
 
 #include "OutgoingNodesHandler.h"
 #include "../../../../providing/ProvidingHandler.h"
+#include "../../../../contractors/ContractorsManager.h"
+#include "../../../messages/providing/ProvidingAddressResponseMessage.h"
 
 #include "../common/Types.h"
 
@@ -25,6 +27,9 @@ public:
         const Message::Shared message,
         const BaseAddress::Shared address);
 
+    void processProviderResponse(
+        ProvidingAddressResponseMessage::Shared providerResponse);
+
 private:
     void onPingMessageToProviderReady(
         Provider::Shared provider);
@@ -36,11 +41,16 @@ private:
         Provider::Shared provider,
         GNSAddress::Shared gnsAddress) const;
 
+    pair<GNSAddress::Shared, IPv4WithPortAddress::Shared> deserializeProviderResponse(
+        BytesShared buffer);
+
 protected:
     Logger &mLog;
     OutgoingNodesHandler mNodes;
     ContractorsManager *mContractorsManager;
     ProvidingHandler *mProvidingHandler;
+
+    multimap<string, MsgEncryptor::Buffer> mPostponedMessages;
 };
 
 

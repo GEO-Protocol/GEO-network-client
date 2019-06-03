@@ -18,9 +18,13 @@ namespace as = boost::asio;
 
 class OutgoingRemoteBaseNode {
 public:
+    typedef unique_ptr<OutgoingRemoteBaseNode> Unique;
+
+public:
     OutgoingRemoteBaseNode(
         UDPSocket &socket,
         IOService &ioService,
+        IPv4WithPortAddress::Shared remoteAddress,
         Logger &logger);
 
     virtual ~OutgoingRemoteBaseNode();
@@ -37,8 +41,6 @@ protected:
         size_t bytesCount)
     const noexcept;
 
-    virtual UDPEndpoint remoteEndpoint() const = 0;
-
     void populateQueueWithNewPackets(
         byte* messageData,
         const size_t bytesCount);
@@ -48,17 +50,16 @@ protected:
 
     void beginPacketsSending();
 
-    virtual string remoteInfo() const = 0;
+    LoggerStream errors() const;
 
-    virtual LoggerStream errors() const = 0;
-
-    virtual LoggerStream debug() const = 0;
+    LoggerStream debug() const;
 
 protected:
     IOService &mIOService;
     UDPSocket &mSocket;
     Logger &mLog;
 
+    IPv4WithPortAddress::Shared mRemoteAddress;
     queue<pair<byte*, Packet::Size>> mPacketsQueue;
     PacketHeader::ChannelIndex mNextAvailableChannelIndex;
 

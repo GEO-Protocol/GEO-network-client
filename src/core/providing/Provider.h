@@ -16,7 +16,7 @@ public:
 
     const string name() const;
 
-    BaseAddress::Shared mainAddress() const;
+    IPv4WithPortAddress::Shared mainAddress() const;
 
     ProviderParticipantID participantID() const;
 

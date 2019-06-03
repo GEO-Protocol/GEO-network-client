@@ -6,6 +6,7 @@
 #include "../../../../crypto/MsgEncryptor.h"
 
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
+#include "../../../messages/providing/ProvidingAddressResponseMessage.h"
 
 #include "../../../messages/trust_line_channels/InitChannelMessage.h"
 #include "../../../messages/trust_line_channels/ConfirmChannelMessage.h"

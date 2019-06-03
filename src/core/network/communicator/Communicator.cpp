@@ -220,12 +220,16 @@ void Communicator::onMessageReceived(
     else if (message->typeID() == Message::MaxFlow_Confirmation) {
         const auto kConfirmationMessage =
                 static_pointer_cast<MaxFlowCalculationConfirmationMessage>(message);
-            mConfirmationNotStronglyRequiredMessagesHandler->tryProcessConfirmation(
-                kConfirmationMessage);
-            return;
-    }
+        mConfirmationNotStronglyRequiredMessagesHandler->tryProcessConfirmation(
+            kConfirmationMessage);
+        return;
+    } else if (message->typeID() == Message::ProvidingAddressResponse) {
+        mOutgoingMessagesHandler->processProviderResponse(
+            static_pointer_cast<ProvidingAddressResponseMessage>(
+                message));
+        return;
 
-    else if (message->typeID() == Message::Channel_Init) {
+    } else if (message->typeID() == Message::Channel_Init) {
         const auto initMessage = static_pointer_cast<InitChannelMessage>(message);
         auto contractorID = mContractorsManager->contractorIDByAddresses(initMessage->senderAddresses);
         mConfirmationRequiredMessagesHandler->tryProcessConfirmation(make_shared<ConfirmationMessage>(
@@ -255,7 +259,7 @@ void Communicator::onMessageReceived(
         const auto kConfirmationMessage =
                 static_pointer_cast<ConfirmationMessage>(message);
         mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
-                kConfirmationMessage);
+            kConfirmationMessage);
         return;
     }
 

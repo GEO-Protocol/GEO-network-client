@@ -10,6 +10,7 @@ add_subdirectory(max_flow_calculation)
 add_subdirectory(gateway_notification_and_routing_tables)
 add_subdirectory(general)
 add_subdirectory(trust_line_channels)
+add_subdirectory(providing)
 
 
 set(SOURCE_FILES
@@ -37,4 +38,5 @@ target_link_libraries(network__messages
         messages__max_flow_calculation
         messages__gateway_notification_and_routing_tables
         messages__general
-        messages__trust_line_channels)
+        messages__trust_line_channels
+        messages__providing)

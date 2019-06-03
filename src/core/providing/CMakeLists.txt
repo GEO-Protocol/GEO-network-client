@@ -9,8 +9,7 @@ set(SOURCE_FILES
         Provider.h
         Provider.cpp
 
-        messages/ProvidingMessage.h
-        messages/ProvidingMessage.cpp)
+        )
 
 add_library(providing ${SOURCE_FILES})
 target_link_libraries(providing

@@ -3,18 +3,40 @@
 GNSAddress::GNSAddress(
     const string &fullAddress)
 {
+    string gnsPureAddress;
     size_t addressSeparatorPos = fullAddress.find(
+        kAddressSeparator);
+    if (addressSeparatorPos == string::npos) {
+        mPort = std::numeric_limits<uint16_t >::max();
+        gnsPureAddress = fullAddress;
+    } else {
+        auto mPortStr = fullAddress.substr(
+            addressSeparatorPos + 1,
+            fullAddress.size() - addressSeparatorPos - 1);
+        try {
+            mPort = (uint16_t)std::stoul(mPortStr);
+        } catch (...) {
+            throw ValueError(
+                    "GNSAddress: can't parse address. "
+                    "Error occurred while parsing 'port' token.");
+        }
+        gnsPureAddress = fullAddress.substr(
+            0,
+            addressSeparatorPos);
+    }
+
+    addressSeparatorPos = gnsPureAddress.find(
         kGNSAddressSeparator);
     if (addressSeparatorPos == string::npos) {
         throw ValueError(
             "GNSAddress: can't parse address. There are no separator");
     }
 
-    mName = fullAddress.substr(
+    mName = gnsPureAddress.substr(
         0,
         addressSeparatorPos);
 
-    mProvider = fullAddress.substr(
+    mProvider = gnsPureAddress.substr(
         addressSeparatorPos + 1,
         fullAddress.size() - addressSeparatorPos - 1);
 }
@@ -86,7 +108,7 @@ BytesShared GNSAddress::serializeToBytes() const
     const string fullAddress = this->fullAddress();
     auto addressLength = (uint16_t)fullAddress.size();
     memcpy(
-        dataBytesShared.get(),
+        dataBytesShared.get() + dataBytesOffset,
         &addressLength,
         sizeof(uint16_t));
     dataBytesOffset += sizeof(uint16_t);

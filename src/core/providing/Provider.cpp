@@ -33,7 +33,7 @@ const string Provider::name() const
     return mName;
 }
 
-BaseAddress::Shared Provider::mainAddress() const
+IPv4WithPortAddress::Shared Provider::mainAddress() const
 {
     return mAddresses.at(0);
 }

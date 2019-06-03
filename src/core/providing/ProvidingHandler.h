@@ -40,7 +40,7 @@ public:
     IPv4WithPortAddress::Shared getIPv4AddressForGNS(
         GNSAddress::Shared gnsAddress);
 
-    void setIPv4AddressForGNS(
+    void setCachedIPv4AddressForGNS(
         GNSAddress::Shared gnsAddress,
         IPv4WithPortAddress::Shared ipv4Address);
 
@@ -53,19 +53,37 @@ private:
     void updateAddressForProviders(
         const boost::system::error_code &errorCode);
 
+    void rescheduleCleaning();
+
+    void clearCahedAddresses();
+
 public:
     mutable SendPingMessageSignal sendPingMessageSignal;
 
 private:
     static const uint16_t kUpdatingAddressPeriodSeconds = 20;
 
+    static const byte kResetCacheAddressHours = 0;
+    static const byte kResetCacheAddressMinutes = 0;
+    static const byte kResetCacheAddressSeconds = 10;
+
+    static Duration& kResetCacheAddressDuration() {
+        static auto duration = Duration(
+                kResetCacheAddressHours,
+                kResetCacheAddressMinutes,
+                kResetCacheAddressSeconds);
+        return duration;
+    }
+
 private:
     vector<Provider::Shared> mProviders;
     vector<Provider::Shared> mProvidersForPing;
     Contractor::Shared mSelfContractor;
     as::steady_timer mUpdatingAddressTimer;
+    as::steady_timer mCacheCleaningTimer;
 
     map<string, IPv4WithPortAddress::Shared> mCachedAddresses;
+    vector<pair<DateTime, string>> mTimesCache;
 };
 
 

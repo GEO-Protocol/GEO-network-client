@@ -100,11 +100,6 @@ void CollectTopologyTransaction::sendMessagesOnFirstLevel()
         auto outgoingFlowIDs = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().first;
         auto outgoingFlowIDIt = outgoingFlowIDs.begin();
         while (outgoingFlowIDIt != outgoingFlowIDs.end()) {
-            auto contractorAddress = mContractorsManager->contractorMainAddress(*outgoingFlowIDIt);
-            if (isNodeListedInTransactionContractors(contractorAddress)) {
-                outgoingFlowIDIt++;
-                continue;
-            }
             // firstly send message to gateways
             if (mTrustLinesManager->isContractorGateway(*outgoingFlowIDIt)) {
                 sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
@@ -117,6 +112,11 @@ void CollectTopologyTransaction::sendMessagesOnFirstLevel()
             }
         }
         for (auto const &nodeIDWithOutgoingFlow : outgoingFlowIDs) {
+            auto contractorAddress = mContractorsManager->contractorMainAddress(
+                nodeIDWithOutgoingFlow);
+            if (isNodeListedInTransactionContractors(contractorAddress)) {
+                continue;
+            }
             sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
                 nodeIDWithOutgoingFlow,
                 mEquivalent,

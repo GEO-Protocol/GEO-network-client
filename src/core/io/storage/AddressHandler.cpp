@@ -135,6 +135,10 @@ vector<BaseAddress::Shared> AddressHandler::contractorAddresses(
                                              "Invalid address type: " + to_string(addressType));
                 }
             }
+        } catch (std::exception &e) {
+            throw Exception("AddressHandler::contractorAddresses. "
+                            "Unable to create address instance from DB of type " + to_string(addressType)
+                            + " Details: " + e.what());
         } catch (...) {
             throw Exception("AddressHandler::contractorAddresses. "
                                 "Unable to create address instance from DB of type " + to_string(addressType));

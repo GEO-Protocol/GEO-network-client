@@ -121,6 +121,11 @@ public:
         RoutingTableResponse = 701,
 
         /*
+         * Providing
+         */
+        ProvidingAddressResponse = 800,
+
+        /*
          * DEBUG
          */
         // Obvious, that we have to set this code

@@ -7,6 +7,7 @@ ProvidingHandler::ProvidingHandler(
     Logger &logger) :
     LoggerMixin(logger),
     mUpdatingAddressTimer(ioService),
+    mCacheCleaningTimer(ioService),
     mSelfContractor(selfContractor)
 {
     if (providersConf == nullptr) {
@@ -102,16 +103,76 @@ IPv4WithPortAddress::Shared ProvidingHandler::getIPv4AddressForGNS(
     return mCachedAddresses[gnsAddress->fullAddress()];
 }
 
-void ProvidingHandler::setIPv4AddressForGNS(
+void ProvidingHandler::setCachedIPv4AddressForGNS(
     GNSAddress::Shared gnsAddress,
     IPv4WithPortAddress::Shared ipv4Address)
 {
-    mCachedAddresses[gnsAddress->fullAddress()] = ipv4Address;
+    mCachedAddresses.insert(
+        make_pair(
+            gnsAddress->fullAddress(),
+            ipv4Address));
+    mTimesCache.emplace_back(
+        utc_now() + kResetCacheAddressDuration(),
+        gnsAddress->fullAddress());
+
+    if (mTimesCache.size() == 1) {
+        rescheduleCleaning();
+    }
 }
 
 Provider::Shared ProvidingHandler::mainProvider() const
 {
     return mProviders.at(0);
+}
+
+void ProvidingHandler::rescheduleCleaning()
+{
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+    debug() << "rescheduleCleaning";
+#endif
+    if (mTimesCache.empty()) {
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+        debug() << "There are no cached addresses";
+#endif
+        return;
+    }
+    const auto kCleaningTimeout = mTimesCache.at(0).first - utc_now();
+    mCacheCleaningTimer.expires_from_now(
+        chrono::milliseconds(
+            kCleaningTimeout.total_milliseconds()));
+    mCacheCleaningTimer.async_wait(
+        boost::bind(
+            &ProvidingHandler::clearCahedAddresses,
+            this));
+}
+
+void ProvidingHandler::clearCahedAddresses()
+{
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+    debug() << "clearCahedAddresses " << mCachedAddresses.size() << " " << mTimesCache.size();
+#endif
+    auto now = utc_now();
+    auto it = mTimesCache.begin();
+    while (it != mTimesCache.end()) {
+        if (it->first > now) {
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+            if (mCachedAddresses.count(it->second) != 0) {
+                debug() << "remove cache " << it->second << " " << mCachedAddresses[it->second]->fullAddress();
+            }
+#endif
+            mCachedAddresses.erase(it->second);
+            mTimesCache.erase(it);
+        } else {
+            it++;
+        }
+    }
+
+    if (!mTimesCache.empty()) {
+        rescheduleCleaning();
+    }
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+    debug() << "after cleaning " << mCachedAddresses.size() << " " << mTimesCache.size();
+#endif
 }
 
 const string ProvidingHandler::logHeader() const

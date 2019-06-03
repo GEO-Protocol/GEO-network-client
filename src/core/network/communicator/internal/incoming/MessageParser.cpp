@@ -67,6 +67,12 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
             return messageCollected<ConfirmationMessage>(buffer);
 
         /*
+         * Providing messages
+         */
+        case Message::ProvidingAddressResponse:
+            return messageCollected<ProvidingAddressResponseMessage>(buffer);
+
+        /*
          * Channel messages
          */
         case Message::Channel_Init:

@@ -3,10 +3,12 @@
 OutgoingRemoteBaseNode::OutgoingRemoteBaseNode(
     UDPSocket &socket,
     IOService &ioService,
+    IPv4WithPortAddress::Shared remoteAddress,
     Logger &logger):
 
     mIOService(ioService),
     mSocket(socket),
+    mRemoteAddress(remoteAddress),
     mLog(logger),
     mNextAvailableChannelIndex(0),
     mCyclesStats(boost::posix_time::microsec_clock::universal_time(), 0),
@@ -210,7 +212,10 @@ void OutgoingRemoteBaseNode::beginPacketsSending()
 
     UDPEndpoint endpoint;
     try {
-        endpoint = remoteEndpoint();
+        endpoint = as::ip::udp::endpoint(
+            as::ip::address_v4::from_string(
+                mRemoteAddress->host()),
+            mRemoteAddress->port());
         debug() << "Endpoint address " << endpoint.address().to_string();
         debug() << "Endpoint port " << endpoint.port();
     } catch  (exception &) {
@@ -261,7 +266,7 @@ void OutgoingRemoteBaseNode::beginPacketsSending()
             if (bytesTransferred != packetDataAndSize.second) {
                 if (error) {
                     errors() << "beginPacketsSending: "
-                             << "Next packet can't be sent to the node (" << remoteInfo() << "). "
+                             << "Next packet can't be sent to the node (" << mRemoteAddress->fullAddress() << "). "
                              << "Error code: " << error.value();
                 }
 
@@ -302,3 +307,26 @@ void OutgoingRemoteBaseNode::beginPacketsSending()
             }
         });
 }
+
+LoggerStream OutgoingRemoteBaseNode::errors() const
+{
+    return mLog.warning(
+            string("Communicator / OutgoingRemoteNode [")
+            + mRemoteAddress->fullAddress()
+            + string("]"));
+}
+
+LoggerStream OutgoingRemoteBaseNode::debug() const
+{
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+    return mLog.debug(
+            string("Communicator / OutgoingRemoteNode [")
+            + mRemoteAddress->fullAddress()
+            + string("]"));
+#endif
+
+#ifndef DEBUG_LOG_NETWORK_COMMUNICATOR
+    return LoggerStream::dummy();
+#endif
+}
+
