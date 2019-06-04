@@ -44,13 +44,20 @@ private:
     pair<GNSAddress::Shared, IPv4WithPortAddress::Shared> deserializeProviderResponse(
         BytesShared buffer);
 
+    void clearUndeliveredMessages(
+        const boost::system::error_code &errorCode);
+
+private:
+    static const uint16_t kPostponedMessagesClearingPeriodSeconds = 30;
+
 protected:
     Logger &mLog;
     OutgoingNodesHandler mNodes;
     ContractorsManager *mContractorsManager;
     ProvidingHandler *mProvidingHandler;
 
-    multimap<string, MsgEncryptor::Buffer> mPostponedMessages;
+    as::steady_timer mPostponedMessagesCleaningTimer;
+    multimap<string, pair<MsgEncryptor::Buffer, DateTime>> mPostponedMessages;
 };
 
 

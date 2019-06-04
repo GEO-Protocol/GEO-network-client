@@ -155,6 +155,11 @@ void GNSAddress::setIPAndPort(
     }
 }
 
+const string GNSAddress::name() const
+{
+    return mName;
+}
+
 const string GNSAddress::provider() const
 {
     return mProvider;

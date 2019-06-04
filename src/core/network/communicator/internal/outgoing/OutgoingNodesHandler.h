@@ -22,8 +22,8 @@ public:
         const IPv4WithPortAddress::Shared address)
         noexcept;
 
-    OutgoingRemoteBaseNode* handler(
-        const Provider::Shared provider)
+    OutgoingRemoteBaseNode* providerHandler(
+        const IPv4WithPortAddress::Shared address)
         noexcept;
 
 protected:

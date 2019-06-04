@@ -25,6 +25,7 @@ ProvidingHandler::ProvidingHandler(
             make_shared<Provider>(
                 providerConf.at("name").get<string>(),
                 providerConf.at("key").get<string>(),
+                providerConf.at("participant_id").get<ProviderParticipantID >(),
                 providerAddressesStr));
 
     }
@@ -125,6 +126,11 @@ Provider::Shared ProvidingHandler::mainProvider() const
     return mProviders.at(0);
 }
 
+bool ProvidingHandler::isProvidersPresent() const
+{
+    return !mProviders.empty();
+}
+
 void ProvidingHandler::rescheduleCleaning()
 {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
@@ -154,7 +160,7 @@ void ProvidingHandler::clearCahedAddresses()
     auto now = utc_now();
     auto it = mTimesCache.begin();
     while (it != mTimesCache.end()) {
-        if (it->first > now) {
+        if (now > it->first) {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
             if (mCachedAddresses.count(it->second) != 0) {
                 debug() << "remove cache " << it->second << " " << mCachedAddresses[it->second]->fullAddress();

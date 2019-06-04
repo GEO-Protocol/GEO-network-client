@@ -35,6 +35,8 @@ public:
     void setIPAndPort(
         const string& providerData);
 
+    const string name() const;
+
     const string provider() const;
 
 private:

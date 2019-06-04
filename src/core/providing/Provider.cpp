@@ -3,14 +3,16 @@
 Provider::Provider(
     const string &providerName,
     const string &providerKey,
-    vector<pair<string, string>> providersAddressesStr) :
+    const ProviderParticipantID participantID,
+    vector<pair<string, string>> providerAddressesStr) :
     mName(providerName),
-    mKey(providerKey)
+    mKey(providerKey),
+    mParticipantID(participantID)
 {
-    if (providersAddressesStr.empty()) {
-        throw ValueError("Provider: " + providerName + " has no addresses");
+    if (providerAddressesStr.size() < 2) {
+        throw ValueError("Provider: " + providerName + " has no enough addresses");
     }
-    for (const auto &addressStr : providersAddressesStr) {
+    for (const auto &addressStr : providerAddressesStr) {
         if (addressStr.first == "ipv4") {
             try {
                 mAddresses.push_back(
@@ -33,9 +35,14 @@ const string Provider::name() const
     return mName;
 }
 
-IPv4WithPortAddress::Shared Provider::mainAddress() const
+IPv4WithPortAddress::Shared Provider::pingAddress() const
 {
     return mAddresses.at(0);
+}
+
+IPv4WithPortAddress::Shared Provider::lookupAddress() const
+{
+    return mAddresses.at(1);
 }
 
 ProviderParticipantID Provider::participantID() const

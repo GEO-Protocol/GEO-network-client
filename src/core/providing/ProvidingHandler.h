@@ -46,6 +46,8 @@ public:
 
     Provider::Shared mainProvider() const;
 
+    bool isProvidersPresent() const;
+
 protected:
     const string logHeader() const override;
 

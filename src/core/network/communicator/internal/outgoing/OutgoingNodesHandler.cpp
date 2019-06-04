@@ -33,22 +33,22 @@ OutgoingRemoteBaseNode *OutgoingNodesHandler::handler(
     return mNodes[address->fullAddress()].get();
 }
 
-OutgoingRemoteBaseNode *OutgoingNodesHandler::handler(
-    const Provider::Shared provider)
+OutgoingRemoteBaseNode *OutgoingNodesHandler::providerHandler(
+    const IPv4WithPortAddress::Shared address)
     noexcept
 {
     // check if there is present OutgoingRemoteProvider with requested name
     // and if yes get it contractorID and if no create new one.
-    if (0 == mProviders.count(provider->name())) {
-        mProviders[provider->name()] = make_unique<OutgoingRemoteBaseNode>(
+    if (0 == mProviders.count(address->fullAddress())) {
+        mProviders[address->fullAddress()] = make_unique<OutgoingRemoteBaseNode>(
             mSocket,
             mIOService,
-            provider->mainAddress(),
+            address,
             mLog);
     }
 
-    mLastAccessDateTimesProvider[provider->name()] = utc_now();
-    return mProviders[provider->name()].get();
+    mLastAccessDateTimesProvider[address->fullAddress()] = utc_now();
+    return mProviders[address->fullAddress()].get();
 }
 
 /**
