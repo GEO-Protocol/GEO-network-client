@@ -377,9 +377,30 @@ int Core::initContractorsManager(
 int Core::initProvidingHandler(
     const json &conf)
 {
+    auto providersConf = mSettings->providers(&conf);
     try {
+        vector<Provider::Shared> providers;
+        if (providersConf == nullptr) {
+            info() << "There are no providers in config";
+        } else {
+            for (const auto &providerConf : providersConf) {
+                vector<pair<string, string>> providerAddressesStr;
+                for (const auto &providerAddressConf : providerConf.at("addresses")) {
+                    providerAddressesStr.emplace_back(
+                        providerAddressConf.at("type").get<string>(),
+                        providerAddressConf.at("address").get<string>());
+                }
+                providers.push_back(
+                    make_shared<Provider>(
+                        providerConf.at("name").get<string>(),
+                        providerConf.at("key").get<string>(),
+                        providerConf.at("participant_id").get<ProviderParticipantID>(),
+                        providerAddressesStr));
+            }
+        }
+
         mProvidingHandler = make_unique<ProvidingHandler>(
-            mSettings->providers(&conf),
+            providers,
             mIOService,
             mContractorsManager->selfContractor(),
             *mLog);

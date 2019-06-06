@@ -7,7 +7,7 @@ GNSAddress::GNSAddress(
     size_t addressSeparatorPos = fullAddress.find(
         kAddressSeparator);
     if (addressSeparatorPos == string::npos) {
-        mPort = std::numeric_limits<uint16_t >::max();
+        mPort = 0;
         gnsPureAddress = fullAddress;
     } else {
         auto mPortStr = fullAddress.substr(

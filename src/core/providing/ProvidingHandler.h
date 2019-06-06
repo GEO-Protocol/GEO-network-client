@@ -5,9 +5,6 @@
 #include "../contractors/Contractor.h"
 #include "../logger/LoggerMixin.hpp"
 
-#include "../../libs/json/json.h"
-
-using json = nlohmann::json;
 namespace as = boost::asio;
 namespace signals = boost::signals2;
 
@@ -15,21 +12,14 @@ class ProvidingHandler : protected LoggerMixin {
 
 public:
     typedef signals::signal<void(Provider::Shared)> SendPingMessageSignal;
-    typedef uint8_t SerializedType;
-    typedef uint32_t MessageSize;
 
     enum ProtocolVersion {
         Latest = 0,
     };
 
-    enum MessageType {
-        Providing_Ping = 1,
-        Providing_Pong = 2,
-    };
-
 public:
     ProvidingHandler(
-        json providersConf,
+        vector<Provider::Shared> &providers,
         IOService &ioService,
         Contractor::Shared selfContractor,
         Logger &logger);

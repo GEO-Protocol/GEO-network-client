@@ -1,34 +1,16 @@
 #include "ProvidingHandler.h"
 
 ProvidingHandler::ProvidingHandler(
-    json providersConf,
+    vector<Provider::Shared> &providers,
     IOService &ioService,
     Contractor::Shared selfContractor,
     Logger &logger) :
     LoggerMixin(logger),
+    mProviders(providers),
     mUpdatingAddressTimer(ioService),
     mCacheCleaningTimer(ioService),
     mSelfContractor(selfContractor)
 {
-    if (providersConf == nullptr) {
-        info() << "There are no providers in config";
-        return;
-    }
-    for (const auto &providerConf : providersConf) {
-        vector<pair<string, string>> providerAddressesStr;
-        for (const auto &providerAddressConf : providerConf.at("addresses")) {
-            providerAddressesStr.emplace_back(
-                providerAddressConf.at("type").get<string>(),
-                providerAddressConf.at("address").get<string>());
-        }
-        mProviders.push_back(
-            make_shared<Provider>(
-                providerConf.at("name").get<string>(),
-                providerConf.at("key").get<string>(),
-                providerConf.at("participant_id").get<ProviderParticipantID >(),
-                providerAddressesStr));
-
-    }
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     info() << "Providers:";
     for (const auto &provider : mProviders) {

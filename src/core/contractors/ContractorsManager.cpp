@@ -8,21 +8,24 @@ ContractorsManager::ContractorsManager(
     mLogger(logger)
 {
     vector<BaseAddress::Shared> selfAddresses;
+    size_t idxOfMainAddress = 0;
+    size_t currentIdx = 0;
+    bool isMainAddressPresent = false;
     for (const auto &addressStr : ownAddressesStr) {
+        BaseAddress::Shared address;
         if (addressStr.first == "ipv4") {
             try {
-                selfAddresses.push_back(
-                        make_shared<IPv4WithPortAddress>(
-                                addressStr.second));
+                address = make_shared<IPv4WithPortAddress>(
+                    addressStr.second);
+
             } catch (...) {
                 throw ValueError("ContractorsManager: can't create own address of type " + addressStr.first);
             }
 
         } else if (addressStr.first == "gns") {
             try {
-                selfAddresses.push_back(
-                    make_shared<GNSAddress>(
-                        addressStr.second));
+                address = make_shared<GNSAddress>(
+                    addressStr.second);
             } catch (...) {
                 throw ValueError("ContractorsManager: can't create own address of type " + addressStr.first);
             }
@@ -31,7 +34,26 @@ ContractorsManager::ContractorsManager(
             throw ValueError("ContractorsManager: can't create own address. "
                                  "Wrong address type " + addressStr.first);
         }
+        selfAddresses.push_back(
+            address);
+        if (address->port() != 0) {
+            if (isMainAddressPresent) {
+                throw ValueError("ContractorsManager: more than one address have port");
+            }
+            idxOfMainAddress = currentIdx;
+            isMainAddressPresent = true;
+        }
+        currentIdx++;
     }
+    if (!isMainAddressPresent) {
+        throw ValueError("ContractorsManager: there are no address with port");
+    }
+    if (idxOfMainAddress != 0) {
+        auto tmp = selfAddresses[0];
+        selfAddresses[0] = selfAddresses[idxOfMainAddress];
+        selfAddresses[idxOfMainAddress] = tmp;
+    }
+
     mSelf = make_shared<Contractor>(selfAddresses);
 
     auto ioTransaction = mStorageHandler->beginTransaction();

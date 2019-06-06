@@ -258,7 +258,7 @@ MsgEncryptor::Buffer OutgoingMessagesHandler::pingMessage(
                               sizeof(ProviderParticipantID) + sizeof(GEOEpochTimestamp);
     auto buffer = tryMalloc(kMessageSize);
 
-    SerializedProtocolVersion kProtocolVersion = ProvidingHandler::ProtocolVersion::Latest;
+    SerializedProtocolVersion kProtocolVersion = ProvidingHandler::Latest;
     memcpy(
         buffer.get(),
         &kProtocolVersion,
