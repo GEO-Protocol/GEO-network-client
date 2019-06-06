@@ -7,10 +7,9 @@ set(SOURCE_FILES
         ProvidingHandler.cpp
 
         Provider.h
-        Provider.cpp
-
-        )
+        Provider.cpp)
 
 add_library(providing ${SOURCE_FILES})
 target_link_libraries(providing
-        ${Boost_SYSTEM_LIBRARY})
+        ${Boost_SYSTEM_LIBRARY}
+        crypto)

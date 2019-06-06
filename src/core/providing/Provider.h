@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_PROVIDER_H
 
 #include "../contractors/addresses/IPv4WithPortAddress.h"
+#include "../crypto/ProviderMsgEncryptor.h"
 
 class Provider {
 
@@ -17,6 +18,8 @@ public:
 
     const string name() const;
 
+    ProviderMsgEncryptor::PublicKey::Shared publicKey() const;
+
     IPv4WithPortAddress::Shared pingAddress() const;
 
     IPv4WithPortAddress::Shared lookupAddress() const;
@@ -27,7 +30,7 @@ public:
 
 private:
     string mName;
-    string mKey;
+    ProviderMsgEncryptor::PublicKey::Shared mKey;
     ProviderParticipantID mParticipantID;
     vector<IPv4WithPortAddress::Shared> mAddresses;
 };

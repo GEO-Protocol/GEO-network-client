@@ -254,6 +254,45 @@ void OutgoingMessagesHandler::onPingMessageToProviderReady(
 MsgEncryptor::Buffer OutgoingMessagesHandler::pingMessage(
     Provider::Shared provider) const
 {
+    // with encryption
+//    const auto encryptingDataSize = sizeof(GEOEpochTimestamp);
+//    auto bufferForEncryption = tryMalloc(encryptingDataSize);
+//    auto now = microsecondsSinceGEOEpoch(utc_now());
+//    memcpy(
+//        bufferForEncryption.get(),
+//        &now,
+//        sizeof(GEOEpochTimestamp));
+//    auto encryptedDataAndSize = ProviderMsgEncryptor(
+//        provider->publicKey()).encrypt(
+//        bufferForEncryption.get(),
+//        encryptingDataSize);
+//
+//    const auto kMessageSize = sizeof(SerializedProtocolVersion) +
+//                              sizeof(ProviderParticipantID) + encryptedDataAndSize.second;
+//    auto buffer = tryMalloc(kMessageSize);
+//
+//    SerializedProtocolVersion kProtocolVersion = ProvidingHandler::Latest;
+//    memcpy(
+//        buffer.get(),
+//        &kProtocolVersion,
+//        sizeof(SerializedProtocolVersion));
+//
+//    auto participantID = provider->participantID();
+//    memcpy(
+//        buffer.get() + sizeof(SerializedProtocolVersion),
+//        &participantID,
+//        sizeof(ProviderParticipantID));
+//
+//    memcpy(
+//        buffer.get() + sizeof(SerializedProtocolVersion) + sizeof(ProviderParticipantID),
+//        encryptedDataAndSize.first.get(),
+//        encryptedDataAndSize.second);
+//
+//    return make_pair(
+//        buffer,
+//        kMessageSize);
+
+    // without encryption
     const auto kMessageSize = sizeof(SerializedProtocolVersion) +
                               sizeof(ProviderParticipantID) + sizeof(GEOEpochTimestamp);
     auto buffer = tryMalloc(kMessageSize);
@@ -270,7 +309,7 @@ MsgEncryptor::Buffer OutgoingMessagesHandler::pingMessage(
         &participantID,
         sizeof(ProviderParticipantID));
 
-    auto now = utc_now();
+    auto now = microsecondsSinceGEOEpoch(utc_now());
     memcpy(
         buffer.get() + sizeof(SerializedProtocolVersion) + sizeof(ProviderParticipantID),
         &now,
@@ -290,7 +329,7 @@ MsgEncryptor::Buffer OutgoingMessagesHandler::getRemoteNodeAddressMessage(
      auto buffer = tryMalloc(kMessageSize);
      size_t dataBytesOffset = 0;
 
-     SerializedProtocolVersion kProtocolVersion = ProvidingHandler::ProtocolVersion::Latest;
+     SerializedProtocolVersion kProtocolVersion = ProvidingHandler::Latest;
      memcpy(
          buffer.get(),
          &kProtocolVersion,
@@ -319,7 +358,9 @@ MsgEncryptor::Buffer OutgoingMessagesHandler::getRemoteNodeAddressMessage(
 pair<GNSAddress::Shared, IPv4WithPortAddress::Shared> OutgoingMessagesHandler::deserializeProviderResponse(
     BytesShared buffer)
 {
-    auto bytesBufferOffset = sizeof(SerializedProtocolVersion) + sizeof(ContractorID) + sizeof(Message::SerializedType);
+    auto bytesBufferOffset = sizeof(SerializedProtocolVersion)
+            + sizeof(ContractorID)
+            + sizeof(Message::SerializedType);
 
     auto *gnsAddressLength = new (buffer.get() + bytesBufferOffset) uint16_t;
     if (*gnsAddressLength == 0) {

@@ -6,7 +6,7 @@ Provider::Provider(
     const ProviderParticipantID participantID,
     vector<pair<string, string>> providerAddressesStr) :
     mName(providerName),
-    mKey(providerKey),
+    mKey(make_shared<ProviderMsgEncryptor::PublicKey>(providerKey)),
     mParticipantID(participantID)
 {
     if (providerAddressesStr.size() < 2) {
@@ -33,6 +33,11 @@ Provider::Provider(
 const string Provider::name() const
 {
     return mName;
+}
+
+ProviderMsgEncryptor::PublicKey::Shared Provider::publicKey() const
+{
+    return mKey;
 }
 
 IPv4WithPortAddress::Shared Provider::pingAddress() const
