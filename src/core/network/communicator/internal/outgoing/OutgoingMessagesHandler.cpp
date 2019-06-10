@@ -89,7 +89,7 @@ void OutgoingMessagesHandler::sendMessage(
                     gnsAddress->fullAddress(),
                     make_pair(
                         sendingData,
-                        utc_now())));
+                        utc_now() + kPostponedMessageTimeLiveDuration())));
 
             auto node = mNodes.providerHandler(
                 provider->lookupAddress());
@@ -160,7 +160,7 @@ void OutgoingMessagesHandler::sendMessage(
                         gnsAddress->fullAddress(),
                         make_pair(
                             sendingData,
-                            utc_now())));
+                            utc_now() + kPostponedMessageTimeLiveDuration())));
 
                 auto node = mNodes.providerHandler(
                     provider->lookupAddress());
@@ -235,7 +235,7 @@ void OutgoingMessagesHandler::processProviderResponse(
 void OutgoingMessagesHandler::onPingMessageToProviderReady(
     Provider::Shared provider)
 {
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+#ifdef DEBUG_LOG_PROVIDING_HANDLER
     mLog.debug("OutgoingMessagesHandler") << "Provider ping " <<
         provider->name() << " " << provider->pingAddress()->fullAddress();
 #endif
@@ -373,11 +373,11 @@ pair<GNSAddress::Shared, IPv4WithPortAddress::Shared> OutgoingMessagesHandler::d
     bytesBufferOffset += *gnsAddressLength;
     auto gnsAddress = make_shared<GNSAddress>(gnsAddressStr);
 
-    auto *ipv4AddressLength = new (buffer.get() + bytesBufferOffset) uint16_t;
+    auto *ipv4AddressLength = new (buffer.get() + bytesBufferOffset) byte;
     if (*ipv4AddressLength == 0) {
         throw ValueError("IPv4Address: can't read 0 length address");
     }
-    bytesBufferOffset += sizeof(uint16_t);
+    bytesBufferOffset += sizeof(byte);
     string ipv4AddressStr = string(
         buffer.get() + bytesBufferOffset,
         buffer.get() + bytesBufferOffset + *ipv4AddressLength);
@@ -395,16 +395,28 @@ void OutgoingMessagesHandler::clearUndeliveredMessages(
         mLog.warning("OutgoingMessagesHandler::clearUndeliveredMessages") << errorCode.message().c_str();
     }
     mPostponedMessagesCleaningTimer.cancel();
+#ifdef DEBUG_LOG_PROVIDING_HANDLER
+    mLog.debug("OutgoingMessagesHandler::clearUndeliveredMessages") << "mPostponedMessages size " << mPostponedMessages.size();
+#endif
     auto postponedMessageIt = mPostponedMessages.begin();
     auto now = utc_now();
     while (postponedMessageIt != mPostponedMessages.end()) {
-        if (postponedMessageIt->second.second < now) {
+        if (postponedMessageIt->second.second <= now) {
+#ifdef DEBUG_LOG_PROVIDING_HANDLER
+            mLog.debug("OutgoingMessagesHandler::clearUndeliveredMessages") << "erase "
+                << postponedMessageIt->first << " " << postponedMessageIt->second.second;
+#endif
             mPostponedMessages.erase(
                 postponedMessageIt);
+            postponedMessageIt = mPostponedMessages.begin();
         } else {
             postponedMessageIt++;
         }
     }
+#ifdef DEBUG_LOG_PROVIDING_HANDLER
+    mLog.debug("OutgoingMessagesHandler::clearUndeliveredMessages")
+        << "mPostponedMessages after deleting " << mPostponedMessages.size();
+#endif
 
     mPostponedMessagesCleaningTimer.expires_from_now(
         std::chrono::seconds(

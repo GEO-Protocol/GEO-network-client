@@ -50,6 +50,17 @@ private:
 private:
     static const uint16_t kPostponedMessagesClearingPeriodSeconds = 30;
 
+    static const byte kPostponedMessageTimeLiveHours = 0;
+    static const byte kPostponedMessageTimeLiveMinutes = 0;
+    static const byte kPostponedMessageTimeLiveSeconds = 10;
+    static Duration& kPostponedMessageTimeLiveDuration() {
+        static auto duration = Duration(
+            kPostponedMessageTimeLiveHours,
+            kPostponedMessageTimeLiveMinutes,
+            kPostponedMessageTimeLiveSeconds);
+        return duration;
+    }
+
 protected:
     Logger &mLog;
     OutgoingNodesHandler mNodes;

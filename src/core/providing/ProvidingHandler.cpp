@@ -11,7 +11,7 @@ ProvidingHandler::ProvidingHandler(
     mCacheCleaningTimer(ioService),
     mSelfContractor(selfContractor)
 {
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+#ifdef DEBUG_LOG_PROVIDING_HANDLER
     info() << "Providers:";
     for (const auto &provider : mProviders) {
         info() << provider->info();
@@ -43,7 +43,7 @@ ProvidingHandler::ProvidingHandler(
 void ProvidingHandler::updateAddressForProviders(
     const boost::system::error_code &errorCode)
 {
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+#ifdef DEBUG_LOG_PROVIDING_HANDLER
     debug() << "updateAddressForProviders";
 #endif
     if (errorCode) {
@@ -97,6 +97,10 @@ void ProvidingHandler::setCachedIPv4AddressForGNS(
     mTimesCache.emplace_back(
         utc_now() + kResetCacheAddressDuration(),
         gnsAddress->fullAddress());
+#ifdef DEBUG_LOG_PROVIDING_HANDLER
+    debug() << "setCachedIPv4AddressForGNS " << gnsAddress->fullAddress() << " "
+            << ipv4Address->fullAddress() << " " << mTimesCache.at(0).first;
+#endif
 
     if (mTimesCache.size() == 1) {
         rescheduleCleaning();
@@ -115,19 +119,19 @@ bool ProvidingHandler::isProvidersPresent() const
 
 void ProvidingHandler::rescheduleCleaning()
 {
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+#ifdef DEBUG_LOG_PROVIDING_HANDLER
     debug() << "rescheduleCleaning";
 #endif
     if (mTimesCache.empty()) {
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+#ifdef DEBUG_LOG_PROVIDING_HANDLER
         debug() << "There are no cached addresses";
 #endif
         return;
     }
     const auto kCleaningTimeout = mTimesCache.at(0).first - utc_now();
     mCacheCleaningTimer.expires_from_now(
-        chrono::milliseconds(
-            kCleaningTimeout.total_milliseconds()));
+        chrono::microseconds(
+            kCleaningTimeout.total_microseconds()));
     mCacheCleaningTimer.async_wait(
         boost::bind(
             &ProvidingHandler::clearCahedAddresses,
@@ -136,14 +140,14 @@ void ProvidingHandler::rescheduleCleaning()
 
 void ProvidingHandler::clearCahedAddresses()
 {
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+#ifdef DEBUG_LOG_PROVIDING_HANDLER
     debug() << "clearCahedAddresses " << mCachedAddresses.size() << " " << mTimesCache.size();
 #endif
     auto now = utc_now();
     auto it = mTimesCache.begin();
     while (it != mTimesCache.end()) {
-        if (now > it->first) {
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+        if (now >= it->first) {
+#ifdef DEBUG_LOG_PROVIDING_HANDLER
             if (mCachedAddresses.count(it->second) != 0) {
                 debug() << "remove cache " << it->second << " " << mCachedAddresses[it->second]->fullAddress();
             }
@@ -151,14 +155,14 @@ void ProvidingHandler::clearCahedAddresses()
             mCachedAddresses.erase(it->second);
             mTimesCache.erase(it);
         } else {
-            it++;
+            break;
         }
     }
 
     if (!mTimesCache.empty()) {
         rescheduleCleaning();
     }
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+#ifdef DEBUG_LOG_PROVIDING_HANDLER
     debug() << "after cleaning " << mCachedAddresses.size() << " " << mTimesCache.size();
 #endif
 }

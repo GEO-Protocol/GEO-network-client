@@ -5,6 +5,10 @@
 #include "../contractors/Contractor.h"
 #include "../logger/LoggerMixin.hpp"
 
+#include <boost/signals2.hpp>
+#include <boost/asio.hpp>
+#include <boost/asio/steady_timer.hpp>
+
 namespace as = boost::asio;
 namespace signals = boost::signals2;
 
