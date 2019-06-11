@@ -29,6 +29,8 @@ public:
 public:
     explicit Communicator(
         IOService &ioService,
+        Host host,
+        Port port,
         ContractorsManager *contractorsManager,
         TailManager *tailManager,
         ProvidingHandler *providingHandler,

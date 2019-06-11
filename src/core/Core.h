@@ -59,7 +59,8 @@ private:
 
     int initTailManager();
 
-    int initCommunicator();
+    int initCommunicator(
+        const json &conf);
 
     int initObservingHandler(
         const json &conf);

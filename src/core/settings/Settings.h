@@ -29,6 +29,9 @@ public:
     string equivalentsRegistryAddress(
         const json *conf = nullptr) const;
 
+    pair<string, uint16_t> interface(
+        const json *conf = nullptr) const;
+
     json providers(
         const json *conf = nullptr) const;
 

@@ -110,7 +110,7 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initCommunicator();
+    initCode = initCommunicator(conf);
     if (initCode != 0) {
         return initCode;
     }
@@ -202,11 +202,15 @@ int Core::initTailManager() {
     }
 }
 
-int Core::initCommunicator()
+int Core::initCommunicator(
+    const json &conf)
 {
     try {
+        auto interface = mSettings->interface(&conf);
         mCommunicator = make_unique<Communicator>(
             mIOService,
+            interface.first,
+            interface.second,
             mContractorsManager.get(),
             mTailManager.get(),
             mProvidingHandler.get(),

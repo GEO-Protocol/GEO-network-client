@@ -3,6 +3,8 @@
 
 Communicator::Communicator(
     IOService &IOService,
+    Host host,
+    Port port,
     ContractorsManager *contractorsManager,
     TailManager *tailManager,
     ProvidingHandler *providingHandler,
@@ -12,28 +14,6 @@ Communicator::Communicator(
     mContractorsManager(contractorsManager),
     mTailManager(tailManager),
     mLog(logger),
-    mSocket(
-        make_unique<UDPSocket>(
-            IOService,
-            udp::endpoint(
-                udp::v4(),
-                contractorsManager->selfContractor()->mainAddress()->port()))),
-
-    mIncomingMessagesHandler(
-        make_unique<IncomingMessagesHandler>(
-            IOService,
-            *mSocket,
-            mContractorsManager,
-            mTailManager,
-            logger)),
-
-    mOutgoingMessagesHandler(
-        make_unique<OutgoingMessagesHandler>(
-            IOService,
-            *mSocket,
-            mContractorsManager,
-            providingHandler,
-            logger)),
 
     mCommunicatorStorageHandler(
         make_unique<CommunicatorStorageHandler>(
@@ -60,10 +40,42 @@ Communicator::Communicator(
 
     mPingMessagesHandler(
         make_unique<PingMessagesHandler>(
-            mContractorsManager,
+            contractorsManager,
             IOService,
             logger))
 {
+    if (!host.empty()) {
+        mSocket = make_unique<UDPSocket>(
+            IOService,
+            udp::endpoint(
+                address::from_string(host),
+                port));
+        logger.info("Communicator mSocket ") << host << ":" << port;
+    } else {
+        mSocket = make_unique<UDPSocket>(
+            IOService,
+            udp::endpoint(
+                udp::v4(),
+                contractorsManager->selfContractor()->mainAddress()->port()));
+        logger.info("Communicator mSocket v4()") << ":" << port;
+    }
+
+    mIncomingMessagesHandler =
+        make_unique<IncomingMessagesHandler>(
+            IOService,
+            *mSocket,
+            contractorsManager,
+            tailManager,
+            logger);
+
+    mOutgoingMessagesHandler =
+        make_unique<OutgoingMessagesHandler>(
+            IOService,
+            *mSocket,
+            contractorsManager,
+            providingHandler,
+            logger);
+
     // Direct signals chaining.
     mIncomingMessagesHandler->signalMessageParsed.connect(
         boost::bind(
