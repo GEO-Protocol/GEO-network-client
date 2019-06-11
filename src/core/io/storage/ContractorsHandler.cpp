@@ -185,7 +185,7 @@ void ContractorsHandler::saveConfirmationInfo(
 void ContractorsHandler::updateCryptoKey(
     Contractor::Shared contractor)
 {
-    string query = "UPDATE " + mTableName + " SET crypto_key = ? WHERE id = ?;";
+    string query = "UPDATE " + mTableName + " SET crypto_key = ?, is_confirmed = 1 WHERE id = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -218,6 +218,50 @@ void ContractorsHandler::updateCryptoKey(
 #endif
     } else {
         throw IOError("ContractorsHandler::updateCryptoKey: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+
+    if (sqlite3_changes(mDataBase) == 0) {
+        throw ValueError("No data were modified");
+    }
+}
+
+void ContractorsHandler::updateChannelIdOnContractorSide(
+    Contractor::Shared contractor)
+{
+    string query = "UPDATE " + mTableName + " SET id_on_contractor_side = ? WHERE id = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorsHandler::updateChannelIdOnContractorSide: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+
+    auto cryptoKey = contractor->cryptoKey();
+    vector<byte> cryptoKeyBlob;
+    if(cryptoKey) {
+        cryptoKey->serialize(cryptoKeyBlob);
+    }
+    rc = sqlite3_bind_int(stmt, 1, contractor->ownIdOnContractorSide());
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorsHandler::updateChannelIdOnContractorSide: "
+                          "Bad binding of ChannelOnContractorSide; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 2, contractor->getID());
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorsHandler::updateChannelIdOnContractorSide: "
+                          "Bad binding of ID; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "updateing is completed successfully";
+#endif
+    } else {
+        throw IOError("ContractorsHandler::updateChannelIdOnContractorSide: "
                           "Run query; sqlite error: " + to_string(rc));
     }
 

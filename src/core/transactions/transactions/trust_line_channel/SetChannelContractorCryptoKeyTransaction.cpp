@@ -51,7 +51,15 @@ TransactionResult::SharedConst SetChannelContractorCryptoKeyTransaction::runInit
             mCommand->cryptoKey());
         info() << "Crypto key updated";
 
-        // todo : send InitChannelMessage
+        if (mCommand->channelIDOnContractorSide() != ContractorsManager::kNotFoundContractorID) {
+            info() << "New channels ID on contractor side " << mCommand->channelIDOnContractorSide();
+            mContractorsManager->updateChannelIDOnContractorSide(
+                ioTransaction,
+                mCommand->contractorChannelID(),
+                mCommand->channelIDOnContractorSide());
+            info() << "Channel ID on contractor side updated";
+        }
+
     } catch (IOError &e) {
         ioTransaction->rollback();
         error() << "Error during saving data into database. Details: " << e.what();

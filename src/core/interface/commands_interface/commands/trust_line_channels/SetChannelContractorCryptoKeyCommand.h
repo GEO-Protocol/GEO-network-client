@@ -20,9 +20,12 @@ public:
 
     const ContractorID contractorChannelID() const;
 
+    const ContractorID channelIDOnContractorSide() const;
+
 private:
     string mCryptoKey;
     ContractorID mContractorChannelID;
+    ContractorID mChannelIDOnContractorSide;
 };
 
 

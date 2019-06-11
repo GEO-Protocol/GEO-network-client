@@ -118,6 +118,19 @@ bool Contractor::containsAddresses(
     return true;
 }
 
+bool Contractor::containsAtLeastOneAddress(
+    vector<BaseAddress::Shared> addresses) const
+{
+    for (const auto &address : addresses) {
+        for (const auto &contractorAddress : mAddresses) {
+            if (contractorAddress == address) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 BytesShared Contractor::serializeToBytes() const
 {
     BytesShared dataBytesShared = tryCalloc(serializedSize());

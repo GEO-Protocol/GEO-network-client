@@ -28,6 +28,13 @@ TransactionResult::SharedConst ConfirmChannelTransaction::run()
         return resultDone();
     }
 
+    if (mContractorsManager->selfContractor()->containsAtLeastOneAddress(
+        mMessage->senderAddresses)) {
+        warning() << "Contractor's addresses contain at least one address is equal to own address";
+        // todo : send reply
+        return resultDone();
+    }
+
     auto contractorID = mContractorsManager->contractorIDByAddresses(
         mMessage->senderAddresses);
     if (contractorID == ContractorsManager::kNotFoundContractorID) {

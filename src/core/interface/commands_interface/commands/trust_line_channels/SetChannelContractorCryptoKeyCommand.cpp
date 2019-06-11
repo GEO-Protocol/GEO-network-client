@@ -18,6 +18,10 @@ SetChannelContractorCryptoKeyCommand::SetChannelContractorCryptoKeyCommand(
     auto contractorChannelIDParse = [&](auto &ctx) {
         mContractorChannelID = _attr(ctx);
     };
+    mChannelIDOnContractorSide = std::numeric_limits<ContractorID>::max();
+    auto channelIDOnContractorSideParse = [&](auto &ctx) {
+        mChannelIDOnContractorSide = _attr(ctx);
+    };
 
     try {
         parse(
@@ -27,8 +31,9 @@ SetChannelContractorCryptoKeyCommand::SetChannelContractorCryptoKeyCommand(
         parse(
             command.begin(),
             command.end(),
-            +(int_[contractorChannelIDParse]-char_(kTokensSeparator)) > char_(kTokensSeparator)
-            >+(char_[cryptoKeyParse] - eol)
+            +(int_[contractorChannelIDParse] - char_(kTokensSeparator)) > char_(kTokensSeparator)
+            >+(char_[cryptoKeyParse] - (char_(kTokensSeparator) | eol))
+            >-(char_(kTokensSeparator) > (int_[channelIDOnContractorSideParse] - eol))
             > eol > eoi);
 
     } catch(...) {
@@ -50,4 +55,9 @@ const string &SetChannelContractorCryptoKeyCommand::cryptoKey() const
 const ContractorID SetChannelContractorCryptoKeyCommand::contractorChannelID() const
 {
     return mContractorChannelID;
+}
+
+const ContractorID SetChannelContractorCryptoKeyCommand::channelIDOnContractorSide() const
+{
+    return mChannelIDOnContractorSide;
 }

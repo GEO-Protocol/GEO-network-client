@@ -50,14 +50,18 @@ Communicator::Communicator(
             udp::endpoint(
                 address::from_string(host),
                 port));
-        logger.info("Communicator mSocket ") << host << ":" << port;
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+        logger.debug("Communicator mSocket ") << host << ":" << port;
+#endif
     } else {
         mSocket = make_unique<UDPSocket>(
             IOService,
             udp::endpoint(
                 udp::v4(),
                 contractorsManager->selfContractor()->mainAddress()->port()));
-        logger.info("Communicator mSocket v4()") << ":" << port;
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+        logger.debug("Communicator mSocket v4()") << ":" << port;
+#endif
     }
 
     mIncomingMessagesHandler =

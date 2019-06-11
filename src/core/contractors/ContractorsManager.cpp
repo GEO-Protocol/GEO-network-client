@@ -170,7 +170,24 @@ void ContractorsManager::updateContractorCryptoKey(
     }
 
     contractor->cryptoKey()->contractorPublicKey = make_shared<MsgEncryptor::PublicKey>(cryptoKey);
+    contractor->confirm();
     ioTransaction->contractorsHandler()->updateCryptoKey(
+        contractor);
+}
+
+void ContractorsManager::updateChannelIDOnContractorSide(
+    IOTransaction::Shared ioTransaction,
+    ContractorID contractorID,
+    ContractorID channelIdOnContractorSide)
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+
+    auto contractor = mContractors[contractorID];
+
+    contractor->setOwnIdOnContractorSide(channelIdOnContractorSide);
+    ioTransaction->contractorsHandler()->updateChannelIdOnContractorSide(
         contractor);
 }
 

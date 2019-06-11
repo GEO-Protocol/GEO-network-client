@@ -47,6 +47,11 @@ public:
         ContractorID contractorID,
         const string cryptoKey);
 
+    void updateChannelIDOnContractorSide(
+        IOTransaction::Shared ioTransaction,
+        ContractorID contractorID,
+        ContractorID channelIdOnContractorSide);
+
     void regenerateCryptoKey(
         IOTransaction::Shared ioTransaction,
         ContractorID contractorID);

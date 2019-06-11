@@ -41,6 +41,11 @@ TransactionResult::SharedConst InitChannelTransaction::runInitializationStage()
         warning() << "Contractor addresses are empty";
         return resultProtocolError();
     }
+    if (mContractorsManager->selfContractor()->containsAtLeastOneAddress(
+        mCommand->contractorAddresses())) {
+        warning() << "Contractor's addresses contain at least one address is equal to own address";
+        return resultProtocolError();
+    }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     try {

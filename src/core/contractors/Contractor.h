@@ -51,6 +51,9 @@ public:
     bool containsAddresses(
         vector<BaseAddress::Shared>& addresses) const;
 
+    bool containsAtLeastOneAddress(
+        vector<BaseAddress::Shared> addresses) const;
+
     BytesShared serializeToBytes() const;
 
     size_t serializedSize() const;
