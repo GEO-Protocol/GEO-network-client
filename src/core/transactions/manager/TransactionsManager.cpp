@@ -32,7 +32,7 @@ TransactionsManager::TransactionsManager(
     mLog(logger),
     mSubsystemsController(subsystemsController),
     mTrustLinesInfluenceController(trustLinesInfluenceController),
-    isPaymentTransactionsAllowedDueToObserving(false),
+    isPaymentTransactionsAllowedDueToObserving(true),
 
     mScheduler(
         new TransactionsScheduler(

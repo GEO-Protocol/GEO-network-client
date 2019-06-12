@@ -1017,8 +1017,10 @@ TransactionResult::SharedConst BasePaymentTransaction::processNextNodeToCheckVot
         mCountRecoveryAttempts++;
         if (mCountRecoveryAttempts >= kMaxRecoveryAttempts) {
             debug() << "Max count recovery attempts";
-            mStep = Stages::Common_Observing;
-            return runObservingStage();
+            mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
+            mCountRecoveryAttempts = 0;
+            return resultAwakeAfterMilliseconds(
+                kWaitMillisecondsToTryInitialRecoverAgain);
         }
         debug() << "Sleep and try again later";
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;

@@ -117,6 +117,7 @@ public:
 private:
     static const uint32_t kInitialObservingRequestShiftSeconds = 5;
     static const uint32_t kInitialObservingRequestNextSeconds = 30;
+    static const BlockNumber kDefaultBlockNumber = 777;
 
     // 6 min for check one transaction state minimum 3 times
     static const uint32_t kTransactionCheckingSignalRepeatTimeSeconds = 360;
