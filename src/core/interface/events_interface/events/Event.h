@@ -16,6 +16,7 @@ public:
         InitTrustLine = 1,
         CloseTrustLine = 2,
         Payment = 3,
+        PaymentIncoming = 4,
     };
 
 public:
@@ -46,6 +47,12 @@ public:
         BaseAddress::Shared coordinatorAddress,
         BaseAddress::Shared receiverAddress,
         vector<vector<BaseAddress::Shared>>& paymentPaths,
+        SerializedEquivalent equivalent);
+
+    static Event::Shared paymentIncomingEvent(
+        BaseAddress::Shared coordinatorAddress,
+        BaseAddress::Shared receiverAddress,
+        const TrustLineAmount &amount,
         SerializedEquivalent equivalent);
 
 private:

@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
 
 #include "base/BasePaymentTransaction.h"
+#include "../../../../interface/events_interface/interface/EventsInterface.h"
 
 class ReceiverPaymentTransaction:
     public BasePaymentTransaction {
@@ -21,6 +22,7 @@ public:
         MaxFlowCacheManager *maxFlowCacheManager,
         ResourcesManager *resourcesManager,
         Keystore *keystore,
+        EventsInterface *eventsInterface,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -34,6 +36,7 @@ public:
         MaxFlowCacheManager *maxFlowCacheManager,
         ResourcesManager *resourcesManager,
         Keystore *keystore,
+        EventsInterface *eventsInterface,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -103,6 +106,7 @@ protected:
     const string logHeader() const override;
 
 protected:
+    EventsInterface *mEventsInterface;
     Contractor::Shared mCoordinator;
 
     TrustLineAmount mTransactionAmount;
