@@ -45,16 +45,16 @@ void TopologyTrustLinesManager::addTrustLine(
                 newTrustLineWithPtr));
     } else {
         auto hashSet = nodeIDAndSetFlows->second;
-        auto trLineWithPtr = hashSet->begin();
-        while (trLineWithPtr != hashSet->end()) {
-            if ((*trLineWithPtr)->topologyTrustLine()->targetID() == trustLine->targetID()) {
-                (*trLineWithPtr)->topologyTrustLine()->setAmount(trustLine->amount());
+        auto trLineWithPtrIt = hashSet->begin();
+        while (trLineWithPtrIt != hashSet->end()) {
+            if ((*trLineWithPtrIt)->topologyTrustLine()->targetID() == trustLine->targetID()) {
+                (*trLineWithPtrIt)->topologyTrustLine()->setAmount(trustLine->amount());
 
                 // update time creation of trustline
                 auto dateTimeAndTrustLine = mtTrustLines.begin();
                 while (dateTimeAndTrustLine != mtTrustLines.end()) {
-                    if (dateTimeAndTrustLine->second == *trLineWithPtr) {
-                        if (*(*trLineWithPtr)->topologyTrustLine()->amount() != TrustLine::kZeroAmount()) {
+                    if (dateTimeAndTrustLine->second == *trLineWithPtrIt) {
+                        if (*(*trLineWithPtrIt)->topologyTrustLine()->amount() != TrustLine::kZeroAmount()) {
                             mtTrustLines.erase(
                                 dateTimeAndTrustLine);
                             auto now = utc_now();
@@ -64,16 +64,11 @@ void TopologyTrustLinesManager::addTrustLine(
                             mtTrustLines.insert(
                                 make_pair(
                                     now,
-                                    *trLineWithPtr));
+                                    *trLineWithPtrIt));
                         } else {
-                            auto hashSetPtr = (*trLineWithPtr)->hashSetPtr();
-                            hashSetPtr->erase(*trLineWithPtr);
-                            if (hashSetPtr->empty()) {
-                                ContractorID keyID = (*trLineWithPtr)->topologyTrustLine()->sourceID();
-                                msTrustLines.erase(keyID);
-                                delete hashSetPtr;
-                            }
-                            delete *trLineWithPtr;
+                            auto trLineWithPtr = *trLineWithPtrIt;
+                            hashSet->erase(trLineWithPtr);
+                            delete trLineWithPtr;
                             mtTrustLines.erase(dateTimeAndTrustLine);
                         }
                         break;
@@ -83,9 +78,12 @@ void TopologyTrustLinesManager::addTrustLine(
 
                 break;
             }
-            trLineWithPtr++;
+            trLineWithPtrIt++;
         }
-        if (trLineWithPtr == hashSet->end()) {
+        if (hashSet->empty()) {
+            msTrustLines.erase(nodeIDAndSetFlows->first);
+            delete hashSet;
+        } else if (trLineWithPtrIt == hashSet->end()) {
             if (*trustLine->amount() == TrustLine::kZeroAmount()) {
                 return;
             }
