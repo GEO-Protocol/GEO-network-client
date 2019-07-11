@@ -183,6 +183,7 @@ BasePaymentTransaction::Shared TransactionsManager::deserializePaymentTransactio
                     mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
                     mResourcesManager,
                     mKeysStore,
+                    mEventsInterface,
                     mLog,
                     mSubsystemsController);
                 subscribeForBuildCyclesThreeNodesTransaction(
@@ -1147,6 +1148,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
             mResourcesManager,
             mKeysStore,
+            mEventsInterface,
             mLog,
             mSubsystemsController);
         subscribeForBuildCyclesThreeNodesTransaction(

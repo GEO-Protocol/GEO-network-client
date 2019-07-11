@@ -35,7 +35,6 @@ void EventsInterface::writeEvent(
             throw IOError("EventsInterface::writeEvent: Can't open FIFO file.");
         }
     }
-    sleep(2);
     if (write(mFIFODescriptor, event->data().get(), event->dataSize()) != event->dataSize()) {
         close(mFIFODescriptor);
 

@@ -11,6 +11,7 @@
 #include <boost/spirit/home/x3.hpp>
 
 using boost::spirit::x3::int_;
+using boost::spirit::x3::ulong_;
 using boost::spirit::x3::char_;
 using boost::spirit::x3::_attr;
 using boost::spirit::x3::repeat;

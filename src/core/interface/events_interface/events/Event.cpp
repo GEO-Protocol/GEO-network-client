@@ -81,3 +81,17 @@ Event::Shared Event::paymentEvent(
         EventType::Payment,
         ss.str());
 }
+
+Event::Shared Event::paymentIncomingEvent(
+    BaseAddress::Shared coordinatorAddress,
+    BaseAddress::Shared receiverAddress,
+    const TrustLineAmount &amount,
+    SerializedEquivalent equivalent)
+{
+    stringstream ss;
+    ss << equivalent << kTokensSeparator << coordinatorAddress->fullAddress()
+       << kTokensSeparator << receiverAddress->fullAddress() << kTokensSeparator << amount;
+    return make_shared<Event>(
+        EventType::PaymentIncoming,
+        ss.str());
+}
