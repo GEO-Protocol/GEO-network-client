@@ -53,7 +53,8 @@ public:
         BaseAddress::Shared coordinatorAddress,
         BaseAddress::Shared receiverAddress,
         const TrustLineAmount &amount,
-        SerializedEquivalent equivalent);
+        SerializedEquivalent equivalent,
+        const string &payload);
 
 private:
     EventType mEventIdentifier;

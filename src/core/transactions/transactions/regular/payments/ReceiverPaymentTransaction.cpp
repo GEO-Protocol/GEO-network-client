@@ -800,7 +800,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::approve()
                 mCoordinator->mainAddress(),
                 mContractorsManager->selfContractor()->mainAddress(),
                 mCommittedAmount,
-                mEquivalent));
+                mEquivalent,
+                mPayload));
     } catch (std::exception &e) {
         warning() << "Can't write payment event " << e.what();
     }

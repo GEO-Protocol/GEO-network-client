@@ -11,21 +11,21 @@ public:
     struct PublicKey {
         typedef std::shared_ptr<PublicKey> Shared;
         static const size_t kBytesSize = crypto_box_PUBLICKEYBYTES;
-        PublicKey() {}
+        PublicKey() = default;
         explicit PublicKey(const string &str);
         byte key[kBytesSize];
     };
     struct SecretKey {
         typedef std::shared_ptr<SecretKey> Shared;
         static const size_t kBytesSize = crypto_box_SECRETKEYBYTES;
-        SecretKey() {}
+        SecretKey() = default;
         explicit SecretKey(const string &str);
         byte key[kBytesSize];
     };
 
     struct KeyPair {
         typedef std::shared_ptr<KeyPair> Shared;
-        KeyPair() {}
+        KeyPair() = default;
         explicit KeyPair(const string &str);
         PublicKey::Shared publicKey = nullptr;
         SecretKey::Shared secretKey = nullptr;
@@ -40,6 +40,7 @@ public:
 
 public:
     static KeyPair::Shared generateKeyPair();
+    static PublicKey::Shared generateUndefinedKey();
 
 public:
     Buffer encrypt(byte *bytes, size_t size, size_t headerSize = 0) const;
