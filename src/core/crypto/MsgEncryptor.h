@@ -11,7 +11,7 @@ public:
 
     struct KeyTrio : KeyPair {
         typedef std::shared_ptr<KeyTrio> Shared;
-        KeyTrio();
+        KeyTrio() = default;
         explicit KeyTrio(const string &str);
         explicit KeyTrio(vector<byte> &in);
         void serialize(vector<byte> &out) const;
