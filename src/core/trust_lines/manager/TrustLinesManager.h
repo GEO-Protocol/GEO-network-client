@@ -15,6 +15,9 @@
 #include "../../crypto/keychain.h"
 #include "../../contractors/ContractorsManager.h"
 
+#include "../audit_rules/AuditRuleBoundaryOverflowed.h"
+#include "../audit_rules/AuditRuleCountPayments.h"
+
 #include <unordered_map>
 #include <vector>
 #include <set>
@@ -314,9 +317,6 @@ public:
     bool isTrustLineEmpty(
         ContractorID contractorID);
 
-    bool isTrustLineOverflowed(
-        ContractorID contractorID);
-
     void resetTrustLineTotalReceiptsAmounts(
         ContractorID contractorID);
 
@@ -376,6 +376,12 @@ public:
     vector<ContractorID> contractorsShouldBePinged() const;
 
     void clearContractorsShouldBePinged();
+
+    const bool auditRuleIsPresent (
+        ContractorID contractorID) const;
+
+    void resetAuditRule(
+        const ContractorID contractorID);
 
     // TODO remove after testing
     void printTLs();

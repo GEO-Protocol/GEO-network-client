@@ -231,6 +231,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
         mOwnSignatureAndKeyNumber.first);
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
 
+    mTrustLines->resetAuditRule(mContractorID);
     trustLineActionSignal(
         mContractorID,
         mEquivalent,
