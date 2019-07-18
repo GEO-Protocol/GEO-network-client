@@ -34,6 +34,10 @@ public:
         const TrustLineID trustLineID,
         const AuditNumber auditNumber);
 
+    uint32_t countReceiptsByNumber(
+        const TrustLineID trustLineID,
+        const AuditNumber auditNumber);
+
     void deleteRecords(
         const TransactionUUID &transactionUUID);
 

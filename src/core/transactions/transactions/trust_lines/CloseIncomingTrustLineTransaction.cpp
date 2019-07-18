@@ -343,6 +343,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
         return resultDone();
     }
 
+    mTrustLines->resetAuditRule(mContractorID);
     trustLineActionSignal(
         mContractorID,
         mEquivalent,

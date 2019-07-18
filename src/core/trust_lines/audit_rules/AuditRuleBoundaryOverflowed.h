@@ -10,6 +10,11 @@ public:
 public:
     AuditRuleBoundaryOverflowed();
 
+    bool check(
+        TrustLine::Shared trustLine,
+        IOTransaction::Shared ioTransaction=nullptr) override;
+
+    void reset() override;
 };
 
 

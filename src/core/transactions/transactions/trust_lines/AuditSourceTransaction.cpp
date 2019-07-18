@@ -401,6 +401,7 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         throw e;
     }
 
+    mTrustLines->resetAuditRule(mContractorID);
     trustLineActionSignal(
         mContractorID,
         mEquivalent,

@@ -383,6 +383,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
         throw e;
     }
 
+    mTrustLines->resetAuditRule(mContractorID);
     trustLineActionSignal(
         mContractorID,
         mEquivalent,

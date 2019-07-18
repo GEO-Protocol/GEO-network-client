@@ -309,7 +309,7 @@ const AuditRecord::Shared AuditHandler::getActualAudit(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        auto number = (KeyNumber)sqlite3_column_int(stmt, 0);
+        auto number = (AuditNumber)sqlite3_column_int(stmt, 0);
         auto incomingAmountBytes = (byte*)sqlite3_column_blob(stmt, 1);
         vector<byte> incomingAmountBufferBytes(
             incomingAmountBytes,
@@ -384,7 +384,7 @@ const AuditRecord::Shared AuditHandler::getActualAuditFull(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        auto number = (KeyNumber)sqlite3_column_int(stmt, 0);
+        auto number = (AuditNumber)sqlite3_column_int(stmt, 0);
         auto incomingAmountBytes = (byte*)sqlite3_column_blob(stmt, 1);
         vector<byte> incomingAmountBufferBytes(
             incomingAmountBytes,
@@ -446,6 +446,38 @@ const AuditRecord::Shared AuditHandler::getActualAuditFull(
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
         throw NotFoundError("AuditHandler::getActualAuditFull: "
+                                "There are no records with requested trust line id");
+    }
+}
+
+const AuditNumber AuditHandler::getActualAuditNumber(
+    TrustLineID trustLineID)
+{
+    string query = "SELECT number FROM " + mTableName
+                   + " WHERE trust_line_id = ? ORDER BY number DESC LIMIT 1;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("AuditHandler::getActualAuditNumber: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("AuditHandler::getActualAuditNumber: "
+                          "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        auto number = (AuditNumber)sqlite3_column_int(stmt, 0);
+
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        return number;
+    } else {
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+        throw NotFoundError("AuditHandler::getActualAuditNumber: "
                                 "There are no records with requested trust line id");
     }
 }

@@ -58,6 +58,9 @@ public:
     const AuditRecord::Shared getActualAuditFull(
         TrustLineID trustLineID);
 
+    const AuditNumber getActualAuditNumber(
+        TrustLineID trustLineID);
+
 private:
     LoggerStream info() const;
 

@@ -197,7 +197,6 @@ void TrustLine::setTotalIncomingReceiptsAmount(
     mTotalIncomingReceiptsAmount = amount;
 }
 
-// todo : need improve this logic or launch automatic audit by user configuration
 bool TrustLine::isTrustLineOverflowed() const
 {
     if (mTotalIncomingReceiptsAmount > mOutgoingTrustAmount
