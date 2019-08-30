@@ -67,15 +67,18 @@ Event::Shared Event::paymentEvent(
     BaseAddress::Shared coordinatorAddress,
     BaseAddress::Shared receiverAddress,
     vector<vector<BaseAddress::Shared>>& paymentPaths,
+    const TransactionUUID &transactionUUID,
     SerializedEquivalent equivalent)
 {
     stringstream ss;
-    ss << equivalent << kTokensSeparator << coordinatorAddress->fullAddress()
-        << kTokensSeparator << receiverAddress->fullAddress();
+    ss << equivalent << kTokensSeparator << transactionUUID
+       << kTokensSeparator << coordinatorAddress->fullAddress()
+       << kTokensSeparator << receiverAddress->fullAddress();
     for (const auto &path : paymentPaths) {
         for (const auto &nodeAddress : path) {
             ss << kTokensSeparator << nodeAddress->fullAddress();
         }
+        ss << kTokensSeparator << receiverAddress->fullAddress();
     }
     return make_shared<Event>(
         EventType::Payment,
