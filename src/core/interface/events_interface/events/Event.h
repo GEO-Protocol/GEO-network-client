@@ -4,6 +4,7 @@
 #include "../../../common/Constraints.h"
 #include "../../../common/memory/MemoryUtils.h"
 #include "../../../contractors/addresses/BaseAddress.h"
+#include "../../../transactions/transactions/base/TransactionUUID.h"
 #include <string>
 
 class Event {
@@ -47,6 +48,7 @@ public:
         BaseAddress::Shared coordinatorAddress,
         BaseAddress::Shared receiverAddress,
         vector<vector<BaseAddress::Shared>>& paymentPaths,
+        const TransactionUUID &transactionUUID,
         SerializedEquivalent equivalent);
 
     static Event::Shared paymentIncomingEvent(
