@@ -365,6 +365,9 @@ public:
         lamport::KeyHash::Shared ownKeysSetHash,
         lamport::KeyHash::Shared contractorKeysSetHash) const;
 
+    void removeAllTrustLineData(
+        IOTransaction::Shared ioTransaction);
+
 protected:
     /**
      * @brief checks "number" for it's range.

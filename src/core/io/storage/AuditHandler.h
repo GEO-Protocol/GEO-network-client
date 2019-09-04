@@ -61,6 +61,9 @@ public:
     const AuditNumber getActualAuditNumber(
         TrustLineID trustLineID);
 
+    void deleteRecords(
+        TrustLineID trustLineID);
+
 private:
     LoggerStream info() const;
 

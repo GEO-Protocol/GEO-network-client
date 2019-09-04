@@ -286,6 +286,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<ShareKeysCommand>(
                 command));
 
+    } else if (command->identifier() == RemoveTrustLineCommand::identifier()) {
+        launchRemoveTrustLineTransaction(
+            static_pointer_cast<RemoveTrustLineCommand>(
+                command));
+
     } else if (command->identifier() == CreditUsageCommand::identifier()) {
         launchCoordinatorPaymentTransaction(
             dynamic_pointer_cast<CreditUsageCommand>(
@@ -885,6 +890,28 @@ void TransactionsManager::launchConflictResolveContractorTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for ConflictResolverContractorTransaction "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
+    }
+}
+
+void TransactionsManager::launchRemoveTrustLineTransaction(
+    RemoveTrustLineCommand::Shared command)
+{
+    try {
+        auto transaction = make_shared<RemoveTrustLineTransaction>(
+            command,
+            mContractorsManager,
+            mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
+            mStorageHandler,
+            mKeysStore,
+            mLog);
+        prepareAndSchedule(
+            transaction,
+            true,
+            false,
+            false);
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for RemoveTrustLineTransaction "
+                   "with equivalent " << command->equivalent() << " Details are: " << e.what();
     }
 }
 

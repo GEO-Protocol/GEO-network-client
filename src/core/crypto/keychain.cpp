@@ -731,6 +731,17 @@ namespace crypto {
             *auditContractorKeysSetHash == *contractorKeysSetHash);
     }
 
+    void TrustLineKeychain::removeAllTrustLineData(
+        IOTransaction::Shared ioTransaction)
+    {
+        ioTransaction->outgoingPaymentReceiptHandler()->deleteRecords(mTrustLineID);
+        ioTransaction->incomingPaymentReceiptHandler()->deleteRecords(mTrustLineID);
+        ioTransaction->auditHandler()->deleteRecords(mTrustLineID);
+        ioTransaction->ownKeysHandler()->deleteKeysByTrustLineID(mTrustLineID);
+        ioTransaction->contractorKeysHandler()->deleteKeysByTrustLineID(mTrustLineID);
+        // todo : remove audit rules
+    }
+
     void TrustLineKeychain::keyNumberGuard(
         const KeyNumber &number) const
     {

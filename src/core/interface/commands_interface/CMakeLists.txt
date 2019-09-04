@@ -34,6 +34,8 @@ set(SOURCE_FILES
         commands/trust_lines/CloseIncomingTrustLineCommand.cpp
         commands/trust_lines/ShareKeysCommand.h
         commands/trust_lines/ShareKeysCommand.cpp
+        commands/trust_lines/RemoveTrustLineCommand.h
+        commands/trust_lines/RemoveTrustLineCommand.cpp
 
         commands/payments/CreditUsageCommand.cpp
         commands/payments/CreditUsageCommand.h

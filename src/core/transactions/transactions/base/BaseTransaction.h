@@ -62,6 +62,7 @@ public:
         ConflictResolverInitiatorTransactionType = 108,
         ConflictResolverContractorTransactionType = 109,
         CheckTrustLineAfterPaymentTransactionType = 110,
+        RemoveTrustLineTransactionType = 111,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction = 200,

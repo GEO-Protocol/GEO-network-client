@@ -59,6 +59,9 @@ public:
         const TrustLineID trustLineID,
         const KeyNumber keysSetSequenceNumber) const;
 
+    void deleteKeysByTrustLineID(
+        const TrustLineID trustLineID);
+
 private:
     LoggerStream info() const;
 
