@@ -285,11 +285,18 @@ public:
         const TrustLineAmount &outgoingAmount,
         const TrustLineBalance &balance);
 
+    void removeCancelledOwnAuditPart(
+        IOTransaction::Shared ioTransaction);
+
     void saveContractorAuditPart(
         IOTransaction::Shared ioTransaction,
         const AuditNumber auditNumber,
         const KeyNumber contractorKeyNumber,
         const lamport::Signature::Shared contractorSignature);
+
+    bool isAuditWasCancelled(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber);
 
     pair<lamport::Signature::Shared, KeyNumber> getSignatureAndKeyNumberForPendingAudit(
         IOTransaction::Shared ioTransaction,
@@ -364,6 +371,9 @@ public:
         IOTransaction::Shared ioTransaction,
         lamport::KeyHash::Shared ownKeysSetHash,
         lamport::KeyHash::Shared contractorKeysSetHash) const;
+
+    void removeAllTrustLineData(
+        IOTransaction::Shared ioTransaction);
 
 protected:
     /**

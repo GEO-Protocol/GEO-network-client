@@ -482,6 +482,72 @@ const AuditNumber AuditHandler::getActualAuditNumber(
     }
 }
 
+void AuditHandler::deleteRecords(
+    TrustLineID trustLineID)
+{
+    string query = "DELETE FROM " + mTableName + " WHERE trust_line_id = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("AuditHandler::deleteRecords: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("AuditHandler::deleteRecords: "
+                          "Bad binding of TrustLineID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "deleting is completed successfully";
+#endif
+    } else {
+        throw IOError("AuditHandler::deleteRecords: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+}
+
+void AuditHandler::deleteAuditByNumber(
+    TrustLineID trustLineID,
+    AuditNumber auditNumber)
+{
+    string query = "DELETE FROM " + mTableName + " WHERE trust_line_id = ? AND number = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("AuditHandler::deleteAuditByNumber: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("AuditHandler::deleteAuditByNumber: "
+                          "Bad binding of TrustLineID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 2, auditNumber);
+    if (rc != SQLITE_OK) {
+        throw IOError("AuditHandler::deleteAuditByNumber: "
+                          "Bad binding of auditNumber; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "deleting is completed successfully";
+#endif
+    } else {
+        throw IOError("AuditHandler::deleteAuditByNumber: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+
+    if (sqlite3_changes(mDataBase) == 0) {
+        throw ValueError("No data were deleted");
+    }
+}
+
 LoggerStream AuditHandler::info() const
 {
     return mLog.info(logHeader());

@@ -25,6 +25,9 @@ public:
     const BaseAuditRule::AuditRuleType getRule(
         TrustLineID trustLineID);
 
+    void removeAuditRules(
+        TrustLineID trustLineID);
+
 private:
     LoggerStream info() const;
 

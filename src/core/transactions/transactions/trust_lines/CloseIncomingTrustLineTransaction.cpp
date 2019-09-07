@@ -200,6 +200,22 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
 {
     if (mContext.empty()) {
         warning() << "Contractor don't send response.";
+
+        // check if audit was cancelled
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        auto keyChain = mKeysStore->keychain(
+            mTrustLines->trustLineID(mContractorID));
+        try {
+            if (keyChain.isAuditWasCancelled(ioTransaction, mAuditNumber)) {
+                info() << "Audit was cancelled by other audit transaction";
+                return resultDone();
+            }
+        } catch (IOError &e) {
+            error() << "Attempt to check if audit was cancelled failed. "
+                    << "IO transaction can't be completed. Details are: " << e.what();
+            throw e;
+        }
+
         if (mCountSendingAttempts < kMaxCountSendingAttempts) {
             sendMessage<AuditMessage>(
                 mContractorID,

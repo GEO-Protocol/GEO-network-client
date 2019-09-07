@@ -41,6 +41,9 @@ public:
     void deleteRecords(
         const TransactionUUID &transactionUUID);
 
+    void deleteRecords(
+        const TrustLineID trustLineID);
+
 private:
     LoggerStream info() const;
 
