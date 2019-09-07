@@ -64,6 +64,10 @@ public:
     void deleteRecords(
         TrustLineID trustLineID);
 
+    void deleteAuditByNumber(
+        TrustLineID trustLineID,
+        AuditNumber auditNumber);
+
 private:
     LoggerStream info() const;
 
