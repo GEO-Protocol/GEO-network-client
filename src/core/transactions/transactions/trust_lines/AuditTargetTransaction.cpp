@@ -88,7 +88,8 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
         }
     }
 
-    if (mTrustLines->trustLineState(mContractorID) != TrustLine::Active) {
+    if (mTrustLines->trustLineState(mContractorID) != TrustLine::Active and
+        mTrustLines->trustLineState(mContractorID) != TrustLine::Reset) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
         return sendAuditErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
@@ -209,6 +210,9 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             mAuditNumber);
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
             mContractorID);
+        mTrustLines->setTrustLineState(
+            mContractorID,
+            TrustLine::Active);
 
         if (mTrustLines->isTrustLineEmpty(mContractorID) and
                 !keyChain.isInitialAuditCondition(ioTransaction)) {

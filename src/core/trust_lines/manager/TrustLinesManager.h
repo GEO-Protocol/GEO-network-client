@@ -147,6 +147,12 @@ public:
         ContractorID contractorID,
         AuditNumber newAuditNumber);
 
+    void resetTrustLine(
+        ContractorID contractorID,
+        const TrustLineAmount &incomingTrustAmount,
+        const TrustLineAmount &outgoingTrustAmount,
+        const TrustLineBalance &balance);
+
     /**
      * @returns outgoing trust amount without considering present reservations.
      * @throws NotFoundError in case if no trust line from this contractor is present.

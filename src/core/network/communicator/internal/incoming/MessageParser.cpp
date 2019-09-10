@@ -108,6 +108,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::TrustLines_AuditConfirmation:
             return messageCollected<AuditResponseMessage>(buffer);
 
+        case Message::TrustLines_Reset:
+            return messageCollected<TrustLineResetMessage>(buffer);
+
         case Message::TrustLines_ConflictResolver:
             return messageCollected<ConflictResolverMessage>(buffer);
 

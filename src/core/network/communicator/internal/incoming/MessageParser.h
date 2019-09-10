@@ -21,6 +21,7 @@
 #include "../../../messages/trust_lines/AuditResponseMessage.h"
 #include "../../../messages/trust_lines/ConflictResolverMessage.h"
 #include "../../../messages/trust_lines/ConflictResolverResponseMessage.h"
+#include "../../../messages/trust_lines/TrustLineResetMessage.h"
 
 #include "../../../messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"

@@ -23,7 +23,10 @@ set(SOURCE_FILES
         ConflictResolverMessage.h
         ConflictResolverMessage.cpp
         ConflictResolverResponseMessage.h
-        ConflictResolverResponseMessage.cpp)
+        ConflictResolverResponseMessage.cpp
+
+        TrustLineResetMessage.h
+        TrustLineResetMessage.cpp)
 
 add_library(messages__trust_lines ${SOURCE_FILES})
 target_link_libraries(messages__trust_lines

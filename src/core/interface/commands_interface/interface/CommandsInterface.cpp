@@ -201,6 +201,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == ResetTrustLineCommand::identifier()) {
+            command = new ResetTrustLineCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == CreditUsageCommand::identifier()) {
             command = new CreditUsageCommand(
                 uuid,

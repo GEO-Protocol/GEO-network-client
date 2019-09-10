@@ -15,6 +15,7 @@
 #include "../commands/trust_lines/CloseIncomingTrustLineCommand.h"
 #include "../commands/trust_lines/ShareKeysCommand.h"
 #include "../commands/trust_lines/RemoveTrustLineCommand.h"
+#include "../commands/trust_lines/ResetTrustLineCommand.h"
 #include "../commands/payments/CreditUsageCommand.h"
 #include "../commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 #include "../commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h"

@@ -291,6 +291,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<RemoveTrustLineCommand>(
                 command));
 
+    } else if (command->identifier() == ResetTrustLineCommand::identifier()) {
+        launchResetTrustLineSourceTransaction(
+            static_pointer_cast<ResetTrustLineCommand>(
+                command));
+
     } else if (command->identifier() == CreditUsageCommand::identifier()) {
         launchCoordinatorPaymentTransaction(
             dynamic_pointer_cast<CreditUsageCommand>(
@@ -484,6 +489,10 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::TrustLines_ConflictResolver) {
         launchConflictResolveContractorTransaction(
             static_pointer_cast<ConflictResolverMessage>(message));
+
+    } else if (message->typeID() == Message::TrustLines_Reset) {
+        launchResetTrustLineDestinationTransaction(
+            static_pointer_cast<TrustLineResetMessage>(message));
 
     /*
      * Channels
@@ -912,6 +921,50 @@ void TransactionsManager::launchRemoveTrustLineTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for RemoveTrustLineTransaction "
                    "with equivalent " << command->equivalent() << " Details are: " << e.what();
+    }
+}
+
+void TransactionsManager::launchResetTrustLineSourceTransaction(
+    ResetTrustLineCommand::Shared command)
+{
+    try {
+        auto transaction = make_shared<ResetTrustLineSourceTransaction>(
+            command,
+            mContractorsManager,
+            mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
+            mStorageHandler,
+            mKeysStore,
+            mLog);
+        subscribeForAuditSignal(
+            transaction->auditSignal);
+        prepareAndSchedule(
+            transaction,
+            true,
+            false,
+            true);
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for ResetTrustLineSourceTransaction "
+                   "with equivalent " << command->equivalent() << " Details are: " << e.what();
+    }
+}
+
+void TransactionsManager::launchResetTrustLineDestinationTransaction(
+    TrustLineResetMessage::Shared message)
+{
+    try {
+        auto transaction = make_shared<ResetTrustLineDestinationTransaction>(
+            message,
+            mContractorsManager,
+            mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+            mLog);
+        prepareAndSchedule(
+            transaction,
+            false,
+            false,
+            true);
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for ResetTrustLineDestinationTransaction "
+                   "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 

@@ -43,6 +43,7 @@ public:
         TrustLines_AuditConfirmation = 107,
         TrustLines_ConflictResolver = 108,
         TrustLines_ConflictResolverConfirmation = 109,
+        TrustLines_Reset = 110,
 
         /*
          * Payments messages

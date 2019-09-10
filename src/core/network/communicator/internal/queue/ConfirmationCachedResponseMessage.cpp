@@ -37,6 +37,10 @@ TransactionMessage::Shared ConfirmationCachedResponseMessage::getCachedMessage(
         if (incomingMessage->transactionUUID() == mCachedMessage->transactionUUID()) {
             return mCachedMessage;
         }
+    } else if (incomingMessage->typeID() == Message::TrustLines_Reset) {
+        if (incomingMessage->transactionUUID() == mCachedMessage->transactionUUID()) {
+            return mCachedMessage;
+        }
     }
     return nullptr;
 }

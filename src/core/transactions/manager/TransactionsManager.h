@@ -31,6 +31,8 @@
 #include "../transactions/trust_lines/ConflictResolverContractorTransaction.h"
 #include "../transactions/trust_lines/CheckTrustLineTransaction.h"
 #include "../transactions/trust_lines/RemoveTrustLineTransaction.h"
+#include "../transactions/trust_lines/ResetTrustLineSourceTransaction.h"
+#include "../transactions/trust_lines/ResetTrustLineDestinationTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -216,6 +218,12 @@ protected: // Transactions
 
     void launchRemoveTrustLineTransaction(
         RemoveTrustLineCommand::Shared command);
+
+    void launchResetTrustLineSourceTransaction(
+        ResetTrustLineCommand::Shared command);
+
+    void launchResetTrustLineDestinationTransaction(
+        TrustLineResetMessage::Shared message);
 
     /*
      * Max flow transactions
