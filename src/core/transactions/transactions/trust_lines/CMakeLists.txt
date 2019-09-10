@@ -35,7 +35,13 @@ set(SOURCE_FILES
     CheckTrustLineTransaction.cpp
 
     RemoveTrustLineTransaction.h
-    RemoveTrustLineTransaction.cpp)
+    RemoveTrustLineTransaction.cpp
+
+    ResetTrustLineSourceTransaction.h
+    ResetTrustLineSourceTransaction.cpp
+
+    ResetTrustLineDestinationTransaction.h
+    ResetTrustLineDestinationTransaction.cpp )
 
 add_library(transactions__trustlines ${SOURCE_FILES})
 target_link_libraries(transactions__trustlines

@@ -29,6 +29,8 @@ public:
         Archived = 4,
         Conflict = 5,
         ConflictResolving = 6,
+        ResetPending = 7,
+        Reset = 8,
     };
 
 public:

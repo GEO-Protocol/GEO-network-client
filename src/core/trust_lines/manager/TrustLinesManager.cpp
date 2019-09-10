@@ -349,6 +349,24 @@ void TrustLinesManager::setTrustLineAuditNumber(
     trustLine->setAuditNumber(newAuditNumber);
 }
 
+void TrustLinesManager::resetTrustLine(
+    ContractorID contractorID,
+    const TrustLineAmount &incomingTrustAmount,
+    const TrustLineAmount &outgoingTrustAmount,
+    const TrustLineBalance &balance)
+{
+    if (not trustLineIsPresent(contractorID)) {
+        throw NotFoundError(
+                logHeader() + "::isContractorGateway: "
+                              "There is no trust line to this contractor.");
+    }
+    auto trustLine = mTrustLines[contractorID];
+    trustLine->setIncomingTrustAmount(incomingTrustAmount);
+    trustLine->setOutgoingTrustAmount(outgoingTrustAmount);
+    trustLine->setBalance(balance);
+    trustLine->setState(TrustLine::ResetPending);
+}
+
 const bool TrustLinesManager::isContractorGateway(
     ContractorID contractorID) const
 {
