@@ -1,7 +1,11 @@
 #include "EventsInterface.h"
 
 EventsInterface::EventsInterface(
+    string fifoName,
+    bool isBlocked,
     Logger &logger) :
+    mFIFOName(fifoName),
+    mIsBlocked(isBlocked),
     mLogger(logger)
 {
     if (!isFIFOExists()) {
@@ -26,9 +30,15 @@ void EventsInterface::writeEvent(
 {
     if (mFIFODescriptor == 0){
 #ifdef LINUX
-        mFIFODescriptor = open(
-            FIFOFilePath().c_str(),
-            O_WRONLY | O_RSYNC | O_DSYNC | F_SETFL | O_NONBLOCK);
+        if (mIsBlocked) {
+            mFIFODescriptor = open(
+                FIFOFilePath().c_str(),
+                O_WRONLY | O_RSYNC | O_DSYNC | F_SETFL);
+        } else {
+            mFIFODescriptor = open(
+                FIFOFilePath().c_str(),
+                O_WRONLY | O_RSYNC | O_DSYNC | F_SETFL | O_NONBLOCK);
+        }
 #endif
 
         if (mFIFODescriptor == -1) {
@@ -39,9 +49,15 @@ void EventsInterface::writeEvent(
         close(mFIFODescriptor);
 
 #ifdef LINUX
-        mFIFODescriptor = open(
-            FIFOFilePath().c_str(),
-            O_WRONLY | O_RSYNC | O_DSYNC | F_SETFL | O_NONBLOCK);
+        if (mIsBlocked) {
+            mFIFODescriptor = open(
+                FIFOFilePath().c_str(),
+                O_WRONLY | O_RSYNC | O_DSYNC | F_SETFL);
+        } else {
+            mFIFODescriptor = open(
+                FIFOFilePath().c_str(),
+                O_WRONLY | O_RSYNC | O_DSYNC | F_SETFL | O_NONBLOCK);
+        }
 #endif
 
         if (mFIFODescriptor == -1) {
@@ -56,5 +72,5 @@ void EventsInterface::writeEvent(
 
 const char *EventsInterface::FIFOName() const
 {
-    return kFIFOName;
+    return mFIFOName.c_str();
 }

@@ -13,7 +13,7 @@ TransactionsManager::TransactionsManager(
     StorageHandler *storageHandler,
     Keystore *keystore,
     FeaturesManager *featuresManager,
-    EventsInterface *eventsInterface,
+    EventsInterfaceManager *eventsInterfaceManager,
     TailManager *tailManager,
     Logger &logger,
     SubsystemsController *subsystemsController,
@@ -27,7 +27,7 @@ TransactionsManager::TransactionsManager(
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
     mFeaturesManager(featuresManager),
-    mEventsInterface(eventsInterface),
+    mEventsInterfaceManager(eventsInterfaceManager),
     mTailManager(tailManager),
     mLog(logger),
     mSubsystemsController(subsystemsController),
@@ -183,7 +183,7 @@ BasePaymentTransaction::Shared TransactionsManager::deserializePaymentTransactio
                     mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
                     mResourcesManager,
                     mKeysStore,
-                    mEventsInterface,
+                    mEventsInterfaceManager,
                     mLog,
                     mSubsystemsController);
                 subscribeForBuildCyclesThreeNodesTransaction(
@@ -667,7 +667,7 @@ void TransactionsManager::launchInitTrustLineTransaction(
         mContractorsManager,
         mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
         mStorageHandler,
-        mEventsInterface,
+        mEventsInterfaceManager,
         mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
         mSubsystemsController,
         mTrustLinesInfluenceController,
@@ -696,7 +696,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mSubsystemsController,
             mKeysStore,
             mFeaturesManager,
-            mEventsInterface,
+            mEventsInterfaceManager,
             mTrustLinesInfluenceController,
             mLog);
         subscribeForTrustLineActionSignal(
@@ -734,7 +734,7 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
             mSubsystemsController,
             mKeysStore,
             mFeaturesManager,
-            mEventsInterface,
+            mEventsInterfaceManager,
             mTrustLinesInfluenceController,
             mLog);
         subscribeForTrustLineActionSignal(
@@ -1184,7 +1184,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mEquivalentsSubsystemsRouter->pathsManager(command->equivalent()),
             mKeysStore,
             isPaymentTransactionsAllowedDueToObserving,
-            mEventsInterface,
+            mEventsInterfaceManager,
             mLog,
             mSubsystemsController);
         subscribeForBuildCyclesThreeNodesTransaction(
@@ -1228,7 +1228,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
             mResourcesManager,
             mKeysStore,
-            mEventsInterface,
+            mEventsInterfaceManager,
             mLog,
             mSubsystemsController);
         subscribeForBuildCyclesThreeNodesTransaction(
@@ -2634,7 +2634,7 @@ void TransactionsManager::onResumeTransactionSlot(
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mStorageHandler,
-                mEventsInterface,
+                mEventsInterfaceManager,
                 mEquivalentsSubsystemsRouter->iAmGateway(equivalent),
                 mSubsystemsController,
                 mTrustLinesInfluenceController,

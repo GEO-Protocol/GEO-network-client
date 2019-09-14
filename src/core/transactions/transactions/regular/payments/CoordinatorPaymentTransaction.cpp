@@ -12,7 +12,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     PathsManager *pathsManager,
     Keystore *keystore,
     bool isPaymentTransactionsAllowedDueToObserving,
-    EventsInterface *eventsInterface,
+    EventsInterfaceManager *eventsInterfaceManager,
     Logger &log,
     SubsystemsController *subsystemsController):
 
@@ -31,7 +31,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         subsystemsController),
     mCommand(command),
     mPathsManager(pathsManager),
-    mEventsInterface(eventsInterface),
+    mEventsInterfaceManager(eventsInterfaceManager),
     mReservationsStage(0),
     mDirectPathIsAlreadyProcessed(false),
     mCountReceiverInaccessible(0),
@@ -1526,7 +1526,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
             paymentEventPaths.push_back(path->intermediates());
         }
 
-        mEventsInterface->writeEvent(
+        mEventsInterfaceManager->writeEvent(
             Event::paymentEvent(
                 mContractorsManager->selfContractor()->mainAddress(),
                 mContractor->mainAddress(),

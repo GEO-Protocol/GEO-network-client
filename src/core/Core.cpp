@@ -90,7 +90,7 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initEventsInterface();
+    initCode = initEventsInterfaceManager(conf);
     if (initCode != 0) {
         return initCode;
     }
@@ -259,14 +259,34 @@ int Core::initResultsInterface()
     }
 }
 
-int Core::initEventsInterface()
+int Core::initEventsInterfaceManager(
+    const json &conf)
 {
+    auto eventsConf = mSettings->events(&conf);
+    vector<pair<string, bool>> filesToBlock;
+    vector<pair<string, SerializedEventType>> filesToEvents;
     try {
-        mEventsInterface = make_unique<EventsInterface>(
-            *mLog);
-        info() << "Events interface is successfully initialised";
-        return 0;
+        if (eventsConf == nullptr) {
+            info() << "There are no events in config";
+        } else {
+            for (const auto &eventConf : eventsConf) {
+                filesToBlock.emplace_back(
+                    eventConf.at("file").get<string>(),
+                    eventConf.at("blocked").get<bool>());
+                for (const auto &eventTypesConf : eventConf.at("events")) {
+                    filesToEvents.emplace_back(
+                        eventConf.at("file").get<string>(),
+                        (SerializedEventType)eventTypesConf);
+                }
+            }
+        }
 
+        mEventsInterfaceManager = make_unique<EventsInterfaceManager>(
+            filesToEvents,
+            filesToBlock,
+            *mLog);
+        info() << "Events interface manager is successfully initialised";
+        return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
         return -1;
@@ -281,7 +301,7 @@ int Core::initEquivalentsSubsystemsRouter(
             mStorageHandler.get(),
             mKeysStore.get(),
             mContractorsManager.get(),
-            mEventsInterface.get(),
+            mEventsInterfaceManager.get(),
             mIOService,
             equivalentIAmGateway,
             *mLog);
@@ -318,7 +338,7 @@ int Core::initTransactionsManager()
             mStorageHandler.get(),
             mKeysStore.get(),
             mFeaturesManager.get(),
-            mEventsInterface.get(),
+            mEventsInterfaceManager.get(),
             mTailManager.get(),
             *mLog,
             mSubsystemsController.get(),

@@ -56,4 +56,6 @@ typedef uint8_t EquivalentRegisterAddressLength;
 
 typedef uint32_t ProviderParticipantID;
 
+typedef uint16_t SerializedEventType;
+
 #endif //GEO_NETWORK_CLIENT_TYPES_H

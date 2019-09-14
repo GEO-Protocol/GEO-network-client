@@ -7,7 +7,10 @@ set(SOURCE_FILES
         interface/EventsInterface.cpp
 
         events/Event.h
-        events/Event.cpp)
+        events/Event.cpp
+
+        interface/EventsInterfaceManager.h
+        interface/EventsInterfaceManager.cpp)
 
 add_library(interface__events ${SOURCE_FILES})
 target_link_libraries(interface__events

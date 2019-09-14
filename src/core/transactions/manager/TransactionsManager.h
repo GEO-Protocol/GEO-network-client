@@ -3,7 +3,6 @@
 
 #include "../scheduler/TransactionsScheduler.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
-#include "../../interface/events_interface/interface/EventsInterface.h"
 #include "../../interface/commands_interface/commands/ErrorUserCommand.h"
 
 /*
@@ -114,7 +113,7 @@ public:
         StorageHandler *storageHandler,
         Keystore *keystore,
         FeaturesManager *featuresManager,
-        EventsInterface *eventsInterface,
+        EventsInterfaceManager *eventsInterfaceManager,
         TailManager *tailManager,
         Logger &logger,
         SubsystemsController *subsystemsController,
@@ -538,7 +537,7 @@ private:
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
     FeaturesManager *mFeaturesManager;
-    EventsInterface *mEventsInterface;
+    EventsInterfaceManager *mEventsInterfaceManager;
     TailManager *mTailManager;
     Logger &mLog;
     bool isPaymentTransactionsAllowedDueToObserving;
