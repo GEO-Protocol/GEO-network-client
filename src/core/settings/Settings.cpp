@@ -129,3 +129,19 @@ json Settings::providers(
         return nullptr;
     }
 }
+
+json Settings::events(
+    const json *conf) const
+{
+    if (conf == nullptr) {
+        auto j = loadParsedJSON();
+        conf = &j;
+    }
+    try {
+        auto result = (*conf).at("event_files");
+        return result;
+    } catch (...) {
+        // todo : throw RuntimeError
+        return nullptr;
+    }
+}

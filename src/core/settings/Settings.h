@@ -35,6 +35,9 @@ public:
     json providers(
         const json *conf = nullptr) const;
 
+    json events(
+        const json *conf = nullptr) const;
+
     json loadParsedJSON() const;
 };
 

@@ -5,7 +5,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    EventsInterface *eventsInterface,
+    EventsInterfaceManager *eventsInterfaceManager,
     bool iAmGateway,
     SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -20,7 +20,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mContractorsManager(contractorsManager),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mEventsInterface(eventsInterface),
+    mEventsInterfaceManager(eventsInterfaceManager),
     mSubsystemsController(subsystemsController),
     mTrustLinesInfluenceController(trustLinesInfluenceController),
     mIAmGateway(iAmGateway)
@@ -34,7 +34,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    EventsInterface *eventsInterface,
+    EventsInterfaceManager *eventsInterfaceManager,
     bool iAmGateway,
     SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -49,7 +49,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mContractorsManager(contractorsManager),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mEventsInterface(eventsInterface),
+    mEventsInterfaceManager(eventsInterfaceManager),
     mSubsystemsController(subsystemsController),
     mTrustLinesInfluenceController(trustLinesInfluenceController),
     mIAmGateway(iAmGateway)
@@ -273,7 +273,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
     }
 
     try {
-        mEventsInterface->writeEvent(
+        mEventsInterfaceManager->writeEvent(
             Event::initTrustLineEvent(
                 mContractorsManager->selfContractor()->mainAddress(),
                 mContractorsManager->contractorMainAddress(mContractorID),

@@ -8,7 +8,7 @@
 #include "network/communicator/Communicator.h"
 #include "interface/commands_interface/interface/CommandsInterface.h"
 #include "interface/results_interface/interface/ResultsInterface.h"
-#include "interface/events_interface/interface/EventsInterface.h"
+#include "interface/events_interface/interface/EventsInterfaceManager.h"
 #include "resources/manager/ResourcesManager.h"
 #include "transactions/manager/TransactionsManager.h"
 #include "io/storage/StorageHandler.h"
@@ -69,7 +69,8 @@ private:
 
     int initResultsInterface();
 
-    int initEventsInterface();
+    int initEventsInterfaceManager(
+        const json &conf);
 
     int initEquivalentsSubsystemsRouter(
         vector<SerializedEquivalent> equivalentIAmGateway);
@@ -210,7 +211,7 @@ protected:
     unique_ptr<Communicator> mCommunicator;
     unique_ptr<CommandsInterface> mCommandsInterface;
     unique_ptr<ResultsInterface> mResultsInterface;
-    unique_ptr<EventsInterface> mEventsInterface;
+    unique_ptr<EventsInterfaceManager> mEventsInterfaceManager;
     unique_ptr<ResourcesManager> mResourcesManager;
     unique_ptr<TransactionsManager> mTransactionsManager;
     unique_ptr<StorageHandler> mStorageHandler;

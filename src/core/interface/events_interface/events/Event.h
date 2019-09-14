@@ -29,6 +29,8 @@ public:
 
     const size_t dataSize() const;
 
+    const SerializedEventType type() const;
+
     static Event::Shared topologyEvent(
         BaseAddress::Shared nodeAddress,
         vector<BaseAddress::Shared>& nodeNeighbors,

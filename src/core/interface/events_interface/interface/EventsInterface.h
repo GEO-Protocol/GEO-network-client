@@ -9,6 +9,8 @@ class EventsInterface : public BaseFIFOInterface {
 
 public:
     explicit EventsInterface(
+        string fifoName,
+        bool isBlocked,
         Logger &logger);
 
     ~EventsInterface();
@@ -20,10 +22,11 @@ private:
     virtual const char* FIFOName() const;
 
 public:
-    static const constexpr char *kFIFOName = "events.fifo";
     static const constexpr unsigned int kPermissionsMask = 0755;
 
 private:
+    string mFIFOName;
+    bool mIsBlocked;
     Logger &mLogger;
 };
 

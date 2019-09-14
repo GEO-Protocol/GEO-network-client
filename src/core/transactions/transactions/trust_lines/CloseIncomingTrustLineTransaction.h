@@ -7,7 +7,7 @@
 #include "../../../topology/manager/TopologyTrustLinesManager.h"
 #include "../../../topology/cache/TopologyCacheManager.h"
 #include "../../../topology/cache/MaxFlowCacheManager.h"
-#include "../../../interface/events_interface/interface/EventsInterface.h"
+#include "../../../interface/events_interface/interface/EventsInterfaceManager.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 
 class CloseIncomingTrustLineTransaction : public BaseTrustLineTransaction {
@@ -27,7 +27,7 @@ public:
         SubsystemsController *subsystemsController,
         Keystore *keystore,
         FeaturesManager *featuresManager,
-        EventsInterface *eventsInterface,
+        EventsInterfaceManager *eventsInterfaceManager,
         TrustLinesInfluenceController *trustLinesInfluenceController,
         Logger &logger);
 
@@ -61,7 +61,7 @@ private:
     TopologyTrustLinesManager *mTopologyTrustLinesManager;
     TopologyCacheManager *mTopologyCacheManager;
     MaxFlowCacheManager *mMaxFlowCacheManager;
-    EventsInterface *mEventsInterface;
+    EventsInterfaceManager *mEventsInterfaceManager;
     SubsystemsController *mSubsystemsController;
 
     uint16_t mCountSendingAttempts;

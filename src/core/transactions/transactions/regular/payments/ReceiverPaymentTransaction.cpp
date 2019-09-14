@@ -11,7 +11,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     MaxFlowCacheManager *maxFlowCacheManager,
     ResourcesManager *resourcesManager,
     Keystore *keystore,
-    EventsInterface *eventsInterface,
+    EventsInterfaceManager *eventsInterfaceManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -31,7 +31,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         subsystemsController),
     mCoordinator(make_shared<Contractor>(message->senderAddresses)),
     mTransactionAmount(message->amount()),
-    mEventsInterface(eventsInterface),
+    mEventsInterfaceManager(eventsInterfaceManager),
     mTransactionShouldBeRejected(false)
 {
     mStep = Stages::Receiver_CoordinatorRequestApproving;
@@ -48,7 +48,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     MaxFlowCacheManager *maxFlowCacheManager,
     ResourcesManager *resourcesManager,
     Keystore *keystore,
-    EventsInterface *eventsInterface,
+    EventsInterfaceManager *eventsInterfaceManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -64,7 +64,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         keystore,
         log,
         subsystemsController),
-    mEventsInterface(eventsInterface)
+    mEventsInterfaceManager(eventsInterfaceManager)
 {}
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
@@ -795,7 +795,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::approve()
     BasePaymentTransaction::approve();
 
     try {
-        mEventsInterface->writeEvent(
+        mEventsInterfaceManager->writeEvent(
             Event::paymentIncomingEvent(
                 mCoordinator->mainAddress(),
                 mContractorsManager->selfContractor()->mainAddress(),

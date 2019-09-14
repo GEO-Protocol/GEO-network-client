@@ -24,6 +24,11 @@ const size_t Event::dataSize() const
     return to_string(mEventIdentifier).size() + mEventInformation.size() + 2;
 }
 
+const SerializedEventType Event::type() const
+{
+    return mEventIdentifier;
+}
+
 Event::Shared Event::topologyEvent(
     BaseAddress::Shared nodeAddress,
     vector<BaseAddress::Shared>& nodeNeighbors,

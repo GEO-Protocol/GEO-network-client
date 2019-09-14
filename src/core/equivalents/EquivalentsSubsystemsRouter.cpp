@@ -4,7 +4,7 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     StorageHandler *storageHandler,
     Keystore *keystore,
     ContractorsManager *contractorsManager,
-    EventsInterface *eventsInterface,
+    EventsInterfaceManager *eventsInterfaceManager,
     as::io_service &ioService,
     vector<SerializedEquivalent> &equivalentsIAmGateway,
     Logger &logger):
@@ -12,7 +12,7 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
     mContractorsManager(contractorsManager),
-    mEventsInterface(eventsInterface),
+    mEventsInterfaceManager(eventsInterfaceManager),
     mIOService(ioService),
     mLogger(logger)
 {
@@ -265,11 +265,33 @@ void EquivalentsSubsystemsRouter::sendTopologyEvent() const
 {
     for (const auto &trustLineManager : mTrustLinesManagers) {
         auto neighbors = trustLineManager.second->firstLevelNeighborsAddresses();
+        auto neighborIt = neighbors.begin();
+        auto previousBegin = neighborIt;
+        while (neighborIt != neighbors.end()) {
+            if (neighborIt - previousBegin >= kTopologyEventPortionSize) {
+                vector<BaseAddress::Shared> portionNeighbors;
+                copy(previousBegin, neighborIt, back_inserter(portionNeighbors));
+                try {
+                    mEventsInterfaceManager->writeEvent(
+                        Event::topologyEvent(
+                            mContractorsManager->selfContractor()->mainAddress(),
+                            portionNeighbors,
+                            trustLineManager.first));
+                } catch (std::exception &e) {
+                    warning() << "Can't write topology event " << e.what();
+                }
+                previousBegin = neighborIt;
+            } else {
+                neighborIt++;
+            }
+        }
+        vector<BaseAddress::Shared> portionNeighbors;
+        copy(previousBegin, neighborIt, back_inserter(portionNeighbors));
         try {
-            mEventsInterface->writeEvent(
+            mEventsInterfaceManager->writeEvent(
                 Event::topologyEvent(
                     mContractorsManager->selfContractor()->mainAddress(),
-                    neighbors,
+                    portionNeighbors,
                     trustLineManager.first));
         } catch (std::exception &e) {
             warning() << "Can't write topology event " << e.what();
@@ -278,7 +300,7 @@ void EquivalentsSubsystemsRouter::sendTopologyEvent() const
     if (mTrustLinesManagers.empty()) {
         try {
             vector<BaseAddress::Shared> emptyVector;
-            mEventsInterface->writeEvent(
+            mEventsInterfaceManager->writeEvent(
                 Event::topologyEvent(
                     mContractorsManager->selfContractor()->mainAddress(),
                     emptyVector,

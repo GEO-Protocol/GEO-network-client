@@ -11,7 +11,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     SubsystemsController *subsystemsController,
     Keystore *keystore,
     FeaturesManager *featuresManager,
-    EventsInterface *eventsInterface,
+    EventsInterfaceManager *eventsInterfaceManager,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger):
 
@@ -30,7 +30,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     mCountSendingAttempts(0),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
-    mEventsInterface(eventsInterface),
+    mEventsInterfaceManager(eventsInterfaceManager),
     mSubsystemsController(subsystemsController)
 {
     mAuditNumber = mTrustLines->auditNumber(mContractorID) + 1;
@@ -344,7 +344,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runResponseProce
             mTrustLines->setIsContractorKeysPresent(mContractorID, false);
             info() << "Trust Line become empty";
             try {
-                mEventsInterface->writeEvent(
+                mEventsInterfaceManager->writeEvent(
                     Event::closeTrustLineEvent(
                         mContractorsManager->selfContractor()->mainAddress(),
                         mContractorsManager->contractorMainAddress(mContractorID),
