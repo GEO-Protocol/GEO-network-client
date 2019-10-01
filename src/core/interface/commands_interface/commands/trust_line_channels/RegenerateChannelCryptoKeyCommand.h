@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_REGENERATECHANNELCRYPTOKEYCOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class RegenerateChannelCryptoKeyCommand : public BaseUserCommand {
 

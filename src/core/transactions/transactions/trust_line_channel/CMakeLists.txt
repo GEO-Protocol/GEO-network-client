@@ -11,6 +11,8 @@ set(SOURCE_FILES
     GetContractorListTransaction.cpp
     GetChannelInfoTransaction.h
     GetChannelInfoTransaction.cpp
+    GetChannelInfoByAddressesTransaction.h
+    GetChannelInfoByAddressesTransaction.cpp
 
     UpdateChannelAddressesInitiatorTransaction.h
     UpdateChannelAddressesInitiatorTransaction.cpp
