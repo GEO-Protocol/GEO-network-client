@@ -19,6 +19,8 @@ set(SOURCE_FILES
         commands/trust_line_channels/ContractorListCommand.cpp
         commands/trust_line_channels/GetChannelInfoCommand.h
         commands/trust_line_channels/GetChannelInfoCommand.cpp
+        commands/trust_line_channels/GetChannelInfoByAddressesCommand.h
+        commands/trust_line_channels/GetChannelInfoByAddressesCommand.cpp
         commands/trust_line_channels/SetChannelContractorAddressesCommand.h
         commands/trust_line_channels/SetChannelContractorAddressesCommand.cpp
         commands/trust_line_channels/SetChannelContractorCryptoKeyCommand.h

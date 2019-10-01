@@ -118,11 +118,12 @@ public:
         ConfirmChannelTransaction = 901,
         ContractorsList = 902,
         ChannelInfo = 903,
-        UpdateChannelAddressesInitiator = 904,
-        UpdateChannelAddressesTarget = 905,
-        SetChannelContractorAddresses = 906,
-        SetChannelContractorCryptoKey = 907,
-        RegenerateChannelCryptoKey = 908,
+        ChannelInfoByAddresses = 904,
+        UpdateChannelAddressesInitiator = 905,
+        UpdateChannelAddressesTarget = 906,
+        SetChannelContractorAddresses = 907,
+        SetChannelContractorCryptoKey = 908,
+        RegenerateChannelCryptoKey = 909,
 
         // Transactions
         TransactionByCommandUUIDType = 1000,

@@ -281,6 +281,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == GetChannelInfoByAddressesCommand::identifier()) {
+            command = new GetChannelInfoByAddressesCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == SubsystemsInfluenceCommand::identifier()) {
             return newCommand<SubsystemsInfluenceCommand>(
                 uuid,

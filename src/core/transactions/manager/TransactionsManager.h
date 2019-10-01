@@ -12,6 +12,7 @@
 #include "../transactions/trust_line_channel/ConfirmChannelTransaction.h"
 #include "../transactions/trust_line_channel/GetContractorListTransaction.h"
 #include "../transactions/trust_line_channel/GetChannelInfoTransaction.h"
+#include "../transactions/trust_line_channel/GetChannelInfoByAddressesTransaction.h"
 #include "../transactions/trust_line_channel/UpdateChannelAddressesInitiatorTransaction.h"
 #include "../transactions/trust_line_channel/UpdateChannelAddressesTargetTransaction.h"
 #include "../transactions/trust_line_channel/SetChannelContractorAddressesTransaction.h"
@@ -175,6 +176,9 @@ protected: // Transactions
 
     void launchGetChannelInfoTransaction(
         GetChannelInfoCommand::Shared command);
+
+    void launchGetChannelInfoByAddressesTransaction(
+        GetChannelInfoByAddressesCommand::Shared command);
 
     void launchUpdateChannelAddressesTargetTransaction(
         UpdateChannelAddressesMessage::Shared message);

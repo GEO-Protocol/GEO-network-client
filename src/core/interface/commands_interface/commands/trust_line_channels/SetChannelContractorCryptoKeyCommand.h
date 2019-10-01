@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_SETCHANNELCONTRACTORCRYPTOKEYCOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../../common/exceptions/ValueError.h"
 
 class SetChannelContractorCryptoKeyCommand : public BaseUserCommand {
 
