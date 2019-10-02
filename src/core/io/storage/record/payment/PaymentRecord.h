@@ -25,6 +25,8 @@ public:
         Contractor::Shared contractor,
         const TrustLineAmount &amount,
         const TrustLineBalance &balanceAfterOperation,
+        vector<pair<ContractorID, TrustLineAmount>> &outgoingTransfers,
+        vector<pair<ContractorID, TrustLineAmount>> &incomingTransfers,
         const string payload = "");
 
     PaymentRecord(
@@ -33,6 +35,8 @@ public:
         Contractor::Shared contractor,
         const TrustLineAmount &amount,
         const TrustLineBalance &balanceAfterOperation,
+        vector<pair<ContractorID, TrustLineAmount>> &outgoingTransfers,
+        vector<pair<ContractorID, TrustLineAmount>> &incomingTransfers,
         const CommandUUID &commandUUID,
         const string payload = "");
 
@@ -59,6 +63,8 @@ private:
     PaymentOperationType mPaymentOperationType;
     TrustLineAmount mAmount;
     TrustLineBalance mBalanceAfterOperation;
+    vector<pair<ContractorID, TrustLineAmount>> mOutgoingTransfers;
+    vector<pair<ContractorID, TrustLineAmount>> mIncomingTransfers;
     CommandUUID mCommandUUID;
     string mPayload;
 };

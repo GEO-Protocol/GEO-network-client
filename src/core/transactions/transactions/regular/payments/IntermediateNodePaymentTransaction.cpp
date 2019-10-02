@@ -1067,7 +1067,9 @@ void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentAdditionalRecord>(
             currentTransactionUUID(),
             PaymentAdditionalRecord::IntermediatePaymentType,
-            mCommittedAmount),
+            mCommittedAmount,
+            mOutgoingTransfers,
+            mIncomingTransfers),
         mEquivalent);
     debug() << "Operation saved";
 }

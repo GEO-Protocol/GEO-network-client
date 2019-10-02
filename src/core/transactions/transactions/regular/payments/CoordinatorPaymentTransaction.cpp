@@ -2059,6 +2059,8 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory(
             mContractor,
             mCommittedAmount,
             *mTrustLinesManager->totalBalance().get(),
+            mOutgoingTransfers,
+            mIncomingTransfers,
             mCommand->UUID(),
             mCommand->payload()),
         mEquivalent);

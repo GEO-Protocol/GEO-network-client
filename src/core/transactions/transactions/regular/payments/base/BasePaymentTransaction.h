@@ -511,6 +511,9 @@ protected:
     BlockNumber mMaximalClaimingBlockNumber;
     bool mBlockNumberObtainingInProcess;
 
+    vector<pair<ContractorID, TrustLineAmount>> mOutgoingTransfers;
+    vector<pair<ContractorID, TrustLineAmount>> mIncomingTransfers;
+
     string mPayload;
 };
 

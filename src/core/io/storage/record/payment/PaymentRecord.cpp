@@ -6,6 +6,8 @@ PaymentRecord::PaymentRecord(
     Contractor::Shared contractor,
     const TrustLineAmount &amount,
     const TrustLineBalance &balanceAfterOperation,
+    vector<pair<ContractorID, TrustLineAmount>> &outgoingTransfers,
+    vector<pair<ContractorID, TrustLineAmount>> &incomingTransfers,
     const string payload):
 
     Record(
@@ -15,6 +17,8 @@ PaymentRecord::PaymentRecord(
     mPaymentOperationType(operationType),
     mAmount(amount),
     mBalanceAfterOperation(balanceAfterOperation),
+    mOutgoingTransfers(outgoingTransfers),
+    mIncomingTransfers(incomingTransfers),
     mCommandUUID(CommandUUID::empty()),
     mPayload(payload)
 {}
@@ -25,6 +29,8 @@ PaymentRecord::PaymentRecord(
     Contractor::Shared contractor,
     const TrustLineAmount &amount,
     const TrustLineBalance &balanceAfterOperation,
+    vector<pair<ContractorID, TrustLineAmount>> &outgoingTransfers,
+    vector<pair<ContractorID, TrustLineAmount>> &incomingTransfers,
     const CommandUUID &commandUUID,
     const string payload):
 
@@ -35,6 +41,8 @@ PaymentRecord::PaymentRecord(
     mPaymentOperationType(operationType),
     mAmount(amount),
     mBalanceAfterOperation(balanceAfterOperation),
+    mOutgoingTransfers(outgoingTransfers),
+    mIncomingTransfers(incomingTransfers),
     mCommandUUID(commandUUID),
     mPayload(payload)
 {}
@@ -72,6 +80,60 @@ PaymentRecord::PaymentRecord(
     mBalanceAfterOperation = bytesToTrustLineBalance(
         balanceBytes);
     dataBufferOffset += kTrustLineBalanceSerializeBytesCount;
+
+    uint16_t outgoingTransfersCount;
+    memcpy(
+        &outgoingTransfersCount,
+        recordBody.get() + dataBufferOffset,
+        sizeof(uint16_t));
+    dataBufferOffset += sizeof(uint16_t);
+
+    mOutgoingTransfers.reserve(outgoingTransfersCount);
+    for (uint16_t idx = 0; idx < outgoingTransfersCount; idx++) {
+        ContractorID contractorID;
+        memcpy(
+            &contractorID,
+            recordBody.get() + dataBufferOffset,
+            sizeof(ContractorID));
+        dataBufferOffset += sizeof(ContractorID);
+
+        vector<byte> amountTransferBytes(
+            recordBody.get() + dataBufferOffset,
+            recordBody.get() + dataBufferOffset + kTrustLineAmountBytesCount);
+        dataBufferOffset += kTrustLineAmountBytesCount;
+
+        mOutgoingTransfers.emplace_back(
+            contractorID,
+            bytesToTrustLineAmount(
+                amountTransferBytes));
+    }
+
+    uint16_t incomingTransfersCount;
+    memcpy(
+        &incomingTransfersCount,
+        recordBody.get() + dataBufferOffset,
+        sizeof(uint16_t));
+    dataBufferOffset += sizeof(uint16_t);
+
+    mIncomingTransfers.reserve(incomingTransfersCount);
+    for (uint16_t idx = 0; idx < incomingTransfersCount; idx++) {
+        ContractorID contractorID;
+        memcpy(
+            &contractorID,
+            recordBody.get() + dataBufferOffset,
+            sizeof(ContractorID));
+        dataBufferOffset += sizeof(ContractorID);
+
+        vector<byte> amountTransferBytes(
+            recordBody.get() + dataBufferOffset,
+            recordBody.get() + dataBufferOffset + kTrustLineAmountBytesCount);
+        dataBufferOffset += kTrustLineAmountBytesCount;
+
+        mIncomingTransfers.emplace_back(
+            contractorID,
+            bytesToTrustLineAmount(
+                amountTransferBytes));
+    }
 
     byte payloadLength;
     memcpy(
@@ -124,6 +186,10 @@ pair<BytesShared, size_t> PaymentRecord::serializedHistoryRecordBody() const
                             + mContractor->serializedSize()
                             + kTrustLineAmountBytesCount
                             + kTrustLineBalanceSerializeBytesCount
+                            + sizeof(uint16_t)
+                            + (sizeof(ContractorID) + kTrustLineAmountBytesCount) * mOutgoingTransfers.size()
+                            + sizeof(uint16_t)
+                            + (sizeof(ContractorID) + kTrustLineAmountBytesCount) * mIncomingTransfers.size()
                             + sizeof(byte)
                             + mPayload.length();
 
@@ -157,6 +223,52 @@ pair<BytesShared, size_t> PaymentRecord::serializedHistoryRecordBody() const
         trustBalanceBytes.data(),
         kTrustLineBalanceSerializeBytesCount);
     bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
+
+    auto outgoingTransfersCount = (uint16_t)mOutgoingTransfers.size();
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        &outgoingTransfersCount,
+        sizeof(uint16_t));
+    bytesBufferOffset += sizeof(uint16_t);
+
+    for (const auto &outgoingTransfer : mOutgoingTransfers) {
+        auto contractorID = outgoingTransfer.first;
+        memcpy(
+            bytesBuffer.get() + bytesBufferOffset,
+            &contractorID,
+            sizeof(ContractorID));
+        bytesBufferOffset += sizeof(ContractorID);
+
+        auto transferAmountBytes = trustLineAmountToBytes(outgoingTransfer.second);
+        memcpy(
+            bytesBuffer.get() + bytesBufferOffset,
+            transferAmountBytes.data(),
+            kTrustLineAmountBytesCount);
+        bytesBufferOffset += kTrustLineAmountBytesCount;
+    }
+
+    auto incomingTransfersCount = (uint16_t)mIncomingTransfers.size();
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        &incomingTransfersCount,
+        sizeof(uint16_t));
+    bytesBufferOffset += sizeof(uint16_t);
+
+    for (const auto &incomingTransfer : mIncomingTransfers) {
+        auto contractorID = incomingTransfer.first;
+        memcpy(
+            bytesBuffer.get() + bytesBufferOffset,
+            &contractorID,
+            sizeof(ContractorID));
+        bytesBufferOffset += sizeof(ContractorID);
+
+        auto transferAmountBytes = trustLineAmountToBytes(incomingTransfer.second);
+        memcpy(
+            bytesBuffer.get() + bytesBufferOffset,
+            transferAmountBytes.data(),
+            kTrustLineAmountBytesCount);
+        bytesBufferOffset += kTrustLineAmountBytesCount;
+    }
 
     auto payloadLength = (byte)mPayload.length();
     memcpy(

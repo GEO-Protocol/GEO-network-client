@@ -22,7 +22,9 @@ public:
     PaymentAdditionalRecord(
         const TransactionUUID &operationUUID,
         const PaymentAdditionalOperationType operationType,
-        const TrustLineAmount &amount);
+        const TrustLineAmount &amount,
+        vector<pair<ContractorID, TrustLineAmount>> &outgoingTransfers,
+        vector<pair<ContractorID, TrustLineAmount>> &incomingTransfers);
 
     PaymentAdditionalRecord(
         const TransactionUUID &operationUUID,
@@ -38,6 +40,8 @@ public:
 private:
     PaymentAdditionalOperationType mPaymentOperationType;
     TrustLineAmount mAmount;
+    vector<pair<ContractorID, TrustLineAmount>> mOutgoingTransfers;
+    vector<pair<ContractorID, TrustLineAmount>> mIncomingTransfers;
 };
 
 
