@@ -825,6 +825,8 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
             mPaymentParticipants[kCoordinatorPaymentNodeID],
             mCommittedAmount,
             *mTrustLinesManager->totalBalance().get(),
+            mOutgoingTransfers,
+            mIncomingTransfers,
             mPayload),
         mEquivalent);
     debug() << "Operation saved";

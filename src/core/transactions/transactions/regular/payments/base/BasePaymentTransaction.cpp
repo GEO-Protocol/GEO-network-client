@@ -592,6 +592,9 @@ void BasePaymentTransaction::commit(
                         << ") [" << kPathIDAndReservation.first << "]";
                 mContractorsForCycles.insert(
                     kNodeIDAndReservations.first);
+                mOutgoingTransfers.emplace_back(
+                    kNodeIDAndReservations.first,
+                    kPathIDAndReservation.second->amount());
             }
             else if (kPathIDAndReservation.second->direction() == AmountReservation::Incoming) {
                 debug() << "Committed reservation: [ <= ] " << kPathIDAndReservation.second->amount()
@@ -603,6 +606,9 @@ void BasePaymentTransaction::commit(
                     mContractorsForCycles.insert(
                         kNodeIDAndReservations.first);
                 }
+                mIncomingTransfers.emplace_back(
+                    kNodeIDAndReservations.first,
+                    kPathIDAndReservation.second->amount());
             }
 
             reservationDirection = kPathIDAndReservation.second->direction();

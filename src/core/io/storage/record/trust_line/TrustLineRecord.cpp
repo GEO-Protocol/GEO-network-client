@@ -43,6 +43,9 @@ TrustLineRecord::TrustLineRecord(
         TrustLineRecord::SerializedTrustLineOperationType);
     mTrustLineOperationType = (TrustLineOperationType)*operationType;
 
+    // todo : in future this parameter could be used for history with contractor by channel
+    dataBufferOffset += sizeof(ContractorID);
+
     mContractor = make_shared<Contractor>(
         recordBody.get() + dataBufferOffset);
     dataBufferOffset += mContractor->serializedSize();
@@ -76,7 +79,8 @@ const TrustLineAmount TrustLineRecord::amount() const
 
 pair<BytesShared, size_t> TrustLineRecord::serializedHistoryRecordBody() const
 {
-    size_t recordBodySize = sizeof(SerializedTrustLineOperationType) + mContractor->serializedSize();
+    size_t recordBodySize = sizeof(SerializedTrustLineOperationType) +
+            sizeof(ContractorID) + mContractor->serializedSize();
     if (mTrustLineOperationType != Closing &&
             mTrustLineOperationType != Rejecting) {
         recordBodySize += kTrustLineAmountBytesCount;
@@ -91,6 +95,13 @@ pair<BytesShared, size_t> TrustLineRecord::serializedHistoryRecordBody() const
         &mTrustLineOperationType,
         sizeof(SerializedTrustLineOperationType));
     bytesBufferOffset += sizeof(SerializedTrustLineOperationType);
+
+    auto contractorID = mContractor->getID();
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        &contractorID,
+        sizeof(ContractorID));
+    bytesBufferOffset += sizeof(ContractorID);
 
     auto contractorSerializedData = mContractor->serializeToBytes();
     memcpy(
