@@ -31,8 +31,6 @@ protected:
 
     TransactionResult::SharedConst resultProtocolError();
 
-    TransactionResult::SharedConst resultUnexpectedError();
-
 private:
     RemoveTrustLineCommand::Shared mCommand;
     ContractorsManager *mContractorsManager;

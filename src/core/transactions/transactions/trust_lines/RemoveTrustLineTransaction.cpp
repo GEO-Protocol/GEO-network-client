@@ -28,7 +28,8 @@ TransactionResult::SharedConst RemoveTrustLineTransaction::run()
     }
 
     try {
-        if (mTrustLines->trustLineState(mContractorID) != TrustLine::Archived) {
+        if (mTrustLines->trustLineState(mContractorID) != TrustLine::Archived and
+                mTrustLines->trustLineState(mContractorID) != TrustLine::Init) {
             warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
             return resultProtocolError();
         }
@@ -55,7 +56,7 @@ TransactionResult::SharedConst RemoveTrustLineTransaction::run()
     }
     info() << "TL was successfully deleted";
 
-    return resultDone();
+    return resultOK();
 }
 
 TransactionResult::SharedConst RemoveTrustLineTransaction::resultOK()
@@ -68,12 +69,6 @@ TransactionResult::SharedConst RemoveTrustLineTransaction::resultProtocolError()
 {
     return transactionResultFromCommand(
         mCommand->responseProtocolError());
-}
-
-TransactionResult::SharedConst RemoveTrustLineTransaction::resultUnexpectedError()
-{
-    return transactionResultFromCommand(
-        mCommand->responseUnexpectedError());
 }
 
 const string RemoveTrustLineTransaction::logHeader() const
