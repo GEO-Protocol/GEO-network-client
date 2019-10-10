@@ -791,7 +791,7 @@ vector<PaymentAdditionalRecord::Shared> HistoryStorage::allPaymentAdditionalReco
         throw IOError("HistoryStorage::allAdditionalPaymentRecords: "
                           "Bad binding of Equivalent; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_int(stmt, idxParam++, Record::PaymentRecordType);
+    rc = sqlite3_bind_int(stmt, idxParam++, Record::PaymentAdditionalRecordType);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::allAdditionalPaymentRecords: "
                           "Bad binding of RecordType; sqlite error: " + to_string(rc));
