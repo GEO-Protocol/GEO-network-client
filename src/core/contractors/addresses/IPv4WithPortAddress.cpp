@@ -5,6 +5,10 @@ IPv4WithPortAddress::IPv4WithPortAddress(
 {
     size_t addressSeparatorPos = fullAddress.find(
         kAddressSeparator);
+    if (addressSeparatorPos == string::npos) {
+        throw ValueError(
+                "IPv4WithPortAddress: can't parse address. There are no separator");
+    }
 
     auto addressStr = fullAddress.substr(
         0,

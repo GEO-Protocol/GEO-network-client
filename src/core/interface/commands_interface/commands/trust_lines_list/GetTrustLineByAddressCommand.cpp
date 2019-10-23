@@ -36,6 +36,13 @@ GetTrustLineByAddressCommand::GetTrustLineByAddressCommand(
                 addressType.erase();
                 break;
             }
+            case BaseAddress::GNS: {
+                mContractorAddresses.push_back(
+                    make_shared<GNSAddress>(
+                        address));
+                addressType.erase();
+                break;
+            }
             default:
                 throw ValueError("GetTrustLineByAddressCommand: cannot parse command. "
                     "Error occurred while parsing 'Contractor Address' token.");

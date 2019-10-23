@@ -3,7 +3,6 @@
 
 #include "../scheduler/TransactionsScheduler.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
-#include "../../interface/events_interface/interface/EventsInterface.h"
 #include "../../interface/commands_interface/commands/ErrorUserCommand.h"
 
 /*
@@ -13,6 +12,12 @@
 #include "../transactions/trust_line_channel/ConfirmChannelTransaction.h"
 #include "../transactions/trust_line_channel/GetContractorListTransaction.h"
 #include "../transactions/trust_line_channel/GetChannelInfoTransaction.h"
+#include "../transactions/trust_line_channel/GetChannelInfoByAddressesTransaction.h"
+#include "../transactions/trust_line_channel/UpdateChannelAddressesInitiatorTransaction.h"
+#include "../transactions/trust_line_channel/UpdateChannelAddressesTargetTransaction.h"
+#include "../transactions/trust_line_channel/SetChannelContractorAddressesTransaction.h"
+#include "../transactions/trust_line_channel/SetChannelContractorCryptoKeyTransaction.h"
+#include "../transactions/trust_line_channel/RegenerateChannelCryptoKeyTransaction.h"
 
 #include "../transactions/trust_lines/OpenTrustLineTransaction.h"
 #include "../transactions/trust_lines/AcceptTrustLineTransaction.h"
@@ -25,6 +30,9 @@
 #include "../transactions/trust_lines/ConflictResolverInitiatorTransaction.h"
 #include "../transactions/trust_lines/ConflictResolverContractorTransaction.h"
 #include "../transactions/trust_lines/CheckTrustLineTransaction.h"
+#include "../transactions/trust_lines/RemoveTrustLineTransaction.h"
+#include "../transactions/trust_lines/ResetTrustLineSourceTransaction.h"
+#include "../transactions/trust_lines/ResetTrustLineDestinationTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -106,7 +114,7 @@ public:
         StorageHandler *storageHandler,
         Keystore *keystore,
         FeaturesManager *featuresManager,
-        EventsInterface *eventsInterface,
+        EventsInterfaceManager *eventsInterfaceManager,
         TailManager *tailManager,
         Logger &logger,
         SubsystemsController *subsystemsController,
@@ -127,7 +135,7 @@ public:
         bool allowPaymentTransactions);
 
     /*
-     * Find paths transactions
+     * List of transactions which calls not from TransactionsManager
      */
     void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
@@ -151,6 +159,8 @@ public:
         const TransactionUUID& transactionUUID,
         BlockNumber maximalClaimingBlockNumber);
 
+    void launchUpdateChannelAddressesInitiatorTransaction();
+
 protected: // Transactions
     /*
      * Channel transactions
@@ -166,6 +176,21 @@ protected: // Transactions
 
     void launchGetChannelInfoTransaction(
         GetChannelInfoCommand::Shared command);
+
+    void launchGetChannelInfoByAddressesTransaction(
+        GetChannelInfoByAddressesCommand::Shared command);
+
+    void launchUpdateChannelAddressesTargetTransaction(
+        UpdateChannelAddressesMessage::Shared message);
+
+    void launchSetChannelContractorAddressesTransaction(
+        SetChannelContractorAddressesCommand::Shared command);
+
+    void launchSetChannelContractorCryptoKeyTransaction(
+        SetChannelContractorCryptoKeyCommand::Shared command);
+
+    void launchRegenerateChannelCryptoKeyTransaction(
+        RegenerateChannelCryptoKeyCommand::Shared command);
 
     /*
      * Trust lines transactions
@@ -193,6 +218,15 @@ protected: // Transactions
 
     void launchConflictResolveContractorTransaction(
         ConflictResolverMessage::Shared message);
+
+    void launchRemoveTrustLineTransaction(
+        RemoveTrustLineCommand::Shared command);
+
+    void launchResetTrustLineSourceTransaction(
+        ResetTrustLineCommand::Shared command);
+
+    void launchResetTrustLineDestinationTransaction(
+        TrustLineResetMessage::Shared message);
 
     /*
      * Max flow transactions
@@ -507,7 +541,7 @@ private:
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
     FeaturesManager *mFeaturesManager;
-    EventsInterface *mEventsInterface;
+    EventsInterfaceManager *mEventsInterfaceManager;
     TailManager *mTailManager;
     Logger &mLog;
     bool isPaymentTransactionsAllowedDueToObserving;

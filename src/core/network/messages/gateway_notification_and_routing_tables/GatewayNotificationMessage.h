@@ -19,12 +19,12 @@ public:
 
     const vector<SerializedEquivalent> gatewayEquivalents() const;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
-    const bool isAddToConfirmationRequiredMessagesHandler() const;
+    const bool isAddToConfirmationRequiredMessagesHandler() const override;
 
 protected:
-    virtual pair<BytesShared, size_t> serializeToBytes() const override;
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
     vector<SerializedEquivalent> mGatewayEquivalents;

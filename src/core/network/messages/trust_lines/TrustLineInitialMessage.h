@@ -11,20 +11,16 @@ public:
 public:
     TrustLineInitialMessage(
         const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
-        bool isContractorGateway)
-    noexcept;
+        bool isContractorGateway);
 
     TrustLineInitialMessage(
-        BytesShared buffer)
-        noexcept;
+        BytesShared buffer);
 
-    const MessageType typeID() const
-    noexcept;
+    const MessageType typeID() const override;
 
-    const bool isContractorGateway() const
-    noexcept;
+    const bool isContractorGateway() const;
 
     const bool isCheckCachedResponse() const override;
 

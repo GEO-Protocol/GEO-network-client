@@ -3,35 +3,17 @@
 
 Communicator::Communicator(
     IOService &IOService,
+    Host host,
+    Port port,
     ContractorsManager *contractorsManager,
     TailManager *tailManager,
+    ProvidingHandler *providingHandler,
     Logger &logger):
 
     mIOService(IOService),
     mContractorsManager(contractorsManager),
     mTailManager(tailManager),
     mLog(logger),
-    mSocket(
-        make_unique<UDPSocket>(
-            IOService,
-            udp::endpoint(
-                udp::v4(),
-                contractorsManager->selfContractor()->mainAddress()->port()))),
-
-    mIncomingMessagesHandler(
-        make_unique<IncomingMessagesHandler>(
-            IOService,
-            *mSocket,
-            mContractorsManager,
-            mTailManager,
-            logger)),
-
-    mOutgoingMessagesHandler(
-        make_unique<OutgoingMessagesHandler>(
-            IOService,
-            *mSocket,
-            mContractorsManager,
-            logger)),
 
     mCommunicatorStorageHandler(
         make_unique<CommunicatorStorageHandler>(
@@ -58,10 +40,46 @@ Communicator::Communicator(
 
     mPingMessagesHandler(
         make_unique<PingMessagesHandler>(
-            mContractorsManager,
+            contractorsManager,
             IOService,
             logger))
 {
+    if (!host.empty()) {
+        mSocket = make_unique<UDPSocket>(
+            IOService,
+            udp::endpoint(
+                address::from_string(host),
+                port));
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+        logger.debug("Communicator mSocket ") << host << ":" << port;
+#endif
+    } else {
+        mSocket = make_unique<UDPSocket>(
+            IOService,
+            udp::endpoint(
+                udp::v4(),
+                contractorsManager->selfContractor()->mainAddress()->port()));
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+        logger.debug("Communicator mSocket v4()") << ":" << port;
+#endif
+    }
+
+    mIncomingMessagesHandler =
+        make_unique<IncomingMessagesHandler>(
+            IOService,
+            *mSocket,
+            contractorsManager,
+            tailManager,
+            logger);
+
+    mOutgoingMessagesHandler =
+        make_unique<OutgoingMessagesHandler>(
+            IOService,
+            *mSocket,
+            contractorsManager,
+            providingHandler,
+            logger);
+
     // Direct signals chaining.
     mIncomingMessagesHandler->signalMessageParsed.connect(
         boost::bind(
@@ -218,12 +236,16 @@ void Communicator::onMessageReceived(
     else if (message->typeID() == Message::MaxFlow_Confirmation) {
         const auto kConfirmationMessage =
                 static_pointer_cast<MaxFlowCalculationConfirmationMessage>(message);
-            mConfirmationNotStronglyRequiredMessagesHandler->tryProcessConfirmation(
-                kConfirmationMessage);
-            return;
-    }
+        mConfirmationNotStronglyRequiredMessagesHandler->tryProcessConfirmation(
+            kConfirmationMessage);
+        return;
+    } else if (message->typeID() == Message::ProvidingAddressResponse) {
+        mOutgoingMessagesHandler->processProviderResponse(
+            static_pointer_cast<ProvidingAddressResponseMessage>(
+                message));
+        return;
 
-    else if (message->typeID() == Message::Channel_Init) {
+    } else if (message->typeID() == Message::Channel_Init) {
         const auto initMessage = static_pointer_cast<InitChannelMessage>(message);
         auto contractorID = mContractorsManager->contractorIDByAddresses(initMessage->senderAddresses);
         mConfirmationRequiredMessagesHandler->tryProcessConfirmation(make_shared<ConfirmationMessage>(
@@ -253,7 +275,7 @@ void Communicator::onMessageReceived(
         const auto kConfirmationMessage =
                 static_pointer_cast<ConfirmationMessage>(message);
         mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
-                kConfirmationMessage);
+            kConfirmationMessage);
         return;
     }
 

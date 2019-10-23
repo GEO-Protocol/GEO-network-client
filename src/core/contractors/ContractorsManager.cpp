@@ -8,12 +8,24 @@ ContractorsManager::ContractorsManager(
     mLogger(logger)
 {
     vector<BaseAddress::Shared> selfAddresses;
+    size_t idxOfMainAddress = 0;
+    size_t currentIdx = 0;
+    bool isMainAddressPresent = false;
     for (const auto &addressStr : ownAddressesStr) {
+        BaseAddress::Shared address;
         if (addressStr.first == "ipv4") {
             try {
-                selfAddresses.push_back(
-                    make_shared<IPv4WithPortAddress>(
-                        addressStr.second));
+                address = make_shared<IPv4WithPortAddress>(
+                    addressStr.second);
+
+            } catch (...) {
+                throw ValueError("ContractorsManager: can't create own address of type " + addressStr.first);
+            }
+
+        } else if (addressStr.first == "gns") {
+            try {
+                address = make_shared<GNSAddress>(
+                    addressStr.second);
             } catch (...) {
                 throw ValueError("ContractorsManager: can't create own address of type " + addressStr.first);
             }
@@ -22,24 +34,49 @@ ContractorsManager::ContractorsManager(
             throw ValueError("ContractorsManager: can't create own address. "
                                  "Wrong address type " + addressStr.first);
         }
+        selfAddresses.push_back(
+            address);
+        if (address->port() != 0) {
+            if (isMainAddressPresent) {
+                throw ValueError("ContractorsManager: more than one address have port");
+            }
+            idxOfMainAddress = currentIdx;
+            isMainAddressPresent = true;
+        }
+        currentIdx++;
     }
+    if (!isMainAddressPresent) {
+        throw ValueError("ContractorsManager: there are no address with port");
+    }
+    if (idxOfMainAddress != 0) {
+        auto tmp = selfAddresses[0];
+        selfAddresses[0] = selfAddresses[idxOfMainAddress];
+        selfAddresses[idxOfMainAddress] = tmp;
+    }
+
     mSelf = make_shared<Contractor>(selfAddresses);
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     for (const auto &contractor : ioTransaction->contractorsHandler()->allContractors()) {
         auto contractorAddresses = ioTransaction->addressHandler()->contractorAddresses(
             contractor->getID());
-        contractor->setAddresses(contractorAddresses);
+        contractor->setAddresses(
+            contractorAddresses);
         mContractors.insert(
             make_pair(
                 contractor->getID(),
                 contractor));
     }
 #ifdef DEBUG_LOG_TRUST_LINES_PROCESSING
+    debug() << "Contractors:";
     for (const auto &contractor : mContractors) {
         debug() << contractor.second->toString();
     }
-    debug() << "Own address " << mSelf->mainAddress()->fullAddress();
+    debug() << "Own addresses:";
+    for (const auto &address : mSelf->addresses()) {
+        debug() << address->fullAddress();
+    }
+    debug() << "Main address " << mSelf->mainAddress()->fullAddress();
 #endif
 }
 
@@ -115,6 +152,63 @@ void ContractorsManager::setConfirmationInfo(
     contractor->setOwnIdOnContractorSide(idOnContractorSide);
     contractor->confirm();
     ioTransaction->contractorsHandler()->saveConfirmationInfo(
+        contractor);
+}
+
+void ContractorsManager::updateContractorCryptoKey(
+    IOTransaction::Shared ioTransaction,
+    ContractorID contractorID,
+    const string cryptoKey)
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+
+    auto contractor = mContractors[contractorID];
+    if (!contractor->cryptoKey()) {
+        throw NotFoundError(logHeader() + " This contractor does not support encryption " + to_string(contractorID));
+    }
+
+    contractor->cryptoKey()->contractorPublicKey = make_shared<MsgEncryptor::PublicKey>(cryptoKey);
+    contractor->confirm();
+    ioTransaction->contractorsHandler()->updateCryptoKey(
+        contractor);
+}
+
+void ContractorsManager::updateChannelIDOnContractorSide(
+    IOTransaction::Shared ioTransaction,
+    ContractorID contractorID,
+    ContractorID channelIdOnContractorSide)
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+
+    auto contractor = mContractors[contractorID];
+
+    contractor->setOwnIdOnContractorSide(channelIdOnContractorSide);
+    ioTransaction->contractorsHandler()->updateChannelIdOnContractorSide(
+        contractor);
+}
+
+void ContractorsManager::regenerateCryptoKey(
+    IOTransaction::Shared ioTransaction,
+    ContractorID contractorID)
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+
+    auto contractor = mContractors[contractorID];
+    if (!contractor->cryptoKey()) {
+        throw NotFoundError(logHeader() + " This contractor does not support encryption " + to_string(contractorID));
+    }
+
+    auto regeneratedCryptoKey = MsgEncryptor::generateKeyTrio(
+        contractor->cryptoKey()->contractorPublicKey);
+    contractor->setCryptoKey(
+        regeneratedCryptoKey);
+    ioTransaction->contractorsHandler()->updateCryptoKey(
         contractor);
 }
 
@@ -237,6 +331,23 @@ ContractorID ContractorsManager::contractorIDByAddress(
 Contractor::Shared ContractorsManager::selfContractor() const
 {
     return mSelf;
+}
+
+void ContractorsManager::updateContractorAddresses(
+    IOTransaction::Shared ioTransaction,
+    ContractorID contractorID,
+    vector<BaseAddress::Shared> newAddresses)
+{
+    if (!contractorPresent(contractorID)) {
+        throw NotFoundError(logHeader() + " There is no contractor " + to_string(contractorID));
+    }
+    ioTransaction->addressHandler()->removeAddresses(contractorID);
+    for (const auto &address : newAddresses) {
+        ioTransaction->addressHandler()->saveAddress(
+            contractorID,
+            address);
+    }
+    mContractors.at(contractorID)->setAddresses(newAddresses);
 }
 
 const string ContractorsManager::logHeader() const

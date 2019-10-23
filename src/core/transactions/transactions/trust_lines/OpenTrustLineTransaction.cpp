@@ -5,7 +5,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    EventsInterface *eventsInterface,
+    EventsInterfaceManager *eventsInterfaceManager,
     bool iAmGateway,
     SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -20,7 +20,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mContractorsManager(contractorsManager),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mEventsInterface(eventsInterface),
+    mEventsInterfaceManager(eventsInterfaceManager),
     mSubsystemsController(subsystemsController),
     mTrustLinesInfluenceController(trustLinesInfluenceController),
     mIAmGateway(iAmGateway)
@@ -34,7 +34,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     ContractorsManager *contractorsManager,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    EventsInterface *eventsInterface,
+    EventsInterfaceManager *eventsInterfaceManager,
     bool iAmGateway,
     SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -49,7 +49,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mContractorsManager(contractorsManager),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mEventsInterface(eventsInterface),
+    mEventsInterfaceManager(eventsInterfaceManager),
     mSubsystemsController(subsystemsController),
     mTrustLinesInfluenceController(trustLinesInfluenceController),
     mIAmGateway(iAmGateway)
@@ -98,7 +98,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
     if (mTrustLines->trustLineIsPresent(mContractorID)) {
         if (mTrustLines->trustLineState(mContractorID) != TrustLine::Archived) {
             warning() << "Trust line already present.";
-            return resultProtocolError();
+            return resultTrustLineAlreadyExist();
         } else {
             info() << "Reopening of archived TL";
         }
@@ -138,7 +138,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runInitializationStage(
     sendMessage<TrustLineInitialMessage>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         mTransactionUUID,
         mIAmGateway);
     mCountSendingAttempts++;
@@ -187,7 +187,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runNextAttemptStage()
     sendMessage<TrustLineInitialMessage>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         mTransactionUUID,
         mIAmGateway);
     mCountSendingAttempts++;
@@ -207,7 +207,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
             sendMessage<TrustLineInitialMessage>(
                 mContractorID,
                 mEquivalent,
-                mContractorsManager->idOnContractorSide(mContractorID),
+                mContractorsManager->contractor(mContractorID),
                 mTransactionUUID,
                 mIAmGateway);
             mCountSendingAttempts++;
@@ -273,7 +273,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::runResponseProcessingSt
     }
 
     try {
-        mEventsInterface->writeEvent(
+        mEventsInterfaceManager->writeEvent(
             Event::initTrustLineEvent(
                 mContractorsManager->selfContractor()->mainAddress(),
                 mContractorsManager->contractorMainAddress(mContractorID),
@@ -304,6 +304,12 @@ TransactionResult::SharedConst OpenTrustLineTransaction::resultProtocolError()
 {
     return transactionResultFromCommand(
         mCommand->responseProtocolError());
+}
+
+TransactionResult::SharedConst OpenTrustLineTransaction::resultTrustLineAlreadyExist()
+{
+    return transactionResultFromCommand(
+        mCommand->responseAlreadyCreated());
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::resultUnexpectedError()

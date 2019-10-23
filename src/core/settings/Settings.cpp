@@ -92,3 +92,56 @@ string Settings::equivalentsRegistryAddress(
         return "";
     }
 }
+
+pair<string, uint16_t> Settings::interface(
+    const json *conf) const
+{
+    if (conf == nullptr) {
+        auto j = loadParsedJSON();
+        conf = &j;
+    }
+    pair<string, uint16_t> result;
+    try {
+        auto interface = (*conf).at("interface");
+        auto address = interface.at("host").get<string>();
+        auto port = (uint16_t)interface.at("port").get<int>();
+        return make_pair(
+            address,
+            port);
+    } catch (...) {
+        // todo : throw RuntimeError
+        return make_pair("", 0);
+    }
+}
+
+json Settings::providers(
+    const json *conf) const
+{
+    if (conf == nullptr) {
+        auto j = loadParsedJSON();
+        conf = &j;
+    }
+    try {
+        auto result = (*conf).at("providers");
+        return result;
+    } catch (...) {
+        // todo : throw RuntimeError
+        return nullptr;
+    }
+}
+
+json Settings::events(
+    const json *conf) const
+{
+    if (conf == nullptr) {
+        auto j = loadParsedJSON();
+        conf = &j;
+    }
+    try {
+        auto result = (*conf).at("event_files");
+        return result;
+    } catch (...) {
+        // todo : throw RuntimeError
+        return nullptr;
+    }
+}

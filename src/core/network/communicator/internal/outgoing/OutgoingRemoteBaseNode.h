@@ -9,8 +9,6 @@
 #include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../logger/Logger.h"
 #include "../../../../common/exceptions/Exception.h"
-#include "../../../../contractors/ContractorsManager.h"
-#include "../../../../crypto/MsgEncryptor.h"
 
 #include <boost/crc.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -20,17 +18,19 @@ namespace as = boost::asio;
 
 class OutgoingRemoteBaseNode {
 public:
+    typedef unique_ptr<OutgoingRemoteBaseNode> Unique;
+
+public:
     OutgoingRemoteBaseNode(
         UDPSocket &socket,
         IOService &ioService,
-        ContractorsManager *contractorsManager,
-        Logger &logger)
-        noexcept;
+        IPv4WithPortAddress::Shared remoteAddress,
+        Logger &logger);
 
     virtual ~OutgoingRemoteBaseNode();
 
     void sendMessage(
-        Message::Shared message)
+        pair<BytesShared, size_t>)
         noexcept;
 
     bool containsPacketsInQueue() const;
@@ -41,8 +41,6 @@ protected:
         size_t bytesCount)
     const noexcept;
 
-    MsgEncryptor::Buffer preprocessMessage(Message::Shared message) const;
-
     void populateQueueWithNewPackets(
         byte* messageData,
         const size_t bytesCount);
@@ -50,18 +48,18 @@ protected:
     PacketHeader::ChannelIndex nextChannelIndex()
         noexcept;
 
-    virtual void beginPacketsSending() = 0;
+    void beginPacketsSending();
 
-    virtual LoggerStream errors() const = 0;
+    LoggerStream errors() const;
 
-    virtual LoggerStream debug() const = 0;
+    LoggerStream debug() const;
 
 protected:
     IOService &mIOService;
     UDPSocket &mSocket;
-    ContractorsManager *mContractorsManager;
     Logger &mLog;
 
+    IPv4WithPortAddress::Shared mRemoteAddress;
     queue<pair<byte*, Packet::Size>> mPacketsQueue;
     PacketHeader::ChannelIndex mNextAvailableChannelIndex;
 

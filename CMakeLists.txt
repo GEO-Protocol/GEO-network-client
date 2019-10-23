@@ -60,6 +60,7 @@ IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
         -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_CYCLES_BUILDING_POCESSING
         -DDEBUG_LOG_OBSEVING_HANDLER
+        -DDEBUG_LOG_PROVIDING_HANDLER
     )
 
 ENDIF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
@@ -98,6 +99,7 @@ IF (${BUILD_CONFIGURATION} MATCHES "INTERNAL_TESTS")
         -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_CYCLES_BUILDING_POCESSING
         -DDEBUG_LOG_OBSEVING_HANDLER
+        -DDEBUG_LOG_PROVIDING_HANDLER
     )
 
     set(CMAKE_BUILD_TYPE "Release")
@@ -133,6 +135,7 @@ IF (${BUILD_CONFIGURATION} MATCHES "EXTERNAL_TESTS")
         -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_CYCLES_BUILDING_POCESSING
         -DDEBUG_LOG_OBSEVING_HANDLER
+        -DDEBUG_LOG_PROVIDING_HANDLER
     )
 
     set(CMAKE_BUILD_TYPE "Release")
@@ -193,6 +196,7 @@ add_subdirectory(src/core/crypto)
 add_subdirectory(src/core/contractors)
 add_subdirectory(src/core/observing)
 add_subdirectory(src/core/features)
+add_subdirectory(src/core/providing)
 
 
 #
@@ -241,4 +245,5 @@ target_link_libraries(geo_network_client
 
         contractors
         observing
-        features)
+        features
+        providing)

@@ -10,7 +10,20 @@ set(SOURCE_FILES
     GetContractorListTransaction.h
     GetContractorListTransaction.cpp
     GetChannelInfoTransaction.h
-    GetChannelInfoTransaction.cpp)
+    GetChannelInfoTransaction.cpp
+    GetChannelInfoByAddressesTransaction.h
+    GetChannelInfoByAddressesTransaction.cpp
+
+    UpdateChannelAddressesInitiatorTransaction.h
+    UpdateChannelAddressesInitiatorTransaction.cpp
+    UpdateChannelAddressesTargetTransaction.h
+    UpdateChannelAddressesTargetTransaction.cpp
+    SetChannelContractorAddressesTransaction.h
+    SetChannelContractorAddressesTransaction.cpp
+    SetChannelContractorCryptoKeyTransaction.h
+    SetChannelContractorCryptoKeyTransaction.cpp
+    RegenerateChannelCryptoKeyTransaction.h
+    RegenerateChannelCryptoKeyTransaction.cpp)
 
 add_library(transactions__channels ${SOURCE_FILES})
 target_link_libraries(transactions__channels

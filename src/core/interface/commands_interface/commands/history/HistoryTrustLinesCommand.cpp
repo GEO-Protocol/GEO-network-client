@@ -52,10 +52,10 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
                 > *(int_[historyCountParse])
                 > char_(kTokensSeparator)
                 > -(+(char_("null")[setTimeFromPresentNull]))
-                > -(int_[timeFromPresentAddMicroseconds])
+                > -(ulong_[timeFromPresentAddMicroseconds])
                 > char_(kTokensSeparator)
                 > -(+(char_("null")[setTimeToPresentNull]))
-                > -(int_[timeToPresentAddMicroseconds])
+                > -(ulong_[timeToPresentAddMicroseconds])
                 > char_(kTokensSeparator)
                 > int_[equivalentParse]
                 > eol > eoi));

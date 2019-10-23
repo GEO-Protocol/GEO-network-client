@@ -11,5 +11,6 @@ static const constexpr char kCommandsSeparator = '\n';
 static const constexpr char kTokensSeparator = '\t';
 static const constexpr char kUUIDSeparator = '-';
 static const constexpr char kAddressSeparator = ':';
+static const constexpr char kGNSAddressSeparator = '@';
 
 #endif //GEO_NETWORK_CLIENT_CONSTANTS_H

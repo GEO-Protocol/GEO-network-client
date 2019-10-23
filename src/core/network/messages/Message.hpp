@@ -43,6 +43,7 @@ public:
         TrustLines_AuditConfirmation = 107,
         TrustLines_ConflictResolver = 108,
         TrustLines_ConflictResolverConfirmation = 109,
+        TrustLines_Reset = 110,
 
         /*
          * Payments messages
@@ -111,12 +112,19 @@ public:
          * Channel
          */
         Channel_Init = 600,
+        Channel_Confirm = 601,
+        Channel_UpdateAddresses = 602,
 
         /*
          * Gateway notification & Routing tables
          */
         GatewayNotification = 700,
         RoutingTableResponse = 701,
+
+        /*
+         * Providing
+         */
+        ProvidingAddressResponse = 800,
 
         /*
          * DEBUG

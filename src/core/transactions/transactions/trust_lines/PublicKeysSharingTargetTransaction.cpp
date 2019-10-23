@@ -167,7 +167,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             Message::TrustLines_PublicKeysSharingInit,
             kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
             mEquivalent,
-            mContractorsManager->idOnContractorSide(mContractorID),
+            mContractorsManager->contractor(mContractorID),
             mTransactionUUID,
             mCurrentKeyNumber,
             mCurrentPublicKey->hash());
@@ -177,7 +177,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::runProcessKey
             Message::TrustLines_PublicKey,
             kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
             mEquivalent,
-            mContractorsManager->idOnContractorSide(mContractorID),
+            mContractorsManager->contractor(mContractorID),
             mTransactionUUID,
             mCurrentKeyNumber,
             mCurrentPublicKey->hash());
@@ -220,7 +220,7 @@ TransactionResult::SharedConst PublicKeysSharingTargetTransaction::sendKeyErrorC
     sendMessage<PublicKeyHashConfirmation>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         mTransactionUUID,
         errorState);
     return resultDone();

@@ -1,14 +1,12 @@
 #include "EquivalentMessage.h"
 
 EquivalentMessage::EquivalentMessage(
-    const SerializedEquivalent equivalent)
-    noexcept:
+    const SerializedEquivalent equivalent):
     mEquivalent(equivalent)
 {}
 
 EquivalentMessage::EquivalentMessage(
     BytesShared buffer)
-    noexcept
 {
     memcpy(
         &mEquivalent,

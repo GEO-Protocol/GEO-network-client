@@ -2,21 +2,21 @@
 
 TrustLineInitialMessage::TrustLineInitialMessage(
     const SerializedEquivalent equivalent,
-    ContractorID idOnSenderSide,
+    Contractor::Shared contractor,
     const TransactionUUID &transactionUUID,
-    bool isContractorGateway)
-    noexcept:
+    bool isContractorGateway):
 
     TransactionMessage(
         equivalent,
-        idOnSenderSide,
+        contractor->ownIdOnContractorSide(),
         transactionUUID),
     mIsContractorGateway(isContractorGateway)
-{}
+{
+    encrypt(contractor);
+}
 
 TrustLineInitialMessage::TrustLineInitialMessage(
-    BytesShared buffer)
-    noexcept :
+    BytesShared buffer):
     TransactionMessage(buffer)
 {
     // todo: use deserializer
@@ -31,13 +31,11 @@ TrustLineInitialMessage::TrustLineInitialMessage(
 
 
 const Message::MessageType TrustLineInitialMessage::typeID() const
-    noexcept
 {
     return Message::TrustLines_Initial;
 }
 
 const bool TrustLineInitialMessage::isContractorGateway() const
-    noexcept
 {
     return mIsContractorGateway;
 }

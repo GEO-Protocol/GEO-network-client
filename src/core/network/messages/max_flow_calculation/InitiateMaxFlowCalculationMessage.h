@@ -14,16 +14,14 @@ public:
     InitiateMaxFlowCalculationMessage(
         const SerializedEquivalent equivalent,
         vector<BaseAddress::Shared> &senderAddresses,
-        bool isSenderGateway)
-        noexcept;
+        bool isSenderGateway);
 
     InitiateMaxFlowCalculationMessage(
-        BytesShared buffer)
-        noexcept;
+        BytesShared buffer);
 
     bool isSenderGateway() const;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     pair<BytesShared, size_t> serializeToBytes() const override;
 

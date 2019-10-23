@@ -8,14 +8,14 @@ set(SOURCE_FILES
         manager/TopologyTrustLinesManager.h
         manager/TopologyTrustLinesManager.cpp
 
-        cashe/TopologyCache.h
-        cashe/TopologyCache.cpp
-        cashe/TopologyCacheManager.h
-        cashe/TopologyCacheManager.cpp
+        cache/TopologyCache.h
+        cache/TopologyCache.cpp
+        cache/TopologyCacheManager.h
+        cache/TopologyCacheManager.cpp
 
-        cashe/MaxFlowCache.h
-        cashe/MaxFlowCache.cpp
-        cashe/MaxFlowCacheManager.h
-        cashe/MaxFlowCacheManager.cpp)
+        cache/MaxFlowCache.h
+        cache/MaxFlowCache.cpp
+        cache/MaxFlowCacheManager.h
+        cache/MaxFlowCacheManager.cpp)
 
 add_library(topology ${SOURCE_FILES})

@@ -25,8 +25,9 @@ TransactionResult::SharedConst GetChannelInfoTransaction::run()
     for (const auto &address : contractor->addresses()) {
         ss << address->fullAddress() << kTokensSeparator;
     }
-    ss << contractor->isConfirmed() << kTokensSeparator;
-    ss << *contractor->cryptoKey()->publicKey << kCommandsSeparator;
+    ss << contractor->isConfirmed() << kTokensSeparator
+       << *contractor->cryptoKey()->publicKey << kTokensSeparator
+       << *contractor->cryptoKey()->contractorPublicKey << kCommandsSeparator;
     string kResultInfo = ss.str();
     return transactionResultFromCommand(
         mCommand->resultOk(

@@ -2,13 +2,10 @@
 #define GEO_NETWORK_CLIENT_EQUIVALENTSSUBSYSTEMSROUTER_H
 
 #include "../trust_lines/manager/TrustLinesManager.h"
-#include "../topology/manager/TopologyTrustLinesManager.h"
-#include "../topology/cashe/TopologyCacheManager.h"
 #include "../delayed_tasks/TopologyCacheUpdateDelayedTask.h"
-#include "../topology/cashe/MaxFlowCacheManager.h"
 #include "../paths/PathsManager.h"
 #include "../delayed_tasks/GatewayNotificationAndRoutingTablesDelayedTask.h"
-#include "../interface/events_interface/interface/EventsInterface.h"
+#include "../interface/events_interface/interface/EventsInterfaceManager.h"
 
 #include <map>
 
@@ -25,7 +22,7 @@ public:
         StorageHandler *storageHandler,
         Keystore *keystore,
         ContractorsManager *contractorsManager,
-        EventsInterface *eventsInterface,
+        EventsInterfaceManager *eventsInterfaceManager,
         as::io_service &ioService,
         vector<SerializedEquivalent> &equivalentsIAmGateway,
         Logger &logger);
@@ -84,12 +81,15 @@ private:
     void onGatewayNotificationSlot();
 
 private:
+    static const uint32_t kTopologyEventPortionSize = 100;
+
+private:
     map<SerializedEquivalent, bool> mIAmGateways;
     as::io_service &mIOService;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;
     ContractorsManager *mContractorsManager;
-    EventsInterface *mEventsInterface;
+    EventsInterfaceManager *mEventsInterfaceManager;
     Logger &mLogger;
     vector<SerializedEquivalent> mEquivalents;
     map<SerializedEquivalent, unique_ptr<TrustLinesManager>> mTrustLinesManagers;

@@ -26,6 +26,12 @@ public:
     void saveConfirmationInfo(
         Contractor::Shared contractor);
 
+    void updateCryptoKey(
+        Contractor::Shared contractor);
+
+    void updateChannelIdOnContractorSide(
+        Contractor::Shared contractor);
+
     vector<Contractor::Shared> allContractors();
 
     vector<ContractorID> allIDs();

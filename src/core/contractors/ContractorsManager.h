@@ -42,6 +42,20 @@ public:
         ContractorID idOnContractorSide,
         MsgEncryptor::PublicKey::Shared cryptoKey);
 
+    void updateContractorCryptoKey(
+        IOTransaction::Shared ioTransaction,
+        ContractorID contractorID,
+        const string cryptoKey);
+
+    void updateChannelIDOnContractorSide(
+        IOTransaction::Shared ioTransaction,
+        ContractorID contractorID,
+        ContractorID channelIdOnContractorSide);
+
+    void regenerateCryptoKey(
+        IOTransaction::Shared ioTransaction,
+        ContractorID contractorID);
+
     vector<BaseAddress::Shared> ownAddresses() const;
 
     vector<BaseAddress::Shared> contractorAddresses(
@@ -59,6 +73,11 @@ public:
     // returns id of contractor if addresses will be founded and kNotFoundContractorID otherwise
     ContractorID contractorIDByAddresses(
         vector<BaseAddress::Shared> &checkedAddresses) const;
+
+    void updateContractorAddresses(
+        IOTransaction::Shared ioTransaction,
+        ContractorID contractorID,
+        vector<BaseAddress::Shared> newAddresses);
 
 protected:
     const ContractorID nextFreeID(

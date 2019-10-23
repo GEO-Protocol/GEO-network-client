@@ -18,7 +18,10 @@ set(SOURCE_FILES
         ByteEncryptor.h
 
         MsgEncryptor.cpp
-        MsgEncryptor.h)
+        MsgEncryptor.h
+
+        ProviderMsgEncryptor.h
+        ProviderMsgEncryptor.cpp)
 
 add_library(crypto ${SOURCE_FILES})
 target_link_libraries(

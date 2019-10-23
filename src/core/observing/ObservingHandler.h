@@ -57,8 +57,7 @@ public:
         const TransactionUUID& transactionUUID);
 
 protected:
-    const string logHeader() const
-    noexcept;
+    const string logHeader() const override;
 
     void initialObservingRequest();
 
@@ -118,6 +117,7 @@ public:
 private:
     static const uint32_t kInitialObservingRequestShiftSeconds = 5;
     static const uint32_t kInitialObservingRequestNextSeconds = 30;
+    static const BlockNumber kDefaultBlockNumber = 777;
 
     // 6 min for check one transaction state minimum 3 times
     static const uint32_t kTransactionCheckingSignalRepeatTimeSeconds = 360;
@@ -155,7 +155,6 @@ private:
     // number of block getting with last response and response time
     pair<BlockNumber, DateTime> mLastUpdatedBlockNumber;
 
-    IOService &mIOService;
     as::steady_timer mBlockNumberRequestTimer;
     as::steady_timer mClaimsTimer;
     as::steady_timer mTransactionsTimer;

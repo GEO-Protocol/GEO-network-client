@@ -3,8 +3,7 @@
 InitiateMaxFlowCalculationMessage::InitiateMaxFlowCalculationMessage(
     const SerializedEquivalent equivalent,
     vector<BaseAddress::Shared> &senderAddresses,
-    bool isSenderGateway)
-    noexcept:
+    bool isSenderGateway):
     SenderMessage(
         equivalent,
         senderAddresses),
@@ -12,8 +11,7 @@ InitiateMaxFlowCalculationMessage::InitiateMaxFlowCalculationMessage(
 {}
 
 InitiateMaxFlowCalculationMessage::InitiateMaxFlowCalculationMessage(
-    BytesShared buffer)
-    noexcept:
+    BytesShared buffer):
     SenderMessage(buffer)
 {
     size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();

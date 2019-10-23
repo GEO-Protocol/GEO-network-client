@@ -19,6 +19,14 @@ set(SOURCE_FILES
         commands/trust_line_channels/ContractorListCommand.cpp
         commands/trust_line_channels/GetChannelInfoCommand.h
         commands/trust_line_channels/GetChannelInfoCommand.cpp
+        commands/trust_line_channels/GetChannelInfoByAddressesCommand.h
+        commands/trust_line_channels/GetChannelInfoByAddressesCommand.cpp
+        commands/trust_line_channels/SetChannelContractorAddressesCommand.h
+        commands/trust_line_channels/SetChannelContractorAddressesCommand.cpp
+        commands/trust_line_channels/SetChannelContractorCryptoKeyCommand.h
+        commands/trust_line_channels/SetChannelContractorCryptoKeyCommand.cpp
+        commands/trust_line_channels/RegenerateChannelCryptoKeyCommand.h
+        commands/trust_line_channels/RegenerateChannelCryptoKeyCommand.cpp
 
         commands/trust_lines/InitTrustLineCommand.h
         commands/trust_lines/InitTrustLineCommand.cpp
@@ -28,6 +36,10 @@ set(SOURCE_FILES
         commands/trust_lines/CloseIncomingTrustLineCommand.cpp
         commands/trust_lines/ShareKeysCommand.h
         commands/trust_lines/ShareKeysCommand.cpp
+        commands/trust_lines/RemoveTrustLineCommand.h
+        commands/trust_lines/RemoveTrustLineCommand.cpp
+        commands/trust_lines/ResetTrustLineCommand.h
+        commands/trust_lines/ResetTrustLineCommand.cpp
 
         commands/payments/CreditUsageCommand.cpp
         commands/payments/CreditUsageCommand.h

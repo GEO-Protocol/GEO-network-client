@@ -35,12 +35,6 @@ set(SOURCE_FILES
         internal/outgoing/OutgoingNodesHandler.h
         internal/outgoing/OutgoingNodesHandler.cpp
 
-        internal/outgoing/OutgoingRemoteNode.h
-        internal/outgoing/OutgoingRemoteNode.cpp
-
-        internal/outgoing/OutgoingRemoteAddressNode.h
-        internal/outgoing/OutgoingRemoteAddressNode.cpp
-
         # Confirmation required messages queue
         internal/queue/ConfirmationRequiredMessagesQueue.h
         internal/queue/ConfirmationRequiredMessagesQueue.cpp

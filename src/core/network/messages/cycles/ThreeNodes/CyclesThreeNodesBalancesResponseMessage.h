@@ -24,11 +24,9 @@ public:
 
     virtual pair<BytesShared, size_t> serializeToBytes() const override;
 
-    const MessageType typeID() const
-        noexcept;
+    const MessageType typeID() const override;
 
-    vector<BaseAddress::Shared> commonNodes()
-        noexcept;
+    vector<BaseAddress::Shared> commonNodes();
 
 protected:
     vector<BaseAddress::Shared> mNeighbors;

@@ -124,11 +124,21 @@ vector<BaseAddress::Shared> AddressHandler::contractorAddresses(
                             addressBytes));
                     break;
                 }
+                case BaseAddress::GNS: {
+                    result.push_back(
+                        make_shared<GNSAddress>(
+                            addressBytes));
+                    break;
+                }
                 default: {
                     throw ValueError("AddressHandler::contractorAddresses: "
                                              "Invalid address type: " + to_string(addressType));
                 }
             }
+        } catch (std::exception &e) {
+            throw Exception("AddressHandler::contractorAddresses. "
+                            "Unable to create address instance from DB of type " + to_string(addressType)
+                            + " Details: " + e.what());
         } catch (...) {
             throw Exception("AddressHandler::contractorAddresses. "
                                 "Unable to create address instance from DB of type " + to_string(addressType));
@@ -137,6 +147,38 @@ vector<BaseAddress::Shared> AddressHandler::contractorAddresses(
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return result;
+}
+
+void AddressHandler::removeAddresses(
+    ContractorID contractorID)
+{
+    string query = "DELETE FROM " + mTableName + " WHERE contractor_id = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("AddressHandler::removeAddresses: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, contractorID);
+    if (rc != SQLITE_OK) {
+        throw IOError("AddressHandler::removeAddresses: "
+                          "Bad binding of ContractorID; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "deleting is completed successfully";
+#endif
+    } else {
+        throw IOError("AddressHandler::removeAddresses: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+    if (sqlite3_changes(mDataBase) == 0) {
+        throw ValueError("No data were deleted");
+    }
 }
 
 LoggerStream AddressHandler::info() const

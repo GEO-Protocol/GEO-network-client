@@ -3,8 +3,7 @@
 
 TransactionMessage::TransactionMessage(
     const SerializedEquivalent equivalent,
-    const TransactionUUID &transactionUUID)
-    noexcept :
+    const TransactionUUID &transactionUUID):
 
     SenderMessage(
         equivalent,
@@ -15,8 +14,7 @@ TransactionMessage::TransactionMessage(
 TransactionMessage::TransactionMessage(
     const SerializedEquivalent equivalent,
     vector<BaseAddress::Shared> &senderAddresses,
-    const TransactionUUID &transactionUUID)
-    noexcept:
+    const TransactionUUID &transactionUUID):
 
     SenderMessage(
         equivalent,
@@ -27,8 +25,7 @@ TransactionMessage::TransactionMessage(
 TransactionMessage::TransactionMessage(
     const SerializedEquivalent equivalent,
     ContractorID idOnReceiverSide,
-    const TransactionUUID &transactionUUID)
-    noexcept:
+    const TransactionUUID &transactionUUID):
 
     SenderMessage(
         equivalent,
@@ -37,8 +34,7 @@ TransactionMessage::TransactionMessage(
 {}
 
 TransactionMessage::TransactionMessage(
-    BytesShared buffer)
-    noexcept :
+    BytesShared buffer):
 
     SenderMessage(buffer),
     mTransactionUUID([&buffer](const size_t parentOffset) -> const TransactionUUID {
@@ -54,13 +50,11 @@ TransactionMessage::TransactionMessage(
 {}
 
 const bool TransactionMessage::isTransactionMessage() const
-    noexcept
 {
     return true;
 }
 
 const TransactionUUID &TransactionMessage::transactionUUID() const
-    noexcept
 {
     return mTransactionUUID;
 }

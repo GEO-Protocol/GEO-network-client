@@ -9,6 +9,7 @@ CreditUsageCommand::CreditUsageCommand(
         identifier())
 {
     std::string address, amount, addressType;
+    size_t contractorAddressesCount;
     uint32_t flagAmount = 0;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
@@ -25,7 +26,7 @@ CreditUsageCommand::CreditUsageCommand(
         address += std::to_string(_attr(ctx));
     };
     auto addressesCountParse = [&](auto &ctx) {
-        mContractorAddressesCount = _attr(ctx);
+        contractorAddressesCount = _attr(ctx);
     };
     auto amountAddNumber = [&](auto &ctx) {
         amount += _attr(ctx);
@@ -39,6 +40,13 @@ CreditUsageCommand::CreditUsageCommand(
             case BaseAddress::IPv4_IncludingPort: {
                 mContractorAddresses.push_back(
                     make_shared<IPv4WithPortAddress>(
+                        address));
+                addressType.erase();
+                break;
+            }
+            case BaseAddress::GNS: {
+                mContractorAddresses.push_back(
+                    make_shared<GNSAddress>(
                         address));
                 addressType.erase();
                 break;
@@ -67,7 +75,7 @@ CreditUsageCommand::CreditUsageCommand(
             commandBuffer.begin(),
             commandBuffer.end(),
             *(int_[addressesCountParse]-char_(kTokensSeparator)) > char_(kTokensSeparator));
-        mContractorAddresses.reserve(mContractorAddressesCount);
+        mContractorAddresses.reserve(contractorAddressesCount);
         parse(
             commandBuffer.begin(),
             commandBuffer.end(), (
@@ -77,7 +85,7 @@ CreditUsageCommand::CreditUsageCommand(
                     decltype(addressAddNumber),
                     decltype(addressTypeParse),
                     decltype(addressAddToVector)>(
-                        mContractorAddressesCount,
+                        contractorAddressesCount,
                         addressAddChar,
                         addressAddNumber,
                         addressTypeParse,

@@ -14,13 +14,7 @@ public:
 public:
     PublicKeyMessage(
         const SerializedEquivalent equivalent,
-        const TransactionUUID &transactionUUID,
-        const KeyNumber number,
-        const lamport::PublicKey::Shared publicKey);
-
-    PublicKeyMessage(
-        const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
         const KeyNumber number,
         const lamport::PublicKey::Shared publicKey);
@@ -32,11 +26,11 @@ public:
 
     const lamport::PublicKey::Shared publicKey() const;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     const bool isCheckCachedResponse() const override;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const override;
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 protected:
     const size_t kOffsetToInheritedBytes() const override;

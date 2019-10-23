@@ -23,7 +23,7 @@ public:
 
     virtual pair<BytesShared, size_t> serializeToBytes()const override;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     vector<BaseAddress::Shared> suitableNodes() const;
 

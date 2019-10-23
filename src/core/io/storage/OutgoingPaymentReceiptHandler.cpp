@@ -211,6 +211,36 @@ vector<ReceiptRecord::Shared> OutgoingPaymentReceiptHandler::receiptsByAuditNumb
     return result;
 }
 
+uint32_t OutgoingPaymentReceiptHandler::countReceiptsByNumber(
+    const TrustLineID trustLineID,
+    const AuditNumber auditNumber)
+{
+    sqlite3_stmt *stmt;
+    string query = "SELECT COUNT(transaction_uuid) FROM "
+                   + mTableName + " WHERE trust_line_id = ? AND audit_number = ?";
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("OutgoingPaymentReceiptHandler::countReceiptsByNumber: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("OutgoingPaymentReceiptHandler::countReceiptsByNumber: "
+                          "Bad binding of TrustLineID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 2, auditNumber);
+    if (rc != SQLITE_OK) {
+        throw IOError("OutgoingPaymentReceiptHandler::countReceiptsByNumber: "
+                          "Bad binding of AuditNumber; sqlite error: " + to_string(rc));
+    }
+    sqlite3_step(stmt);
+    auto countReceipts = (uint32_t)sqlite3_column_int(stmt, 0);
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return countReceipts;
+}
+
 void OutgoingPaymentReceiptHandler::deleteRecords(
     const TransactionUUID &transactionUUID)
 {
@@ -235,6 +265,34 @@ void OutgoingPaymentReceiptHandler::deleteRecords(
 #endif
     } else {
         throw IOError("OutgoingPaymentReceiptHandler::deleteRecords: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+}
+
+void OutgoingPaymentReceiptHandler::deleteRecords(
+    const TrustLineID trustLineID)
+{
+    string query = "DELETE FROM " + mTableName + " WHERE trust_line_id = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("OutgoingPaymentReceiptHandler::deleteRecordsByTrustLineID: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("OutgoingPaymentReceiptHandler::deleteRecordsByTrustLineID: "
+                          "Bad binding of TrustLineID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "deleting is completed successfully";
+#endif
+    } else {
+        throw IOError("OutgoingPaymentReceiptHandler::deleteRecordsByTrustLineID: "
                           "Run query; sqlite error: " + to_string(rc));
     }
 }

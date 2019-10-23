@@ -431,6 +431,19 @@ namespace crypto {
             ownSignature);
     }
 
+    void TrustLineKeychain::removeCancelledOwnAuditPart(
+        IOTransaction::Shared ioTransaction)
+    {
+        auto actualAudit = ioTransaction->auditHandler()->getActualAuditFull(
+            mTrustLineID);
+        if (actualAudit->contractorSignature() != nullptr) {
+            throw ValueError("Current audit is signed by contractor");
+        }
+        ioTransaction->auditHandler()->deleteAuditByNumber(
+            mTrustLineID,
+            actualAudit->auditNumber());
+    }
+
     void TrustLineKeychain::saveContractorAuditPart(
         IOTransaction::Shared ioTransaction,
         const AuditNumber auditNumber,
@@ -450,6 +463,21 @@ namespace crypto {
         ioTransaction->contractorKeysHandler()->invalidKey(
             mTrustLineID,
             contractorKeyNumber);
+    }
+
+    bool TrustLineKeychain::isAuditWasCancelled(
+        IOTransaction::Shared ioTransaction,
+        const AuditNumber auditNumber)
+    {
+        auto actualAudit = ioTransaction->auditHandler()->getActualAuditFull(
+            mTrustLineID);
+        if (actualAudit->auditNumber() > auditNumber) {
+            return true;
+        }
+        if (actualAudit->contractorSignature() != nullptr) {
+            return true;
+        }
+        return false;
     }
 
     pair<lamport::Signature::Shared, KeyNumber> TrustLineKeychain::getSignatureAndKeyNumberForPendingAudit(
@@ -729,6 +757,17 @@ namespace crypto {
         return make_pair(
             *auditOwnKeysSetHash == *ownKeysSetHash,
             *auditContractorKeysSetHash == *contractorKeysSetHash);
+    }
+
+    void TrustLineKeychain::removeAllTrustLineData(
+        IOTransaction::Shared ioTransaction)
+    {
+        ioTransaction->outgoingPaymentReceiptHandler()->deleteRecords(mTrustLineID);
+        ioTransaction->incomingPaymentReceiptHandler()->deleteRecords(mTrustLineID);
+        ioTransaction->auditHandler()->deleteRecords(mTrustLineID);
+        ioTransaction->ownKeysHandler()->deleteKeysByTrustLineID(mTrustLineID);
+        ioTransaction->contractorKeysHandler()->deleteKeysByTrustLineID(mTrustLineID);
+        // todo : remove audit rules
     }
 
     void TrustLineKeychain::keyNumberGuard(

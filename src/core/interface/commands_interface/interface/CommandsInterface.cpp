@@ -161,6 +161,21 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == SetChannelContractorAddressesCommand::identifier()) {
+            command = new SetChannelContractorAddressesCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == SetChannelContractorCryptoKeyCommand::identifier()) {
+            command = new SetChannelContractorCryptoKeyCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == RegenerateChannelCryptoKeyCommand::identifier()) {
+            command = new RegenerateChannelCryptoKeyCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == InitTrustLineCommand::identifier()) {
             command = new InitTrustLineCommand(
                 uuid,
@@ -178,6 +193,16 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
         } else if (identifier == ShareKeysCommand::identifier()) {
             command = new ShareKeysCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == RemoveTrustLineCommand::identifier()) {
+            command = new RemoveTrustLineCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == ResetTrustLineCommand::identifier()) {
+            command = new ResetTrustLineCommand(
                 uuid,
                 buffer);
 
@@ -253,6 +278,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
         } else if (identifier == GetChannelInfoCommand::identifier()) {
             command = new GetChannelInfoCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == GetChannelInfoByAddressesCommand::identifier()) {
+            command = new GetChannelInfoByAddressesCommand(
                 uuid,
                 buffer);
 

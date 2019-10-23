@@ -11,6 +11,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     MaxFlowCacheManager *maxFlowCacheManager,
     ResourcesManager *resourcesManager,
     Keystore *keystore,
+    EventsInterfaceManager *eventsInterfaceManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -30,6 +31,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         subsystemsController),
     mCoordinator(make_shared<Contractor>(message->senderAddresses)),
     mTransactionAmount(message->amount()),
+    mEventsInterfaceManager(eventsInterfaceManager),
     mTransactionShouldBeRejected(false)
 {
     mStep = Stages::Receiver_CoordinatorRequestApproving;
@@ -46,6 +48,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     MaxFlowCacheManager *maxFlowCacheManager,
     ResourcesManager *resourcesManager,
     Keystore *keystore,
+    EventsInterfaceManager *eventsInterfaceManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -60,7 +63,8 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         resourcesManager,
         keystore,
         log,
-        subsystemsController)
+        subsystemsController),
+    mEventsInterfaceManager(eventsInterfaceManager)
 {}
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
@@ -789,6 +793,19 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::approve()
     mCommittedAmount = totalReservedAmount(
         AmountReservation::Incoming);
     BasePaymentTransaction::approve();
+
+    try {
+        mEventsInterfaceManager->writeEvent(
+            Event::paymentIncomingEvent(
+                mCoordinator->mainAddress(),
+                mContractorsManager->selfContractor()->mainAddress(),
+                mCommittedAmount,
+                mEquivalent,
+                mPayload));
+    } catch (std::exception &e) {
+        warning() << "Can't write payment event " << e.what();
+    }
+
     return resultDone();
 }
 
@@ -808,6 +825,8 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
             mPaymentParticipants[kCoordinatorPaymentNodeID],
             mCommittedAmount,
             *mTrustLinesManager->totalBalance().get(),
+            mOutgoingTransfers,
+            mIncomingTransfers,
             mPayload),
         mEquivalent);
     debug() << "Operation saved";

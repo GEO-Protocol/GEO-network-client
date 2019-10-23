@@ -4,7 +4,7 @@
 
 #include "base/BasePaymentTransaction.h"
 #include "../../../../paths/PathsManager.h"
-#include "../../../../interface/events_interface/interface/EventsInterface.h"
+#include "../../../../interface/events_interface/interface/EventsInterfaceManager.h"
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../../../resources/resources/PathsResource.h"
 #include "base/PathStats.h"
@@ -37,7 +37,7 @@ public:
         PathsManager *pathsManager,
         Keystore *keystore,
         bool isPaymentTransactionsAllowedDueToObserving,
-        EventsInterface *eventsInterface,
+        EventsInterfaceManager *eventsInterfaceManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -302,7 +302,7 @@ protected:
     static const uint16_t kMaxRebuildingAttemptsCount = 3;
 
 protected:
-    EventsInterface *mEventsInterface;
+    EventsInterfaceManager *mEventsInterfaceManager;
 
     // Command on which current transaction was started
     CreditUsageCommand::Shared mCommand;

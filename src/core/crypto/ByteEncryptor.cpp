@@ -23,6 +23,12 @@ ByteEncryptor::KeyPair::Shared ByteEncryptor::generateKeyPair()
     return keyPair;
 }
 
+ByteEncryptor::PublicKey::Shared ByteEncryptor::generateUndefinedKey()
+{
+    string key(ByteEncryptor::PublicKey::kBytesSize, '0');
+    return std::make_shared<PublicKey>(key);
+}
+
 ByteEncryptor::Buffer ByteEncryptor::encrypt(
     byte *bytes,
     size_t size,

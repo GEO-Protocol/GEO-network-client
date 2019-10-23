@@ -2,30 +2,34 @@
 
 AuditResponseMessage::AuditResponseMessage(
     const SerializedEquivalent equivalent,
-    ContractorID idOnSenderSide,
+    Contractor::Shared contractor,
     const TransactionUUID &transactionUUID,
     const KeyNumber keyNumber,
     const lamport::Signature::Shared signature):
     ConfirmationMessage(
         equivalent,
-        idOnSenderSide,
+        contractor->ownIdOnContractorSide(),
         transactionUUID),
     mSignature(signature),
     mKeyNumber(keyNumber)
-{}
+{
+    encrypt(contractor);
+}
 
 AuditResponseMessage::AuditResponseMessage(
     const SerializedEquivalent equivalent,
-    ContractorID idOnSenderSide,
+    Contractor::Shared contractor,
     const TransactionUUID &transactionUUID,
     OperationState state) :
     ConfirmationMessage(
         equivalent,
-        idOnSenderSide,
+        contractor->ownIdOnContractorSide(),
         transactionUUID,
         state),
     mSignature(nullptr)
-{}
+{
+    encrypt(contractor);
+}
 
 AuditResponseMessage::AuditResponseMessage(
     BytesShared buffer) :

@@ -14,14 +14,14 @@ public:
 public:
     PublicKeyHashConfirmation(
         const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
         KeyNumber number,
         lamport::KeyHash::Shared hashConfirmation);
 
     PublicKeyHashConfirmation(
         const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
         OperationState state);
 
@@ -32,7 +32,7 @@ public:
 
     const lamport::KeyHash::Shared hashConfirmation() const;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     pair<BytesShared, size_t> serializeToBytes() const override;
 

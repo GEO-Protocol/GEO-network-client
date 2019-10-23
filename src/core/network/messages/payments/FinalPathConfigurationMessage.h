@@ -13,7 +13,7 @@ public:
     using RequestMessage::RequestMessage;
 
 protected:
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 };
 
 

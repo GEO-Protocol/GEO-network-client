@@ -58,7 +58,7 @@ TransactionResult::SharedConst BaseTrustLineTransaction::sendAuditErrorConfirmat
     sendMessage<AuditResponseMessage>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         currentTransactionUUID(),
         errorState);
     return resultDone();

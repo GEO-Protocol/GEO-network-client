@@ -25,8 +25,7 @@ public:
 
     const string payload() const;
 
-protected:
-    virtual pair<BytesShared, size_t> serializeToBytes() const override;
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     string mPayload;

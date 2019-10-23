@@ -62,6 +62,9 @@ public:
         ConflictResolverInitiatorTransactionType = 108,
         ConflictResolverContractorTransactionType = 109,
         CheckTrustLineAfterPaymentTransactionType = 110,
+        RemoveTrustLineTransactionType = 111,
+        ResetTrustLineSourceTransactionType = 112,
+        ResetTrustLineDestinationTransactionType = 113,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction = 200,
@@ -115,6 +118,12 @@ public:
         ConfirmChannelTransaction = 901,
         ContractorsList = 902,
         ChannelInfo = 903,
+        ChannelInfoByAddresses = 904,
+        UpdateChannelAddressesInitiator = 905,
+        UpdateChannelAddressesTarget = 906,
+        SetChannelContractorAddresses = 907,
+        SetChannelContractorCryptoKey = 908,
+        RegenerateChannelCryptoKey = 909,
 
         // Transactions
         TransactionByCommandUUIDType = 1000,

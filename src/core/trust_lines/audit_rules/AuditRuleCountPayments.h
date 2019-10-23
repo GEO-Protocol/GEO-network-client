@@ -11,6 +11,12 @@ public:
     AuditRuleCountPayments(
         uint32_t countPayments);
 
+    bool check(
+        TrustLine::Shared trustLine,
+        IOTransaction::Shared ioTransaction=nullptr) override;
+
+    void reset() override;
+
     uint32_t countPayments() const;
 
 private:

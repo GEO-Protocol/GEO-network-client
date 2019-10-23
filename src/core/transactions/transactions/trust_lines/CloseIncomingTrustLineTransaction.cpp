@@ -11,7 +11,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     SubsystemsController *subsystemsController,
     Keystore *keystore,
     FeaturesManager *featuresManager,
-    EventsInterface *eventsInterface,
+    EventsInterfaceManager *eventsInterfaceManager,
     TrustLinesInfluenceController *trustLinesInfluenceController,
     Logger &logger):
 
@@ -31,7 +31,7 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     mTopologyTrustLinesManager(topologyTrustLinesManager),
     mTopologyCacheManager(topologyCacheManager),
     mMaxFlowCacheManager(maxFlowCacheManager),
-    mEventsInterface(eventsInterface),
+    mEventsInterfaceManager(eventsInterfaceManager),
     mSubsystemsController(subsystemsController)
 {
     mAuditNumber = mTrustLines->auditNumber(mContractorID) + 1;
@@ -182,7 +182,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializat
     sendMessage<AuditMessage>(
         mContractorID,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         mTransactionUUID,
         mAuditNumber,
         mTrustLines->incomingTrustAmount(mContractorID),
@@ -200,11 +200,27 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
 {
     if (mContext.empty()) {
         warning() << "Contractor don't send response.";
+
+        // check if audit was cancelled
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        auto keyChain = mKeysStore->keychain(
+            mTrustLines->trustLineID(mContractorID));
+        try {
+            if (keyChain.isAuditWasCancelled(ioTransaction, mAuditNumber)) {
+                info() << "Audit was cancelled by other audit transaction";
+                return resultDone();
+            }
+        } catch (IOError &e) {
+            error() << "Attempt to check if audit was cancelled failed. "
+                    << "IO transaction can't be completed. Details are: " << e.what();
+            throw e;
+        }
+
         if (mCountSendingAttempts < kMaxCountSendingAttempts) {
             sendMessage<AuditMessage>(
                 mContractorID,
                 mEquivalent,
-                mContractorsManager->idOnContractorSide(mContractorID),
+                mContractorsManager->contractor(mContractorID),
                 mTransactionUUID,
                 mAuditNumber,
                 mTrustLines->incomingTrustAmount(mContractorID),
@@ -305,7 +321,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
             mTrustLines->setIsContractorKeysPresent(mContractorID, false);
             info() << "Trust Line become empty";
             try {
-                mEventsInterface->writeEvent(
+                mEventsInterfaceManager->writeEvent(
                     Event::closeTrustLineEvent(
                         mContractorsManager->selfContractor()->mainAddress(),
                         mContractorsManager->contractorMainAddress(mContractorID),
@@ -343,6 +359,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runResponsePro
         return resultDone();
     }
 
+    mTrustLines->resetAuditRule(mContractorID);
     trustLineActionSignal(
         mContractorID,
         mEquivalent,

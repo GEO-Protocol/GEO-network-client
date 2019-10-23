@@ -592,6 +592,9 @@ void BasePaymentTransaction::commit(
                         << ") [" << kPathIDAndReservation.first << "]";
                 mContractorsForCycles.insert(
                     kNodeIDAndReservations.first);
+                mOutgoingTransfers.emplace_back(
+                    kNodeIDAndReservations.first,
+                    kPathIDAndReservation.second->amount());
             }
             else if (kPathIDAndReservation.second->direction() == AmountReservation::Incoming) {
                 debug() << "Committed reservation: [ <= ] " << kPathIDAndReservation.second->amount()
@@ -603,6 +606,9 @@ void BasePaymentTransaction::commit(
                     mContractorsForCycles.insert(
                         kNodeIDAndReservations.first);
                 }
+                mIncomingTransfers.emplace_back(
+                    kNodeIDAndReservations.first,
+                    kPathIDAndReservation.second->amount());
             }
 
             reservationDirection = kPathIDAndReservation.second->direction();
@@ -1017,8 +1023,10 @@ TransactionResult::SharedConst BasePaymentTransaction::processNextNodeToCheckVot
         mCountRecoveryAttempts++;
         if (mCountRecoveryAttempts >= kMaxRecoveryAttempts) {
             debug() << "Max count recovery attempts";
-            mStep = Stages::Common_Observing;
-            return runObservingStage();
+            mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
+            mCountRecoveryAttempts = 0;
+            return resultAwakeAfterMilliseconds(
+                kWaitMillisecondsToTryInitialRecoverAgain);
         }
         debug() << "Sleep and try again later";
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;

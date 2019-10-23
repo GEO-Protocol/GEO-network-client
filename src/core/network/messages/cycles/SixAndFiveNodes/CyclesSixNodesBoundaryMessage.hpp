@@ -11,7 +11,7 @@ public:
 public:
     using CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage;
 
-    const MessageType typeID() const {
+    const MessageType typeID() const override {
         return Message::Cycles_SixNodesBoundary;
     };
 };

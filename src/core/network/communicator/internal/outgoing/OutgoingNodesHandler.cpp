@@ -4,54 +4,51 @@
 OutgoingNodesHandler::OutgoingNodesHandler(
     IOService &ioService,
     UDPSocket &socket,
-    ContractorsManager *contractorsManager,
     Logger &logger)
     noexcept:
 
     mIOService(ioService),
     mSocket(socket),
-    mContractorsManager(contractorsManager),
     mCleaningTimer(ioService),
     mLog(logger)
 {
     rescheduleCleaning();
 }
 
-OutgoingRemoteNode *OutgoingNodesHandler::handler(
-    const ContractorID contractorID)
+OutgoingRemoteBaseNode *OutgoingNodesHandler::handler(
+    const IPv4WithPortAddress::Shared address)
     noexcept
 {
-    auto contractor = mContractorsManager->contractor(contractorID);
-    if (0 == mNodes.count(contractorID)) {
-        mNodes[contractorID] = make_unique<OutgoingRemoteNode>(
-            contractor,
+    // check if there is present OutgoingRemoteAddressNode with requested address
+    // and if yes get it contractorID and if no create new one.
+    if (0 == mNodes.count(address->fullAddress())) {
+        mNodes[address->fullAddress()] = make_unique<OutgoingRemoteBaseNode>(
             mSocket,
             mIOService,
-            mContractorsManager,
+            address,
             mLog);
     }
 
-    mLastAccessDateTimes[contractorID] = utc_now();
-    return mNodes[contractorID].get();
+    mLastAccessDateTimesNode[address->fullAddress()] = utc_now();
+    return mNodes[address->fullAddress()].get();
 }
 
-OutgoingRemoteAddressNode *OutgoingNodesHandler::handler(
-    const BaseAddress::Shared address)
+OutgoingRemoteBaseNode *OutgoingNodesHandler::providerHandler(
+    const IPv4WithPortAddress::Shared address)
     noexcept
 {
-    // todo : check if there is present OutgoingRemoteAddressNode with requested address
+    // check if there is present OutgoingRemoteProvider with requested name
     // and if yes get it contractorID and if no create new one.
-    if (0 == mAddressNodes.count(address->fullAddress())) {
-        mAddressNodes[address->fullAddress()] = make_unique<OutgoingRemoteAddressNode>(
-            address,
+    if (0 == mProviders.count(address->fullAddress())) {
+        mProviders[address->fullAddress()] = make_unique<OutgoingRemoteBaseNode>(
             mSocket,
             mIOService,
-            mContractorsManager,
+            address,
             mLog);
     }
 
-    mLastAccessDateTimesAddress[address->fullAddress()] = utc_now();
-    return mAddressNodes[address->fullAddress()].get();
+    mLastAccessDateTimesProvider[address->fullAddress()] = utc_now();
+    return mProviders[address->fullAddress()].get();
 }
 
 /**
@@ -71,13 +68,13 @@ void OutgoingNodesHandler::rescheduleCleaning()
 {
     mCleaningTimer.expires_from_now(kHandlersTTL());
     mCleaningTimer.async_wait([this] (const boost::system::error_code&) {
-        this->removeOutdatedHandlers();
-        this->removeOutdatedAddressHandlers();
+        this->removeOutdatedNodeHandlers();
+        this->removeOutdatedProviderHandlers();
         this->rescheduleCleaning();
     });
 }
 
-void OutgoingNodesHandler::removeOutdatedHandlers()
+void OutgoingNodesHandler::removeOutdatedNodeHandlers()
     noexcept
 {
     if (mNodes.empty()) {
@@ -87,7 +84,6 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
     debug() << "Outdated nodes handlers removing started";
 #endif
-
 
     const auto kNow = utc_now();
 
@@ -106,10 +102,10 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
     // It is recommended to set this parameter to 1-2 minutes.
     const auto kMaxIdleTimeout = boost::posix_time::seconds(kHandlersTTL().count());
 
-    forward_list<ContractorID> outdatedHandlersIDs;
+    forward_list<string> outdatedHandlersIDs;
     size_t totalOutdatedElements = 0;
 
-    for (const auto &nodeIDAndLastAccess : mLastAccessDateTimes) {
+    for (const auto &nodeIDAndLastAccess : mLastAccessDateTimesNode) {
         if (kNow - nodeIDAndLastAccess.second < kMaxIdleTimeout) {
             continue;
         }
@@ -128,18 +124,16 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
         ++totalOutdatedElements;
     }
 
-
     if (totalOutdatedElements == mNodes.size()) {
         mNodes.clear();
-        mLastAccessDateTimes.clear();
+        mLastAccessDateTimesNode.clear();
 
     } else {
         for (const auto &outdatedHandlerID : outdatedHandlersIDs) {
-            mLastAccessDateTimes.erase(outdatedHandlerID);
+            mLastAccessDateTimesNode.erase(outdatedHandlerID);
             mNodes.erase(outdatedHandlerID);
         }
     }
-
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
     if (!mNodes.empty()) {
@@ -149,22 +143,21 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
 #endif
 }
 
-void OutgoingNodesHandler::removeOutdatedAddressHandlers()
+void OutgoingNodesHandler::removeOutdatedProviderHandlers()
     noexcept
 {
-    if (mAddressNodes.empty()) {
+    if (mProviders.empty()) {
         return;
     }
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
-    debug() << "Outdated address nodes handlers removing started";
+    debug() << "Outdated provider handlers removing started";
 #endif
-
 
     const auto kNow = utc_now();
 
     // It is important for this parameter to be relatively big (minutes).
-    // Remote node handler contains counter of outgoing channels,
+    // Provider handler contains counter of outgoing channels,
     // that increments of every new outgoing message.
     // This prevents sending of several messages into the same channel
     // (and further collision)
@@ -178,46 +171,44 @@ void OutgoingNodesHandler::removeOutdatedAddressHandlers()
     // It is recommended to set this parameter to 1-2 minutes.
     const auto kMaxIdleTimeout = boost::posix_time::seconds(kHandlersTTL().count());
 
-    forward_list<string> outdatedHandlersAddresses;
+    forward_list<string> outdatedHandlersProvider;
     size_t totalOutdatedElements = 0;
 
-    for (const auto &nodeAddressAndLastAccess : mLastAccessDateTimesAddress) {
+    for (const auto &nodeAddressAndLastAccess : mLastAccessDateTimesProvider) {
         if (kNow - nodeAddressAndLastAccess.second < kMaxIdleTimeout) {
             continue;
         }
 
         // Handler that doesn't sent all it's data must not be removed,
         // even if it is obsolete by the access time.
-        if (mAddressNodes[nodeAddressAndLastAccess.first]->containsPacketsInQueue()) {
+        if (mProviders[nodeAddressAndLastAccess.first]->containsPacketsInQueue()) {
             continue;
         }
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
-        debug() << "Remote address node handler for the (" << nodeAddressAndLastAccess.first << ") is outdated. Dropped.";
+        debug() << "Provider handler for the (" << nodeAddressAndLastAccess.first << ") is outdated. Dropped.";
 #endif
 
-        outdatedHandlersAddresses.push_front(nodeAddressAndLastAccess.first);
+        outdatedHandlersProvider.push_front(nodeAddressAndLastAccess.first);
         ++totalOutdatedElements;
     }
 
-
-    if (totalOutdatedElements == mAddressNodes.size()) {
-        mAddressNodes.clear();
-        mLastAccessDateTimesAddress.clear();
+    if (totalOutdatedElements == mProviders.size()) {
+        mProviders.clear();
+        mLastAccessDateTimesProvider.clear();
 
     } else {
-        for (const auto &outdatedHandlerAddress : outdatedHandlersAddresses) {
-            mLastAccessDateTimesAddress.erase(outdatedHandlerAddress);
-            mAddressNodes.erase(outdatedHandlerAddress);
+        for (const auto &outdatedHandlerAddress : outdatedHandlersProvider) {
+            mLastAccessDateTimesProvider.erase(outdatedHandlerAddress);
+            mProviders.erase(outdatedHandlerAddress);
         }
     }
 
-
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
-    if (!mAddressNodes.empty()) {
-        debug() << mAddressNodes.size() << " address nodes handler(s) are (is) alive";
+    if (!mProviders.empty()) {
+        debug() << mProviders.size() << " address nodes handler(s) are (is) alive";
     }
-    debug() << "Outdated address nodes handlers removing finished";
+    debug() << "Outdated provider handlers removing finished";
 #endif
 }
 

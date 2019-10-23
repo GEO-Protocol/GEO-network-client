@@ -112,7 +112,7 @@ void TrustLinesInfluenceController::testThrowExceptionOnSourceProcessingResponse
 }
 
 void TrustLinesInfluenceController::testThrowExceptionOnSourceResumingStage(
-        BaseTransaction::TransactionType transactionType)
+    BaseTransaction::TransactionType transactionType)
 {
     info() << "testThrowExceptionOnSourceResumingStage " << transactionType;
     if (mFirstParameter != transactionType) {

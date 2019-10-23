@@ -31,7 +31,7 @@ public:
     TransactionPublicKeyHashMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     const PaymentNodeID paymentNodeID() const;
 
@@ -43,7 +43,7 @@ public:
 
     const lamport::Signature::Shared signature() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const override;
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
     PaymentNodeID mPaymentNodeID;

@@ -4,8 +4,8 @@
 #include "base/BaseTrustLineTransaction.h"
 
 #include "../../../topology/manager/TopologyTrustLinesManager.h"
-#include "../../../topology/cashe/TopologyCacheManager.h"
-#include "../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../topology/cache/TopologyCacheManager.h"
+#include "../../../topology/cache/MaxFlowCacheManager.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 class AuditTargetTransaction : public BaseTrustLineTransaction {

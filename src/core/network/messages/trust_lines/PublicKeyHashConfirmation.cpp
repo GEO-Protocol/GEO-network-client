@@ -2,31 +2,35 @@
 
 PublicKeyHashConfirmation::PublicKeyHashConfirmation(
     const SerializedEquivalent equivalent,
-    ContractorID idOnSenderSide,
+    Contractor::Shared contractor,
     const TransactionUUID &transactionUUID,
     KeyNumber number,
     lamport::KeyHash::Shared hashConfirmation):
     ConfirmationMessage(
         equivalent,
-        idOnSenderSide,
+        contractor->ownIdOnContractorSide(),
         transactionUUID),
     mNumber(number),
     mHashConfirmation(hashConfirmation)
-{}
+{
+    encrypt(contractor);
+}
 
 PublicKeyHashConfirmation::PublicKeyHashConfirmation(
     const SerializedEquivalent equivalent,
-    ContractorID idOnSenderSide,
+    Contractor::Shared contractor,
     const TransactionUUID &transactionUUID,
     OperationState state) :
     ConfirmationMessage(
         equivalent,
-        idOnSenderSide,
+        contractor->ownIdOnContractorSide(),
         transactionUUID,
         state),
     mNumber(0),
     mHashConfirmation(nullptr)
-{}
+{
+    encrypt(contractor);
+}
 
 PublicKeyHashConfirmation::PublicKeyHashConfirmation(
     BytesShared buffer) :

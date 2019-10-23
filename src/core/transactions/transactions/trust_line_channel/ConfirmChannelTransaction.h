@@ -3,7 +3,7 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../network/messages/trust_line_channels/InitChannelMessage.h"
-#include "../../../network/messages/base/transaction/ConfirmationMessage.h"
+#include "../../../network/messages/trust_line_channels/ConfirmChannelMessage.h"
 
 #include "../../../contractors/ContractorsManager.h"
 
@@ -24,7 +24,7 @@ public:
 protected:
     const string logHeader() const override;
 
-protected:
+private:
     InitChannelMessage::Shared mMessage;
     ContractorsManager *mContractorsManager;
     StorageHandler *mStorageHandler;

@@ -10,12 +10,10 @@ class EquivalentMessage : public Message {
 
 public:
     EquivalentMessage(
-        const SerializedEquivalent equivalent)
-        noexcept;
+        const SerializedEquivalent equivalent);
 
     EquivalentMessage(
-        BytesShared buffer)
-        noexcept;
+        BytesShared buffer);
 
     const SerializedEquivalent equivalent() const;
 

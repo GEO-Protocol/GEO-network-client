@@ -34,6 +34,9 @@ public:
 
     MsgEncryptor::KeyTrio::Shared cryptoKey();
 
+    void setCryptoKey(
+        MsgEncryptor::KeyTrio::Shared cryptoKey);
+
     const bool isConfirmed() const;
 
     void confirm();
@@ -47,6 +50,9 @@ public:
 
     bool containsAddresses(
         vector<BaseAddress::Shared>& addresses) const;
+
+    bool containsAtLeastOneAddress(
+        vector<BaseAddress::Shared> addresses) const;
 
     BytesShared serializeToBytes() const;
 

@@ -985,7 +985,9 @@ void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentAdditionalRecord>(
             currentTransactionUUID(),
             PaymentAdditionalRecord::CycleCloserIntermediateType,
-            mCommittedAmount),
+            mCommittedAmount,
+            mOutgoingTransfers,
+            mIncomingTransfers),
         mEquivalent);
     debug() << "Operation saved";
 }

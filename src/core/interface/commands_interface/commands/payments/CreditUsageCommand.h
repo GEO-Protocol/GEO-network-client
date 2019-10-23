@@ -32,7 +32,6 @@ public:
         string &transactionUUID) const;
 
 private:
-    size_t mContractorAddressesCount;
     vector<BaseAddress::Shared> mContractorAddresses;
     TrustLineAmount mAmount;
     SerializedEquivalent mEquivalent;

@@ -25,6 +25,19 @@ FeaturesHandler::FeaturesHandler(
         throw IOError("FeaturesHandler::creating table: "
                       "Run query; sqlite error: " + to_string(rc));
     }
+    query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
+            + "_feature_name_idx on " + mTableName + " (feature_name);";
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("FeaturesHandler::creating index for feature name: "
+                      "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_DONE) {
+    } else {
+        throw IOError("FeaturesHandler::creating index for feature name: "
+                      "Run query; sqlite error: " + to_string(rc));
+    }
 
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
@@ -34,7 +47,7 @@ void FeaturesHandler::saveFeature(
     const string& featureName,
     const string& featureValue)
 {
-    string query = "INSERT INTO " + mTableName +
+    string query = "INSERT OR REPLACE INTO " + mTableName +
                    "(feature_name, feature_length, feature_value) "
                    "VALUES (?, ?, ?);";
     sqlite3_stmt *stmt;

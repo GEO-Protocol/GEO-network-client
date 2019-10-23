@@ -14,14 +14,14 @@ public:
 public:
     AuditResponseMessage(
         const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
         const KeyNumber keyNumber,
         const lamport::Signature::Shared signature);
 
     AuditResponseMessage(
         const SerializedEquivalent equivalent,
-        ContractorID idOnSenderSide,
+        Contractor::Shared contractor,
         const TransactionUUID &transactionUUID,
         OperationState state);
 
@@ -32,12 +32,12 @@ public:
 
     const KeyNumber keyNumber() const;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     pair<BytesShared, size_t> serializeToBytes() const override;
 
 private:
-    uint32_t mKeyNumber;
+    KeyNumber mKeyNumber;
     lamport::Signature::Shared mSignature;
 };
 

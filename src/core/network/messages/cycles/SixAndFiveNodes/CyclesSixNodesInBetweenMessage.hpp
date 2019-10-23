@@ -10,7 +10,7 @@ public:
 public:
     using CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage;
 
-    const MessageType typeID() const {
+    const MessageType typeID() const override {
         return Message::Cycles_SixNodesMiddleware;
     };
 };

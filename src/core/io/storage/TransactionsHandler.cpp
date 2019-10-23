@@ -51,22 +51,22 @@ void TransactionsHandler::saveRecord(
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionsHandler::insert or replace: "
+        throw IOError("TransactionsHandler::saveRecord: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionsHandler::insert or replace: "
+        throw IOError("TransactionsHandler::saveRecord: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 2, transaction.get(), (int)transactionBytesCount, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionsHandler::insert or replace: "
+        throw IOError("TransactionsHandler::saveRecord: "
                           "Bad binding of Transaction body; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_int(stmt, 3, (int)transactionBytesCount);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionsHandler::insert or replace: "
+        throw IOError("TransactionsHandler::saveRecord: "
                           "Bad binding of Transaction bytes count; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
@@ -77,7 +77,7 @@ void TransactionsHandler::saveRecord(
         info() << "prepare inserting or replacing is completed successfully";
 #endif
     } else {
-        throw IOError("TransactionsHandler::insert or replace: "
+        throw IOError("TransactionsHandler::saveRecord: "
                           "Run query; sqlite error: " + to_string(rc));
     }
 }

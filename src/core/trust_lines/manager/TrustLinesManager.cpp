@@ -248,6 +248,11 @@ void TrustLinesManager::loadTrustLinesFromStorage()
             make_pair(
                 kTrustLine->contractorID(),
                 kTrustLine));
+        // todo : choose audit rule from settings
+        mAuditRules.insert(
+            make_pair(
+                kTrustLine->contractorID(),
+                make_shared<AuditRuleBoundaryOverflowed>()));
     }
 }
 
@@ -267,6 +272,11 @@ void TrustLinesManager::open(
         contractorID,
         trustLineID);
     mTrustLines[contractorID] = trustLine;
+    // todo : choose audit rule from settings
+    mAuditRules.insert(
+        make_pair(
+            contractorID,
+            make_shared<AuditRuleBoundaryOverflowed>()));
 
     if (ioTransaction != nullptr) {
         ioTransaction->trustLinesHandler()->saveTrustLine(
@@ -292,6 +302,11 @@ void TrustLinesManager::accept(
         contractorID,
         trustLineID);
     mTrustLines[contractorID] = trustLine;
+    // todo : choose audit rule from settings
+    mAuditRules.insert(
+        make_pair(
+            contractorID,
+            make_shared<AuditRuleBoundaryOverflowed>()));
 
     if (ioTransaction != nullptr) {
         ioTransaction->trustLinesHandler()->saveTrustLine(
@@ -481,6 +496,24 @@ void TrustLinesManager::setTrustLineAuditNumber(
 
     auto trustLine = mTrustLines[contractorID];
     trustLine->setAuditNumber(newAuditNumber);
+}
+
+void TrustLinesManager::resetTrustLine(
+    ContractorID contractorID,
+    const TrustLineAmount &incomingTrustAmount,
+    const TrustLineAmount &outgoingTrustAmount,
+    const TrustLineBalance &balance)
+{
+    if (not trustLineIsPresent(contractorID)) {
+        throw NotFoundError(
+                logHeader() + "::isContractorGateway: "
+                              "There is no trust line to this contractor.");
+    }
+    auto trustLine = mTrustLines[contractorID];
+    trustLine->setIncomingTrustAmount(incomingTrustAmount);
+    trustLine->setOutgoingTrustAmount(outgoingTrustAmount);
+    trustLine->setBalance(balance);
+    trustLine->setState(TrustLine::ResetPending);
 }
 
 const bool TrustLinesManager::isContractorGateway(
@@ -907,18 +940,6 @@ bool TrustLinesManager::isTrustLineEmpty(
     return (outgoingTrustAmount(contractorID) == TrustLine::kZeroAmount()
         and incomingTrustAmount(contractorID) == TrustLine::kZeroAmount()
         and balance(contractorID) == TrustLine::kZeroBalance());
-}
-
-bool TrustLinesManager::isTrustLineOverflowed(
-    ContractorID contractorID)
-{
-    if (not trustLineIsPresent(contractorID)) {
-        throw NotFoundError(
-            logHeader() + "::isTrustLineOverflowed: "
-                "There is no trust line to the contractor " + to_string(contractorID));
-    }
-    auto trustLine = mTrustLines[contractorID];
-    return trustLine->isTrustLineOverflowed();
 }
 
 void TrustLinesManager::resetTrustLineTotalReceiptsAmounts(
@@ -1397,12 +1418,13 @@ TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterTra
     ContractorID contractorID,
     bool isActionInitiator)
 {
-    info() << "checkTrustLineAfterTransaction";
+    info() << "checkTrustLineAfterTransaction " << contractorID;
     if (not trustLineIsPresent(contractorID)) {
         throw NotFoundError(
             logHeader() + "::checkTrustLineAfterTransaction: "
                 "No trust line with the contractor is present " + to_string(contractorID));
     }
+    auto trustLine = mTrustLines[contractorID];
     auto ioTransaction = mStorageHandler->beginTransaction();
     if (isTrustLineEmpty(contractorID)) {
         info() << "TL become empty";
@@ -1414,9 +1436,8 @@ TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterTra
         } else {
             return TrustLineActionType::NoActions;
         }
-    } else if (isTrustLineOverflowed(contractorID)) {
-        // todo : add audit rules
-        info() << "TL become overflowed";
+    } else if (mAuditRules[contractorID]->check(trustLine, ioTransaction)) {
+        info() << "Audit rule " << mAuditRules[contractorID]->auditRuleType() << " triggered";
         // if TL become overflowed, it is necessary to run Audit TA.
         // AuditSource TA run on node which pay
         if (isActionInitiator) {
@@ -1450,6 +1471,22 @@ vector<ContractorID> TrustLinesManager::contractorsShouldBePinged() const
 void TrustLinesManager::clearContractorsShouldBePinged()
 {
     mContractorsShouldBePinged.clear();
+}
+
+const bool TrustLinesManager::auditRuleIsPresent(
+    ContractorID contractorID) const
+{
+    return mAuditRules.count(contractorID) > 0;
+}
+
+void TrustLinesManager::resetAuditRule(
+    const ContractorID contractorID)
+{
+    if (not auditRuleIsPresent(contractorID)) {
+        throw NotFoundError(
+            logHeader() + "::resetAuditRule: No audit rule for contractorID " + to_string(contractorID));
+    }
+    mAuditRules[contractorID]->reset();
 }
 
 const string TrustLinesManager::logHeader() const

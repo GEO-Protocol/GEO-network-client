@@ -68,6 +68,12 @@ MsgEncryptor::KeyTrio::Shared Contractor::cryptoKey()
     return mCryptoKey;
 }
 
+void Contractor::setCryptoKey(
+    MsgEncryptor::KeyTrio::Shared cryptoKey)
+{
+    mCryptoKey = cryptoKey;
+}
+
 const bool Contractor::isConfirmed() const
 {
     return mIsConfirmed;
@@ -110,6 +116,19 @@ bool Contractor::containsAddresses(
         }
     }
     return true;
+}
+
+bool Contractor::containsAtLeastOneAddress(
+    vector<BaseAddress::Shared> addresses) const
+{
+    for (const auto &address : addresses) {
+        for (const auto &contractorAddress : mAddresses) {
+            if (contractorAddress == address) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 BytesShared Contractor::serializeToBytes() const
@@ -157,9 +176,14 @@ string Contractor::toString() const
 string Contractor::outputString() const
 {
     stringstream ss;
-    ss << mAddresses.size();
+    auto first = true;
     for (const auto &address : mAddresses) {
-        ss << " " << address->fullAddress();
+        if (first) {
+            ss << address->fullAddress();
+            first = false;
+        } else {
+            ss << " " << address->fullAddress();
+        }
     }
     return ss.str();
 }

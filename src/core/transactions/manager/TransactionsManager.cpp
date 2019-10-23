@@ -13,7 +13,7 @@ TransactionsManager::TransactionsManager(
     StorageHandler *storageHandler,
     Keystore *keystore,
     FeaturesManager *featuresManager,
-    EventsInterface *eventsInterface,
+    EventsInterfaceManager *eventsInterfaceManager,
     TailManager *tailManager,
     Logger &logger,
     SubsystemsController *subsystemsController,
@@ -27,12 +27,12 @@ TransactionsManager::TransactionsManager(
     mStorageHandler(storageHandler),
     mKeysStore(keystore),
     mFeaturesManager(featuresManager),
-    mEventsInterface(eventsInterface),
+    mEventsInterfaceManager(eventsInterfaceManager),
     mTailManager(tailManager),
     mLog(logger),
     mSubsystemsController(subsystemsController),
     mTrustLinesInfluenceController(trustLinesInfluenceController),
-    isPaymentTransactionsAllowedDueToObserving(false),
+    isPaymentTransactionsAllowedDueToObserving(true),
 
     mScheduler(
         new TransactionsScheduler(
@@ -183,6 +183,7 @@ BasePaymentTransaction::Shared TransactionsManager::deserializePaymentTransactio
                     mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent),
                     mResourcesManager,
                     mKeysStore,
+                    mEventsInterfaceManager,
                     mLog,
                     mSubsystemsController);
                 subscribeForBuildCyclesThreeNodesTransaction(
@@ -250,6 +251,21 @@ void TransactionsManager::processCommand(
             static_pointer_cast<InitChannelCommand>(
                 command));
 
+    } else if (command->identifier() == SetChannelContractorAddressesCommand::identifier()) {
+        launchSetChannelContractorAddressesTransaction(
+            static_pointer_cast<SetChannelContractorAddressesCommand>(
+                command));
+
+    } else if (command->identifier() == SetChannelContractorCryptoKeyCommand::identifier()) {
+        launchSetChannelContractorCryptoKeyTransaction(
+            static_pointer_cast<SetChannelContractorCryptoKeyCommand>(
+                command));
+
+    } else if (command->identifier() == RegenerateChannelCryptoKeyCommand::identifier()) {
+        launchRegenerateChannelCryptoKeyTransaction(
+            static_pointer_cast<RegenerateChannelCryptoKeyCommand>(
+                command));
+
     } else if (command->identifier() == InitTrustLineCommand::identifier()) {
         launchInitTrustLineTransaction(
             static_pointer_cast<InitTrustLineCommand>(
@@ -268,6 +284,16 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == ShareKeysCommand::identifier()) {
         launchPublicKeysSharingSourceTransaction(
             static_pointer_cast<ShareKeysCommand>(
+                command));
+
+    } else if (command->identifier() == RemoveTrustLineCommand::identifier()) {
+        launchRemoveTrustLineTransaction(
+            static_pointer_cast<RemoveTrustLineCommand>(
+                command));
+
+    } else if (command->identifier() == ResetTrustLineCommand::identifier()) {
+        launchResetTrustLineSourceTransaction(
+            static_pointer_cast<ResetTrustLineCommand>(
                 command));
 
     } else if (command->identifier() == CreditUsageCommand::identifier()) {
@@ -343,6 +369,11 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == GetChannelInfoCommand::identifier()){
         launchGetChannelInfoTransaction(
             static_pointer_cast<GetChannelInfoCommand>(
+                command));
+
+    } else if (command->identifier() == GetChannelInfoByAddressesCommand::identifier()){
+        launchGetChannelInfoByAddressesTransaction(
+            static_pointer_cast<GetChannelInfoByAddressesCommand>(
                 command));
 
     } else if (command->identifier() == PaymentTransactionByCommandUUIDCommand::identifier()){
@@ -464,12 +495,20 @@ void TransactionsManager::processMessage(
         launchConflictResolveContractorTransaction(
             static_pointer_cast<ConflictResolverMessage>(message));
 
+    } else if (message->typeID() == Message::TrustLines_Reset) {
+        launchResetTrustLineDestinationTransaction(
+            static_pointer_cast<TrustLineResetMessage>(message));
+
     /*
      * Channels
      */
     } else if (message->typeID() == Message::Channel_Init) {
         launchConfirmChannelTransaction(
             static_pointer_cast<InitChannelMessage>(message));
+
+    } else if (message->typeID() == Message::Channel_UpdateAddresses) {
+        launchUpdateChannelAddressesTargetTransaction(
+            static_pointer_cast<UpdateChannelAddressesMessage>(message));
 
     /*
      * General
@@ -523,6 +562,112 @@ void TransactionsManager::launchConfirmChannelTransaction(
         true);
 }
 
+void TransactionsManager::launchGetContractorListTransaction(
+    ContractorListCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<GetContractorListTransaction>(
+            command,
+            mContractorsManager,
+            mLog),
+        true,
+        false,
+        false);
+}
+
+void TransactionsManager::launchGetChannelInfoTransaction(
+    GetChannelInfoCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<GetChannelInfoTransaction>(
+            command,
+            mContractorsManager,
+            mLog),
+        true,
+        false,
+        false);
+}
+
+void TransactionsManager::launchGetChannelInfoByAddressesTransaction(
+    GetChannelInfoByAddressesCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<GetChannelInfoByAddressesTransaction>(
+            command,
+            mContractorsManager,
+            mLog),
+        true,
+        false,
+        false);
+}
+
+void TransactionsManager::launchUpdateChannelAddressesTargetTransaction(
+    UpdateChannelAddressesMessage::Shared message)
+{
+    prepareAndSchedule(
+        make_shared<UpdateChannelAddressesTargetTransaction>(
+            message,
+            mContractorsManager,
+            mStorageHandler,
+            mLog),
+        false,
+        false,
+        true);
+}
+
+void TransactionsManager::launchSetChannelContractorAddressesTransaction(
+    SetChannelContractorAddressesCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<SetChannelContractorAddressesTransaction>(
+            command,
+            mContractorsManager,
+            mStorageHandler,
+            mLog),
+        true,
+        false,
+        false);
+}
+
+void TransactionsManager::launchSetChannelContractorCryptoKeyTransaction(
+    SetChannelContractorCryptoKeyCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<SetChannelContractorCryptoKeyTransaction>(
+            command,
+            mContractorsManager,
+            mStorageHandler,
+            mLog),
+        true,
+        false,
+        true);
+}
+
+void TransactionsManager::launchRegenerateChannelCryptoKeyTransaction(
+    RegenerateChannelCryptoKeyCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<RegenerateChannelCryptoKeyTransaction>(
+           command,
+            mContractorsManager,
+            mStorageHandler,
+            mLog),
+        true,
+        false,
+        false);
+}
+
+void TransactionsManager::launchUpdateChannelAddressesInitiatorTransaction()
+{
+    prepareAndSchedule(
+        make_shared<UpdateChannelAddressesInitiatorTransaction>(
+            mContractorsManager,
+            mLog),
+        true,
+        false,
+        true);
+}
+
 void TransactionsManager::launchInitTrustLineTransaction(
     InitTrustLineCommand::Shared command)
 {
@@ -540,7 +685,7 @@ void TransactionsManager::launchInitTrustLineTransaction(
         mContractorsManager,
         mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
         mStorageHandler,
-        mEventsInterface,
+        mEventsInterfaceManager,
         mEquivalentsSubsystemsRouter->iAmGateway(command->equivalent()),
         mSubsystemsController,
         mTrustLinesInfluenceController,
@@ -569,7 +714,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mSubsystemsController,
             mKeysStore,
             mFeaturesManager,
-            mEventsInterface,
+            mEventsInterfaceManager,
             mTrustLinesInfluenceController,
             mLog);
         subscribeForTrustLineActionSignal(
@@ -607,7 +752,7 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
             mSubsystemsController,
             mKeysStore,
             mFeaturesManager,
-            mEventsInterface,
+            mEventsInterfaceManager,
             mTrustLinesInfluenceController,
             mLog);
         subscribeForTrustLineActionSignal(
@@ -772,6 +917,72 @@ void TransactionsManager::launchConflictResolveContractorTransaction(
     } catch (NotFoundError &e) {
         error() << "There are no subsystems for ConflictResolverContractorTransaction "
                 "with equivalent " << message->equivalent() << " Details are: " << e.what();
+    }
+}
+
+void TransactionsManager::launchRemoveTrustLineTransaction(
+    RemoveTrustLineCommand::Shared command)
+{
+    try {
+        auto transaction = make_shared<RemoveTrustLineTransaction>(
+            command,
+            mContractorsManager,
+            mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
+            mStorageHandler,
+            mKeysStore,
+            mLog);
+        prepareAndSchedule(
+            transaction,
+            true,
+            false,
+            false);
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for RemoveTrustLineTransaction "
+                   "with equivalent " << command->equivalent() << " Details are: " << e.what();
+    }
+}
+
+void TransactionsManager::launchResetTrustLineSourceTransaction(
+    ResetTrustLineCommand::Shared command)
+{
+    try {
+        auto transaction = make_shared<ResetTrustLineSourceTransaction>(
+            command,
+            mContractorsManager,
+            mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent()),
+            mStorageHandler,
+            mKeysStore,
+            mLog);
+        subscribeForAuditSignal(
+            transaction->auditSignal);
+        prepareAndSchedule(
+            transaction,
+            true,
+            false,
+            true);
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for ResetTrustLineSourceTransaction "
+                   "with equivalent " << command->equivalent() << " Details are: " << e.what();
+    }
+}
+
+void TransactionsManager::launchResetTrustLineDestinationTransaction(
+    TrustLineResetMessage::Shared message)
+{
+    try {
+        auto transaction = make_shared<ResetTrustLineDestinationTransaction>(
+            message,
+            mContractorsManager,
+            mEquivalentsSubsystemsRouter->trustLinesManager(message->equivalent()),
+            mLog);
+        prepareAndSchedule(
+            transaction,
+            false,
+            false,
+            true);
+    } catch (NotFoundError &e) {
+        error() << "There are no subsystems for ResetTrustLineDestinationTransaction "
+                   "with equivalent " << message->equivalent() << " Details are: " << e.what();
     }
 }
 
@@ -991,7 +1202,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mEquivalentsSubsystemsRouter->pathsManager(command->equivalent()),
             mKeysStore,
             isPaymentTransactionsAllowedDueToObserving,
-            mEventsInterface,
+            mEventsInterfaceManager,
             mLog,
             mSubsystemsController);
         subscribeForBuildCyclesThreeNodesTransaction(
@@ -1035,6 +1246,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             mEquivalentsSubsystemsRouter->maxFlowCacheManager(message->equivalent()),
             mResourcesManager,
             mKeysStore,
+            mEventsInterfaceManager,
             mLog,
             mSubsystemsController);
         subscribeForBuildCyclesThreeNodesTransaction(
@@ -1764,7 +1976,6 @@ void TransactionsManager::launchGetTrustLinesTransaction(
             false,
             false);
     }
-
 }
 
 void TransactionsManager::launchGetTrustLineByAddressTransaction(
@@ -1825,32 +2036,6 @@ void TransactionsManager::launchGetEquivalentListTransaction(
         make_shared<GetEquivalentListTransaction>(
             command,
             mEquivalentsSubsystemsRouter,
-            mLog),
-        true,
-        false,
-        false);
-}
-
-void TransactionsManager::launchGetContractorListTransaction(
-    ContractorListCommand::Shared command)
-{
-    prepareAndSchedule(
-        make_shared<GetContractorListTransaction>(
-            command,
-            mContractorsManager,
-            mLog),
-        true,
-        false,
-        false);
-}
-
-void TransactionsManager::launchGetChannelInfoTransaction(
-    GetChannelInfoCommand::Shared command)
-{
-    prepareAndSchedule(
-        make_shared<GetChannelInfoTransaction>(
-            command,
-            mContractorsManager,
             mLog),
         true,
         false,
@@ -2467,7 +2652,7 @@ void TransactionsManager::onResumeTransactionSlot(
                 mContractorsManager,
                 mEquivalentsSubsystemsRouter->trustLinesManager(equivalent),
                 mStorageHandler,
-                mEventsInterface,
+                mEventsInterfaceManager,
                 mEquivalentsSubsystemsRouter->iAmGateway(equivalent),
                 mSubsystemsController,
                 mTrustLinesInfluenceController,

@@ -5,7 +5,7 @@
 #include "../../../interface/commands_interface/commands/trust_lines/InitTrustLineCommand.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../contractors/ContractorsManager.h"
-#include "../../../interface/events_interface/interface/EventsInterface.h"
+#include "../../../interface/events_interface/interface/EventsInterfaceManager.h"
 #include "../../../subsystems_controller/TrustLinesInfluenceController.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 
@@ -24,7 +24,7 @@ public:
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        EventsInterface *eventsInterface,
+        EventsInterfaceManager *eventsInterfaceManager,
         bool iAmGateway,
         SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -36,7 +36,7 @@ public:
         ContractorsManager *contractorsManager,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        EventsInterface *eventsInterface,
+        EventsInterfaceManager *eventsInterfaceManager,
         bool iAmGateway,
         SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController,
@@ -57,6 +57,8 @@ protected:
     TransactionResult::SharedConst resultForbiddenRun();
 
     TransactionResult::SharedConst resultProtocolError();
+
+    TransactionResult::SharedConst resultTrustLineAlreadyExist();
 
     TransactionResult::SharedConst resultUnexpectedError();
 
@@ -85,7 +87,7 @@ protected:
     ContractorsManager *mContractorsManager;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
-    EventsInterface *mEventsInterface;
+    EventsInterfaceManager *mEventsInterfaceManager;
 
     uint16_t mCountSendingAttempts;
 

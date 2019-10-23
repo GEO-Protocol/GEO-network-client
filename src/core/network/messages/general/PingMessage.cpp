@@ -1,16 +1,14 @@
 #include "PingMessage.h"
 
 PingMessage::PingMessage(
-    ContractorID idOnReceiverSide)
-    noexcept:
+    ContractorID idOnReceiverSide):
     SenderMessage(
         0,
         idOnReceiverSide)
 {}
 
 PingMessage::PingMessage(
-    BytesShared buffer)
-    noexcept:
+    BytesShared buffer):
     SenderMessage(buffer)
 {}
 

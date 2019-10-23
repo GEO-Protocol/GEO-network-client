@@ -21,7 +21,7 @@ public:
     ReceiverInitPaymentResponseMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 };
 
 #endif //GEO_NETWORK_CLIENT_RECEIVERINITPAYMENTRESPONSEMESSAGE_H

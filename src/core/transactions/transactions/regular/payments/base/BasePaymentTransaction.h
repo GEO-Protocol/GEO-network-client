@@ -7,8 +7,8 @@
 #include "../../../../../contractors/ContractorsManager.h"
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../io/storage/StorageHandler.h"
-#include "../../../../../topology/cashe/TopologyCacheManager.h"
-#include "../../../../../topology/cashe/MaxFlowCacheManager.h"
+#include "../../../../../topology/cache/TopologyCacheManager.h"
+#include "../../../../../topology/cache/MaxFlowCacheManager.h"
 #include "../../../../../resources/manager/ResourcesManager.h"
 #include "../../../../../resources/resources/BlockNumberRecourse.h"
 
@@ -424,6 +424,7 @@ protected:
     static const auto kMaxPathLength = 7;
 
     static const uint32_t kWaitMillisecondsToTryRecoverAgain = 30000;
+    static const uint32_t kWaitMillisecondsToTryInitialRecoverAgain = 1800000;
     static const uint8_t kMaxRecoveryAttempts = 3;
 
     // todo : make static
@@ -509,6 +510,9 @@ protected:
 
     BlockNumber mMaximalClaimingBlockNumber;
     bool mBlockNumberObtainingInProcess;
+
+    vector<pair<ContractorID, TrustLineAmount>> mOutgoingTransfers;
+    vector<pair<ContractorID, TrustLineAmount>> mIncomingTransfers;
 
     string mPayload;
 };

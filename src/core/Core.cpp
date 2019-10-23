@@ -95,7 +95,7 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initEventsInterface();
+    initCode = initEventsInterfaceManager(conf);
     if (initCode != 0) {
         return initCode;
     }
@@ -105,12 +105,17 @@ int Core::initSubsystems()
         return initCode;
     }
 
+    initCode = initProvidingHandler(conf);
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initTailManager();
     if (initCode != 0) {
         return initCode;
     }
 
-    initCode = initCommunicator();
+    initCode = initCommunicator(conf);
     if (initCode != 0) {
         return initCode;
     }
@@ -197,13 +202,18 @@ int Core::initTailManager() {
     }
 }
 
-int Core::initCommunicator()
+int Core::initCommunicator(
+    const json &conf)
 {
     try {
+        auto interface = mSettings->interface(&conf);
         mCommunicator = make_unique<Communicator>(
             mIOService,
+            interface.first,
+            interface.second,
             mContractorsManager.get(),
             mTailManager.get(),
+            mProvidingHandler.get(),
             *mLog);
 
         info() << "Network communicator is successfully initialised";
@@ -249,14 +259,34 @@ int Core::initResultsInterface()
     }
 }
 
-int Core::initEventsInterface()
+int Core::initEventsInterfaceManager(
+    const json &conf)
 {
+    auto eventsConf = mSettings->events(&conf);
+    vector<pair<string, bool>> filesToBlock;
+    vector<pair<string, SerializedEventType>> filesToEvents;
     try {
-        mEventsInterface = make_unique<EventsInterface>(
-            *mLog);
-        info() << "Events interface is successfully initialised";
-        return 0;
+        if (eventsConf == nullptr) {
+            info() << "There are no events in config";
+        } else {
+            for (const auto &eventConf : eventsConf) {
+                filesToBlock.emplace_back(
+                    eventConf.at("file").get<string>(),
+                    eventConf.at("blocked").get<bool>());
+                for (const auto &eventTypesConf : eventConf.at("events")) {
+                    filesToEvents.emplace_back(
+                        eventConf.at("file").get<string>(),
+                        (SerializedEventType)eventTypesConf);
+                }
+            }
+        }
 
+        mEventsInterfaceManager = make_unique<EventsInterfaceManager>(
+            filesToEvents,
+            filesToBlock,
+            *mLog);
+        info() << "Events interface manager is successfully initialised";
+        return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
         return -1;
@@ -271,7 +301,7 @@ int Core::initEquivalentsSubsystemsRouter(
             mStorageHandler.get(),
             mKeysStore.get(),
             mContractorsManager.get(),
-            mEventsInterface.get(),
+            mEventsInterfaceManager.get(),
             mIOService,
             equivalentIAmGateway,
             *mLog);
@@ -308,7 +338,7 @@ int Core::initTransactionsManager()
             mStorageHandler.get(),
             mKeysStore.get(),
             mFeaturesManager.get(),
-            mEventsInterface.get(),
+            mEventsInterfaceManager.get(),
             mTailManager.get(),
             *mLog,
             mSubsystemsController.get(),
@@ -361,6 +391,44 @@ int Core::initContractorsManager(
             mStorageHandler.get(),
             *mLog);
         info() << "Contractors manager is successfully initialised";
+        return 0;
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initProvidingHandler(
+    const json &conf)
+{
+    auto providersConf = mSettings->providers(&conf);
+    try {
+        vector<Provider::Shared> providers;
+        if (providersConf == nullptr) {
+            info() << "There are no providers in config";
+        } else {
+            for (const auto &providerConf : providersConf) {
+                vector<pair<string, string>> providerAddressesStr;
+                for (const auto &providerAddressConf : providerConf.at("addresses")) {
+                    providerAddressesStr.emplace_back(
+                        providerAddressConf.at("type").get<string>(),
+                        providerAddressConf.at("address").get<string>());
+                }
+                providers.push_back(
+                    make_shared<Provider>(
+                        providerConf.at("name").get<string>(),
+                        providerConf.at("key").get<string>(),
+                        providerConf.at("participant_id").get<ProviderParticipantID>(),
+                        providerAddressesStr));
+            }
+        }
+
+        mProvidingHandler = make_unique<ProvidingHandler>(
+            providers,
+            mIOService,
+            mContractorsManager->selfContractor(),
+            *mLog);
+        info() << "Providing handler is successfully initialised";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
@@ -433,7 +501,9 @@ int Core::initFeaturesManager(
 {
     try {
         mFeaturesManager = make_unique<FeaturesManager>(
+            mIOService,
             mSettings->equivalentsRegistryAddress(&conf),
+            mContractorsManager->selfContractor()->outputString(),
             mStorageHandler.get(),
             *mLog);
         ::migrationFeaturesManager = mFeaturesManager.get();
@@ -512,6 +582,11 @@ void Core::connectCommunicatorSignals()
             contractorID);
     }
     mEquivalentsSubsystemsRouter->clearContractorsShouldBePinged();
+
+    mFeaturesManager->sendAddressesSignal.connect(
+        boost::bind(
+            &Core::onSendOwnAddressesSlot,
+            this));
 }
 
 void Core::connectObservingSignals()
@@ -860,6 +935,11 @@ void Core::onProcessPongMessageSlot(
 {
     mCommunicator->processPongMessage(
         contractorID);
+}
+
+void Core::onSendOwnAddressesSlot()
+{
+    mTransactionsManager->launchUpdateChannelAddressesInitiatorTransaction();
 }
 
 void Core::writePIDFile()

@@ -12,7 +12,7 @@ public:
 public:
     using ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 };
 
 

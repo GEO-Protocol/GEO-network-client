@@ -20,7 +20,7 @@ public:
     void setConfirmationID(
         const ConfirmationID confirmationID);
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
     const ConfirmationID confirmationID() const;
 

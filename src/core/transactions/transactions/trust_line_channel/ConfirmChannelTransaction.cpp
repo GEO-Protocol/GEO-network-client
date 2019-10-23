@@ -24,6 +24,14 @@ TransactionResult::SharedConst ConfirmChannelTransaction::run()
 
     if (mMessage->senderAddresses.empty()) {
         warning() << "Contractor addresses are empty";
+        // todo send reply
+        return resultDone();
+    }
+
+    if (mContractorsManager->selfContractor()->containsAtLeastOneAddress(
+        mMessage->senderAddresses)) {
+        warning() << "Contractor's addresses contain at least one address is equal to own address";
+        // todo : send reply
         return resultDone();
     }
 
@@ -31,17 +39,17 @@ TransactionResult::SharedConst ConfirmChannelTransaction::run()
         mMessage->senderAddresses);
     if (contractorID == ContractorsManager::kNotFoundContractorID) {
         warning() << "There is no contractor for requested addresses";
+        // todo send reply
         return resultDone();
     }
     info() << "Channel ID " << contractorID;
 
     if (mContractorsManager->channelConfirmed(contractorID)) {
         info() << "Channel already confirmed";
-        sendMessage<ConfirmationMessage>(
+        sendMessage<ConfirmChannelMessage>(
             contractorID,
-            mEquivalent,
-            mContractorsManager->idOnContractorSide(contractorID),
-            mTransactionUUID);
+            mTransactionUUID,
+            mContractorsManager->contractor(contractorID));
         return resultDone();
     }
 
@@ -58,11 +66,10 @@ TransactionResult::SharedConst ConfirmChannelTransaction::run()
         throw e;
     }
     info() << "Channel confirmed";
-    sendMessage<ConfirmationMessage>(
+    sendMessage<ConfirmChannelMessage>(
         contractorID,
-        mEquivalent,
-        mContractorsManager->idOnContractorSide(contractorID),
-        mTransactionUUID);
+        mTransactionUUID,
+        mContractorsManager->contractor(contractorID));
     return resultDone();
 }
 

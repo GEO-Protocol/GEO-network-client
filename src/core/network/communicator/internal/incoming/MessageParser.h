@@ -6,8 +6,11 @@
 #include "../../../../crypto/MsgEncryptor.h"
 
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
+#include "../../../messages/providing/ProvidingAddressResponseMessage.h"
 
 #include "../../../messages/trust_line_channels/InitChannelMessage.h"
+#include "../../../messages/trust_line_channels/ConfirmChannelMessage.h"
+#include "../../../messages/trust_line_channels/UpdateChannelAddressesMessage.h"
 
 #include "../../../messages/trust_lines/TrustLineInitialMessage.h"
 #include "../../../messages/trust_lines/TrustLineConfirmationMessage.h"
@@ -18,6 +21,7 @@
 #include "../../../messages/trust_lines/AuditResponseMessage.h"
 #include "../../../messages/trust_lines/ConflictResolverMessage.h"
 #include "../../../messages/trust_lines/ConflictResolverResponseMessage.h"
+#include "../../../messages/trust_lines/TrustLineResetMessage.h"
 
 #include "../../../messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"

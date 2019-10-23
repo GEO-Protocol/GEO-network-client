@@ -105,11 +105,11 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
                 > char_(kTokensSeparator)
                 > (
                     (parserString::string("null")[timeFromPresentNull]) |
-                    *(int_[timeFromPresentNumber]))
+                    *(ulong_[timeFromPresentNumber]))
                 > char_(kTokensSeparator)
                 > (
                     (parserString::string("null")[timeToPresentNull]) |
-                    *(int_[timeToPresentNumber]))
+                    *(ulong_[timeToPresentNumber]))
                 > char_(kTokensSeparator)
                 >(
                     (parserString::string("null")[setLowBoundaryAmountNull]) |

@@ -75,13 +75,11 @@ std::pair<BytesShared, size_t> CyclesThreeNodesBalancesResponseMessage::serializ
 }
 
 const Message::MessageType CyclesThreeNodesBalancesResponseMessage::typeID() const
-    noexcept
 {
     return Message::MessageType::Cycles_ThreeNodesBalancesResponse;
 }
 
 vector<BaseAddress::Shared> CyclesThreeNodesBalancesResponseMessage::commonNodes()
-    noexcept
 {
     return mNeighbors;
 }

@@ -50,7 +50,46 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
     }
 
-    if (mTrustLines->trustLineState(mContractorID) != TrustLine::Active) {
+    if (mTrustLines->trustLineState(mContractorID) == TrustLine::AuditPending) {
+        warning() << "Simultaneous audit";
+        if (mContractorsManager->selfContractor()->mainAddress()->fullAddress() >
+            mContractorsManager->contractorMainAddress(mContractorID)->fullAddress()) {
+            info() << "Current address greater than contractor's. Current transaction would be cancelled";
+            return resultDone();
+        } else {
+            info() << "Current address more less then contractor's. Previous audit would be cancelled";
+            auto ioTransaction = mStorageHandler->beginTransaction();
+            try {
+                auto keyChain = mKeysStore->keychain(
+                    mTrustLines->trustLineID(mContractorID));
+                keyChain.removeCancelledOwnAuditPart(ioTransaction);
+                mTrustLines->updateTrustLineFromStorage(
+                    mContractorID,
+                    ioTransaction);
+                mTrustLines->setTrustLineState(
+                    mContractorID,
+                    TrustLine::Active);
+                mAuditNumber = mTrustLines->auditNumber(mContractorID) + 1;
+                info() << "Previous audit was successfully cancelled";
+            } catch (ValueError &e) {
+                warning() << "Attempt to remove previous audit from the node " << mContractorID << " failed. "
+                          << e.what();
+                return sendAuditErrorConfirmation(
+                    ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
+            } catch (IOError &e) {
+                warning() << "Attempt to remove previous audit from the node " << mContractorID << " failed. "
+                          << "IO transaction can't be completed. "
+                          << "Details are: " << e.what();
+                ioTransaction->rollback();
+                // Rethrowing the exception,
+                // because the TA can't finish properly and no result may be returned.
+                throw e;
+            }
+        }
+    }
+
+    if (mTrustLines->trustLineState(mContractorID) != TrustLine::Active and
+        mTrustLines->trustLineState(mContractorID) != TrustLine::Reset) {
         warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
         return sendAuditErrorConfirmation(
             ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
@@ -97,7 +136,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             Message::TrustLines_Audit,
             kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
             mEquivalent,
-            mContractorsManager->idOnContractorSide(mContractorID),
+            mContractorsManager->contractor(mContractorID),
             currentTransactionUUID(),
             mOwnSignatureAndKeyNumber.second,
             mOwnSignatureAndKeyNumber.first);
@@ -171,6 +210,9 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
             mAuditNumber);
         mTrustLines->resetTrustLineTotalReceiptsAmounts(
             mContractorID);
+        mTrustLines->setTrustLineState(
+            mContractorID,
+            TrustLine::Active);
 
         if (mTrustLines->isTrustLineEmpty(mContractorID) and
                 !keyChain.isInitialAuditCondition(ioTransaction)) {
@@ -225,12 +267,13 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
         Message::TrustLines_Audit,
         kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
         mEquivalent,
-        mContractorsManager->idOnContractorSide(mContractorID),
+        mContractorsManager->contractor(mContractorID),
         currentTransactionUUID(),
         mOwnSignatureAndKeyNumber.second,
         mOwnSignatureAndKeyNumber.first);
     info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
 
+    mTrustLines->resetAuditRule(mContractorID);
     trustLineActionSignal(
         mContractorID,
         mEquivalent,

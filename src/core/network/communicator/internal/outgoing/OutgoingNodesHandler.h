@@ -1,9 +1,8 @@
 #ifndef OUTGOINGNODESHANDLER_H
 #define OUTGOINGNODESHANDLER_H
 
-#include "OutgoingRemoteNode.h"
-#include "OutgoingRemoteAddressNode.h"
-#include "../../../../contractors/ContractorsManager.h"
+#include "OutgoingRemoteBaseNode.h"
+#include "../../../../providing/Provider.h"
 
 #include <boost/unordered/unordered_map.hpp>
 #include <forward_list>
@@ -16,16 +15,15 @@ public:
     OutgoingNodesHandler (
         IOService &ioService,
         UDPSocket &socket,
-        ContractorsManager *contractorsManager,
         Logger &logger)
         noexcept;
 
-    OutgoingRemoteNode* handler(
-        const ContractorID contractorID)
+    OutgoingRemoteBaseNode* handler(
+        const IPv4WithPortAddress::Shared address)
         noexcept;
 
-    OutgoingRemoteAddressNode* handler(
-        const BaseAddress::Shared address)
+    OutgoingRemoteBaseNode* providerHandler(
+        const IPv4WithPortAddress::Shared address)
         noexcept;
 
 protected:
@@ -36,10 +34,10 @@ protected:
     void rescheduleCleaning()
         noexcept;
 
-    void removeOutdatedHandlers()
+    void removeOutdatedNodeHandlers()
         noexcept;
 
-    void removeOutdatedAddressHandlers()
+    void removeOutdatedProviderHandlers()
         noexcept;
 
     static string logHeader()
@@ -49,16 +47,15 @@ protected:
         noexcept;
 
 protected:
-    boost::unordered_map<ContractorID, OutgoingRemoteNode::Unique> mNodes;
-    boost::unordered_map<string, OutgoingRemoteAddressNode::Unique> mAddressNodes;
-    boost::unordered_map<ContractorID, DateTime> mLastAccessDateTimes;
-    boost::unordered_map<string, DateTime> mLastAccessDateTimesAddress;
+    boost::unordered_map<string, OutgoingRemoteBaseNode::Unique> mNodes;
+    boost::unordered_map<string, OutgoingRemoteBaseNode::Unique> mProviders;
+    boost::unordered_map<string, DateTime> mLastAccessDateTimesNode;
+    boost::unordered_map<string, DateTime> mLastAccessDateTimesProvider;
 
     boost::asio::steady_timer mCleaningTimer;
 
     IOService &mIOService;
     UDPSocket &mSocket;
-    ContractorsManager *mContractorsManager;
     Logger &mLog;
 };
 

@@ -29,10 +29,9 @@ public:
 
     const TrustLineAmount& amountReserved() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const override;
+    pair<BytesShared, size_t> serializeToBytes() const override;
 
-protected:
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 
 protected:
     TrustLineAmount mAmountReserved;

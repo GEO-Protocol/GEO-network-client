@@ -15,7 +15,7 @@ public:
     using RequestMessageWithReservations::RequestMessageWithReservations;
 
 protected:
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 };
 
 #endif // GEO_NETWORK_CLIENT_INTERMEDIATENODERESERVATIONREQUESTMESSAGE_H

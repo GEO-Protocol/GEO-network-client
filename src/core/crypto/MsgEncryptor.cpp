@@ -11,6 +11,22 @@ MsgEncryptor::KeyTrio::Shared MsgEncryptor::generateKeyTrio(
 
     if(!outputKey.empty()) {
         keyTrio->contractorPublicKey = std::make_shared<PublicKey>(outputKey);
+    } else {
+        keyTrio->contractorPublicKey = ByteEncryptor::generateUndefinedKey();
+    }
+    return keyTrio;
+}
+
+MsgEncryptor::KeyTrio::Shared MsgEncryptor::generateKeyTrio(
+    PublicKey::Shared contractorPublicKey)
+{
+    KeyTrio::Shared keyTrio = make_shared<KeyTrio>();
+    auto keyPair = generateKeyPair();
+    keyTrio->publicKey = keyPair->publicKey;
+    keyTrio->secretKey = keyPair->secretKey;
+
+    if(contractorPublicKey) {
+        keyTrio->contractorPublicKey = contractorPublicKey;
     }
     return keyTrio;
 }
@@ -73,9 +89,6 @@ void MsgEncryptor::KeyTrio::serialize(
 std::string ByteEncryptor_parsePar(
     std::string &par,
     const std::string &separator);
-
-MsgEncryptor::KeyTrio::KeyTrio()
-{}
 
 MsgEncryptor::KeyTrio::KeyTrio(
     const string &str)

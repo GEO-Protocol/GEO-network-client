@@ -24,7 +24,7 @@ public:
             new CommandResult(
                 identifier(),
                 UUID(),
-                605,
+                606,
                 mError));
     }
 

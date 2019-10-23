@@ -11,7 +11,7 @@ public:
 public:
     using MaxFlowCalculationMessage::MaxFlowCalculationMessage;
 
-    const MessageType typeID() const;
+    const MessageType typeID() const override;
 };
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCESNDLEVELMESSAGE_H
