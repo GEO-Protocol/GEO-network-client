@@ -404,7 +404,7 @@ void ObservingHandler::responseActualBlockNumber(
     mResourcesManager->putResource(
         make_shared<BlockNumberRecourse>(
             transactionUUID,
-            kDefaultBlockNumber));
+            +kDefaultBlockNumber));
 }
 
 void ObservingHandler::getActualBlockNumber()

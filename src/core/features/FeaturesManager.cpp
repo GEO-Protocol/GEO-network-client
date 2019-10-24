@@ -49,7 +49,7 @@ FeaturesManager::FeaturesManager(
                 mIOService);
             mNotificationTimer->expires_from_now(
                 chrono::seconds(
-                    kSignalTimerPeriodSeconds));
+                    +kSignalTimerPeriodSeconds));
             mNotificationTimer->async_wait(
                 boost::bind(
                     &FeaturesManager::runSignalNotify,

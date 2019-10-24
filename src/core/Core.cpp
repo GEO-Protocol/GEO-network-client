@@ -80,11 +80,6 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initFeaturesManager(conf);
-    if (initCode != 0) {
-        return initCode;
-    }
-
     initCode = initCommandsInterface();
     if (initCode != 0) {
         return initCode;
@@ -136,6 +131,12 @@ int Core::initSubsystems()
     }
 
     initCode = initKeysStore();
+    if (initCode != 0) {
+        return initCode;
+    }
+
+    /// For migration, FeaturesManager must be initialized before EquivalentsSubsystemsRouter
+    initCode = initFeaturesManager(conf);
     if (initCode != 0) {
         return initCode;
     }
