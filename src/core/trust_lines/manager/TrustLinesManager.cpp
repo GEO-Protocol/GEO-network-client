@@ -103,7 +103,8 @@ void TrustLinesManager::loadTrustLinesFromStorage()
         mAuditRules.insert(
             make_pair(
                 kTrustLine->contractorID(),
-                make_shared<AuditRuleBoundaryOverflowed>()));
+                make_shared<AuditRuleCountPayments>(
+                    kCountPaymentsForAudit)));
     }
 }
 
@@ -127,7 +128,8 @@ void TrustLinesManager::open(
     mAuditRules.insert(
         make_pair(
             contractorID,
-            make_shared<AuditRuleBoundaryOverflowed>()));
+            make_shared<AuditRuleCountPayments>(
+                kCountPaymentsForAudit)));
 
     if (ioTransaction != nullptr) {
         ioTransaction->trustLinesHandler()->saveTrustLine(
@@ -157,7 +159,8 @@ void TrustLinesManager::accept(
     mAuditRules.insert(
         make_pair(
             contractorID,
-            make_shared<AuditRuleBoundaryOverflowed>()));
+            make_shared<AuditRuleCountPayments>(
+                kCountPaymentsForAudit)));
 
     if (ioTransaction != nullptr) {
         ioTransaction->trustLinesHandler()->saveTrustLine(
