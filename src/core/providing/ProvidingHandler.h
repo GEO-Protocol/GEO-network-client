@@ -51,13 +51,14 @@ private:
 
     void rescheduleCleaning();
 
-    void clearCahedAddresses();
+    void clearCachedAddresses();
 
 public:
     mutable SendPingMessageSignal sendPingMessageSignal;
 
 private:
-    static const uint16_t kUpdatingAddressPeriodSeconds = 20;
+    static const uint16_t kStartingAddressPeriodSeconds = 5;
+    static const uint16_t kUpdatingAddressPeriodSeconds = 60;
 
     static const byte kResetCacheAddressHours = 0;
     static const byte kResetCacheAddressMinutes = 0;

@@ -31,7 +31,7 @@ ProvidingHandler::ProvidingHandler(
     if (!mProvidersForPing.empty()) {
         mUpdatingAddressTimer.expires_from_now(
             std::chrono::seconds(
-                +kUpdatingAddressPeriodSeconds));
+                +kStartingAddressPeriodSeconds));
         mUpdatingAddressTimer.async_wait(
             boost::bind(
                 &ProvidingHandler::updateAddressForProviders,
@@ -134,7 +134,7 @@ void ProvidingHandler::rescheduleCleaning()
             kCleaningTimeout.total_microseconds()));
     mCacheCleaningTimer.async_wait(
         boost::bind(
-            &ProvidingHandler::clearCahedAddresses,
+            &ProvidingHandler::clearCachedAddresses,
             this));
 }
 
