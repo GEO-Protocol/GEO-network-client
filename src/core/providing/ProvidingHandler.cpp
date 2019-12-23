@@ -138,7 +138,7 @@ void ProvidingHandler::rescheduleCleaning()
             this));
 }
 
-void ProvidingHandler::clearCahedAddresses()
+void ProvidingHandler::clearCachedAddresses()
 {
 #ifdef DEBUG_LOG_PROVIDING_HANDLER
     debug() << "clearCahedAddresses " << mCachedAddresses.size() << " " << mTimesCache.size();
