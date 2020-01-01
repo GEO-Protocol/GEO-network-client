@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.6)
 set(SOURCE_FILES
         HistoryPaymentsTransaction.h
         HistoryPaymentsTransaction.cpp
+        HistoryPaymentsAllEquivalentsTransaction.h
+        HistoryPaymentsAllEquivalentsTransaction.cpp
         HistoryTrustLinesTransaction.h
         HistoryTrustLinesTransaction.cpp
         HistoryWithContractorTransaction.h

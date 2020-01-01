@@ -238,19 +238,16 @@ void HistoryStorage::saveTrustLineRecord(
 }
 
 void HistoryStorage::savePaymentRecord(
-    PaymentRecord::Shared record,
-    const SerializedEquivalent equivalent)
+    PaymentRecord::Shared record)
 {
     switch (record->paymentOperationType()) {
         case PaymentRecord::OutgoingPaymentType:
             savePaymentMainOutgoingRecord(
-                record,
-                equivalent);
+                record);
             break;
         case PaymentRecord::IncomingPaymentType:
             savePaymentMainIncomingRecord(
-                record,
-                equivalent);
+                record);
             break;
         default:
             throw ValueError("HistoryStorage::savePaymentRecord: "
@@ -259,8 +256,7 @@ void HistoryStorage::savePaymentRecord(
 }
 
 void HistoryStorage::savePaymentMainOutgoingRecord(
-    PaymentRecord::Shared record,
-    const SerializedEquivalent equivalent)
+    PaymentRecord::Shared record)
 {
     string query = "INSERT INTO " + mMainTableName
                    + "(operation_uuid, operation_timestamp, equivalent, record_type, "
@@ -286,7 +282,7 @@ void HistoryStorage::savePaymentMainOutgoingRecord(
                           "Bad binding of Timestamp; sqlite error: " + to_string(rc));
     }
 
-    rc = sqlite3_bind_int(stmt, 3, equivalent);
+    rc = sqlite3_bind_int(stmt, 3, record->equivalent());
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert main payment: "
                           "Bad binding of Equivalent; sqlite error: " + to_string(rc));
@@ -332,8 +328,7 @@ void HistoryStorage::savePaymentMainOutgoingRecord(
 }
 
 void HistoryStorage::savePaymentMainIncomingRecord(
-    PaymentRecord::Shared record,
-    const SerializedEquivalent equivalent)
+    PaymentRecord::Shared record)
 {
     string query = "INSERT INTO " + mMainTableName
                    + "(operation_uuid, operation_timestamp, equivalent, "
@@ -359,7 +354,7 @@ void HistoryStorage::savePaymentMainIncomingRecord(
                           "Bad binding of Timestamp; sqlite error: " + to_string(rc));
     }
 
-    rc = sqlite3_bind_int(stmt, 3, equivalent);
+    rc = sqlite3_bind_int(stmt, 3, record->equivalent());
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert main payment: "
                           "Bad binding of Equivalent; sqlite error: " + to_string(rc));
@@ -597,6 +592,77 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentRecords(
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         result.push_back(
             deserializePaymentRecord(
+                equivalent,
+                stmt));
+    }
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+vector<PaymentRecord::Shared> HistoryStorage::paymentRecordsAllEquivalents(
+    size_t recordsCount,
+    size_t fromRecord,
+    DateTime timeFrom,
+    bool isTimeFromPresent,
+    DateTime timeTo,
+    bool isTimeToPresent)
+{
+    vector<PaymentRecord::Shared> result;
+    string query = "SELECT operation_uuid, operation_timestamp, record_body, record_body_bytes_count, equivalent FROM "
+                   + mMainTableName + " WHERE record_type = ? ";
+    if (isTimeFromPresent) {
+        query += " AND operation_timestamp >= ? ";
+    }
+    if (isTimeToPresent) {
+        query += " AND operation_timestamp <= ? ";
+    }
+    query += " ORDER BY operation_timestamp DESC LIMIT ? OFFSET ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::paymentRecordsAllEquivalents: "
+                      "Bad query; sqlite error: " + to_string(rc));
+    }
+    int idxParam = 1;
+    rc = sqlite3_bind_int(stmt, idxParam++, Record::PaymentRecordType);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::paymentRecordsAllEquivalents: "
+                      "Bad binding of RecordType; sqlite error: " + to_string(rc));
+    }
+    if (isTimeFromPresent) {
+        GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(timeFrom);
+        rc = sqlite3_bind_int64(stmt, idxParam++, timestamp);
+        if (rc != SQLITE_OK) {
+            throw IOError("HistoryStorage::paymentRecordsAllEquivalents: "
+                          "Bad binding of TimeFrom; sqlite error: " + to_string(rc));
+        }
+    }
+    if (isTimeToPresent) {
+        GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(timeTo);
+        rc = sqlite3_bind_int64(stmt, idxParam++, timestamp);
+        if (rc != SQLITE_OK) {
+            throw IOError("HistoryStorage::paymentRecordsAllEquivalents: "
+                          "Bad binding of TimeTo; sqlite error: " + to_string(rc));
+        }
+    }
+    rc = sqlite3_bind_int(stmt, idxParam++, (int)recordsCount);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::paymentRecordsAllEquivalents: "
+                      "Bad binding of recordsCount; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, idxParam, (int)fromRecord);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::paymentRecordsAllEquivalents: "
+                      "Bad binding of fromRecord; sqlite error: " + to_string(rc));
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+        auto equivalent = (SerializedEquivalent)sqlite3_column_int(stmt, 4);
+        result.push_back(
+            deserializePaymentRecord(
+                equivalent,
                 stmt));
     }
 
@@ -626,6 +692,29 @@ size_t HistoryStorage::countRecordsByType(
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::countRecordsByType: "
                           "Bad binding of RecordType; sqlite error: " + to_string(rc));
+    }
+    sqlite3_step(stmt);
+    auto result = (size_t)sqlite3_column_int(stmt, 0);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+size_t HistoryStorage::countRecordsByTypeAllEquivalents(
+    Record::RecordType recordType)
+{
+    string query = "SELECT count(*) FROM "
+                   + mMainTableName + " WHERE record_type = ? ";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::countRecordsByTypeAllEquivalents: "
+                      "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, recordType);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::countRecordsByTypeAllEquivalents: "
+                      "Bad binding of RecordType; sqlite error: " + to_string(rc));
     }
     sqlite3_step(stmt);
     auto result = (size_t)sqlite3_column_int(stmt, 0);
@@ -666,6 +755,65 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentRecords(
     while (result.size() < recordsCount && currentOffset < paymentRecordsCount) {
         auto paymentRecords = allPaymentRecords(
             equivalent,
+            kPortionRequestSize,
+            currentOffset,
+            timeFrom,
+            isTimeFromPresent,
+            timeTo,
+            isTimeToPresent);
+        for (auto &paymentRecord : paymentRecords) {
+            bool recordUnderConditions = true;
+            if (isLowBoundaryAmountPresent) {
+                recordUnderConditions = recordUnderConditions &&
+                    (paymentRecord->amount() >= lowBoundaryAmount);
+            }
+            if (isHighBoundaryAmountPresent) {
+                recordUnderConditions = recordUnderConditions &&
+                    (paymentRecord->amount() <= highBoundaryAmount);
+            }
+            if (recordUnderConditions) {
+                countRecordsUnderConditions++;
+                if (countRecordsUnderConditions > fromRecord) {
+                    result.push_back(paymentRecord);
+                }
+            }
+            if (result.size() >= recordsCount) {
+                break;
+            }
+        }
+        currentOffset += kPortionRequestSize;
+    }
+    return result;
+}
+
+vector<PaymentRecord::Shared> HistoryStorage::paymentRecordsAllEquivalents(
+    size_t recordsCount,
+    size_t fromRecord,
+    DateTime timeFrom,
+    bool isTimeFromPresent,
+    DateTime timeTo,
+    bool isTimeToPresent,
+    const TrustLineAmount& lowBoundaryAmount,
+    bool isLowBoundaryAmountPresent,
+    const TrustLineAmount& highBoundaryAmount,
+    bool isHighBoundaryAmountPresent)
+{
+    if (!isLowBoundaryAmountPresent && !isHighBoundaryAmountPresent) {
+        return paymentRecordsAllEquivalents(
+            recordsCount,
+            fromRecord,
+            timeFrom,
+            isTimeFromPresent,
+            timeTo,
+            isTimeToPresent);
+    }
+    vector<PaymentRecord::Shared> result;
+    size_t paymentRecordsCount = countRecordsByTypeAllEquivalents(
+        Record::PaymentRecordType);
+    size_t currentOffset = 0;
+    size_t countRecordsUnderConditions = 0;
+    while (result.size() < recordsCount && currentOffset < paymentRecordsCount) {
+        auto paymentRecords = paymentRecordsAllEquivalents(
             kPortionRequestSize,
             currentOffset,
             timeFrom,
@@ -877,6 +1025,7 @@ vector<Record::Shared> HistoryStorage::recordsPortionWithContractor(
             case Record::PaymentRecordType:
                 result.push_back(
                     deserializePaymentRecord(
+                        equivalent,
                         stmt));
                 break;
             default:
@@ -968,6 +1117,7 @@ vector<PaymentRecord::Shared> HistoryStorage::paymentRecordsByCommandUUID(
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         result.push_back(
             deserializePaymentRecord(
+                0,
                 stmt));
         return result;
     }
@@ -1021,6 +1171,7 @@ TrustLineRecord::Shared HistoryStorage::deserializeTrustLineRecord(
 }
 
 PaymentRecord::Shared HistoryStorage::deserializePaymentRecord(
+    const SerializedEquivalent equivalent,
     sqlite3_stmt *stmt)
 {
     TransactionUUID operationUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
@@ -1033,6 +1184,7 @@ PaymentRecord::Shared HistoryStorage::deserializePaymentRecord(
         recordBodyBytesCount);
 
     return make_shared<PaymentRecord>(
+        equivalent,
         operationUUID,
         timestamp,
         recordBody);

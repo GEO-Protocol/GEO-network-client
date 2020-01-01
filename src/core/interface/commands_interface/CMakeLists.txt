@@ -54,6 +54,8 @@ set(SOURCE_FILES
 
         commands/history/HistoryPaymentsCommand.h
         commands/history/HistoryPaymentsCommand.cpp
+        commands/history/HistoryPaymentsAllEquivalentsCommand.h
+        commands/history/HistoryPaymentsAllEquivalentsCommand.cpp
         commands/history/HistoryTrustLinesCommand.h
         commands/history/HistoryTrustLinesCommand.cpp
         commands/history/HistoryWithContractorCommand.h

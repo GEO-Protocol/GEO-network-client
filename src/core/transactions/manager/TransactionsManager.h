@@ -61,6 +61,7 @@
 #include "../transactions/total_balances/TotalBalancesTransaction.h"
 
 #include "../transactions/history/HistoryPaymentsTransaction.h"
+#include "../transactions/history/HistoryPaymentsAllEquivalentsTransaction.h"
 #include "../transactions/history/HistoryAdditionalPaymentsTransaction.h"
 #include "../transactions/history/HistoryTrustLinesTransaction.h"
 #include "../transactions/history/HistoryWithContractorTransaction.h"
@@ -313,6 +314,9 @@ protected: // Transactions
      */
     void launchHistoryPaymentsTransaction(
         HistoryPaymentsCommand::Shared command);
+
+    void launchHistoryPaymentsAllEquivalentsTransaction(
+        HistoryPaymentsAllEquivalentsCommand::Shared command);
 
     void launchAdditionalHistoryPaymentsTransaction(
         HistoryAdditionalPaymentsCommand::Shared command);

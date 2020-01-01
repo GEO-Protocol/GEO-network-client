@@ -820,6 +820,7 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
     auto coordinatorAddress = mPaymentParticipants[kCoordinatorPaymentNodeID];
     ioTransaction->historyStorage()->savePaymentRecord(
         make_shared<PaymentRecord>(
+            mEquivalent,
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::IncomingPaymentType,
             mPaymentParticipants[kCoordinatorPaymentNodeID],
@@ -827,8 +828,7 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
             *mTrustLinesManager->totalBalance().get(),
             mOutgoingTransfers,
             mIncomingTransfers,
-            mPayload),
-        mEquivalent);
+            mPayload));
     debug() << "Operation saved";
 }
 
