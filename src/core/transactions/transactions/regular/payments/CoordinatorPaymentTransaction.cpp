@@ -2054,6 +2054,7 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory(
     debug() << "savePaymentOperationIntoHistory";
     ioTransaction->historyStorage()->savePaymentRecord(
         make_shared<PaymentRecord>(
+            mEquivalent,
             currentTransactionUUID(),
             PaymentRecord::OutgoingPaymentType,
             mContractor,
@@ -2062,8 +2063,7 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory(
             mOutgoingTransfers,
             mIncomingTransfers,
             mCommand->UUID(),
-            mCommand->payload()),
-        mEquivalent);
+            mCommand->payload()));
     debug() << "Operation saved";
 }
 

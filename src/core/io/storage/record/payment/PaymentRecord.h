@@ -20,6 +20,7 @@ public:
 
 public:
     PaymentRecord(
+        const SerializedEquivalent equivalent,
         const TransactionUUID &operationUUID,
         const PaymentRecord::PaymentOperationType operationType,
         Contractor::Shared contractor,
@@ -30,6 +31,7 @@ public:
         const string payload = "");
 
     PaymentRecord(
+        const SerializedEquivalent equivalent,
         const TransactionUUID &operationUUID,
         const PaymentRecord::PaymentOperationType operationType,
         Contractor::Shared contractor,
@@ -41,9 +43,12 @@ public:
         const string payload = "");
 
     PaymentRecord(
+        const SerializedEquivalent equivalent,
         const TransactionUUID &operationUUID,
         const GEOEpochTimestamp geoEpochTimestamp,
         BytesShared recordBody);
+
+    const SerializedEquivalent equivalent() const;
 
     const PaymentOperationType paymentOperationType() const;
 
@@ -60,6 +65,7 @@ public:
     pair<BytesShared, size_t> serializedHistoryRecordBody() const override;
 
 private:
+    SerializedEquivalent mEquivalent;
     PaymentOperationType mPaymentOperationType;
     TrustLineAmount mAmount;
     TrustLineBalance mBalanceAfterOperation;

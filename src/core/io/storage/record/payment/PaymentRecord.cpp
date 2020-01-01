@@ -1,6 +1,7 @@
 #include "PaymentRecord.h"
 
 PaymentRecord::PaymentRecord(
+    const SerializedEquivalent equivalent,
     const TransactionUUID &operationUUID,
     const PaymentRecord::PaymentOperationType operationType,
     Contractor::Shared contractor,
@@ -14,6 +15,7 @@ PaymentRecord::PaymentRecord(
         Record::PaymentRecordType,
         operationUUID,
         contractor),
+    mEquivalent(equivalent),
     mPaymentOperationType(operationType),
     mAmount(amount),
     mBalanceAfterOperation(balanceAfterOperation),
@@ -24,6 +26,7 @@ PaymentRecord::PaymentRecord(
 {}
 
 PaymentRecord::PaymentRecord(
+    const SerializedEquivalent equivalent,
     const TransactionUUID &operationUUID,
     const PaymentRecord::PaymentOperationType operationType,
     Contractor::Shared contractor,
@@ -38,6 +41,7 @@ PaymentRecord::PaymentRecord(
         Record::PaymentRecordType,
         operationUUID,
         contractor),
+    mEquivalent(equivalent),
     mPaymentOperationType(operationType),
     mAmount(amount),
     mBalanceAfterOperation(balanceAfterOperation),
@@ -48,13 +52,15 @@ PaymentRecord::PaymentRecord(
 {}
 
 PaymentRecord::PaymentRecord(
+    const SerializedEquivalent equivalent,
     const TransactionUUID &operationUUID,
     const GEOEpochTimestamp geoEpochTimestamp,
     BytesShared recordBody):
     Record(
         Record::PaymentRecordType,
         operationUUID,
-        geoEpochTimestamp)
+        geoEpochTimestamp),
+    mEquivalent(equivalent)
 {
     size_t dataBufferOffset = 0;
     auto *operationType
@@ -153,6 +159,11 @@ PaymentRecord::PaymentRecord(
 const bool PaymentRecord::isPaymentRecord() const
 {
     return true;
+}
+
+const SerializedEquivalent PaymentRecord::equivalent() const
+{
+    return mEquivalent;
 }
 
 const PaymentRecord::PaymentOperationType PaymentRecord::paymentOperationType() const

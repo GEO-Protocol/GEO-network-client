@@ -321,6 +321,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<HistoryPaymentsCommand>(
                 command));
 
+    } else if (command->identifier() == HistoryPaymentsAllEquivalentsCommand::identifier()){
+        launchHistoryPaymentsAllEquivalentsTransaction(
+            static_pointer_cast<HistoryPaymentsAllEquivalentsCommand>(
+                command));
+
     } else if (command->identifier() == HistoryAdditionalPaymentsCommand::identifier()){
         launchAdditionalHistoryPaymentsTransaction(
             static_pointer_cast<HistoryAdditionalPaymentsCommand>(
@@ -1824,6 +1829,23 @@ void TransactionsManager::launchHistoryPaymentsTransaction(
     }
 }
 
+void TransactionsManager::launchHistoryPaymentsAllEquivalentsTransaction(
+    HistoryPaymentsAllEquivalentsCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<HistoryPaymentsAllEquivalentsTransaction>(
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
 void TransactionsManager::launchAdditionalHistoryPaymentsTransaction(
     HistoryAdditionalPaymentsCommand::Shared command)
 {
@@ -1854,7 +1876,6 @@ void TransactionsManager::launchAdditionalHistoryPaymentsTransaction(
         throw ConflictError(e.message());
     }
 }
-
 
 /*!
  *
@@ -2429,16 +2450,14 @@ void TransactionsManager::onCommandResultReady(
     try {
         auto message = result->serialize();
 
-        info() << "Result for command " + result->identifier();
-
-        if (result->identifier() == HistoryPaymentsCommand::identifier() or
-                result->identifier() == HistoryTrustLinesCommand::identifier() or
-                result->identifier() == HistoryWithContractorCommand::identifier() or
-                result->identifier() == HistoryAdditionalPaymentsCommand::identifier() or
-                result->identifier() == GetTrustLinesCommand::identifier()) {
-            auto shortMessage = result->serializeShort();
-            info() << "CommandResultReady: " << shortMessage;
-        } else {
+        if (result->identifier() != HistoryPaymentsCommand::identifier() and
+                result->identifier() != HistoryPaymentsAllEquivalentsCommand::identifier() and
+                result->identifier() != HistoryTrustLinesCommand::identifier() and
+                result->identifier() != HistoryWithContractorCommand::identifier() and
+                result->identifier() != HistoryAdditionalPaymentsCommand::identifier() and
+                result->identifier() != EquivalentListCommand::identifier() and
+                result->identifier() != GetTrustLinesCommand::identifier()) {
+            info() << "Result for command " + result->identifier();
             info() << "CommandResultReady: " << message;
         }
 

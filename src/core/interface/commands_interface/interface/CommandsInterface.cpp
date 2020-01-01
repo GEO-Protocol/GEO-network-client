@@ -231,6 +231,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == HistoryPaymentsAllEquivalentsCommand::identifier()) {
+            command = new HistoryPaymentsAllEquivalentsCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == HistoryAdditionalPaymentsCommand::identifier()) {
             command = new HistoryAdditionalPaymentsCommand(
                 uuid,

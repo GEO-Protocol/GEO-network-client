@@ -31,8 +31,7 @@ public:
         const SerializedEquivalent equivalent);
 
     void savePaymentRecord(
-        PaymentRecord::Shared record,
-        const SerializedEquivalent equivalent);
+        PaymentRecord::Shared record);
 
     void savePaymentAdditionalRecord(
         PaymentAdditionalRecord::Shared record,
@@ -49,6 +48,18 @@ public:
 
     vector<PaymentRecord::Shared> allPaymentRecords(
         const SerializedEquivalent equivalent,
+        size_t recordsCount,
+        size_t fromRecord,
+        DateTime timeFrom,
+        bool isTimeFromPresent,
+        DateTime timeTo,
+        bool isTimeToPresent,
+        const TrustLineAmount& lowBoundaryAmount,
+        bool isLowBoundaryAmountPresent,
+        const TrustLineAmount& highBoundaryAmount,
+        bool isHighBoundaryAmountPresent);
+
+    vector<PaymentRecord::Shared> paymentRecordsAllEquivalents(
         size_t recordsCount,
         size_t fromRecord,
         DateTime timeFrom,
@@ -87,15 +98,21 @@ public:
 
 private:
     void savePaymentMainOutgoingRecord(
-        PaymentRecord::Shared record,
-        const SerializedEquivalent equivalent);
+        PaymentRecord::Shared record);
 
     void savePaymentMainIncomingRecord(
-        PaymentRecord::Shared record,
-        const SerializedEquivalent equivalent);
+        PaymentRecord::Shared record);
 
     vector<PaymentRecord::Shared> allPaymentRecords(
         const SerializedEquivalent equivalent,
+        size_t recordsCount,
+        size_t fromRecord,
+        DateTime timeFrom,
+        bool isTimeFromPresent,
+        DateTime timeTo,
+        bool isTimeToPresent);
+
+    vector<PaymentRecord::Shared> paymentRecordsAllEquivalents(
         size_t recordsCount,
         size_t fromRecord,
         DateTime timeFrom,
@@ -116,6 +133,9 @@ private:
         Record::RecordType recordType,
         const SerializedEquivalent equivalent);
 
+    size_t countRecordsByTypeAllEquivalents(
+        Record::RecordType recordType);
+
     vector<Record::Shared> recordsPortionWithContractor(
         const SerializedEquivalent equivalent,
         size_t recordsCount,
@@ -125,6 +145,7 @@ private:
         sqlite3_stmt *stmt);
 
     PaymentRecord::Shared deserializePaymentRecord(
+        const SerializedEquivalent equivalent,
         sqlite3_stmt *stmt);
 
     PaymentAdditionalRecord::Shared deserializePaymentAdditionalRecord(

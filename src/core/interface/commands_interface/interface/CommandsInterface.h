@@ -21,6 +21,7 @@
 #include "../commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h"
 #include "../commands/total_balances/TotalBalancesCommand.h"
 #include "../commands/history/HistoryPaymentsCommand.h"
+#include "../commands/history/HistoryPaymentsAllEquivalentsCommand.h"
 #include "../commands/history/HistoryAdditionalPaymentsCommand.h"
 #include "../commands/history/HistoryTrustLinesCommand.h"
 #include "../commands/history/HistoryWithContractorCommand.h"
