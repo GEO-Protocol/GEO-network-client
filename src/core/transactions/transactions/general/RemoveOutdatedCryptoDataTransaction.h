@@ -3,6 +3,7 @@
 
 #include "../base/BaseTransaction.h"
 
+#include "../../../interface/commands_interface/commands/general/RemoveOutdatedCryptoDataCommand.h"
 #include "../../../equivalents/EquivalentsSubsystemsRouter.h"
 #include "../../../io/storage/StorageHandler.h"
 #include "../../../crypto/keychain.h"
@@ -16,6 +17,7 @@ public:
 
 public:
     RemoveOutdatedCryptoDataTransaction(
+        RemoveOutdatedCryptoDataCommand::Shared command,
         EquivalentsSubsystemsRouter *equivalentsSubsystemsRouter,
         StorageHandler *storageHandler,
         Keystore *keystore,
@@ -26,10 +28,13 @@ public:
 protected:
     const string logHeader() const override;
 
+    TransactionResult::SharedConst resultOK();
+
 private:
     static const AuditNumber kOutdatedDifference = 2;
 
 private:
+    RemoveOutdatedCryptoDataCommand::Shared mCommand;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     StorageHandler *mStorageHandler;
     Keystore *mKeysStore;

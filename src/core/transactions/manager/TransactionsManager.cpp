@@ -2179,6 +2179,7 @@ void TransactionsManager::launchRemoveOutdatedCryptoDataTransaction(
     RemoveOutdatedCryptoDataCommand::Shared command)
 {
     auto transaction = make_shared<RemoveOutdatedCryptoDataTransaction>(
+        command,
         mEquivalentsSubsystemsRouter,
         mStorageHandler,
         mKeysStore,
@@ -2477,7 +2478,9 @@ void TransactionsManager::onCommandResultReady(
                 result->identifier() != HistoryWithContractorCommand::identifier() and
                 result->identifier() != HistoryAdditionalPaymentsCommand::identifier() and
                 result->identifier() != EquivalentListCommand::identifier() and
-                result->identifier() != GetTrustLinesCommand::identifier()) {
+                result->identifier() != GetTrustLinesCommand::identifier() and
+                result->identifier() != GetTrustLineByAddressCommand::identifier() and
+                result->identifier() != GetTrustLineByIDCommand::identifier()) {
             info() << "Result for command " + result->identifier();
             info() << "CommandResultReady: " << message;
         }

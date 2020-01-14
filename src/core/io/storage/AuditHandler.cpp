@@ -555,7 +555,7 @@ vector<AuditRecord::Shared> AuditHandler::auditsLessEqualThanAuditNumber(
     string query = "SELECT number, incoming_amount, outgoing_amount, balance, "
                    "our_key_hash, our_signature, contractor_key_hash, contractor_signature, "
                    "own_keys_set_hash, contractor_keys_set_hash FROM " + mTableName
-                   + " WHERE trust_line_id = ? AND number <= ? ORDER BY number DESC LIMIT 1;";
+                   + " WHERE trust_line_id = ? AND number <= ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -573,7 +573,6 @@ vector<AuditRecord::Shared> AuditHandler::auditsLessEqualThanAuditNumber(
                           "Bad binding of AuditNumber; sqlite error: " + to_string(rc));
     }
 
-    rc = sqlite3_step(stmt);
     vector<AuditRecord::Shared> result;
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         auto number = (AuditNumber)sqlite3_column_int(stmt, 0);
@@ -621,8 +620,6 @@ vector<AuditRecord::Shared> AuditHandler::auditsLessEqualThanAuditNumber(
         auto contractorKeysSetHash = make_shared<lamport::KeyHash>(
             (byte*)sqlite3_column_blob(stmt, 9));
 
-        sqlite3_reset(stmt);
-        sqlite3_finalize(stmt);
         result.push_back(
             make_shared<AuditRecord>(
                 number,
