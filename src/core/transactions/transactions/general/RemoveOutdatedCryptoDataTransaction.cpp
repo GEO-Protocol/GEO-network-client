@@ -49,7 +49,7 @@ TransactionResult::SharedConst RemoveOutdatedCryptoDataTransaction::run()
         }
     }
     mStorageHandler->vacuum();
-    return resultDone();
+    return resultOk();
 }
 
 TransactionResult::SharedConst RemoveOutdatedCryptoDataTransaction::resultOK()
