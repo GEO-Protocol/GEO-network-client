@@ -36,6 +36,10 @@ public:
         const TrustLineID trustLineID,
         const AuditNumber auditNumber);
 
+    vector<ReceiptRecord::Shared> receiptsLessEqualThanAuditNumber(
+        const TrustLineID trustLineID,
+        const AuditNumber auditNumber);
+
     uint32_t countReceiptsByNumber(
         const TrustLineID trustLineID,
         const AuditNumber auditNumber);

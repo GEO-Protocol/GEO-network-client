@@ -62,6 +62,9 @@ public:
     void deleteKeysByTrustLineID(
         const TrustLineID trustLineID);
 
+    void deleteKeyByHash(
+        KeyHash::Shared keyHash);
+
 private:
     LoggerStream info() const;
 

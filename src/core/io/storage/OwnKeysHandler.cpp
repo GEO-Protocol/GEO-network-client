@@ -561,6 +561,34 @@ void OwnKeysHandler::deleteKeysByTrustLineID(
     }
 }
 
+void OwnKeysHandler::deleteKeyByHash(
+    KeyHash::Shared keyHash)
+{
+    string query = "DELETE FROM  " + mTableName + " WHERE hash = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::deleteKeyByHash: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 1, keyHash->data(), (int) KeyHash::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::deleteKeyByHash: "
+                          "Bad binding of Hash; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_ROW) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "deleting is completed successfully";
+#endif
+    } else {
+        throw IOError("OwnKeysHandler::deleteKeyByHash: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+}
 
 LoggerStream OwnKeysHandler::info() const
 {

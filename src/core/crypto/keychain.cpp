@@ -768,6 +768,55 @@ namespace crypto {
         ioTransaction->ownKeysHandler()->deleteKeysByTrustLineID(mTrustLineID);
         ioTransaction->contractorKeysHandler()->deleteKeysByTrustLineID(mTrustLineID);
         // todo : remove audit rules
+        // todo : remove all transactions crypto data ??
+    }
+
+    void TrustLineKeychain::removeOutdatedCryptoData(
+        IOTransaction::Shared ioTransaction,
+        AuditNumber auditNumber)
+    {
+        auto outgoingReceipts = ioTransaction->outgoingPaymentReceiptHandler()->receiptsLessEqualThanAuditNumber(
+            mTrustLineID,
+            auditNumber);
+        for (const auto &outgoingReceipt : outgoingReceipts) {
+            ioTransaction->outgoingPaymentReceiptHandler()->deleteRecords(
+                outgoingReceipt->transactionUUID());
+            ioTransaction->paymentParticipantsVotesHandler()->deleteRecords(
+                outgoingReceipt->transactionUUID());
+            ioTransaction->paymentTransactionsHandler()->deleteRecord(
+                outgoingReceipt->transactionUUID());
+            ioTransaction->paymentKeysHandler()->deleteKeyByTransactionUUID(
+                outgoingReceipt->transactionUUID());
+            ioTransaction->ownKeysHandler()->deleteKeyByHash(
+                outgoingReceipt->keyHash());
+        }
+        auto incomingReceipts = ioTransaction->incomingPaymentReceiptHandler()->receiptsLessEqualThanAuditNumber(
+            mTrustLineID,
+            auditNumber);
+        for (const auto &incomingReceipt : incomingReceipts) {
+            ioTransaction->outgoingPaymentReceiptHandler()->deleteRecords(
+                incomingReceipt->transactionUUID());
+            ioTransaction->paymentParticipantsVotesHandler()->deleteRecords(
+                incomingReceipt->transactionUUID());
+            ioTransaction->paymentTransactionsHandler()->deleteRecord(
+                incomingReceipt->transactionUUID());
+            ioTransaction->paymentKeysHandler()->deleteKeyByTransactionUUID(
+                incomingReceipt->transactionUUID());
+            ioTransaction->contractorKeysHandler()->deleteKeyByHash(
+                incomingReceipt->keyHash());
+        }
+        auto audits = ioTransaction->auditHandler()->auditsLessEqualThanAuditNumber(
+            mTrustLineID,
+            auditNumber);
+        for (const auto &audit : audits) {
+            ioTransaction->auditHandler()->deleteAuditByNumber(
+                mTrustLineID,
+                audit->auditNumber());
+            ioTransaction->ownKeysHandler()->deleteKeyByHash(
+                audit->ownKeyHash());
+            ioTransaction->contractorKeysHandler()->deleteKeyByHash(
+                audit->contractorKeyHash());
+        }
     }
 
     void TrustLineKeychain::keyNumberGuard(

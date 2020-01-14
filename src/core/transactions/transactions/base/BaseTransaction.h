@@ -135,7 +135,8 @@ public:
 
         // General
         NoEquivalentType = 1200,
-        PongReactionType = 1201
+        PongReactionType = 1201,
+        RemoveOutdatedCryptoDataType = 1202
     };
 
 public:

@@ -375,6 +375,10 @@ public:
     void removeAllTrustLineData(
         IOTransaction::Shared ioTransaction);
 
+    void removeOutdatedCryptoData(
+        IOTransaction::Shared ioTransaction,
+        AuditNumber auditNumber);
+
 protected:
     /**
      * @brief checks "number" for it's range.

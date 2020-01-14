@@ -36,6 +36,7 @@
 #include "../commands/subsystems_controller/SubsystemsInfluenceCommand.h"
 #include "../commands/subsystems_controller/TrustLinesInfluenceCommand.h"
 #include "../commands/transactions/PaymentTransactionByCommandUUIDCommand.h"
+#include "../commands/general/RemoveOutdatedCryptoDataCommand.h"
 
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/ValueError.h"

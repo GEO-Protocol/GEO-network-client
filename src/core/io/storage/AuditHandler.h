@@ -68,6 +68,10 @@ public:
         TrustLineID trustLineID,
         AuditNumber auditNumber);
 
+    vector<AuditRecord::Shared> auditsLessEqualThanAuditNumber(
+        TrustLineID trustLineID,
+        AuditNumber auditNumber);
+
 private:
     LoggerStream info() const;
 

@@ -386,6 +386,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<PaymentTransactionByCommandUUIDCommand>(
                 command));
 
+    } else if (command->identifier() == RemoveOutdatedCryptoDataCommand::identifier()){
+        launchRemoveOutdatedCryptoDataTransaction(
+            static_pointer_cast<RemoveOutdatedCryptoDataCommand>(
+                command));
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -2162,6 +2167,22 @@ void TransactionsManager::launchPongReactionTransaction(
             _1,
             _2,
             _3));
+    prepareAndSchedule(
+        transaction,
+        true,
+        false,
+        false);
+}
+
+
+void TransactionsManager::launchRemoveOutdatedCryptoDataTransaction(
+    RemoveOutdatedCryptoDataCommand::Shared command)
+{
+    auto transaction = make_shared<RemoveOutdatedCryptoDataTransaction>(
+        mEquivalentsSubsystemsRouter,
+        mStorageHandler,
+        mKeysStore,
+        mLog);
     prepareAndSchedule(
         transaction,
         true,
