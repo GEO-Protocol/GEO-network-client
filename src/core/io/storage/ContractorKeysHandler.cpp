@@ -480,7 +480,7 @@ void ContractorKeysHandler::deleteKeyByHash(
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    if (rc == SQLITE_ROW) {
+    if (rc == SQLITE_DONE) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "deleting is completed successfully";
 #endif

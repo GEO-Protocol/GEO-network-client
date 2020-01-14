@@ -794,7 +794,7 @@ namespace crypto {
             mTrustLineID,
             auditNumber);
         for (const auto &incomingReceipt : incomingReceipts) {
-            ioTransaction->outgoingPaymentReceiptHandler()->deleteRecords(
+            ioTransaction->incomingPaymentReceiptHandler()->deleteRecords(
                 incomingReceipt->transactionUUID());
             ioTransaction->paymentParticipantsVotesHandler()->deleteRecords(
                 incomingReceipt->transactionUUID());

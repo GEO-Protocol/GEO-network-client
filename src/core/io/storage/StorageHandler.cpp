@@ -96,6 +96,13 @@ IOTransaction::Shared StorageHandler::beginTransaction()
         mLog);
 }
 
+void StorageHandler::vacuum()
+{
+    sqlite3_db_config(mDBConnection, SQLITE_DBCONFIG_RESET_DATABASE, 1, 0);
+    sqlite3_exec(mDBConnection, "VACUUM", 0, 0, 0);
+    sqlite3_db_config(mDBConnection, SQLITE_DBCONFIG_RESET_DATABASE, 0, 0);
+}
+
 LoggerStream StorageHandler::info() const
 {
     return mLog.info(logHeader());

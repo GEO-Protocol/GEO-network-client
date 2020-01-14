@@ -1,6 +1,8 @@
 #ifndef GEO_NETWORK_CLIENT_STORAGEHANDLER_H
 #define GEO_NETWORK_CLIENT_STORAGEHANDLER_H
 
+#define SQLITE_DBCONFIG_RESET_DATABASE        1009 /* int int* */
+
 #include "../../logger/Logger.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
@@ -22,6 +24,8 @@ public:
     ~StorageHandler();
 
     IOTransaction::Shared beginTransaction();
+
+    void vacuum();
 
 private:
     static void checkDirectory(
