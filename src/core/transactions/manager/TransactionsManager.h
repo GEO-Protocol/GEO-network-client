@@ -81,6 +81,7 @@
 
 #include "../transactions/general/NoEquivalentTransaction.h"
 #include "../transactions/general/PongReactionTransaction.h"
+#include "../transactions/general/RemoveOutdatedCryptoDataTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -364,6 +365,9 @@ protected: // Transactions
      */
     void launchPongReactionTransaction(
         PongMessage::Shared message);
+
+    void launchRemoveOutdatedCryptoDataTransaction(
+        RemoveOutdatedCryptoDataCommand::Shared command);
 
 protected:
     // Signals connection to manager's slots

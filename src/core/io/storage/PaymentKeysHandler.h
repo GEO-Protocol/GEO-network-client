@@ -28,6 +28,9 @@ public:
     PrivateKey* getOwnPrivateKey(
         const TransactionUUID &transactionUUID);
 
+    void deleteKeyByTransactionUUID(
+        const TransactionUUID &transactionUUID);
+
 private:
     LoggerStream info() const;
 

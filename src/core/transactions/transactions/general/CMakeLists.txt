@@ -5,7 +5,10 @@ set(SOURCE_FILES
         NoEquivalentTransaction.cpp
 
         PongReactionTransaction.h
-        PongReactionTransaction.cpp)
+        PongReactionTransaction.cpp
+
+        RemoveOutdatedCryptoDataTransaction.h
+        RemoveOutdatedCryptoDataTransaction.cpp)
 
 add_library(transactions__general ${SOURCE_FILES})
 

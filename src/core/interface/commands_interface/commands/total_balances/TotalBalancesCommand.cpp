@@ -30,6 +30,7 @@ TotalBalancesCommand::TotalBalancesCommand(
         throw ValueError("TotalBalancesCommand: cannot parse command.");
     }
 }
+
 const string &TotalBalancesCommand::identifier()
 {
     static const string identifier = "GET:stats/balance/total";

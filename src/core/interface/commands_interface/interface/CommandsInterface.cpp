@@ -306,6 +306,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == RemoveOutdatedCryptoDataCommand::identifier()) {
+            return newCommand<RemoveOutdatedCryptoDataCommand>(
+                uuid,
+                buffer);
+
         } else {
             return commandError(
                 uuid,
