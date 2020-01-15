@@ -11,12 +11,12 @@ bool AuditRuleCountPayments::check(
     IOTransaction::Shared ioTransaction)
 {
     auto currentAuditNumber = ioTransaction->auditHandler()->getActualAuditNumber(
-        trustLine->contractorID());
+        trustLine->trustLineID());
     auto countIncomingPayments = ioTransaction->incomingPaymentReceiptHandler()->countReceiptsByNumber(
-        trustLine->contractorID(),
+        trustLine->trustLineID(),
         currentAuditNumber);
     auto countOutgoingPayments = ioTransaction->outgoingPaymentReceiptHandler()->countReceiptsByNumber(
-        trustLine->contractorID(),
+        trustLine->trustLineID(),
         currentAuditNumber);
     return countIncomingPayments + countOutgoingPayments >= mCountPayments;
 }
