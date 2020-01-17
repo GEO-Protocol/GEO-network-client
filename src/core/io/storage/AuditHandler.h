@@ -72,6 +72,9 @@ public:
         TrustLineID trustLineID,
         AuditNumber auditNumber);
 
+    bool isContainsKeyHash(
+        lamport::KeyHash::Shared keyHash) const;
+
 private:
     LoggerStream info() const;
 

@@ -18,6 +18,7 @@ namespace crypto {
     {
         mKey.unlockAndInitGuard();
         // ...
+        return make_pair(nullptr, 0);
     }
 
     pair<BytesShared, size_t> Encryptor::decrypt(
@@ -26,6 +27,7 @@ namespace crypto {
     {
         mKey.unlockAndInitGuard();
         // ...
+        return make_pair(nullptr, 0);
     }
 
 
@@ -775,6 +777,11 @@ namespace crypto {
         IOTransaction::Shared ioTransaction,
         AuditNumber auditNumber)
     {
+        auto currentOwnKeysSetSequenceNumber = ioTransaction->ownKeysHandler()->maxKeySetSequenceNumber(
+            mTrustLineID);
+        auto currentContractorKeysSetSequenceNumber = ioTransaction->contractorKeysHandler()->maxKeySetSequenceNumber(
+            mTrustLineID);
+
         auto outgoingReceipts = ioTransaction->outgoingPaymentReceiptHandler()->receiptsLessEqualThanAuditNumber(
             mTrustLineID,
             auditNumber);
@@ -787,8 +794,9 @@ namespace crypto {
                 outgoingReceipt->transactionUUID());
             ioTransaction->paymentKeysHandler()->deleteKeyByTransactionUUID(
                 outgoingReceipt->transactionUUID());
-            ioTransaction->ownKeysHandler()->deleteKeyByHash(
-                outgoingReceipt->keyHash());
+            ioTransaction->ownKeysHandler()->deleteKeyByHashExceptSequenceNumber(
+                outgoingReceipt->keyHash(),
+                currentOwnKeysSetSequenceNumber);
         }
         auto incomingReceipts = ioTransaction->incomingPaymentReceiptHandler()->receiptsLessEqualThanAuditNumber(
             mTrustLineID,
@@ -802,8 +810,9 @@ namespace crypto {
                 incomingReceipt->transactionUUID());
             ioTransaction->paymentKeysHandler()->deleteKeyByTransactionUUID(
                 incomingReceipt->transactionUUID());
-            ioTransaction->contractorKeysHandler()->deleteKeyByHash(
-                incomingReceipt->keyHash());
+            ioTransaction->contractorKeysHandler()->deleteKeyByHashExceptSequenceNumber(
+                incomingReceipt->keyHash(),
+                currentContractorKeysSetSequenceNumber);
         }
         auto audits = ioTransaction->auditHandler()->auditsLessEqualThanAuditNumber(
             mTrustLineID,
@@ -812,10 +821,45 @@ namespace crypto {
             ioTransaction->auditHandler()->deleteAuditByNumber(
                 mTrustLineID,
                 audit->auditNumber());
-            ioTransaction->ownKeysHandler()->deleteKeyByHash(
-                audit->ownKeyHash());
-            ioTransaction->contractorKeysHandler()->deleteKeyByHash(
-                audit->contractorKeyHash());
+            ioTransaction->ownKeysHandler()->deleteKeyByHashExceptSequenceNumber(
+                audit->ownKeyHash(),
+                currentOwnKeysSetSequenceNumber);
+            ioTransaction->contractorKeysHandler()->deleteKeyByHashExceptSequenceNumber(
+                audit->contractorKeyHash(),
+                currentContractorKeysSetSequenceNumber);
+        }
+
+        removeOutdatedKeys(ioTransaction);
+    }
+
+    void TrustLineKeychain::removeOutdatedKeys(
+        IOTransaction::Shared ioTransaction)
+    {
+        auto currentKeysSetSequenceNumber = ioTransaction->ownKeysHandler()->maxKeySetSequenceNumber(
+            mTrustLineID);
+
+        auto ownKeyHashes = ioTransaction->ownKeysHandler()->publicKeyHashesLessThanSetNumber(
+            mTrustLineID,
+            currentKeysSetSequenceNumber);
+        for (auto &ownKeyHash : ownKeyHashes) {
+            if (!ioTransaction->outgoingPaymentReceiptHandler()->isContainsKeyHash(ownKeyHash) and
+                    !ioTransaction->auditHandler()->isContainsKeyHash(ownKeyHash)) {
+                ioTransaction->ownKeysHandler()->deleteKeyByHashExceptSequenceNumber(
+                    ownKeyHash,
+                    currentKeysSetSequenceNumber + 1);
+            }
+        }
+
+        auto contractorKeyHashes = ioTransaction->contractorKeysHandler()->publicKeyHashesLessThanSetNumber(
+            mTrustLineID,
+            currentKeysSetSequenceNumber);
+        for (auto &contractorKeyHash : contractorKeyHashes) {
+            if (!ioTransaction->incomingPaymentReceiptHandler()->isContainsKeyHash(contractorKeyHash) and
+                    !ioTransaction->auditHandler()->isContainsKeyHash(contractorKeyHash)) {
+                ioTransaction->contractorKeysHandler()->deleteKeyByHashExceptSequenceNumber(
+                    contractorKeyHash,
+                    currentKeysSetSequenceNumber + 1);
+            }
         }
     }
 

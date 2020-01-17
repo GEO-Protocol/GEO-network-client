@@ -392,7 +392,8 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         } else {
             mTrustLines->setTrustLineState(
                 mContractorID,
-                TrustLine::Active);
+                TrustLine::Active,
+                ioTransaction);
             info() << "All data saved. Now TL is ready for using";
         }
 

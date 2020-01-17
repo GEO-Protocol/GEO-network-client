@@ -50,6 +50,9 @@ public:
     void deleteRecords(
         const TrustLineID trustLineID);
 
+    bool isContainsKeyHash(
+        KeyHash::Shared keyHash) const;
+
 private:
     LoggerStream info() const;
 
