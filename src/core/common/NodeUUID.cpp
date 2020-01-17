@@ -24,14 +24,6 @@ NodeUUID::NodeUUID(const uint8_t *bytes) {
     memcpy(data, bytes, kBytesSize);
 }
 
-NodeUUID::operator boost::uuids::uuid() {
-    return static_cast<boost::uuids::uuid&>(*this);
-}
-
-NodeUUID::operator boost::uuids::uuid() const {
-    return static_cast<boost::uuids::uuid const&>(*this);
-}
-
 const string NodeUUID::stringUUID() const{
     uuid u;
     memcpy(&u.data, data, 16);

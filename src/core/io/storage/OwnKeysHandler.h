@@ -72,8 +72,13 @@ public:
     void deleteKeysByTrustLineID(
         const TrustLineID trustLineID);
 
-    void deleteKeyByHash(
-        KeyHash::Shared keyHash);
+    void deleteKeyByHashExceptSequenceNumber(
+            KeyHash::Shared keyHash,
+            const KeyNumber keysSetSequenceNumber);
+
+    vector<KeyHash::Shared> publicKeyHashesLessThanSetNumber(
+        const TrustLineID trustLineID,
+        const KeyNumber keysSetSequenceNumber) const;
 
 private:
     LoggerStream info() const;

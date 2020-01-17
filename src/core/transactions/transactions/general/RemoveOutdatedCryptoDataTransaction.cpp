@@ -45,7 +45,7 @@ TransactionResult::SharedConst RemoveOutdatedCryptoDataTransaction::run()
             }
         } catch (IOError &e) {
             ioTransaction->rollback();
-            warning() << "Can't remove outdated crypto data";
+            warning() << "Can't remove outdated crypto data. Details: " << e.what();
         }
     }
     mStorageHandler->vacuum();

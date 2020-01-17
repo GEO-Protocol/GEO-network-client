@@ -345,6 +345,31 @@ void OutgoingPaymentReceiptHandler::deleteRecords(
     }
 }
 
+bool OutgoingPaymentReceiptHandler::isContainsKeyHash(
+    KeyHash::Shared keyHash) const
+{
+    sqlite3_stmt *stmt;
+    string query = "SELECT own_public_key_hash FROM "
+                   + mTableName + " WHERE own_public_key_hash = ? LIMIT 1";
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("OutgoingPaymentReceiptHandler::isContainsKeyHash: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 1, keyHash->data(),
+                           (int)KeyHash::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("OutgoingPaymentReceiptHandler::isContainsKeyHash: "
+                          "Bad binding of OwnPublicKeyHash; sqlite error: " + to_string(rc));
+    }
+    sqlite3_step(stmt);
+    auto result = (rc == SQLITE_ROW);
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
 LoggerStream OutgoingPaymentReceiptHandler::info() const
 {
     return mLog.info(logHeader());

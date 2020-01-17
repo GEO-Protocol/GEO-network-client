@@ -638,6 +638,37 @@ vector<AuditRecord::Shared> AuditHandler::auditsLessEqualThanAuditNumber(
     return result;
 }
 
+bool AuditHandler::isContainsKeyHash(
+    lamport::KeyHash::Shared keyHash) const
+{
+    sqlite3_stmt *stmt;
+    string query = "SELECT number FROM "
+                   + mTableName + " WHERE our_key_hash = ? OR contractor_key_hash = ? LIMIT 1";
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("AuditHandler::isContainsKeyHash: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 1, keyHash->data(),
+                           (int)lamport::KeyHash::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("AuditHandler::isContainsKeyHash: "
+                          "Bad binding of Own KeyHash; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 2, keyHash->data(),
+                           (int)lamport::KeyHash::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("AuditHandler::isContainsKeyHash: "
+                          "Bad binding of Contractor KeyHash; sqlite error: " + to_string(rc));
+    }
+    sqlite3_step(stmt);
+    auto result = rc == SQLITE_ROW;
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
 LoggerStream AuditHandler::info() const
 {
     return mLog.info(logHeader());

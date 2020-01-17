@@ -379,6 +379,9 @@ public:
         IOTransaction::Shared ioTransaction,
         AuditNumber auditNumber);
 
+    void removeOutdatedKeys(
+        IOTransaction::Shared ioTransaction);
+
 protected:
     /**
      * @brief checks "number" for it's range.
