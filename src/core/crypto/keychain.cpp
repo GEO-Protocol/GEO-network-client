@@ -788,12 +788,14 @@ namespace crypto {
         for (const auto &outgoingReceipt : outgoingReceipts) {
             ioTransaction->outgoingPaymentReceiptHandler()->deleteRecords(
                 outgoingReceipt->transactionUUID());
-            ioTransaction->paymentParticipantsVotesHandler()->deleteRecords(
-                outgoingReceipt->transactionUUID());
-            ioTransaction->paymentTransactionsHandler()->deleteRecord(
-                outgoingReceipt->transactionUUID());
-            ioTransaction->paymentKeysHandler()->deleteKeyByTransactionUUID(
-                outgoingReceipt->transactionUUID());
+            if (!isReceiptsPresent(ioTransaction, outgoingReceipt->transactionUUID())) {
+                ioTransaction->paymentParticipantsVotesHandler()->deleteRecords(
+                    outgoingReceipt->transactionUUID());
+                ioTransaction->paymentTransactionsHandler()->deleteRecord(
+                    outgoingReceipt->transactionUUID());
+                ioTransaction->paymentKeysHandler()->deleteKeyByTransactionUUID(
+                    outgoingReceipt->transactionUUID());
+            }
             ioTransaction->ownKeysHandler()->deleteKeyByHashExceptSequenceNumber(
                 outgoingReceipt->keyHash(),
                 currentOwnKeysSetSequenceNumber);
@@ -804,12 +806,14 @@ namespace crypto {
         for (const auto &incomingReceipt : incomingReceipts) {
             ioTransaction->incomingPaymentReceiptHandler()->deleteRecords(
                 incomingReceipt->transactionUUID());
-            ioTransaction->paymentParticipantsVotesHandler()->deleteRecords(
-                incomingReceipt->transactionUUID());
-            ioTransaction->paymentTransactionsHandler()->deleteRecord(
-                incomingReceipt->transactionUUID());
-            ioTransaction->paymentKeysHandler()->deleteKeyByTransactionUUID(
-                incomingReceipt->transactionUUID());
+            if (!isReceiptsPresent(ioTransaction, incomingReceipt->transactionUUID())) {
+                ioTransaction->paymentParticipantsVotesHandler()->deleteRecords(
+                    incomingReceipt->transactionUUID());
+                ioTransaction->paymentTransactionsHandler()->deleteRecord(
+                    incomingReceipt->transactionUUID());
+                ioTransaction->paymentKeysHandler()->deleteKeyByTransactionUUID(
+                    incomingReceipt->transactionUUID());
+            }
             ioTransaction->contractorKeysHandler()->deleteKeyByHashExceptSequenceNumber(
                 incomingReceipt->keyHash(),
                 currentContractorKeysSetSequenceNumber);
@@ -830,6 +834,14 @@ namespace crypto {
         }
 
         removeOutdatedKeys(ioTransaction);
+    }
+
+    bool TrustLineKeychain::isReceiptsPresent(
+        IOTransaction::Shared ioTransaction,
+        const TransactionUUID &transactionUUID) const
+    {
+        return ioTransaction->incomingPaymentReceiptHandler()->isContainsTransaction(transactionUUID) or
+                   ioTransaction->outgoingPaymentReceiptHandler()->isContainsTransaction(transactionUUID);
     }
 
     void TrustLineKeychain::removeOutdatedKeys(

@@ -383,6 +383,30 @@ bool IncomingPaymentReceiptHandler::isContainsKeyHash(
     return result;
 }
 
+bool IncomingPaymentReceiptHandler::isContainsTransaction(
+    const TransactionUUID &transactionUUID) const
+{
+    sqlite3_stmt *stmt;
+    string query = "SELECT transaction_uuid FROM "
+                   + mTableName + " WHERE transaction_uuid = ? LIMIT 1";
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("IncomingPaymentReceiptHandler::isContainsTransaction: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("IncomingPaymentReceiptHandler::isContainsTransaction: "
+                          "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
+    }
+    sqlite3_step(stmt);
+    auto result = (rc == SQLITE_ROW);
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
 LoggerStream IncomingPaymentReceiptHandler::info() const
 {
     return mLog.info(logHeader());
