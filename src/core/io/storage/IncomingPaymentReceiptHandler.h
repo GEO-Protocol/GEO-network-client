@@ -53,6 +53,9 @@ public:
     bool isContainsKeyHash(
         KeyHash::Shared keyHash) const;
 
+    bool isContainsTransaction(
+        const TransactionUUID &transactionUUID) const;
+
 private:
     LoggerStream info() const;
 

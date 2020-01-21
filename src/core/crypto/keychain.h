@@ -379,6 +379,10 @@ public:
         IOTransaction::Shared ioTransaction,
         AuditNumber auditNumber);
 
+    bool isReceiptsPresent(
+        IOTransaction::Shared ioTransaction,
+        const TransactionUUID &transactionUUID) const;
+
     void removeOutdatedKeys(
         IOTransaction::Shared ioTransaction);
 
