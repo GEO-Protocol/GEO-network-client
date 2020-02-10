@@ -833,7 +833,10 @@ namespace crypto {
                 currentContractorKeysSetSequenceNumber);
         }
 
-        removeOutdatedKeys(ioTransaction);
+        removeOutdatedKeys(
+            ioTransaction,
+            currentOwnKeysSetSequenceNumber,
+            currentContractorKeysSetSequenceNumber);
     }
 
     bool TrustLineKeychain::isReceiptsPresent(
@@ -845,32 +848,31 @@ namespace crypto {
     }
 
     void TrustLineKeychain::removeOutdatedKeys(
-        IOTransaction::Shared ioTransaction)
+        IOTransaction::Shared ioTransaction,
+        const KeyNumber currentOwnKeysSetSequenceNumber,
+        const KeyNumber currentContractorKeysSetSequenceNumber)
     {
-        auto currentKeysSetSequenceNumber = ioTransaction->ownKeysHandler()->maxKeySetSequenceNumber(
-            mTrustLineID);
-
         auto ownKeyHashes = ioTransaction->ownKeysHandler()->publicKeyHashesLessThanSetNumber(
             mTrustLineID,
-            currentKeysSetSequenceNumber);
+            currentOwnKeysSetSequenceNumber);
         for (auto &ownKeyHash : ownKeyHashes) {
             if (!ioTransaction->outgoingPaymentReceiptHandler()->isContainsKeyHash(ownKeyHash) and
                     !ioTransaction->auditHandler()->isContainsKeyHash(ownKeyHash)) {
                 ioTransaction->ownKeysHandler()->deleteKeyByHashExceptSequenceNumber(
                     ownKeyHash,
-                    currentKeysSetSequenceNumber + 1);
+                    currentOwnKeysSetSequenceNumber + 1);
             }
         }
 
         auto contractorKeyHashes = ioTransaction->contractorKeysHandler()->publicKeyHashesLessThanSetNumber(
             mTrustLineID,
-            currentKeysSetSequenceNumber);
+            currentContractorKeysSetSequenceNumber);
         for (auto &contractorKeyHash : contractorKeyHashes) {
             if (!ioTransaction->incomingPaymentReceiptHandler()->isContainsKeyHash(contractorKeyHash) and
                     !ioTransaction->auditHandler()->isContainsKeyHash(contractorKeyHash)) {
                 ioTransaction->contractorKeysHandler()->deleteKeyByHashExceptSequenceNumber(
                     contractorKeyHash,
-                    currentKeysSetSequenceNumber + 1);
+                    currentContractorKeysSetSequenceNumber + 1);
             }
         }
     }

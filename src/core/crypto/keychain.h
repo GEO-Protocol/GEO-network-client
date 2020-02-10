@@ -384,7 +384,9 @@ public:
         const TransactionUUID &transactionUUID) const;
 
     void removeOutdatedKeys(
-        IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction,
+        const KeyNumber currentOwnKeysSetSequenceNumber,
+        const KeyNumber currentContractorKeysSetSequenceNumber);
 
 protected:
     /**
