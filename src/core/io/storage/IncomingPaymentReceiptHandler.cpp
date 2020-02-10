@@ -399,8 +399,7 @@ bool IncomingPaymentReceiptHandler::isContainsTransaction(
         throw IOError("IncomingPaymentReceiptHandler::isContainsTransaction: "
                           "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
-    sqlite3_step(stmt);
-    auto result = (rc == SQLITE_ROW);
+    auto result = (sqlite3_step(stmt) == SQLITE_ROW);
 
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
