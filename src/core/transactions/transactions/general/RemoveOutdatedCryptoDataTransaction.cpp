@@ -48,7 +48,9 @@ TransactionResult::SharedConst RemoveOutdatedCryptoDataTransaction::run()
             warning() << "Can't remove outdated crypto data. Details: " << e.what();
         }
     }
-    mStorageHandler->vacuum();
+    if (mCommand->vacuum()) {
+        mStorageHandler->vacuum();
+    }
     return resultOK();
 }
 
