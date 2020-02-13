@@ -79,9 +79,14 @@ TransactionResult::SharedConst PublicKeysSharingSourceTransaction::runPublicKeys
         return resultDone();
     }
 
-    if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived) {
-        warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
-        return resultDone();
+    try {
+        if (mTrustLines->trustLineState(mContractorID) == TrustLine::Archived) {
+            warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
+            return resultDone();
+        }
+    } catch (NotFoundError &e) {
+        warning() << "Attempt to use not existing TL";
+        return resultProtocolError();
     }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
