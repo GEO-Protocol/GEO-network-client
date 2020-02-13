@@ -11,9 +11,14 @@ public:
 public:
     RemoveOutdatedCryptoDataCommand(
         const CommandUUID &uuid,
-        const string &commandBuffer);
+        const string &command);
 
     static const string &identifier();
+
+    bool vacuum() const;
+
+private:
+    bool mVacuum;
 };
 
 
