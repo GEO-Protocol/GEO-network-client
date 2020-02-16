@@ -2,7 +2,7 @@
 
 RemoveOutdatedCryptoDataCommand::RemoveOutdatedCryptoDataCommand(
     const CommandUUID &uuid,
-    const string &commandBuffer):
+    const string &command):
 
     BaseUserCommand(
         uuid,
