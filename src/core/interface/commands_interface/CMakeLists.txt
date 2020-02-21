@@ -27,6 +27,8 @@ set(SOURCE_FILES
         commands/trust_line_channels/SetChannelContractorCryptoKeyCommand.cpp
         commands/trust_line_channels/RegenerateChannelCryptoKeyCommand.h
         commands/trust_line_channels/RegenerateChannelCryptoKeyCommand.cpp
+        commands/trust_line_channels/RemoveChannelCommand.h
+        commands/trust_line_channels/RemoveChannelCommand.cpp
 
         commands/trust_lines/InitTrustLineCommand.h
         commands/trust_lines/InitTrustLineCommand.cpp

@@ -266,6 +266,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<RegenerateChannelCryptoKeyCommand>(
                 command));
 
+    } else if (command->identifier() == RemoveChannelCommand::identifier()) {
+        launchRemoveChannelTransaction(
+            static_pointer_cast<RemoveChannelCommand>(
+                command));
+
     } else if (command->identifier() == InitTrustLineCommand::identifier()) {
         launchInitTrustLineTransaction(
             static_pointer_cast<InitTrustLineCommand>(
@@ -659,6 +664,20 @@ void TransactionsManager::launchRegenerateChannelCryptoKeyTransaction(
     prepareAndSchedule(
         make_shared<RegenerateChannelCryptoKeyTransaction>(
            command,
+            mContractorsManager,
+            mStorageHandler,
+            mLog),
+        true,
+        false,
+        false);
+}
+
+void TransactionsManager::launchRemoveChannelTransaction(
+    RemoveChannelCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<RemoveChannelTransaction>(
+            command,
             mContractorsManager,
             mStorageHandler,
             mLog),

@@ -127,7 +127,7 @@ vector<TrustLine::Shared> TrustLineHandler::allTrustLinesByEquivalent(
                     state));
         } catch (...) {
             throw Exception("TrustLinesManager::allTrustLinesByEquivalent. "
-                                "Unable to create trust line instance from DB.");
+                                "Unable to get TLs from DB.");
         }
     }
     sqlite3_reset(stmt);
@@ -373,6 +373,64 @@ vector<TrustLineID> TrustLineHandler::allIDs()
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         result.push_back(
             (TrustLineID)sqlite3_column_int(stmt, 0));
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+vector<TrustLine::Shared> TrustLineHandler::allTrustLinesByContractor(
+    ContractorID contractorID)
+{
+    string queryCount = "SELECT count(*) FROM " + mTableName + " WHERE contractor_id = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, queryCount.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::allTrustLinesByContractor: "
+                          "Bad count query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, contractorID);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::allTrustLinesByContractor: "
+                          "Bad binding of ContractorID; sqlite error: " + to_string(rc));
+    }
+    sqlite3_step(stmt);
+    auto rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    vector<TrustLine::Shared> result;
+    result.reserve(rowCount);
+
+    string query = "SELECT id, state, is_contractor_gateway FROM "
+                   + mTableName + " WHERE contractor_id = ?";
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::allTrustLinesByContractor: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, contractorID);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::allTrustLinesByContractor: "
+                          "Bad binding of ContractorID; sqlite error: " + to_string(rc));
+    }
+    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+        auto id = (TrustLineID)sqlite3_column_int(stmt, 0);
+
+        auto state = (TrustLine::TrustLineState)sqlite3_column_int(stmt, 1);
+
+        int32_t isContractorGateway = sqlite3_column_int(stmt, 2);
+
+        try {
+            result.push_back(
+                make_shared<TrustLine>(
+                    id,
+                    contractorID,
+                    isContractorGateway != 0,
+                    state));
+        } catch (...) {
+            throw Exception("TrustLinesManager::allTrustLinesByContractor. "
+                                "Unable to get TLs from DB.");
+        }
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);

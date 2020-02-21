@@ -350,6 +350,21 @@ void ContractorsManager::updateContractorAddresses(
     mContractors.at(contractorID)->setAddresses(newAddresses);
 }
 
+void ContractorsManager::removeContractor(
+    IOTransaction::Shared ioTransaction,
+    ContractorID contractorID)
+{
+    if (!ioTransaction->trustLinesHandler()->allTrustLinesByContractor(contractorID).empty()) {
+        throw ValueError(
+            logHeader() + "::removeContractor: "
+                "There are trust line to contractor " + to_string(contractorID));
+    }
+
+    ioTransaction->addressHandler()->removeAddresses(contractorID);
+    ioTransaction->contractorsHandler()->removeContractor(contractorID);
+    mContractors.erase(contractorID);
+}
+
 const string ContractorsManager::logHeader() const
     noexcept
 {

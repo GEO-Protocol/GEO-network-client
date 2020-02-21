@@ -18,6 +18,7 @@
 #include "../transactions/trust_line_channel/SetChannelContractorAddressesTransaction.h"
 #include "../transactions/trust_line_channel/SetChannelContractorCryptoKeyTransaction.h"
 #include "../transactions/trust_line_channel/RegenerateChannelCryptoKeyTransaction.h"
+#include "../transactions/trust_line_channel/RemoveChannelTransaction.h"
 
 #include "../transactions/trust_lines/OpenTrustLineTransaction.h"
 #include "../transactions/trust_lines/AcceptTrustLineTransaction.h"
@@ -193,6 +194,9 @@ protected: // Transactions
 
     void launchRegenerateChannelCryptoKeyTransaction(
         RegenerateChannelCryptoKeyCommand::Shared command);
+
+    void launchRemoveChannelTransaction(
+        RemoveChannelCommand::Shared command);
 
     /*
      * Trust lines transactions

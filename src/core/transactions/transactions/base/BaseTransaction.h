@@ -125,6 +125,7 @@ public:
         SetChannelContractorAddresses = 907,
         SetChannelContractorCryptoKey = 908,
         RegenerateChannelCryptoKey = 909,
+        RemoveChannel = 910,
 
         // Transactions
         TransactionByCommandUUIDType = 1000,

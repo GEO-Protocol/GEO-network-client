@@ -36,6 +36,9 @@ public:
 
     vector<ContractorID> allIDs();
 
+    void removeContractor(
+        ContractorID contractorID);
+
 private:
     LoggerStream info() const;
 
