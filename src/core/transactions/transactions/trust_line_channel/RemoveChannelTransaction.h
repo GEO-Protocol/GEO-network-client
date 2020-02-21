@@ -23,6 +23,8 @@ public:
 protected:
     TransactionResult::SharedConst resultOK();
 
+    TransactionResult::SharedConst resultProtocolError();
+
     TransactionResult::SharedConst resultContractorIsAbsent();
 
     TransactionResult::SharedConst resultUnexpectedError();
