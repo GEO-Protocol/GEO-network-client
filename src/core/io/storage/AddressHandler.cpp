@@ -176,9 +176,6 @@ void AddressHandler::removeAddresses(
         throw IOError("AddressHandler::removeAddresses: "
                           "Run query; sqlite error: " + to_string(rc));
     }
-    if (sqlite3_changes(mDataBase) == 0) {
-        throw ValueError("No data were deleted");
-    }
 }
 
 LoggerStream AddressHandler::info() const

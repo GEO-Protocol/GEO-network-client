@@ -28,11 +28,15 @@ TransactionResult::SharedConst RemoveChannelTransaction::run()
         mContractorsManager->removeContractor(
             ioTransaction,
             mCommand->contractorChannelID());
+    } catch(ValueError &e) {
+        ioTransaction->rollback();
+        warning() << "Attempt to remove contractor " << mCommand->contractorChannelID() << " failed. "
+                  << "Details are: " << e.what();
+        return resultProtocolError();
     } catch(IOError &e) {
         ioTransaction->rollback();
         warning() << "Attempt to remove contractor " << mCommand->contractorChannelID() << " failed. "
                   << "Details are: " << e.what();
-
         return resultUnexpectedError();
     }
     info() << "Channel successfully removed";
@@ -44,6 +48,12 @@ TransactionResult::SharedConst RemoveChannelTransaction::resultOK()
 {
     return transactionResultFromCommand(
         mCommand->responseOK());
+}
+
+TransactionResult::SharedConst RemoveChannelTransaction::resultProtocolError()
+{
+    return transactionResultFromCommand(
+        mCommand->responseProtocolError());
 }
 
 TransactionResult::SharedConst RemoveChannelTransaction::resultContractorIsAbsent()
