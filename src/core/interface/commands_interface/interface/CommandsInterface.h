@@ -10,6 +10,7 @@
 #include "../commands/trust_line_channels/SetChannelContractorAddressesCommand.h"
 #include "../commands/trust_line_channels/SetChannelContractorCryptoKeyCommand.h"
 #include "../commands/trust_line_channels/RegenerateChannelCryptoKeyCommand.h"
+#include "../commands/trust_line_channels/RemoveChannelCommand.h"
 #include "../commands/trust_lines/InitTrustLineCommand.h"
 #include "../commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../commands/trust_lines/CloseIncomingTrustLineCommand.h"

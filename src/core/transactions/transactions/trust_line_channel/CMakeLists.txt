@@ -23,7 +23,10 @@ set(SOURCE_FILES
     SetChannelContractorCryptoKeyTransaction.h
     SetChannelContractorCryptoKeyTransaction.cpp
     RegenerateChannelCryptoKeyTransaction.h
-    RegenerateChannelCryptoKeyTransaction.cpp)
+    RegenerateChannelCryptoKeyTransaction.cpp
+
+    RemoveChannelTransaction.h
+    RemoveChannelTransaction.cpp)
 
 add_library(transactions__channels ${SOURCE_FILES})
 target_link_libraries(transactions__channels

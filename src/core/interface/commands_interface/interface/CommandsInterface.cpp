@@ -176,6 +176,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == RemoveChannelCommand::identifier()) {
+            command = new RemoveChannelCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == InitTrustLineCommand::identifier()) {
             command = new InitTrustLineCommand(
                 uuid,

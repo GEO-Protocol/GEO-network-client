@@ -41,6 +41,9 @@ public:
 
     vector<TrustLineID> allIDs();
 
+    vector<TrustLine::Shared> allTrustLinesByContractor(
+        ContractorID contractorID);
+
 private:
     LoggerStream info() const;
 

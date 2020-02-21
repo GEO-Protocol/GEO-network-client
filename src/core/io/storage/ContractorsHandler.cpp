@@ -354,6 +354,38 @@ vector<TrustLineID> ContractorsHandler::allIDs()
     return result;
 }
 
+void ContractorsHandler::removeContractor(
+    ContractorID contractorID)
+{
+    string query = "DELETE FROM " + mTableName + " WHERE id = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorsHandler::removeContractor: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, contractorID);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorsHandler::removeContractor: "
+                          "Bad binding of ContractorID; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "deleting is completed successfully";
+#endif
+    } else {
+        throw IOError("ContractorsHandler::removeContractor: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+    if (sqlite3_changes(mDataBase) == 0) {
+        throw ValueError("No data were deleted");
+    }
+}
+
 LoggerStream ContractorsHandler::info() const
 {
     return mLog.info(logHeader());
