@@ -44,7 +44,7 @@ bool TopologyCacheManager::addIntoFirstLevelCache(
             mFirstLvCacheList.end(),
             mFirstLvCacheList,
             it->second);
-        mFirstLvCache[contractorID] = mFirstLvCacheList.begin();
+        mFirstLvCache[contractorID] = std::prev(mFirstLvCacheList.end());
         return true;
     }
     mFirstLvCache[contractorID] =

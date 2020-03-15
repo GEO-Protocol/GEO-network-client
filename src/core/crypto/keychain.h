@@ -107,7 +107,7 @@ private:
  */
 class TrustLineKeychain{
 public:
-    static const size_t kDefaultKeysSetSize = 10;     // 16MB of PubKeys, and 16MB of PKeys.
+    static const size_t kDefaultKeysSetSize = 20;     // 16MB of PubKeys, and 16MB of PKeys.
     static const size_t kMaxKeysSetSize = 1024;
     static const size_t kMinKeysSetSize = 2;
 
