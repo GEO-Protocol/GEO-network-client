@@ -22,7 +22,7 @@ int Core::run()
     updateProcessName();
 
     try {
-        mCommunicator->beginAcceptMessages();
+//        mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
 
         info() << "Processing started.";
@@ -90,35 +90,35 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initEventsInterfaceManager(conf);
-    if (initCode != 0) {
-        return initCode;
-    }
+//    initCode = initEventsInterfaceManager(conf);
+//    if (initCode != 0) {
+//        return initCode;
+//    }
 
     initCode = initContractorsManager(conf);
     if (initCode != 0) {
         return initCode;
     }
 
-    initCode = initProvidingHandler(conf);
-    if (initCode != 0) {
-        return initCode;
-    }
+//    initCode = initProvidingHandler(conf);
+//    if (initCode != 0) {
+//        return initCode;
+//    }
 
     initCode = initTailManager();
     if (initCode != 0) {
         return initCode;
     }
 
-    initCode = initCommunicator(conf);
-    if (initCode != 0) {
-        return initCode;
-    }
+//    initCode = initCommunicator(conf);
+//    if (initCode != 0) {
+//        return initCode;
+//    }
 
-    initCode = initObservingHandler(conf);
-    if (initCode != 0) {
-        return initCode;
-    }
+//    initCode = initObservingHandler(conf);
+//    if (initCode != 0) {
+//        return initCode;
+//    }
 
     initCode = initSubsystemsController();
     if (initCode != 0) {
@@ -141,20 +141,20 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initFeaturesManager(conf);
-    if (initCode != 0) {
-        return initCode;
-    }
+//    initCode = initFeaturesManager(conf);
+//    if (initCode != 0) {
+//        return initCode;
+//    }
 
     initCode = initTransactionsManager();
     if (initCode != 0) {
         return initCode;
     }
 
-    initCode = initTopologyEventDelayedTask();
-    if (initCode != 0) {
-        return initCode;
-    }
+//    initCode = initTopologyEventDelayedTask();
+//    if (initCode != 0) {
+//        return initCode;
+//    }
 
     connectSignalsToSlots();
     return 0;
@@ -659,9 +659,10 @@ void Core::connectResourcesManagerSignals()
 void Core::connectSignalsToSlots()
 {
     connectCommandsInterfaceSignals();
-    connectCommunicatorSignals();
+//    connectCommunicatorSignals();
     connectResourcesManagerSignals();
-    connectObservingSignals();
+//    connectObservingSignals();
+    info() << "Signals connected";
 }
 
 void Core::onCommandReceivedSlot (

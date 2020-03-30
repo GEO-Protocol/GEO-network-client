@@ -12,29 +12,29 @@ EquivalentsCyclesSubsystemsRouter::EquivalentsCyclesSubsystemsRouter(
     mIOService(ioService),
     mLogger(logger)
 {
-    for (const auto &equivalent : equivalents) {
-        info() << "Equivalent " << equivalent;
-        mCyclesManagers.insert(
-            make_pair(
-                equivalent,
-                make_unique<CyclesManager>(
-                    equivalent,
-                    mTransactionScheduler,
-                    mIOService,
-                    mLogger,
-                    mSubsystemsController)));
-        info() << "Cycles Manager is successfully initialized";
-
-        mRoutingTablesManagers.insert(
-            make_pair(
-                equivalent,
-                make_unique<RoutingTableManager>(
-                    equivalent,
-                    mLogger)));
-        info() << "Routing Table Manager is successfully initialized";
-    }
-
-    connectSignalsToSlots();
+//    for (const auto &equivalent : equivalents) {
+//        info() << "Equivalent " << equivalent;
+//        mCyclesManagers.insert(
+//            make_pair(
+//                equivalent,
+//                make_unique<CyclesManager>(
+//                    equivalent,
+//                    mTransactionScheduler,
+//                    mIOService,
+//                    mLogger,
+//                    mSubsystemsController)));
+//        info() << "Cycles Manager is successfully initialized";
+//
+//        mRoutingTablesManagers.insert(
+//            make_pair(
+//                equivalent,
+//                make_unique<RoutingTableManager>(
+//                    equivalent,
+//                    mLogger)));
+//        info() << "Routing Table Manager is successfully initialized";
+//    }
+//
+//    connectSignalsToSlots();
 }
 
 CyclesManager* EquivalentsCyclesSubsystemsRouter::cyclesManager(

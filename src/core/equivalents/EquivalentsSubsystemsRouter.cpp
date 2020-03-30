@@ -42,67 +42,67 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                     mLogger)));
         info() << "Trust Lines Manager is successfully initialized";
 
-        mTopologyTrustLinesManagers.insert(
-            make_pair(
-                equivalent,
-                make_unique<TopologyTrustLinesManager>(
-                    equivalent,
-                    mIAmGateways[equivalent],
-                    mLogger)));
-        info() << "Topology Trust Lines Manager is successfully initialized";
+//        mTopologyTrustLinesManagers.insert(
+//            make_pair(
+//                equivalent,
+//                make_unique<TopologyTrustLinesManager>(
+//                    equivalent,
+//                    mIAmGateways[equivalent],
+//                    mLogger)));
+//        info() << "Topology Trust Lines Manager is successfully initialized";
 
-        mTopologyCacheManagers.insert(
-            make_pair(
-                equivalent,
-                make_unique<TopologyCacheManager>(
-                    equivalent,
-                    mLogger)));
-        info() << "Topology Cache Manager is successfully initialized";
+//        mTopologyCacheManagers.insert(
+//            make_pair(
+//                equivalent,
+//                make_unique<TopologyCacheManager>(
+//                    equivalent,
+//                    mLogger)));
+//        info() << "Topology Cache Manager is successfully initialized";
 
-        mMaxFlowCacheManagers.insert(
-            make_pair(
-                equivalent,
-                make_unique<MaxFlowCacheManager>(
-                    equivalent,
-                    mLogger)));
-        info() << "Max Flow Cache Manager is successfully initialized";
+//        mMaxFlowCacheManagers.insert(
+//            make_pair(
+//                equivalent,
+//                make_unique<MaxFlowCacheManager>(
+//                    equivalent,
+//                    mLogger)));
+//        info() << "Max Flow Cache Manager is successfully initialized";
 
-        mTopologyCacheUpdateDelayedTasks.insert(
-            make_pair(
-                equivalent,
-                make_unique<TopologyCacheUpdateDelayedTask>(
-                    equivalent,
-                    mIOService,
-                    mTopologyCacheManagers[equivalent].get(),
-                    mTopologyTrustLinesManagers[equivalent].get(),
-                    mMaxFlowCacheManagers[equivalent].get(),
-                    mLogger)));
-        info() << "Topology Cache Update Delayed Task is successfully initialized";
+//        mTopologyCacheUpdateDelayedTasks.insert(
+//            make_pair(
+//                equivalent,
+//                make_unique<TopologyCacheUpdateDelayedTask>(
+//                    equivalent,
+//                    mIOService,
+//                    mTopologyCacheManagers[equivalent].get(),
+//                    mTopologyTrustLinesManagers[equivalent].get(),
+//                    mMaxFlowCacheManagers[equivalent].get(),
+//                    mLogger)));
+//        info() << "Topology Cache Update Delayed Task is successfully initialized";
 
-        mPathsManagers.insert(
-            make_pair(
-                equivalent,
-                make_unique<PathsManager>(
-                    equivalent,
-                    mTrustLinesManagers[equivalent].get(),
-                    mTopologyTrustLinesManagers[equivalent].get(),
-                    mLogger)));
-        info() << "Paths Manager is successfully initialized";
+//        mPathsManagers.insert(
+//            make_pair(
+//                equivalent,
+//                make_unique<PathsManager>(
+//                    equivalent,
+//                    mTrustLinesManagers[equivalent].get(),
+//                    mTopologyTrustLinesManagers[equivalent].get(),
+//                    mLogger)));
+//        info() << "Paths Manager is successfully initialized";
     }
 
     for (const auto &trustLinesManager : mTrustLinesManagers) {
-        for (const auto &contractorID : trustLinesManager.second->contractorsShouldBePinged()) {
-            mContractorsShouldBePinged.insert(contractorID);
-        }
+//        for (const auto &contractorID : trustLinesManager.second->contractorsShouldBePinged()) {
+//            mContractorsShouldBePinged.insert(contractorID);
+//        }
         trustLinesManager.second->clearContractorsShouldBePinged();
     }
 
-    mGatewayNotificationAndRoutingTablesDelayedTask = make_unique<GatewayNotificationAndRoutingTablesDelayedTask>(
-        mIOService,
-        mLogger);
-    subscribeForGatewayNotification(
-        mGatewayNotificationAndRoutingTablesDelayedTask->gatewayNotificationSignal);
-    info() << "Gateway Notification and Routing Tables Delayed Task is successfully initialized";
+//    mGatewayNotificationAndRoutingTablesDelayedTask = make_unique<GatewayNotificationAndRoutingTablesDelayedTask>(
+//        mIOService,
+//        mLogger);
+//    subscribeForGatewayNotification(
+//        mGatewayNotificationAndRoutingTablesDelayedTask->gatewayNotificationSignal);
+//    info() << "Gateway Notification and Routing Tables Delayed Task is successfully initialized";
 }
 
 vector<SerializedEquivalent> EquivalentsSubsystemsRouter::equivalents() const
@@ -263,52 +263,52 @@ void EquivalentsSubsystemsRouter::clearContractorsShouldBePinged()
 
 void EquivalentsSubsystemsRouter::sendTopologyEvent() const
 {
-    for (const auto &trustLineManager : mTrustLinesManagers) {
-        auto neighbors = trustLineManager.second->firstLevelNeighborsAddresses();
-        auto neighborIt = neighbors.begin();
-        auto previousBegin = neighborIt;
-        while (neighborIt != neighbors.end()) {
-            if (neighborIt - previousBegin >= kTopologyEventPortionSize) {
-                vector<BaseAddress::Shared> portionNeighbors;
-                copy(previousBegin, neighborIt, back_inserter(portionNeighbors));
-                try {
-                    mEventsInterfaceManager->writeEvent(
-                        Event::topologyEvent(
-                            mContractorsManager->selfContractor()->mainAddress(),
-                            portionNeighbors,
-                            trustLineManager.first));
-                } catch (std::exception &e) {
-                    warning() << "Can't write topology event " << e.what();
-                }
-                previousBegin = neighborIt;
-            } else {
-                neighborIt++;
-            }
-        }
-        vector<BaseAddress::Shared> portionNeighbors;
-        copy(previousBegin, neighborIt, back_inserter(portionNeighbors));
-        try {
-            mEventsInterfaceManager->writeEvent(
-                Event::topologyEvent(
-                    mContractorsManager->selfContractor()->mainAddress(),
-                    portionNeighbors,
-                    trustLineManager.first));
-        } catch (std::exception &e) {
-            warning() << "Can't write topology event " << e.what();
-        }
-    }
-    if (mTrustLinesManagers.empty()) {
-        try {
-            vector<BaseAddress::Shared> emptyVector;
-            mEventsInterfaceManager->writeEvent(
-                Event::topologyEvent(
-                    mContractorsManager->selfContractor()->mainAddress(),
-                    emptyVector,
-                    0));
-        } catch (std::exception &e) {
-            warning() << "Can't write topology event " << e.what();
-        }
-    }
+//    for (const auto &trustLineManager : mTrustLinesManagers) {
+//        auto neighbors = trustLineManager.second->firstLevelNeighborsAddresses();
+//        auto neighborIt = neighbors.begin();
+//        auto previousBegin = neighborIt;
+//        while (neighborIt != neighbors.end()) {
+//            if (neighborIt - previousBegin >= kTopologyEventPortionSize) {
+//                vector<BaseAddress::Shared> portionNeighbors;
+//                copy(previousBegin, neighborIt, back_inserter(portionNeighbors));
+//                try {
+//                    mEventsInterfaceManager->writeEvent(
+//                        Event::topologyEvent(
+//                            mContractorsManager->selfContractor()->mainAddress(),
+//                            portionNeighbors,
+//                            trustLineManager.first));
+//                } catch (std::exception &e) {
+//                    warning() << "Can't write topology event " << e.what();
+//                }
+//                previousBegin = neighborIt;
+//            } else {
+//                neighborIt++;
+//            }
+//        }
+//        vector<BaseAddress::Shared> portionNeighbors;
+//        copy(previousBegin, neighborIt, back_inserter(portionNeighbors));
+//        try {
+//            mEventsInterfaceManager->writeEvent(
+//                Event::topologyEvent(
+//                    mContractorsManager->selfContractor()->mainAddress(),
+//                    portionNeighbors,
+//                    trustLineManager.first));
+//        } catch (std::exception &e) {
+//            warning() << "Can't write topology event " << e.what();
+//        }
+//    }
+//    if (mTrustLinesManagers.empty()) {
+//        try {
+//            vector<BaseAddress::Shared> emptyVector;
+//            mEventsInterfaceManager->writeEvent(
+//                Event::topologyEvent(
+//                    mContractorsManager->selfContractor()->mainAddress(),
+//                    emptyVector,
+//                    0));
+//        } catch (std::exception &e) {
+//            warning() << "Can't write topology event " << e.what();
+//        }
+//    }
 }
 
 void EquivalentsSubsystemsRouter::subscribeForGatewayNotification(
