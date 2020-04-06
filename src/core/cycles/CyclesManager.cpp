@@ -18,6 +18,7 @@ CyclesManager::CyclesManager(
 
     srand(randomInitializer());
     int timeStarted = (10 * 60) + (rand() % (60 * 60 * 6));
+    info() << "five time started " << timeStarted;
 #ifdef TESTS
     timeStarted = kSignalStartTimeSecondsTests;
 #endif
@@ -33,6 +34,7 @@ CyclesManager::CyclesManager(
             as::placeholders::error));
 
     timeStarted = (10 * 60) + (rand() % (60 * 60 * 6));
+    info() << "six time started " << timeStarted;
 #ifdef TESTS
     timeStarted = kSignalStartTimeSecondsTests;
 #endif
