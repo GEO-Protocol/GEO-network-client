@@ -16,7 +16,9 @@ GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationAndRoutingTab
     // on decentralize network it is not necessary
     srand(randomInitializer());
     int timeStarted = 120 + rand() % (600);
-    info() << "timeStarted " << timeStarted;
+    info() << "enabled " << enabled
+           << " updatingTimerPeriodDays " << updatingTimerPeriodDays
+           << " timeStarted " << timeStarted;
 #ifdef TESTS
     timeStarted = 10;
 #endif

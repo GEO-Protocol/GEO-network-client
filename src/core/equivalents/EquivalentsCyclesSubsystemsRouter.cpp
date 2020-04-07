@@ -14,6 +14,12 @@ EquivalentsCyclesSubsystemsRouter::EquivalentsCyclesSubsystemsRouter(
     mCyclesRunningParameters(cyclesRunningParameters),
     mLogger(logger)
 {
+    info() << "Cycles three nodes " << cyclesRunningParameters.mCyclesThreeNodesEnabled;
+    info() << "Cycles four nodes " << cyclesRunningParameters.mCyclesFourNodesEnabled;
+    info() << "Cycles five nodes " << cyclesRunningParameters.mCyclesFiveNodesEnabled
+           << " period " << cyclesRunningParameters.mCyclesFiveNodesIntervalSec;
+    info() << "Cycles six nodes " << cyclesRunningParameters.mCyclesSixNodesEnabled
+           << " period " << cyclesRunningParameters.mCyclesSixNodesIntervalSec;
     for (const auto &equivalent : equivalents) {
         info() << "Equivalent " << equivalent;
         mCyclesManagers.insert(
