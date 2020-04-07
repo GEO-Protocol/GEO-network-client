@@ -119,6 +119,7 @@ public:
         FeaturesManager *featuresManager,
         EventsInterfaceManager *eventsInterfaceManager,
         TailManager *tailManager,
+        CyclesRunningParameters cyclesRunningParameters,
         Logger &logger,
         SubsystemsController *subsystemsController,
         TrustLinesInfluenceController *trustLinesInfluenceController);
@@ -421,7 +422,7 @@ protected:
         BaseTransaction::ProcessPongMessageSignal &signal);
 
     void subscribeForGatewayNotificationSignal(
-        EquivalentsSubsystemsRouter::GatewayNotificationSignal &signal);
+        EquivalentsCyclesSubsystemsRouter::GatewayNotificationSignal &signal);
 
     void subscribeForTrustLineActionSignal(
         BasePaymentTransaction::TrustLineActionSignal &signal);
@@ -557,6 +558,8 @@ private:
     TailManager *mTailManager;
     Logger &mLog;
     bool isPaymentTransactionsAllowedDueToObserving;
+
+    CyclesRunningParameters mCyclesRunningParameters;
 
     SubsystemsController *mSubsystemsController;
     TrustLinesInfluenceController *mTrustLinesInfluenceController;

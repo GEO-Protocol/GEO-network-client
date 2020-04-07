@@ -146,7 +146,7 @@ int Core::initSubsystems()
         return initCode;
     }
 
-    initCode = initTransactionsManager();
+    initCode = initTransactionsManager(conf);
     if (initCode != 0) {
         return initCode;
     }
@@ -326,9 +326,22 @@ int Core::initResourcesManager()
     }
 }
 
-int Core::initTransactionsManager()
+int Core::initTransactionsManager(
+    const json &conf)
 {
+    auto cyclesClearingConf = mSettings->cyclesClearing(&conf);
     try {
+        CyclesRunningParameters cyclesRunningParameters;
+        if (cyclesClearingConf != nullptr) {
+            cyclesRunningParameters = CyclesRunningParameters(
+                cyclesClearingConf.at("three_nodes_enabled").get<bool>(),
+                cyclesClearingConf.at("four_nodes_enabled").get<bool>(),
+                cyclesClearingConf.at("five_nodes_enabled").get<bool>(),
+                cyclesClearingConf.at("five_nodes_interval_sec").get<uint32_t>(),
+                cyclesClearingConf.at("six_nodes_enabled").get<bool>(),
+                cyclesClearingConf.at("six_nodes_interval_sec").get<uint32_t>(),
+                cyclesClearingConf.at("routing_tables_interval_days").get<uint16_t>());
+        }
         mTransactionsManager = make_unique<TransactionsManager>(
             mIOService,
             mContractorsManager.get(),
@@ -340,6 +353,7 @@ int Core::initTransactionsManager()
             mFeaturesManager.get(),
             mEventsInterfaceManager.get(),
             mTailManager.get(),
+            cyclesRunningParameters,
             *mLog,
             mSubsystemsController.get(),
             mTrustLinesInfluenceController.get());

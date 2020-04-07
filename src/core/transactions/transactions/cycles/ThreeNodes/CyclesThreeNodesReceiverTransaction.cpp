@@ -62,7 +62,9 @@ TransactionResult::SharedConst CyclesThreeNodesReceiverTransaction::run()
             currentTransactionUUID(),
             commonNeighbors);
     } else {
-        info() << "There are no suitable nodes";
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+        debug() << "There are no suitable nodes";
+#endif
     }
     return resultDone();
 }

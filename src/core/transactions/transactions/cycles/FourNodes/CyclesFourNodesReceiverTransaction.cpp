@@ -42,7 +42,9 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run()
         warning() << "Neighbor " << mRequestMessage->contractorAddress()->fullAddress() << " is not a neighbor";
         return resultDone();
     }
-    info() << "Neighbor ID " << mNeighborID;
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+    debug() << "Neighbor ID " << mNeighborID;
+#endif
     if (!mTrustLinesManager->trustLineIsPresent(mNeighborID)) {
         warning() << "There is no TL with neighbor " << mRequestMessage->contractorAddress()->fullAddress();
         return resultDone();
@@ -62,7 +64,9 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run()
             currentTransactionUUID(),
             mSuitableNodes);
     } else {
-        info() << "There are no suitable nodes";
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+        debug() << "There are no suitable nodes";
+#endif
     }
 
     return resultDone();
@@ -72,7 +76,9 @@ void CyclesFourNodesReceiverTransaction::buildSuitableDebtorsForCycleNegativeBal
 {
     auto creditorBalance = mTrustLinesManager->balance(mNeighborID);
     if (creditorBalance <= TrustLine::kZeroBalance()) {
-        info() << "Not positive balance with contractor node";
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+        debug() << "Not positive balance with contractor node";
+#endif
         return;
     }
 
@@ -101,7 +107,9 @@ void CyclesFourNodesReceiverTransaction::buildSuitableDebtorsForCyclePositiveBal
 {
     auto creditorBalance = mTrustLinesManager->balance(mNeighborID);
     if (creditorBalance >= TrustLine::kZeroBalance()) {
-        info() << "Not negative balance with contractor node";
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+        debug() << "Not negative balance with contractor node";
+#endif
         return;
     }
 

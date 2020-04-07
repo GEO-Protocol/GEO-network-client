@@ -7,6 +7,7 @@
 #include "../logger/Logger.h"
 #include "../common/time/TimeUtils.h"
 #include "../subsystems_controller/SubsystemsController.h"
+#include "CyclesRunningParameters.h"
 
 #include <boost/signals2.hpp>
 #include <boost/asio.hpp>
@@ -37,6 +38,7 @@ public:
         const SerializedEquivalent equivalent,
         TransactionsScheduler *transactionsScheduler,
         as::io_service &ioService,
+        CyclesRunningParameters cyclesRunningParameters,
         Logger &logger,
         SubsystemsController *subsystemsController);
 
@@ -108,8 +110,6 @@ public:
     mutable BuildFiveNodesCyclesSignal buildFiveNodesCyclesSignal;
 
 private:
-    const uint32_t kSixNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
-    const uint32_t kFiveNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
 #ifdef TESTS
     const uint32_t kSignalStartTimeSecondsTests = 15;
     const uint32_t kSignalRepeatTimeSecondsTests = 10;
@@ -132,6 +132,7 @@ private:
     TransactionsScheduler *mTransactionScheduler;
     SerializedEquivalent mEquivalent;
     as::io_service &mIOService;
+    CyclesRunningParameters mCyclesRunningParameters;
 
     vector<Path::Shared> mThreeNodesCycles;
     vector<Path::Shared> mFourNodesCycles;

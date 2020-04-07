@@ -4,7 +4,6 @@
 #include "../trust_lines/manager/TrustLinesManager.h"
 #include "../delayed_tasks/TopologyCacheUpdateDelayedTask.h"
 #include "../paths/PathsManager.h"
-#include "../delayed_tasks/GatewayNotificationAndRoutingTablesDelayedTask.h"
 #include "../interface/events_interface/interface/EventsInterfaceManager.h"
 
 #include <map>
@@ -13,9 +12,6 @@ namespace as = boost::asio;
 namespace signals = boost::signals2;
 
 class EquivalentsSubsystemsRouter {
-
-public:
-    typedef signals::signal<void()> GatewayNotificationSignal;
 
 public:
     EquivalentsSubsystemsRouter(
@@ -60,9 +56,6 @@ public:
     void setMeAsGateway();
 #endif
 
-public:
-    mutable GatewayNotificationSignal gatewayNotificationSignal;
-
 protected:
     string logHeader() const;
 
@@ -73,12 +66,6 @@ protected:
     LoggerStream info() const;
 
     LoggerStream debug() const;
-
-private:
-    void subscribeForGatewayNotification(
-        GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationSignal &signal);
-
-    void onGatewayNotificationSlot();
 
 private:
     static const uint32_t kTopologyEventPortionSize = 100;
@@ -98,7 +85,6 @@ private:
     map<SerializedEquivalent, unique_ptr<TopologyCacheUpdateDelayedTask>> mTopologyCacheUpdateDelayedTasks;
     map<SerializedEquivalent, unique_ptr<MaxFlowCacheManager>> mMaxFlowCacheManagers;
     map<SerializedEquivalent, unique_ptr<PathsManager>> mPathsManagers;
-    unique_ptr<GatewayNotificationAndRoutingTablesDelayedTask> mGatewayNotificationAndRoutingTablesDelayedTask;
 
     set<ContractorID> mContractorsShouldBePinged;
 };

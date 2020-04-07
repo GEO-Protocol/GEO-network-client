@@ -77,7 +77,8 @@ private:
 
     int initResourcesManager();
 
-    int initTransactionsManager();
+    int initTransactionsManager(
+        const json &conf);
 
     int initStorageHandler();
 
