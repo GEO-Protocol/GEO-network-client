@@ -4,12 +4,14 @@ CyclesManager::CyclesManager(
     const SerializedEquivalent equivalent,
     TransactionsScheduler *transactionsScheduler,
     as::io_service &ioService,
+    CyclesRunningParameters cyclesRunningParameters,
     Logger &logger,
     SubsystemsController *subsystemsController) :
 
     mEquivalent(equivalent),
     mTransactionScheduler(transactionsScheduler),
     mIOService(ioService),
+    mCyclesRunningParameters(cyclesRunningParameters),
     mLog(logger),
     mSubsystemsController(subsystemsController),
     mIsCycleInProcess(false)
@@ -21,31 +23,35 @@ CyclesManager::CyclesManager(
 #ifdef TESTS
     timeStarted = kSignalStartTimeSecondsTests;
 #endif
-    mFiveNodesCycleTimer = make_unique<as::steady_timer>(
-        mIOService);
-    mFiveNodesCycleTimer->expires_from_now(
-        std::chrono::seconds(
-            timeStarted));
-    mFiveNodesCycleTimer->async_wait(
-        boost::bind(
-            &CyclesManager::runSignalFiveNodes,
-            this,
-            as::placeholders::error));
+    if (cyclesRunningParameters.mCyclesFiveNodesEnabled) {
+        mFiveNodesCycleTimer = make_unique<as::steady_timer>(
+            mIOService);
+        mFiveNodesCycleTimer->expires_from_now(
+            std::chrono::seconds(
+                timeStarted));
+        mFiveNodesCycleTimer->async_wait(
+            boost::bind(
+                &CyclesManager::runSignalFiveNodes,
+                this,
+                as::placeholders::error));
+    }
 
     timeStarted = (10 * 60) + (rand() % (60 * 60 * 6));
 #ifdef TESTS
     timeStarted = kSignalStartTimeSecondsTests;
 #endif
-    mSixNodesCycleTimer = make_unique<as::steady_timer>(
-        mIOService);
-    mSixNodesCycleTimer->expires_from_now(
-        std::chrono::seconds(
-            timeStarted));
-    mSixNodesCycleTimer->async_wait(
-        boost::bind(
-            &CyclesManager::runSignalSixNodes,
-            this,
-            as::placeholders::error));
+    if (cyclesRunningParameters.mCyclesSixNodesEnabled) {
+        mSixNodesCycleTimer = make_unique<as::steady_timer>(
+            mIOService);
+        mSixNodesCycleTimer->expires_from_now(
+            std::chrono::seconds(
+                timeStarted));
+        mSixNodesCycleTimer->async_wait(
+            boost::bind(
+                &CyclesManager::runSignalSixNodes,
+                this,
+                as::placeholders::error));
+    }
 
     mUpdatingTimer = make_unique<as::steady_timer>(
         mIOService);
@@ -174,7 +180,7 @@ void CyclesManager::runSignalFiveNodes(
         warning() << err.message();
     }
     mFiveNodesCycleTimer->cancel();
-    auto timeRepeated = kFiveNodesSignalRepeatTimeSeconds;
+    auto timeRepeated = mCyclesRunningParameters.mCyclesFiveNodesIntervalSec;
 #ifdef TESTS
     timeRepeated = kSignalRepeatTimeSecondsTests;
 #endif
@@ -196,7 +202,7 @@ void CyclesManager::runSignalSixNodes(
         warning() << err.message();
     }
     mSixNodesCycleTimer->cancel();
-    auto timeRepeated = kSixNodesSignalRepeatTimeSeconds;
+    auto timeRepeated = mCyclesRunningParameters.mCyclesSixNodesIntervalSec;
 #ifdef TESTS
     timeRepeated = kSignalRepeatTimeSecondsTests;
 #endif

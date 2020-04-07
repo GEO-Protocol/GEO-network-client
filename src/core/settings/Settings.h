@@ -38,6 +38,9 @@ public:
     json events(
         const json *conf = nullptr) const;
 
+    json cyclesClearing(
+        const json *conf = nullptr) const;
+
     json loadParsedJSON() const;
 };
 

@@ -1,9 +1,12 @@
 #include "GatewayNotificationAndRoutingTablesDelayedTask.h"
 
 GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationAndRoutingTablesDelayedTask(
+    bool enabled,
+    uint32_t updatingTimerPeriodDays,
     as::io_service &ioService,
     Logger &logger):
 
+    mUpdatingTimerPeriodDays(updatingTimerPeriodDays),
     mIOService(ioService),
     mLog(logger)
 {
@@ -17,14 +20,16 @@ GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationAndRoutingTab
 #ifdef TESTS
     timeStarted = 10;
 #endif
-    mNotificationTimer->expires_from_now(
-        chrono::seconds(
-            timeStarted));
-    mNotificationTimer->async_wait(
-        boost::bind(
-            &GatewayNotificationAndRoutingTablesDelayedTask::runSignalNotify,
-            this,
-            as::placeholders::error));
+    if (enabled) {
+        mNotificationTimer->expires_from_now(
+            chrono::seconds(
+                timeStarted));
+        mNotificationTimer->async_wait(
+            boost::bind(
+                &GatewayNotificationAndRoutingTablesDelayedTask::runSignalNotify,
+                this,
+                as::placeholders::error));
+    }
 }
 
 void GatewayNotificationAndRoutingTablesDelayedTask::runSignalNotify(
@@ -37,7 +42,7 @@ void GatewayNotificationAndRoutingTablesDelayedTask::runSignalNotify(
     mNotificationTimer->cancel();
     mNotificationTimer->expires_from_now(
         std::chrono::seconds(
-            kUpdatingTimerPeriodSeconds + rand() % (60 * 60 * 24)));
+            mUpdatingTimerPeriodDays * 24 * 60 * 60 + rand() % (60 * 60 * 24)));
 #ifdef TESTS
     mNotificationTimer->cancel();
     mNotificationTimer->expires_from_now(

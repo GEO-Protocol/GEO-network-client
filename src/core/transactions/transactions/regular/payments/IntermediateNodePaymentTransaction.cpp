@@ -721,7 +721,23 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCheckObser
         return runFinalReservationsNeighborConfirmation();
     }
 
-    // todo : add Payments_TTLProlongationResponse checking
+    if (contextIsValid(Message::Payments_TTLProlongationResponse, false)) {
+        debug() << "Receive TTL prolongation message";
+        const auto kMessage = popNextMessage<TTLProlongationResponseMessage>();
+        if (kMessage->state() == TTLProlongationResponseMessage::Continue) {
+            info() << "Transactions is still alive. Continue waiting for messages";
+            if (utc_now() - mTimeStarted > kMaxTransactionDuration()) {
+                return reject("Transaction duration time has expired. Rolling back");
+            }
+            return resultWaitForResourceAndMessagesTypes(
+                {BaseResource::ObservingBlockNumber},
+                {Message::Payments_TransactionPublicKeyHash,
+                 Message::Payments_TTLProlongationResponse},
+                maxNetworkDelay(1));
+        }
+        removeAllDataFromStorageConcerningTransaction();
+        return reject("Coordinator send TTL message with transaction finish state. Rolling Back");
+    }
 
     if (!resourceIsValid(BaseResource::ObservingBlockNumber)) {
         removeAllDataFromStorageConcerningTransaction();

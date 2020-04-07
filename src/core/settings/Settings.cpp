@@ -145,3 +145,19 @@ json Settings::events(
         return nullptr;
     }
 }
+
+json Settings::cyclesClearing(
+    const json *conf) const
+{
+    if (conf == nullptr) {
+        auto j = loadParsedJSON();
+        conf = &j;
+    }
+    try {
+        auto result = (*conf).at("cycles_clearing");
+        return result;
+    } catch (...) {
+        // todo : throw RuntimeError
+        return nullptr;
+    }
+}

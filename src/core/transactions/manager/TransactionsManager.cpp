@@ -15,6 +15,7 @@ TransactionsManager::TransactionsManager(
     FeaturesManager *featuresManager,
     EventsInterfaceManager *eventsInterfaceManager,
     TailManager *tailManager,
+    CyclesRunningParameters cyclesRunningParameters,
     Logger &logger,
     SubsystemsController *subsystemsController,
     TrustLinesInfluenceController *trustLinesInfluenceController) :
@@ -33,6 +34,7 @@ TransactionsManager::TransactionsManager(
     mSubsystemsController(subsystemsController),
     mTrustLinesInfluenceController(trustLinesInfluenceController),
     isPaymentTransactionsAllowedDueToObserving(false),
+    mCyclesRunningParameters(cyclesRunningParameters),
 
     mScheduler(
         new TransactionsScheduler(
@@ -46,6 +48,7 @@ TransactionsManager::TransactionsManager(
             mSubsystemsController,
             mIOService,
             mEquivalentsSubsystemsRouter->equivalents(),
+            cyclesRunningParameters,
             mLog))
 {
     subscribeForCommandResult(
@@ -61,7 +64,7 @@ TransactionsManager::TransactionsManager(
     subscribeForTryCloseNextCycleSignal(
         mScheduler->cycleCloserTransactionWasFinishedSignal);
     subscribeForGatewayNotificationSignal(
-        mEquivalentsSubsystemsRouter->gatewayNotificationSignal);
+        mEquivalentsCyclesSubsystemsRouter->gatewayNotificationSignal);
 
     try {
         loadTransactionsFromStorage();
@@ -2392,7 +2395,7 @@ void TransactionsManager::subscribeForProcessingPongMessage(
 }
 
 void TransactionsManager::subscribeForGatewayNotificationSignal(
-    EquivalentsSubsystemsRouter::GatewayNotificationSignal &signal)
+    EquivalentsCyclesSubsystemsRouter::GatewayNotificationSignal &signal)
 {
     signal.connect(
         boost::bind(
@@ -2543,10 +2546,12 @@ void TransactionsManager::onBuildCycleThreeNodesTransaction(
     set<ContractorID> &contractorsIDs,
     const SerializedEquivalent equivalent)
 {
-    for (const auto &contractorID : contractorsIDs) {
-        launchThreeNodesCyclesInitTransaction(
-            contractorID,
-            equivalent);
+    if (mCyclesRunningParameters.mCyclesThreeNodesEnabled) {
+        for (const auto &contractorID : contractorsIDs) {
+            launchThreeNodesCyclesInitTransaction(
+                contractorID,
+                equivalent);
+        }
     }
 }
 
@@ -2554,10 +2559,12 @@ void TransactionsManager::onBuildCycleFourNodesTransaction(
     set<ContractorID> &contractorsIDs,
     const SerializedEquivalent equivalent)
 {
-    for (const auto &contractorID : contractorsIDs) {
-        launchFourNodesCyclesInitTransaction(
-            contractorID,
-            equivalent);
+    if (mCyclesRunningParameters.mCyclesFourNodesEnabled) {
+        for (const auto &contractorID : contractorsIDs) {
+            launchFourNodesCyclesInitTransaction(
+                contractorID,
+                equivalent);
+        }
     }
 }
 

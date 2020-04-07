@@ -65,7 +65,9 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
                 mEquivalent,
                 mContractorsManager->idOnContractorSide(neighborID),
                 path);
-            info() << "send request message to neighbor " << neighborID;
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+            debug() << "send request message to neighbor " << neighborID;
+#endif
         }
     }
     else if (kCurrentDepth == 2) {
@@ -79,7 +81,9 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
             mEquivalent,
             path,
             boundaryNodes);
-        info() << "send response message to " << path.front()->fullAddress();
+#ifdef DEBUG_LOG_CYCLES_BUILDING_POCESSING
+        debug() << "send response message to " << path.front()->fullAddress();
+#endif
     }
     else {
         warning() << "Wrong path size " << (uint16_t)kCurrentDepth;

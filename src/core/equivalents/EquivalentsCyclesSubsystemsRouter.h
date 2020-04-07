@@ -5,6 +5,7 @@
 #include "../cycles/RoutingTableManager.h"
 #include "../transactions/scheduler/TransactionsScheduler.h"
 #include "../subsystems_controller/SubsystemsController.h"
+#include "../delayed_tasks/GatewayNotificationAndRoutingTablesDelayedTask.h"
 
 #include <map>
 
@@ -19,6 +20,7 @@ public:
     typedef signals::signal<void(
             const SerializedEquivalent equivalent,
             Path::Shared cycle)> CloseCycleSignal;
+    typedef signals::signal<void()> GatewayNotificationSignal;
 
 public:
     EquivalentsCyclesSubsystemsRouter(
@@ -26,6 +28,7 @@ public:
         SubsystemsController *subsystemsController,
         as::io_service &ioService,
         vector<SerializedEquivalent> equivalents,
+        CyclesRunningParameters cyclesRunningParameters,
         Logger &logger);
 
     CyclesManager* cyclesManager(
@@ -45,6 +48,8 @@ public:
     mutable BuildSixNodesCyclesSignal buildSixNodesCyclesSignal;
 
     mutable BuildFiveNodesCyclesSignal buildFiveNodesCyclesSignal;
+
+    mutable GatewayNotificationSignal gatewayNotificationSignal;
 
 protected:
     string logHeader() const;
@@ -69,6 +74,9 @@ private:
     void subscribeForClosingCycles(
         CyclesManager::CloseCycleSignal &signal);
 
+    void subscribeForGatewayNotification(
+        GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationSignal &signal);
+
     void onBuildCycleFiveNodesSlot(
         const SerializedEquivalent equivalent);
 
@@ -79,13 +87,17 @@ private:
         const SerializedEquivalent equivalent,
         Path::Shared cycle);
 
+    void onGatewayNotificationSlot();
+
 private:
     as::io_service &mIOService;
     TransactionsScheduler *mTransactionScheduler;
     SubsystemsController *mSubsystemsController;
+    CyclesRunningParameters mCyclesRunningParameters;
     Logger &mLogger;
     map<SerializedEquivalent, unique_ptr<CyclesManager>> mCyclesManagers;
     map<SerializedEquivalent, unique_ptr<RoutingTableManager>> mRoutingTablesManagers;
+    unique_ptr<GatewayNotificationAndRoutingTablesDelayedTask> mGatewayNotificationAndRoutingTablesDelayedTask;
 };
 
 

@@ -96,13 +96,6 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
         }
         trustLinesManager.second->clearContractorsShouldBePinged();
     }
-
-    mGatewayNotificationAndRoutingTablesDelayedTask = make_unique<GatewayNotificationAndRoutingTablesDelayedTask>(
-        mIOService,
-        mLogger);
-    subscribeForGatewayNotification(
-        mGatewayNotificationAndRoutingTablesDelayedTask->gatewayNotificationSignal);
-    info() << "Gateway Notification and Routing Tables Delayed Task is successfully initialized";
 }
 
 vector<SerializedEquivalent> EquivalentsSubsystemsRouter::equivalents() const
@@ -309,20 +302,6 @@ void EquivalentsSubsystemsRouter::sendTopologyEvent() const
             warning() << "Can't write topology event " << e.what();
         }
     }
-}
-
-void EquivalentsSubsystemsRouter::subscribeForGatewayNotification(
-    GatewayNotificationAndRoutingTablesDelayedTask::GatewayNotificationSignal &signal)
-{
-    signal.connect(
-        boost::bind(
-            &EquivalentsSubsystemsRouter::onGatewayNotificationSlot,
-            this));
-}
-
-void EquivalentsSubsystemsRouter::onGatewayNotificationSlot()
-{
-    gatewayNotificationSignal();
 }
 
 #ifdef TESTS

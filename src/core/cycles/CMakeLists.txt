@@ -6,7 +6,10 @@ set(SOURCE_FILES
         CyclesManager.cpp
 
         RoutingTableManager.h
-        RoutingTableManager.cpp)
+        RoutingTableManager.cpp
+
+        CyclesRunningParameters.h
+        CyclesRunningParameters.cpp)
 
 add_library(cycles ${SOURCE_FILES})
 target_link_libraries(cycles)
