@@ -418,10 +418,14 @@ int Core::initProvidingHandler(
     auto providersConf = mSettings->providers(&conf);
     try {
         vector<Provider::Shared> providers;
+        uint32_t addressUpdatingPeriod = 0;
+        uint32_t cachedAddressTTLSeconds = 0;
         if (providersConf == nullptr) {
             info() << "There are no providers in config";
         } else {
-            for (const auto &providerConf : providersConf) {
+            addressUpdatingPeriod = providersConf.at("address_updating_period_sec").get<uint32_t>();
+            cachedAddressTTLSeconds = providersConf.at("cached_addresses_ttl_sec").get<uint32_t>();
+            for (const auto &providerConf : providersConf.at("providers")) {
                 vector<pair<string, string>> providerAddressesStr;
                 for (const auto &providerAddressConf : providerConf.at("addresses")) {
                     providerAddressesStr.emplace_back(
@@ -439,6 +443,8 @@ int Core::initProvidingHandler(
 
         mProvidingHandler = make_unique<ProvidingHandler>(
             providers,
+            addressUpdatingPeriod,
+            cachedAddressTTLSeconds,
             mIOService,
             mContractorsManager->selfContractor(),
             *mLog);

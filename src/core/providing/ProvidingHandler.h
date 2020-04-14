@@ -24,6 +24,8 @@ public:
 public:
     ProvidingHandler(
         vector<Provider::Shared> &providers,
+        uint32_t updatingAddressPeriodSeconds,
+        uint32_t cachedAddressTTLSeconds,
         IOService &ioService,
         Contractor::Shared selfContractor,
         Logger &logger);
@@ -58,19 +60,6 @@ public:
 
 private:
     static const uint16_t kStartingAddressPeriodSeconds = 5;
-    static const uint16_t kUpdatingAddressPeriodSeconds = 60;
-
-    static const byte kResetCacheAddressHours = 0;
-    static const byte kResetCacheAddressMinutes = 0;
-    static const byte kResetCacheAddressSeconds = 10;
-
-    static Duration& kResetCacheAddressDuration() {
-        static auto duration = Duration(
-                kResetCacheAddressHours,
-                kResetCacheAddressMinutes,
-                kResetCacheAddressSeconds);
-        return duration;
-    }
 
 private:
     vector<Provider::Shared> mProviders;
@@ -78,6 +67,9 @@ private:
     Contractor::Shared mSelfContractor;
     as::steady_timer mUpdatingAddressTimer;
     as::steady_timer mCacheCleaningTimer;
+
+    uint32_t mUpdatingAddressPeriodSeconds;
+    uint32_t mCachedAddressTTLSeconds;
 
     map<string, IPv4WithPortAddress::Shared> mCachedAddresses;
     vector<pair<DateTime, string>> mTimesCache;

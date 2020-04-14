@@ -2,16 +2,22 @@
 
 ProvidingHandler::ProvidingHandler(
     vector<Provider::Shared> &providers,
+    uint32_t updatingAddressPeriodSeconds,
+    uint32_t cachedAddressTTLSeconds,
     IOService &ioService,
     Contractor::Shared selfContractor,
     Logger &logger) :
     LoggerMixin(logger),
     mProviders(providers),
+    mUpdatingAddressPeriodSeconds(updatingAddressPeriodSeconds),
+    mCachedAddressTTLSeconds(cachedAddressTTLSeconds),
     mUpdatingAddressTimer(ioService),
     mCacheCleaningTimer(ioService),
     mSelfContractor(selfContractor)
 {
 #ifdef DEBUG_LOG_PROVIDING_HANDLER
+    info() << "updatingAddressPeriodSeconds " << updatingAddressPeriodSeconds;
+    info() << "cachedAddressTTLSeconds " << cachedAddressTTLSeconds;
     info() << "Providers:";
     for (const auto &provider : mProviders) {
         info() << provider->info();
@@ -58,7 +64,7 @@ void ProvidingHandler::updateAddressForProviders(
 
     mUpdatingAddressTimer.expires_from_now(
         std::chrono::seconds(
-            +kUpdatingAddressPeriodSeconds));
+            mUpdatingAddressPeriodSeconds));
     mUpdatingAddressTimer.async_wait(
         boost::bind(
             &ProvidingHandler::updateAddressForProviders,
@@ -95,7 +101,7 @@ void ProvidingHandler::setCachedIPv4AddressForGNS(
             gnsAddress->fullAddress(),
             ipv4Address));
     mTimesCache.emplace_back(
-        utc_now() + kResetCacheAddressDuration(),
+        utc_now() + pt::seconds(mCachedAddressTTLSeconds),
         gnsAddress->fullAddress());
 #ifdef DEBUG_LOG_PROVIDING_HANDLER
     debug() << "setCachedIPv4AddressForGNS " << gnsAddress->fullAddress() << " "
