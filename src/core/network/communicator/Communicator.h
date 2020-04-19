@@ -103,6 +103,9 @@ protected:
     LoggerStream error() const
     noexcept;
 
+    LoggerStream warning() const
+    noexcept;
+
 protected:
     IOService &mIOService;
     unique_ptr<CommunicatorStorageHandler> mCommunicatorStorageHandler;
