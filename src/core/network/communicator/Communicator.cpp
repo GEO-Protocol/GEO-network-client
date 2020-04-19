@@ -220,6 +220,25 @@ void Communicator::onMessageReceived(
             message->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
         const auto kResultMaxFlowCalculationMessage =
                 static_pointer_cast<MaxFlowCalculationConfirmationMessage>(message);
+        if (kResultMaxFlowCalculationMessage->senderAddresses.at(0)->typeID() == BaseAddress::GNS) {
+            try {
+                auto ipv4Address = make_shared<IPv4WithPortAddress>(
+                    IPv4WithPortAddress(
+                        kResultMaxFlowCalculationMessage->senderIncomingIP()));
+                sendMessage(
+                    make_shared<MaxFlowCalculationConfirmationMessage>(
+                        kResultMaxFlowCalculationMessage->equivalent(),
+                        mContractorsManager->ownAddresses(),
+                        kResultMaxFlowCalculationMessage->confirmationID()),
+                    ipv4Address);
+                return;
+            } catch (ValueError &e) {
+                warning() << "Can't obtain IPv4 address from ResultMaxFlowCalculation message "
+                          << kResultMaxFlowCalculationMessage->senderIncomingIP()
+                          << ". Try send response to sender address "
+                          << kResultMaxFlowCalculationMessage->senderAddresses.at(0);
+            }
+        }
         sendMessage(
             make_shared<MaxFlowCalculationConfirmationMessage>(
                 kResultMaxFlowCalculationMessage->equivalent(),
@@ -352,4 +371,10 @@ LoggerStream Communicator::error() const
 noexcept
 {
     return mLog.error(logHeader());
+}
+
+LoggerStream Communicator::warning() const
+noexcept
+{
+    return mLog.warning(logHeader());
 }
