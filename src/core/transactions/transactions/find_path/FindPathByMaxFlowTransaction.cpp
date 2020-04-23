@@ -58,7 +58,7 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::sendRequestForColle
 
 TransactionResult::SharedConst FindPathByMaxFlowTransaction::processCollectingTopology()
 {
-    auto const contextSize = mContext.size();
+    auto const contextSize = mTailManager->getFlowTail().size();
     fillTopology();
     mCountProcessCollectingTopologyRun++;
     if (contextSize > 0 && mCountProcessCollectingTopologyRun <= kCountRunningProcessCollectingTopologyStage) {

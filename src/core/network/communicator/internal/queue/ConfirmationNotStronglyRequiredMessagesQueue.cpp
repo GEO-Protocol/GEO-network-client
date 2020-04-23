@@ -81,7 +81,7 @@ const size_t ConfirmationNotStronglyRequiredMessagesQueue::size() const
 void ConfirmationNotStronglyRequiredMessagesQueue::resetInternalTimeout()
     noexcept
 {
-    mNextTimeoutSeconds = 3;
+    mNextTimeoutSeconds = 4;
     mCountResendingAttempts = 0;
 }
 
