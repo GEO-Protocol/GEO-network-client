@@ -39,12 +39,24 @@ protected:
 private:
     TransactionResult::SharedConst runInitializationStage();
 
+    TransactionResult::SharedConst runAuditPendingStage();
+
     TransactionResult::SharedConst runNextAttemptStage();
+
+    TransactionResult::SharedConst runNextAttemptAuditPendingStage();
 
     TransactionResult::SharedConst runResponseProcessingStage();
 
+    TransactionResult::SharedConst runContractorPendingStage();
+
+    TransactionResult::SharedConst initializeAudit();
+
+    TransactionResult::SharedConst nextAttemptAudit();
+
 private:
     uint16_t mCountSendingAttempts;
+    uint16_t mCountPendingAttempts;
+    uint16_t mCountContractorPendingAttempts;
 };
 
 

@@ -149,6 +149,12 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             ResponseCycleMessage::RejectedDueContractorKeysAbsence);
     }
 
+    if (!mTrustLinesManager->trustLineIsActive(previousNodeID)) {
+        warning() << "Path is not valid: TL with previous node is not active. Rejected.";
+        return sendErrorMessageOnPreviousNodeRequest(
+            ResponseCycleMessage::Rejected);
+    }
+
     // Note: (copy of shared pointer is required)
     const auto kIncomingAmounts = mTrustLinesManager->availableIncomingCycleAmounts(previousNodeID);
     const auto kIncomingAmountWithReservations = kIncomingAmounts.first;
@@ -317,6 +323,12 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
         warning() << "There are no own keys on TL";
         return sendErrorMessageOnCoordinatorRequest(
             ResponseCycleMessage::RejectedDueOwnKeysAbsence);
+    }
+
+    if (!mTrustLinesManager->trustLineIsActive(nextNodeID)) {
+        warning() << "Path is not valid: TL with next node is not active. Rolled back.";
+        return sendErrorMessageOnCoordinatorRequest(
+            ResponseCycleMessage::Rejected);
     }
 
     // Note: copy of shared pointer is required

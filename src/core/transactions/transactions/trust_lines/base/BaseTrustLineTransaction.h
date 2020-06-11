@@ -50,6 +50,9 @@ protected:
         Initialization = 1,
         NextAttempt = 2,
         ResponseProcessing = 3,
+        Pending = 4,
+        ContractorPending = 5,
+        NextAttemptPending = 6,
     };
 
 protected:
@@ -67,6 +70,8 @@ protected:
 protected:
     static const uint32_t kWaitMillisecondsForResponse = 20000;
     static const uint16_t kMaxCountSendingAttempts = 3;
+    static const uint32_t kPendingPeriodInMilliseconds = 50000;
+    static const uint16_t kMaxPendingAttempts = 3;
 
 protected:
     ContractorsManager *mContractorsManager;

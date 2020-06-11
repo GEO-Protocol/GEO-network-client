@@ -263,6 +263,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
         return resultDone();
     }
 
+    if (!mTrustLinesManager->trustLineIsActive(mNextNodeID)) {
+        warning() << "Invalid TL state " << mTrustLinesManager->trustLineState(mNextNodeID);
+        mCyclesManager->addClosedTrustLine(
+            mContractorsManager->selfContractor()->mainAddress(),
+            mNextNode);
+        return resultDone();
+    }
+
     // Try reserve amount locally.
     mPathStats->shortageMaxFlow(mOutgoingAmount);
     mPathStats->setNodeState(
@@ -693,6 +701,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
 
     if (!mTrustLinesManager->trustLineContractorKeysPresent(mPreviousNodeID)) {
         warning() << "There are no contractor keys on TL";
+        rollBack();
+        informIntermediateNodesAboutTransactionFinish(
+            mPathStats->currentIntermediateNodeAndPos().second);
+        return resultDone();
+    }
+
+    if (!mTrustLinesManager->trustLineIsActive(mPreviousNodeID)) {
+        warning() << "Invalid TL state " << mTrustLinesManager->trustLineState(mPreviousNodeID);
         rollBack();
         informIntermediateNodesAboutTransactionFinish(
             mPathStats->currentIntermediateNodeAndPos().second);
