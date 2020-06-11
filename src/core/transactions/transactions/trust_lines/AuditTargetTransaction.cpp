@@ -120,6 +120,12 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
            ConfirmationMessage::Audit_IncorrectNumber);
     }
 
+    if (mTrustLines->isReservationsPresentOnTrustLine(mContractorID)) {
+        warning() << "There are some reservations on TL. Audit will be suspended";
+        return sendAuditErrorConfirmation(
+            ConfirmationMessage::ReservationsPresentOnTrustLine);
+    }
+
     // Trust line must be created (or updated) in the internal storage.
     // Also, history record must be written about this operation.
     // Both writes must be done atomically, so the IO transaction is used.

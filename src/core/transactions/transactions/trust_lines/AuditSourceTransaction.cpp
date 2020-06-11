@@ -21,7 +21,9 @@ AuditSourceTransaction::AuditSourceTransaction(
         featuresManager,
         trustLinesInfluenceController,
         logger),
-    mCountSendingAttempts(0)
+    mCountSendingAttempts(0),
+    mCountPendingAttempts(0),
+    mCountContractorPendingAttempts(0)
 {
     mAuditNumber = mTrustLines->auditNumber(mContractorID) + 1;
     mStep = Initialization;
@@ -48,7 +50,9 @@ AuditSourceTransaction::AuditSourceTransaction(
         featuresManager,
         trustLinesInfluenceController,
         logger),
-    mCountSendingAttempts(0)
+    mCountSendingAttempts(0),
+    mCountPendingAttempts(0),
+    mCountContractorPendingAttempts(0)
 {
     mAuditNumber = mTrustLines->auditNumber(mContractorID);
     mStep = NextAttempt;
@@ -60,11 +64,20 @@ TransactionResult::SharedConst AuditSourceTransaction::run()
         case Stages::Initialization: {
             return runInitializationStage();
         }
+        case Stages::Pending: {
+            return runAuditPendingStage();
+        }
         case Stages::NextAttempt: {
             return runNextAttemptStage();
         }
+        case Stages::NextAttemptPending: {
+            return runNextAttemptAuditPendingStage();
+        }
         case Stages::ResponseProcessing: {
             return runResponseProcessingStage();
+        }
+        case Stages::ContractorPending: {
+            return runContractorPendingStage();
         }
         default:
             throw ValueError(logHeader() + "::run: "
@@ -108,79 +121,68 @@ TransactionResult::SharedConst AuditSourceTransaction::runInitializationStage()
         mContractorID,
         TrustLine::AuditPending);
 
-    // note: io transaction would commit automatically on destructor call.
-    // there is no need to call commit manually.
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    auto keyChain = mKeysStore->keychain(
-        mTrustLines->trustLineID(mContractorID));
-    try {
-        auto ownPublicKeysHash = keyChain.ownPublicKeysHash(ioTransaction);
-        auto contractorPublicKeysHash = keyChain.contractorPublicKeysHash(ioTransaction);
-        auto serializedAuditData = getOwnSerializedAuditData(
-            ownPublicKeysHash,
-            contractorPublicKeysHash);
-        mOwnSignatureAndKeyNumber = keyChain.sign(
-            ioTransaction,
-            serializedAuditData.first,
-            serializedAuditData.second);
-
-        keyChain.saveOwnAuditPart(
-            ioTransaction,
-            mAuditNumber,
-            mOwnSignatureAndKeyNumber.second,
-            mOwnSignatureAndKeyNumber.first,
-            ownPublicKeysHash,
-            contractorPublicKeysHash,
-            mTrustLines->incomingTrustAmount(
-                mContractorID),
-            mTrustLines->outgoingTrustAmount(
-                mContractorID),
-            mTrustLines->balance(
-                mContractorID));
-
-        mTrustLines->setTrustLineAuditNumber(
-            mContractorID,
-            mAuditNumber);
-
-#ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(
-            BaseTransaction::AuditSourceTransactionType);
-        mTrustLinesInfluenceController->testTerminateProcessOnTargetStage(
-            BaseTransaction::AuditSourceTransactionType);
-#endif
-
-    } catch(IOError &e) {
-        ioTransaction->rollback();
-        mTrustLines->setTrustLineState(
-            mContractorID,
-            TrustLine::Active);
-        warning() << "Attempt to audit trust line to the node " << mContractorID << " failed. "
-                  << "Can't sign audit data. IO transaction can't be completed. "
-                  << "Details are: " << e.what();
-
-        // Rethrowing the exception,
-        // because the TA can't finish properly and no result may be returned.
-        throw e;
+    if (mTrustLines->isReservationsPresentOnTrustLine(mContractorID)) {
+        warning() << "There are some reservations on TL. Audit will be suspended";
+        mStep = Pending;
+        mCountPendingAttempts++;
+        return resultAwakeAfterMilliseconds(
+            kPendingPeriodInMilliseconds);
     }
 
-    // Notifying remote node about trust line state changed.
-    sendMessage<AuditMessage>(
-        mContractorID,
-        mEquivalent,
-        mContractorsManager->contractor(mContractorID),
-        mTransactionUUID,
-        mAuditNumber,
-        mTrustLines->incomingTrustAmount(mContractorID),
-        mTrustLines->outgoingTrustAmount(mContractorID),
-        mOwnSignatureAndKeyNumber.second,
-        mOwnSignatureAndKeyNumber.first);
-    mCountSendingAttempts++;
-    info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
+    return initializeAudit();
+}
 
-    mStep = ResponseProcessing;
-    return resultWaitForMessageTypes(
-        {Message::TrustLines_AuditConfirmation},
-        kWaitMillisecondsForResponse);
+TransactionResult::SharedConst AuditSourceTransaction::runAuditPendingStage()
+{
+    info() << "runAuditPendingStage with " << mContractorID << " attempt " << mCountPendingAttempts;
+
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
+        return resultDone();
+    }
+
+    try {
+        if (mTrustLines->trustLineState(mContractorID) != TrustLine::AuditPending) {
+            warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
+            return resultDone();
+        }
+
+    } catch (NotFoundError &e) {
+        warning() << "Attempt to audit not existing TL";
+        return resultDone();
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(mContractorID)) {
+        warning() << "There are no own keys";
+        return resultDone();
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineContractorKeysPresent(mContractorID)) {
+        warning() << "There are no contractor keys";
+        return resultDone();
+    }
+
+    if (mTrustLines->isReservationsPresentOnTrustLine(mContractorID)) {
+        warning() << "There are some reservations on TL. Audit will be suspended";
+        mCountPendingAttempts++;
+        if (mCountPendingAttempts > kMaxPendingAttempts) {
+            warning() << "Max pending attempts. TL will be conflicted";
+            auto ioTransaction = mStorageHandler->beginTransaction();
+            mTrustLines->setTrustLineState(
+                mContractorID,
+                TrustLine::ConflictResolving,
+                ioTransaction);
+            // todo run conflict resolving TA
+            return resultDone();
+        }
+
+        return resultAwakeAfterMilliseconds(
+            kPendingPeriodInMilliseconds);
+    }
+
+    return initializeAudit();
 }
 
 TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
@@ -217,53 +219,68 @@ TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptStage()
         return resultDone();
     }
 
-    // note: io transaction would commit automatically on destructor call.
-    // there is no need to call commit manually.
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    auto keyChain = mKeysStore->keychain(
-            mTrustLines->trustLineID(mContractorID));
-    try {
-        mOwnSignatureAndKeyNumber = keyChain.getSignatureAndKeyNumberForPendingAudit(
-            ioTransaction,
-            mAuditNumber);
-        debug() << "signature getting";
-
-#ifdef TESTS
-        mTrustLinesInfluenceController->testThrowExceptionOnSourceResumingStage(
-            BaseTransaction::AuditSourceTransactionType);
-        mTrustLinesInfluenceController->testTerminateProcessOnSourceResumingStage(
-            BaseTransaction::AuditSourceTransactionType);
-#endif
-
-    } catch(IOError &e) {
-        ioTransaction->rollback();
-        warning() << "Attempt to audit trust line to the node " << mContractorID << " failed. "
-                  << "Can't get audit data. IO transaction can't be completed. "
-                  << "Details are: " << e.what();
-
-        // Rethrowing the exception,
-        // because the TA can't finish properly and no result may be returned.
-        throw e;
+    if (mTrustLines->isReservationsPresentOnTrustLine(mContractorID)) {
+        warning() << "There are some reservations on TL. Audit will be suspended";
+        mStep = NextAttemptPending;
+        mCountPendingAttempts++;
+        return resultAwakeAfterMilliseconds(
+            kPendingPeriodInMilliseconds);
     }
 
-    // Notifying remote node about trust line state changed.
-    sendMessage<AuditMessage>(
-        mContractorID,
-        mEquivalent,
-        mContractorsManager->contractor(mContractorID),
-        mTransactionUUID,
-        mAuditNumber,
-        mTrustLines->incomingTrustAmount(mContractorID),
-        mTrustLines->outgoingTrustAmount(mContractorID),
-        mOwnSignatureAndKeyNumber.second,
-        mOwnSignatureAndKeyNumber.first);
-    mCountSendingAttempts++;
-    info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
+    return nextAttemptAudit();
+}
 
-    mStep = ResponseProcessing;
-    return resultWaitForMessageTypes(
-        {Message::TrustLines_AuditConfirmation},
-        kWaitMillisecondsForResponse);
+TransactionResult::SharedConst AuditSourceTransaction::runNextAttemptAuditPendingStage()
+{
+    info() << "runNextAttemptAuditPendingStage " << mContractorID << " attempt " << mCountPendingAttempts;
+
+    if (!mContractorsManager->contractorPresent(mContractorID)) {
+        warning() << "There is no contractor with requested id";
+        return resultDone();
+    }
+
+    try {
+        if (mTrustLines->trustLineState(mContractorID) != TrustLine::AuditPending) {
+            warning() << "Invalid TL state " << mTrustLines->trustLineState(mContractorID);
+            return resultDone();
+        }
+
+    } catch (NotFoundError &e) {
+        warning() << "Attempt to audit not existing TL";
+        return resultDone();
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineOwnKeysPresent(mContractorID)) {
+        warning() << "There are no own keys";
+        return resultDone();
+    }
+
+    // todo maybe check in storage (keyChain)
+    if (!mTrustLines->trustLineContractorKeysPresent(mContractorID)) {
+        warning() << "There are no contractor keys";
+        return resultDone();
+    }
+
+    if (mTrustLines->isReservationsPresentOnTrustLine(mContractorID)) {
+        warning() << "There are some reservations on TL. Audit will be suspended";
+        mCountPendingAttempts++;
+        if (mCountPendingAttempts > kMaxPendingAttempts) {
+            warning() << "Max pending attempts. TL will be conflicted";
+            auto ioTransaction = mStorageHandler->beginTransaction();
+            mTrustLines->setTrustLineState(
+                mContractorID,
+                TrustLine::ConflictResolving,
+                ioTransaction);
+            // todo run conflict resolving TA
+            return resultDone();
+        }
+
+        return resultAwakeAfterMilliseconds(
+            kPendingPeriodInMilliseconds);
+    }
+
+    return nextAttemptAudit();
 }
 
 TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStage()
@@ -327,10 +344,21 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
     if (message->state() == ConfirmationMessage::ReservationsPresentOnTrustLine) {
         info() << "Contractor's TL is not ready for audit yet";
         // message on communicator queue, wait for audit response after reservations committing or cancelling
-        // todo add timeout or count failed attempts for running conflict resolver TA
-        return resultWaitForMessageTypes(
-            {Message::TrustLines_AuditConfirmation},
-            kWaitMillisecondsForResponse);
+        if (mCountContractorPendingAttempts > kMaxPendingAttempts) {
+            warning() << "Max contractor pending attempts. TL will be conflicted";
+            auto ioTransaction = mStorageHandler->beginTransaction();
+            mTrustLines->setTrustLineState(
+                mContractorID,
+                TrustLine::ConflictResolving,
+                ioTransaction);
+            // todo run conflict resolving TA
+            return resultDone();
+        }
+        mStep = ContractorPending;
+        mCountContractorPendingAttempts++;
+        mCountSendingAttempts = 0;
+        return resultAwakeAfterMilliseconds(
+            kPendingPeriodInMilliseconds);
     }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
@@ -425,6 +453,174 @@ TransactionResult::SharedConst AuditSourceTransaction::runResponseProcessingStag
         false);
 
     return resultDone();
+}
+
+TransactionResult::SharedConst AuditSourceTransaction::runContractorPendingStage()
+{
+    info() << "runContractorPendingStage with " << mContractorID
+           << " attempt " << mCountContractorPendingAttempts;
+
+    // check if audit was cancelled
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorID));
+    try {
+        if (keyChain.isAuditWasCancelled(ioTransaction, mAuditNumber)) {
+            info() << "Audit was cancelled by other audit transaction";
+            return resultDone();
+        }
+    } catch (IOError &e) {
+        error() << "Attempt to check if audit was cancelled failed. "
+                << "IO transaction can't be completed. Details are: " << e.what();
+        throw e;
+    }
+
+    sendMessage<AuditMessage>(
+        mContractorID,
+        mEquivalent,
+        mContractorsManager->contractor(mContractorID),
+        mTransactionUUID,
+        mAuditNumber,
+        mTrustLines->incomingTrustAmount(mContractorID),
+        mTrustLines->outgoingTrustAmount(mContractorID),
+        mOwnSignatureAndKeyNumber.second,
+        mOwnSignatureAndKeyNumber.first);
+    info() << "Send message " << mCountSendingAttempts << " times";
+    mStep = ResponseProcessing;
+    return resultWaitForMessageTypes(
+        {Message::TrustLines_AuditConfirmation},
+        kWaitMillisecondsForResponse);
+
+}
+
+TransactionResult::SharedConst AuditSourceTransaction::initializeAudit()
+{
+    info() << "initializeAudit";
+    // note: io transaction would commit automatically on destructor call.
+    // there is no need to call commit manually.
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+            mTrustLines->trustLineID(mContractorID));
+    try {
+        auto ownPublicKeysHash = keyChain.ownPublicKeysHash(ioTransaction);
+        auto contractorPublicKeysHash = keyChain.contractorPublicKeysHash(ioTransaction);
+        auto serializedAuditData = getOwnSerializedAuditData(
+            ownPublicKeysHash,
+            contractorPublicKeysHash);
+        mOwnSignatureAndKeyNumber = keyChain.sign(
+            ioTransaction,
+            serializedAuditData.first,
+            serializedAuditData.second);
+
+        keyChain.saveOwnAuditPart(
+            ioTransaction,
+            mAuditNumber,
+            mOwnSignatureAndKeyNumber.second,
+            mOwnSignatureAndKeyNumber.first,
+            ownPublicKeysHash,
+            contractorPublicKeysHash,
+            mTrustLines->incomingTrustAmount(
+                mContractorID),
+            mTrustLines->outgoingTrustAmount(
+                mContractorID),
+            mTrustLines->balance(
+                mContractorID));
+
+        mTrustLines->setTrustLineAuditNumber(
+            mContractorID,
+            mAuditNumber);
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceInitializationStage(
+            BaseTransaction::AuditSourceTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnTargetStage(
+            BaseTransaction::AuditSourceTransactionType);
+#endif
+
+    } catch(IOError &e) {
+        ioTransaction->rollback();
+        mTrustLines->setTrustLineState(
+            mContractorID,
+            TrustLine::Active);
+        warning() << "Attempt to audit trust line to the node " << mContractorID << " failed. "
+                  << "Can't sign audit data. IO transaction can't be completed. "
+                  << "Details are: " << e.what();
+
+        // Rethrowing the exception,
+        // because the TA can't finish properly and no result may be returned.
+        throw e;
+    }
+
+    // Notifying remote node about trust line state changed.
+    sendMessage<AuditMessage>(
+        mContractorID,
+        mEquivalent,
+        mContractorsManager->contractor(mContractorID),
+        mTransactionUUID,
+        mAuditNumber,
+        mTrustLines->incomingTrustAmount(mContractorID),
+        mTrustLines->outgoingTrustAmount(mContractorID),
+        mOwnSignatureAndKeyNumber.second,
+        mOwnSignatureAndKeyNumber.first);
+    mCountSendingAttempts++;
+    info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
+
+    mStep = ResponseProcessing;
+    return resultWaitForMessageTypes(
+        {Message::TrustLines_AuditConfirmation},
+        kWaitMillisecondsForResponse);
+}
+
+TransactionResult::SharedConst AuditSourceTransaction::nextAttemptAudit()
+{
+    info() << "nextAttemptAudit";
+    // note: io transaction would commit automatically on destructor call.
+    // there is no need to call commit manually.
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto keyChain = mKeysStore->keychain(
+        mTrustLines->trustLineID(mContractorID));
+    try {
+        mOwnSignatureAndKeyNumber = keyChain.getSignatureAndKeyNumberForPendingAudit(
+            ioTransaction,
+            mAuditNumber);
+        debug() << "signature getting";
+
+#ifdef TESTS
+        mTrustLinesInfluenceController->testThrowExceptionOnSourceResumingStage(
+            BaseTransaction::AuditSourceTransactionType);
+        mTrustLinesInfluenceController->testTerminateProcessOnSourceResumingStage(
+            BaseTransaction::AuditSourceTransactionType);
+#endif
+
+    } catch(IOError &e) {
+        ioTransaction->rollback();
+        warning() << "Attempt to audit trust line to the node " << mContractorID << " failed. "
+                  << "Can't get audit data. IO transaction can't be completed. "
+                  << "Details are: " << e.what();
+
+        // Rethrowing the exception,
+        // because the TA can't finish properly and no result may be returned.
+        throw e;
+    }
+
+    // Notifying remote node about trust line state changed.
+    sendMessage<AuditMessage>(
+        mContractorID,
+        mEquivalent,
+        mContractorsManager->contractor(mContractorID),
+        mTransactionUUID,
+        mAuditNumber,
+        mTrustLines->incomingTrustAmount(mContractorID),
+        mTrustLines->outgoingTrustAmount(mContractorID),
+        mOwnSignatureAndKeyNumber.second,
+        mOwnSignatureAndKeyNumber.first);
+    mCountSendingAttempts++;
+    info() << "Send audit message signed by key " << mOwnSignatureAndKeyNumber.second;
+
+    mStep = ResponseProcessing;
+    return resultWaitForMessageTypes(
+        {Message::TrustLines_AuditConfirmation},
+        kWaitMillisecondsForResponse);
 }
 
 const string AuditSourceTransaction::logHeader() const

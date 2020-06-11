@@ -375,6 +375,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
         return tryProcessNextPath();
     }
 
+    if (!mTrustLinesManager->trustLineIsActive(receiverID)) {
+        warning() << "Invalid TL state " << mTrustLinesManager->trustLineState(receiverID);
+        pathStats->setUnusable();
+        return tryProcessNextPath();
+    }
+
     // todo maybe check in storage (keyChain)
     if (!mTrustLinesManager->trustLineOwnKeysPresent(receiverID)) {
         warning() << "There are no own keys on TL with receiver. Switching to another path.";
@@ -533,6 +539,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         warning() << "There are no own keys on TL with neighbor. Switching to another path.";
         path->setUnusable();
         mNeighborsKeysProblem = true;
+        throw CallChainBreakException("Break call chain for preventing call loop");
+    }
+
+    if (!mTrustLinesManager->trustLineIsActive(neighborID)) {
+        warning() << "Invalid TL state " << mTrustLinesManager->trustLineState(neighborID);
+        path->setUnusable();
         throw CallChainBreakException("Break call chain for preventing call loop");
     }
 

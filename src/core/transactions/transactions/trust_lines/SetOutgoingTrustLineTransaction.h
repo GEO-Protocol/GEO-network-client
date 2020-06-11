@@ -68,7 +68,13 @@ protected:
 private:
     TransactionResult::SharedConst runInitializationStage();
 
+    TransactionResult::SharedConst runAuditPendingStage();
+
     TransactionResult::SharedConst runResponseProcessingStage();
+
+    TransactionResult::SharedConst runContractorPendingStage();
+
+    TransactionResult::SharedConst initializeAudit();
 
 private:
     SetOutgoingTrustLineCommand::Shared mCommand;
@@ -78,6 +84,8 @@ private:
     SubsystemsController *mSubsystemsController;
 
     uint16_t mCountSendingAttempts;
+    uint16_t mCountPendingAttempts;
+    uint16_t mCountContractorPendingAttempts;
 
     TrustLineAmount mPreviousOutgoingAmount;
     TrustLine::TrustLineState mPreviousState;
