@@ -301,6 +301,8 @@ protected:
 
     static const uint16_t kMaxRebuildingAttemptsCount = 3;
 
+    static const uint16_t kMaxCountParticipantKeysResending = 3;
+
 protected:
     EventsInterfaceManager *mEventsInterfaceManager;
 
@@ -357,6 +359,7 @@ protected:
 
     // count failed attempts to connect with Receiver
     uint8_t mCountReceiverInaccessible;
+    uint8_t mCountParticipantKeysResending;
 
     bool mIsPaymentTransactionsAllowedDueToObserving;
 };

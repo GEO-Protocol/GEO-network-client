@@ -38,6 +38,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     mPreviousInaccessibleNodesCount(0),
     mPreviousRejectedTrustLinesCount(0),
     mRebuildingAttemptsCount(0),
+    mCountParticipantKeysResending(1),
     mNeighborsKeysProblem(false),
     mParticipantsKeysProblem(false),
     mIsPaymentTransactionsAllowedDueToObserving(isPaymentTransactionsAllowedDueToObserving)
@@ -325,7 +326,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantVote,
          Message::Payments_TTLProlongationRequest},
-        maxNetworkDelay(6));
+        maxNetworkDelay(4));
 }
 
 void CoordinatorPaymentTransaction::initAmountsReservationOnNextPath()
@@ -1685,8 +1686,35 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
 #endif
 
     if (! contextIsValid(Message::Payments_ParticipantVote)) {
-        removeAllDataFromStorageConcerningTransaction();
-        return reject("Coordinator didn't receive all messages with votes");
+        warning() << "Coordinator didn't receive all messages with votes";
+
+        if (mCountParticipantKeysResending >= kMaxCountParticipantKeysResending) {
+            removeAllDataFromStorageConcerningTransaction();
+            return reject("Too many resending attempts");
+        }
+
+        info() << "Resend participants public keys " << mCountParticipantKeysResending << " times";
+        // resend message with all public keys to participants which don't send participant vote
+        for (const auto &paymentNodeIdAndAddress : mPaymentParticipants) {
+            if (paymentNodeIdAndAddress.first == kCoordinatorPaymentNodeID) {
+                continue;
+            }
+            if (mParticipantsSignatures.find(paymentNodeIdAndAddress.first) != mParticipantsSignatures.end()) {
+                continue;
+            }
+            info() << "Resend to " << paymentNodeIdAndAddress.second->mainAddress()->fullAddress();
+            sendMessage<ParticipantsPublicKeysMessage>(
+                paymentNodeIdAndAddress.second->mainAddress(),
+                mEquivalent,
+                mContractorsManager->ownAddresses(),
+                currentTransactionUUID(),
+                mParticipantsPublicKeys);
+        }
+        mCountParticipantKeysResending++;
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantVote,
+             Message::Payments_TTLProlongationRequest},
+            maxNetworkDelay(2));
     }
 
     const auto kMessage = popNextMessage<ParticipantVoteMessage>();
@@ -1755,7 +1783,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantVote,
          Message::Payments_TTLProlongationRequest},
-        maxNetworkDelay(3));
+        maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionResponse()

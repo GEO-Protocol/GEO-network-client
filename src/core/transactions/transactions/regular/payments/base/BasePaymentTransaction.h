@@ -501,6 +501,7 @@ protected:
     map<string, pair<PaymentNodeID, lamport::KeyHash::Shared>> mParticipantsPublicKeysHashes;
     map<PaymentNodeID, lamport::PublicKey::Shared> mParticipantsPublicKeys;
     map<PaymentNodeID, lamport::Signature::Shared> mParticipantsSignatures;
+    lamport::Signature::Shared mSignedTransaction;
 
     // this fields are used by coordinators on final amount configuration clarification
     bool mAllNodesSentConfirmationOnFinalAmountsConfiguration;

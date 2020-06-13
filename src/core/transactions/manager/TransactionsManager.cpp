@@ -1829,20 +1829,6 @@ void TransactionsManager::launchHistoryPaymentsTransaction(
     HistoryPaymentsCommand::Shared command)
 {
     try {
-        mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for launchHistoryPaymentsTransaction "
-                "with equivalent " << command->equivalent() << " Details are: " << e.what();
-        prepareAndSchedule(
-            make_shared<NoEquivalentTransaction>(
-                command,
-                mLog),
-            false,
-            false,
-            false);
-        return;
-    }
-    try {
         prepareAndSchedule(
             make_shared<HistoryPaymentsTransaction>(
                 command,
@@ -1877,20 +1863,6 @@ void TransactionsManager::launchAdditionalHistoryPaymentsTransaction(
     HistoryAdditionalPaymentsCommand::Shared command)
 {
     try {
-        mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for launchAdditionalHistoryPaymentsTransaction "
-                "with equivalent " << command->equivalent() << " Details are: " << e.what();
-        prepareAndSchedule(
-            make_shared<NoEquivalentTransaction>(
-                command,
-                mLog),
-            false,
-            false,
-            false);
-        return;
-    }
-    try {
         prepareAndSchedule(
             make_shared<HistoryAdditionalPaymentsTransaction>(
                 command,
@@ -1912,20 +1884,6 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(
     HistoryTrustLinesCommand::Shared command)
 {
     try {
-        mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for launchHistoryTrustLinesTransaction "
-                "with equivalent " << command->equivalent() << " Details are: " << e.what();
-        prepareAndSchedule(
-            make_shared<NoEquivalentTransaction>(
-                command,
-                mLog),
-            false,
-            false,
-            false);
-        return;
-    }
-    try {
         prepareAndSchedule(
             make_shared<HistoryTrustLinesTransaction>(
                 command,
@@ -1946,20 +1904,6 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(
 void TransactionsManager::launchHistoryWithContractorTransaction(
     HistoryWithContractorCommand::Shared command)
 {
-    try {
-        mEquivalentsSubsystemsRouter->trustLinesManager(command->equivalent());
-    } catch (NotFoundError &e) {
-        error() << "There are no subsystems for launchHistoryWithContractorTransaction "
-                "with equivalent " << command->equivalent() << " Details are: " << e.what();
-        prepareAndSchedule(
-            make_shared<NoEquivalentTransaction>(
-                command,
-                mLog),
-            false,
-            false,
-            false);
-        return;
-    }
     try {
         prepareAndSchedule(
             make_shared<HistoryWithContractorTransaction>(
