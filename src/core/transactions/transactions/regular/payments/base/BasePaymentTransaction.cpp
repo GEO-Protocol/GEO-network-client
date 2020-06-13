@@ -350,7 +350,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyCheckingStage()
 {
     debug() << "runVotesConsistencyCheckingStage";
-    if (contextIsValid(Message::Payments_ParticipantsPublicKeys), false) {
+    if (contextIsValid(Message::Payments_ParticipantsPublicKeys, false)) {
         warning() << "Receive ParticipantsPublicKeys again";
         auto participantsPublicKeyMessage = popNextMessage<ParticipantsPublicKeysMessage>();
         auto coordinator = make_shared<Contractor>(participantsPublicKeyMessage->senderAddresses);

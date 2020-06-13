@@ -359,7 +359,7 @@ protected:
 
     // count failed attempts to connect with Receiver
     uint8_t mCountReceiverInaccessible;
-    uint8_t mCountParticipantKeysResending;
+    uint16_t mCountParticipantKeysResending;
 
     bool mIsPaymentTransactionsAllowedDueToObserving;
 };
