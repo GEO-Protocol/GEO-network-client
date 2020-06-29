@@ -1296,6 +1296,16 @@ TrustLinesManager::TrustLineActionType TrustLinesManager::checkTrustLineAfterTra
         // AuditSource TA run on node which pay
         if (isActionInitiator) {
             info() << "Audit signal";
+            auto keyChain = mKeysStore->keychain(
+                trustLineID(
+                    contractorID));
+            if (keyChain.ownKeysCriticalCount(ioTransaction)) {
+                setIsOwnKeysPresent(
+                    contractorID,
+                    false);
+                info() << "Public key sharing signal priority";
+                return TrustLineActionType::KeysSharing;
+            }
             return TrustLineActionType::Audit;
         } else {
             return TrustLineActionType::NoActions;
