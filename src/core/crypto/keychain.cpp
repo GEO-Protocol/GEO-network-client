@@ -216,6 +216,9 @@ namespace crypto {
     bool TrustLineKeychain::isInitialAuditCondition(
         IOTransaction::Shared ioTransaction)
     {
+        if (ioTransaction->auditHandler()->getActualAuditNumber(mTrustLineID) == TrustLine::kInitialAuditNumber + 1) {
+            return true;
+        }
         auto ownValidKeysCount = ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID);
         auto contractorKeysCount = ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID);
         return ownValidKeysCount == kDefaultKeysSetSize -1 and contractorKeysCount == kDefaultKeysSetSize - 1;
