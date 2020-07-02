@@ -774,6 +774,9 @@ void TrustLinesManager::updateTrustLineFromStorage(
 
     } catch (NotFoundError&) {
         info() << "init TL in storage with contractor " << kTrustLine->contractorID();
+        kTrustLine->setIncomingTrustAmount(TrustLine::kZeroAmount());
+        kTrustLine->setOutgoingTrustAmount(TrustLine::kZeroAmount());
+        kTrustLine->setBalance(TrustLine::kZeroBalance());
     }
 
     mTrustLines[kTrustLine->contractorID()] = kTrustLine;

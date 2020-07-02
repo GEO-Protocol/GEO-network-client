@@ -73,8 +73,8 @@ public:
         const TrustLineID trustLineID);
 
     void deleteKeyByHashExceptSequenceNumber(
-            KeyHash::Shared keyHash,
-            const KeyNumber keysSetSequenceNumber);
+        KeyHash::Shared keyHash,
+        const KeyNumber keysSetSequenceNumber);
 
     vector<KeyHash::Shared> publicKeyHashesLessThanSetNumber(
         const TrustLineID trustLineID,
