@@ -199,8 +199,9 @@ namespace crypto {
         return ioTransaction->ownKeysHandler()->availableKeysCnt(mTrustLineID) > 0;
     }
 
-    bool TrustLineKeychain::allContractorKeysPresent(
+    bool TrustLineKeychain::allContractorKeysReceive(
         IOTransaction::Shared ioTransaction,
+        KeyNumber currentKeysSetSequenceNumber,
         KeysCount contractorKeysCount)
     {
         return ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID) == contractorKeysCount;

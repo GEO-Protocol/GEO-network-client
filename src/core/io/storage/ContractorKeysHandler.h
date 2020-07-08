@@ -52,6 +52,10 @@ public:
     KeysCount availableKeysCnt(
         const TrustLineID trustLineID);
 
+    KeysCount sequenceKeysCnt(
+        const TrustLineID trustLineID,
+        KeyNumber keysSetSequenceNumber);
+
     void removeUnusedKeys(
         const TrustLineID trustLineID);
 
