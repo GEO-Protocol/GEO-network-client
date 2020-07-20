@@ -69,7 +69,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
                 mTrustLines->setTrustLineState(
                     mContractorID,
                     TrustLine::Active);
-                mAuditNumber = mTrustLines->auditNumber(mContractorID);
+                mAuditNumber = mTrustLines->auditNumber(mContractorID) + 1;
                 info() << "Previous audit was successfully cancelled";
             } catch (ValueError &e) {
                 info() << "Attempt to remove previous audit from the node " << mContractorID << " failed. "

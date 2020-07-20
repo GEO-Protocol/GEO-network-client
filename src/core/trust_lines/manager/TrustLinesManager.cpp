@@ -777,6 +777,7 @@ void TrustLinesManager::updateTrustLineFromStorage(
         kTrustLine->setIncomingTrustAmount(TrustLine::kZeroAmount());
         kTrustLine->setOutgoingTrustAmount(TrustLine::kZeroAmount());
         kTrustLine->setBalance(TrustLine::kZeroBalance());
+        kTrustLine->setAuditNumber(TrustLine::kInitialAuditNumber);
     }
 
     mTrustLines[kTrustLine->contractorID()] = kTrustLine;
