@@ -204,7 +204,8 @@ namespace crypto {
         KeyNumber currentKeysSetSequenceNumber,
         KeysCount contractorKeysCount)
     {
-        return ioTransaction->contractorKeysHandler()->availableKeysCnt(mTrustLineID) == contractorKeysCount;
+        return ioTransaction->contractorKeysHandler()->sequenceKeysCnt(
+            mTrustLineID, currentKeysSetSequenceNumber) == contractorKeysCount;
     }
 
     bool TrustLineKeychain::ownKeysCriticalCount(
