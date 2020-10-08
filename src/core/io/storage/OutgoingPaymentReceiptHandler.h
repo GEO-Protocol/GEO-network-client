@@ -48,6 +48,9 @@ public:
     void deleteRecords(
         const TrustLineID trustLineID);
 
+    void deleteRecords(
+        KeyHash::Shared keyHash);
+
     bool isContainsKeyHash(
         KeyHash::Shared keyHash) const;
 

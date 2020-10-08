@@ -345,6 +345,35 @@ void OutgoingPaymentReceiptHandler::deleteRecords(
     }
 }
 
+void OutgoingPaymentReceiptHandler::deleteRecords(
+    KeyHash::Shared keyHash)
+{
+    string query = "DELETE FROM " + mTableName + " WHERE own_public_key_hash = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("OutgoingPaymentReceiptHandler::deleteRecordsByKeyHash: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 1, keyHash->data(),
+                           (int)KeyHash::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("OutgoingPaymentReceiptHandler::deleteRecordsByKeyHash: "
+                          "Bad binding of OwnPublicKeyHash; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "deleting is completed successfully";
+#endif
+    } else {
+        throw IOError("OutgoingPaymentReceiptHandler::deleteRecordsByKeyHash: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+}
+
 bool OutgoingPaymentReceiptHandler::isContainsKeyHash(
     KeyHash::Shared keyHash) const
 {
