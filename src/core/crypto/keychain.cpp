@@ -792,7 +792,7 @@ namespace crypto {
             auditNumber);
         for (const auto &outgoingReceipt : outgoingReceipts) {
             ioTransaction->outgoingPaymentReceiptHandler()->deleteRecords(
-                outgoingReceipt->transactionUUID());
+                outgoingReceipt->keyHash());
             if (!isReceiptsPresent(ioTransaction, outgoingReceipt->transactionUUID())) {
                 ioTransaction->paymentParticipantsVotesHandler()->deleteRecords(
                     outgoingReceipt->transactionUUID());
@@ -810,7 +810,7 @@ namespace crypto {
             auditNumber);
         for (const auto &incomingReceipt : incomingReceipts) {
             ioTransaction->incomingPaymentReceiptHandler()->deleteRecords(
-                incomingReceipt->transactionUUID());
+                incomingReceipt->keyHash());
             if (!isReceiptsPresent(ioTransaction, incomingReceipt->transactionUUID())) {
                 ioTransaction->paymentParticipantsVotesHandler()->deleteRecords(
                     incomingReceipt->transactionUUID());
