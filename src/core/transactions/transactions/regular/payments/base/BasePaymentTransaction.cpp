@@ -295,6 +295,8 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         auto serializedOwnVotesData = getSerializedParticipantsVotesData(
             make_shared<Contractor>(
                 mContractorsManager->ownAddresses()));
+        debug() << "Data prepared fro signing";
+
         mSignedTransaction = mKeysStore->signPaymentTransaction(
             ioTransaction,
             currentTransactionUUID(),
