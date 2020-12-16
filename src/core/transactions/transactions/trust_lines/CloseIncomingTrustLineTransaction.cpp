@@ -101,6 +101,16 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runInitializat
 
     if (mTrustLines->isReservationsPresentOnTrustLine(mContractorID)) {
         warning() << "There are some reservations on TL. Audit will be suspended";
+        auto incomingReservations = mTrustLines->reservationsFromContractor(mContractorID);
+        for (auto &incomingReservation : incomingReservations) {
+            info() << "Incoming reservation " << incomingReservation->transactionUUID()
+                   << " " << incomingReservation->amount();
+        }
+        auto outgoingReservations = mTrustLines->reservationsToContractor(mContractorID);
+        for (auto &outgoingReservation : outgoingReservations) {
+            info() << "Outgoing reservation " << outgoingReservation->transactionUUID()
+                   << " " << outgoingReservation->amount();
+        }
         mStep = Pending;
         mCountPendingAttempts++;
         return resultAwakeAfterMilliseconds(
@@ -147,6 +157,16 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::runAuditPendin
 
     if (mTrustLines->isReservationsPresentOnTrustLine(mContractorID)) {
         warning() << "There are some reservations on TL. Audit will be suspended";
+        auto incomingReservations = mTrustLines->reservationsFromContractor(mContractorID);
+        for (auto &incomingReservation : incomingReservations) {
+            info() << "Incoming reservation " << incomingReservation->transactionUUID()
+                   << " " << incomingReservation->amount();
+        }
+        auto outgoingReservations = mTrustLines->reservationsToContractor(mContractorID);
+        for (auto &outgoingReservation : outgoingReservations) {
+            info() << "Outgoing reservation " << outgoingReservation->transactionUUID()
+                   << " " << outgoingReservation->amount();
+        }
         mCountPendingAttempts++;
         if (mCountPendingAttempts > kMaxPendingAttempts) {
             warning() << "Max pending attempts. TL will be conflicted";
