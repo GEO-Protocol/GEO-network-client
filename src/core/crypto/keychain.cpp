@@ -73,13 +73,19 @@ namespace crypto {
         BytesShared dataForSign,
         size_t dataForSignBytesCount)
     {
-        auto privateKey = ioTransaction->paymentKeysHandler()->getOwnPrivateKey(
-            transactionUUID);
-        debug() << "Key is ready fro signing";
-        return make_shared<Signature>(
-            dataForSign.get(),
-            dataForSignBytesCount,
-            privateKey);
+        try {
+            auto privateKey = ioTransaction->paymentKeysHandler()->getOwnPrivateKey(
+                transactionUUID);
+            debug() << "Key is ready fro signing";
+            return make_shared<Signature>(
+                dataForSign.get(),
+                dataForSignBytesCount,
+                privateKey);
+        } catch (NotFoundError &e) {
+            warning() << "Can't get key for transaction " << transactionUUID.stringUUID()
+                      << ". Details: " << e.what();
+            return nullptr;
+        }
     }
 
     LoggerStream Keystore::info() const
