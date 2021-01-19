@@ -302,6 +302,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
             currentTransactionUUID(),
             serializedOwnVotesData.first,
             serializedOwnVotesData.second);
+        if (mSignedTransaction == nullptr) {
+            removeAllDataFromStorageConcerningTransaction();
+            return reject("Can't sign transaction. Reject");
+        }
         debug() << "Voted +";
         mTransactionIsVoted = true;
 

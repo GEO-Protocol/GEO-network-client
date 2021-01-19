@@ -1149,6 +1149,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
                 currentTransactionUUID(),
                 serializedOwnVotesData.first,
                 serializedOwnVotesData.second);
+            if (ownSignature == nullptr) {
+                removeAllDataFromStorageConcerningTransaction();
+                return reject("Can't sign transaction. Rolling back");
+            }
             mParticipantsSignatures.insert(
                 make_pair(
                     kCoordinatorPaymentNodeID,

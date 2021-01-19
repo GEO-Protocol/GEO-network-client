@@ -1760,6 +1760,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
                 currentTransactionUUID(),
                 serializedOwnVotesData.first,
                 serializedOwnVotesData.second);
+            if (ownSign == nullptr) {
+                removeAllDataFromStorageConcerningTransaction();
+                return reject("Can't sign transaction. Rolling back");
+            }
             mParticipantsSignatures.insert(
                 make_pair(
                     kCoordinatorPaymentNodeID,
