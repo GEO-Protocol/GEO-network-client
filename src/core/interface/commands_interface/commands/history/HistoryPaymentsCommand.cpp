@@ -158,8 +158,9 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
                             addUUID8Digits,
                             addUUID4Digits,
                             addUUID12Digits))
+                > char_(kTokensSeparator)
                 >(
-                    parserString::string("null")[paymentRecordUUIDNull] |
+                    parserString::string("null")[paymentTransactionUUIDNull] |
                     UUIDLexeme<
                         decltype(addTransactionUUID8Digits),
                         decltype(addTransactionUUID4Digits),
