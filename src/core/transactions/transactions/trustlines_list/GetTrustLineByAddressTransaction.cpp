@@ -37,6 +37,7 @@ TransactionResult::SharedConst GetTrustLineByAddressTransaction::run()
     ss << kContractorTrustLine->state() << kTokensSeparator;
     ss << kContractorTrustLine->isOwnKeysPresent() << kTokensSeparator;
     ss << kContractorTrustLine->isContractorKeysPresent() << kTokensSeparator;
+    ss << kContractorTrustLine->currentAuditNumber() << kTokensSeparator;
     ss << kContractorTrustLine->incomingTrustAmount() << kTokensSeparator;
     ss << kContractorTrustLine->outgoingTrustAmount() << kTokensSeparator;
     ss << kContractorTrustLine->balance();

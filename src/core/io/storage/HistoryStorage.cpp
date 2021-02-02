@@ -1127,6 +1127,44 @@ vector<PaymentRecord::Shared> HistoryStorage::paymentRecordsByCommandUUID(
     return result;
 }
 
+vector<PaymentRecord::Shared> HistoryStorage::paymentRecordsByTransactionUUID(
+    const TransactionUUID &transactionUUID)
+{
+    vector<PaymentRecord::Shared> result;
+    string query = "SELECT operation_uuid, operation_timestamp, record_body, record_body_bytes_count FROM "
+                   + mMainTableName + " WHERE record_type = ? AND operation_uuid = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::paymentRecordsByTransactionUUID: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_bind_int(stmt, 1, Record::PaymentRecordType);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::paymentRecordsByTransactionUUID: "
+                          "Bad binding of RecordType; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_bind_blob(stmt, 2, transactionUUID.data, TransactionUUID::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::paymentRecordsByTransactionUUID: "
+                          "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+        result.push_back(
+            deserializePaymentRecord(
+                0,
+                stmt));
+        return result;
+    }
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
 bool HistoryStorage::whetherOperationWasConducted(
     const TransactionUUID &transactionUUID)
 {
