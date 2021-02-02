@@ -17,6 +17,14 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::run()
 {
     auto ioTransaction = mStorageHandler->beginTransaction();
 
+    if (mCommand->isPaymentRecordTransactionUUIDPresent()) {
+        auto const paymentRecords = ioTransaction->historyStorage()->paymentRecordsByTransactionUUID(
+            mCommand->paymentRecordTransactionUUID());
+        if (paymentRecords.size() > 1) {
+            warning() << "Count transactions with requested transactionUUID is more than one";
+        }
+        return resultOk(paymentRecords);
+    }
     if (mCommand->isPaymentRecordCommandUUIDPresent()) {
         auto const paymentRecords = ioTransaction->historyStorage()->paymentRecordsByCommandUUID(
             mCommand->paymentRecordCommandUUID());

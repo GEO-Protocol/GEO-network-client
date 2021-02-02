@@ -9,7 +9,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         identifier())
 {
     uint32_t flagLow = 0, flagHigh = 0, flag4 = 0, flag8 =0 , flag12 = 0;
-    std::string lowBoundaryAmount, highBoundaryAmount, paymentRecordCommandUUID;
+    std::string lowBoundaryAmount, highBoundaryAmount, paymentRecordCommandUUID, paymentRecordTransactionUUID;
     auto check = [&](auto &ctx) {
         if(_attr(ctx) == kCommandsSeparator || _attr(ctx) == kTokensSeparator) {
             throw ValueError("HistoryPaymentsCommand: input is empty.");
@@ -87,6 +87,36 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
             return;
         } else { paymentRecordCommandUUID += _attr(ctx);}
     };
+
+    auto paymentTransactionUUIDNull = [&](auto &ctx){
+        mIsPaymentRecordTransactionUUIDPresent = false;
+    };
+    auto addTransactionUUID8Digits = [&](auto &ctx) {
+        flag8++;
+        if(flag8 > 9 || (_attr(ctx) == '-' && flag8 < 9)) {
+            throw ValueError("HistoryPaymentsCommand: Transaction UUID expect 8 digits.");
+        }
+        mIsPaymentRecordTransactionUUIDPresent = true;
+        paymentRecordTransactionUUID += _attr(ctx);
+    };
+    auto addTransactionUUID4Digits = [&](auto &ctx) {
+        flag4++;
+        if(flag4 >5 || (_attr(ctx) == '-' && flag4 < 5)) {
+            throw ValueError("HistoryPaymentsCommand: Transaction UUID expect 4 digits.");
+        } else if(_attr(ctx) == '-') {
+            flag4 = 0;
+        }
+        paymentRecordTransactionUUID += _attr(ctx);
+    };
+    auto addTransactionUUID12Digits = [&](auto &ctx) {
+        flag12++;
+        if(flag12 >13 || (_attr(ctx) == kTokensSeparator && flag12 < 13)) {
+            throw ValueError("HistoryPaymentsCommand: Transaction UUID expect 12 digits.");
+        } else if(_attr(ctx) == kTokensSeparator) {
+            return;
+        } else { paymentRecordTransactionUUID += _attr(ctx);}
+    };
+
     auto equivalentParse = [&](auto &ctx) {
         mEquivalent = _attr(ctx);
     };
@@ -128,6 +158,15 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
                             addUUID8Digits,
                             addUUID4Digits,
                             addUUID12Digits))
+                >(
+                    parserString::string("null")[paymentRecordUUIDNull] |
+                    UUIDLexeme<
+                        decltype(addTransactionUUID8Digits),
+                        decltype(addTransactionUUID4Digits),
+                        decltype(addTransactionUUID12Digits)>(
+                            addTransactionUUID8Digits,
+                            addTransactionUUID4Digits,
+                            addTransactionUUID12Digits))
                 > char_(kTokensSeparator)
                 > *(int_[equivalentParse])
                 > eol > eoi));
@@ -140,6 +179,9 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         }
         if(mIsPaymentRecordCommandUUIDPresent){
             mPaymentRecordCommandUUID = boost::lexical_cast<uuids::uuid>(paymentRecordCommandUUID);
+        }
+        if(mIsPaymentRecordTransactionUUIDPresent){
+            mPaymentRecordTransactionUUID = boost::lexical_cast<uuids::uuid>(paymentRecordTransactionUUID);
         }
 
     } catch(...) {
@@ -211,6 +253,16 @@ const CommandUUID& HistoryPaymentsCommand::paymentRecordCommandUUID() const
 const bool HistoryPaymentsCommand::isPaymentRecordCommandUUIDPresent() const
 {
     return mIsPaymentRecordCommandUUIDPresent;
+}
+
+const TransactionUUID& HistoryPaymentsCommand::paymentRecordTransactionUUID() const
+{
+    return mPaymentRecordTransactionUUID;
+}
+
+const bool HistoryPaymentsCommand::isPaymentRecordTransactionUUIDPresent() const
+{
+    return mIsPaymentRecordTransactionUUIDPresent;
 }
 
 const SerializedEquivalent HistoryPaymentsCommand::equivalent() const

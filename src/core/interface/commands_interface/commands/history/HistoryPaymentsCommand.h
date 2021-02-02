@@ -3,6 +3,7 @@
 
 #include "../BaseUserCommand.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
+#include "../../../../transactions/transactions/base/TransactionUUID.h"
 
 class HistoryPaymentsCommand : public BaseUserCommand {
 
@@ -43,6 +44,10 @@ public:
 
     const bool isPaymentRecordCommandUUIDPresent() const;
 
+    const TransactionUUID &paymentRecordTransactionUUID() const;
+
+    const bool isPaymentRecordTransactionUUIDPresent() const;
+
     const SerializedEquivalent equivalent() const;
 
 private:
@@ -61,6 +66,8 @@ private:
     bool mIsHighBoundaryAmountPresent;
     CommandUUID mPaymentRecordCommandUUID;
     bool mIsPaymentRecordCommandUUIDPresent;
+    TransactionUUID mPaymentRecordTransactionUUID;
+    bool mIsPaymentRecordTransactionUUIDPresent;
     SerializedEquivalent mEquivalent;
 };
 

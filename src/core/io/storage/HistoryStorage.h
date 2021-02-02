@@ -74,6 +74,9 @@ public:
     vector<PaymentRecord::Shared> paymentRecordsByCommandUUID(
         const CommandUUID &commandUUID);
 
+    vector<PaymentRecord::Shared> paymentRecordsByTransactionUUID(
+        const TransactionUUID &transactionUUID);
+
     vector<PaymentAdditionalRecord::Shared> allPaymentAdditionalRecords(
         const SerializedEquivalent equivalent,
         size_t recordsCount,
