@@ -162,6 +162,22 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             ResponseMessage::Rejected);
     }
 
+    if (!mTrustLinesManager->trustLineOwnKeysPresent(senderID)) {
+        warning() << "There are no own keys. Rejected";
+        return sendErrorMessageOnPreviousNodeRequest(
+            kNeighbor,
+            kReservation.first,
+            ResponseMessage::RejectedDueContractorKeysAbsence);
+    }
+
+    if (!mTrustLinesManager->trustLineContractorKeysPresent(senderID)) {
+        warning() << "There are no contractor keys. Rejected";
+        return sendErrorMessageOnPreviousNodeRequest(
+            kNeighbor,
+            kReservation.first,
+            ResponseMessage::RejectedDueContractorKeysAbsence);
+    }
+
     // update local reservations during amounts from coordinator
     if (!updateReservations(vector<pair<PathID, ConstSharedTrustLineAmount>>(
         mMessage->finalAmountsConfiguration().begin() + 1,
@@ -177,14 +193,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             ResponseMessage::Closed);
     }
     debug() << "All reservations were updated";
-
-    if (!mTrustLinesManager->trustLineContractorKeysPresent(senderID)) {
-        warning() << "There are no contractor keys on TL";
-        return sendErrorMessageOnPreviousNodeRequest(
-            kNeighbor,
-            kReservation.first,
-            ResponseMessage::RejectedDueContractorKeysAbsence);
-    }
 
     const auto kIncomingAmount = mTrustLinesManager->incomingTrustAmountConsideringReservations(senderID);
     TrustLineAmount kReservationAmount =
@@ -285,6 +293,12 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     // todo maybe check in storage (keyChain)
     if (!mTrustLinesManager->trustLineOwnKeysPresent(nextNodeID)) {
         warning() << "There are no own keys on TL";
+        return sendErrorMessageOnCoordinatorRequest(
+            ResponseMessage::RejectedDueOwnKeysAbsence);
+    }
+
+    if (!mTrustLinesManager->trustLineContractorKeysPresent(nextNodeID)) {
+        warning() << "There are no contractor keys on TL";
         return sendErrorMessageOnCoordinatorRequest(
             ResponseMessage::RejectedDueOwnKeysAbsence);
     }

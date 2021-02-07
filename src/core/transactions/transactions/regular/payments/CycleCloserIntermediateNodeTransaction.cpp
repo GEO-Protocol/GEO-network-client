@@ -143,16 +143,22 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             ResponseCycleMessage::Rejected);
     }
 
+    if (!mTrustLinesManager->trustLineIsActive(previousNodeID)) {
+        warning() << "Path is not valid: TL with previous node is not active. Rejected.";
+        return sendErrorMessageOnPreviousNodeRequest(
+            ResponseCycleMessage::Rejected);
+    }
+
     if (!mTrustLinesManager->trustLineContractorKeysPresent(previousNodeID)) {
         warning() << "There are no contractor keys on TL";
         return sendErrorMessageOnPreviousNodeRequest(
             ResponseCycleMessage::RejectedDueContractorKeysAbsence);
     }
 
-    if (!mTrustLinesManager->trustLineIsActive(previousNodeID)) {
-        warning() << "Path is not valid: TL with previous node is not active. Rejected.";
+    if (!mTrustLinesManager->trustLineOwnKeysPresent(previousNodeID)) {
+        warning() << "There are no own keys on TL";
         return sendErrorMessageOnPreviousNodeRequest(
-            ResponseCycleMessage::Rejected);
+            ResponseCycleMessage::RejectedDueContractorKeysAbsence);
     }
 
     // Note: (copy of shared pointer is required)
@@ -318,6 +324,12 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
             ResponseCycleMessage::Rejected);
     }
 
+    if (!mTrustLinesManager->trustLineIsActive(nextNodeID)) {
+        warning() << "Path is not valid: TL with next node is not active. Rolled back.";
+        return sendErrorMessageOnCoordinatorRequest(
+            ResponseCycleMessage::Rejected);
+    }
+
     // todo maybe check in storage (keyChain)
     if (!mTrustLinesManager->trustLineOwnKeysPresent(nextNodeID)) {
         warning() << "There are no own keys on TL";
@@ -325,10 +337,10 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
             ResponseCycleMessage::RejectedDueOwnKeysAbsence);
     }
 
-    if (!mTrustLinesManager->trustLineIsActive(nextNodeID)) {
-        warning() << "Path is not valid: TL with next node is not active. Rolled back.";
+    if (!mTrustLinesManager->trustLineContractorKeysPresent(nextNodeID)) {
+        warning() << "There are no contractor keys on TL";
         return sendErrorMessageOnCoordinatorRequest(
-            ResponseCycleMessage::Rejected);
+            ResponseCycleMessage::RejectedDueOwnKeysAbsence);
     }
 
     // Note: copy of shared pointer is required

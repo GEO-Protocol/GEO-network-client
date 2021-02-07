@@ -120,11 +120,13 @@ PrivateKey* PaymentKeysHandler::getOwnPrivateKey(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
+        info() << "Before private key deserializing";
         auto result = new PrivateKey((byte*)sqlite3_column_blob(stmt, 0));
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
         return result;
     } else {
+        info() << "Private key was not found";
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
         throw NotFoundError("PaymentKeysHandler::getOwnPrivateKey: "
