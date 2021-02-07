@@ -52,7 +52,7 @@ private:
 
 protected:
     // these constants should be the same as in PublicKeysSharingSourceTransaction
-    static const uint32_t kWaitMillisecondsForResponse = 20000;
+    static const uint32_t kWaitMillisecondsForResponse = 5000;
     static const uint16_t kMaxCountSendingAttempts = 3;
 
 private:
