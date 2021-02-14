@@ -122,6 +122,7 @@ PrivateKey* PaymentKeysHandler::getOwnPrivateKey(
     if (rc == SQLITE_ROW) {
         info() << "Before private key deserializing";
         auto result = new PrivateKey((byte*)sqlite3_column_blob(stmt, 0));
+        info() << "Private key deserialized";
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
         return result;
