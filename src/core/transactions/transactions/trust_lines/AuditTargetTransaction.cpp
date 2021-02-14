@@ -147,20 +147,26 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
 
     if (mAuditNumber - mMessage->auditNumber() == 1) {
         info() << "Contractor send current audit " << mMessage->auditNumber();
-        mOwnSignatureAndKeyNumber = keyChain.getCurrentAuditSignatureAndKeyNumber(ioTransaction);
-        // Sending confirmation back.
-        sendMessageWithTemporaryCaching<AuditResponseMessage>(
-            mContractorID,
-            Message::TrustLines_Audit,
-            kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
-            mEquivalent,
-            mContractorsManager->contractor(mContractorID),
-            currentTransactionUUID(),
-            mOwnSignatureAndKeyNumber.second,
-            mOwnSignatureAndKeyNumber.first);
+        if (keyChain.isAuditWasCancelled(ioTransaction, mAuditNumber)) {
+            info() << "Current audit was cancelled";
+            keyChain.removeCancelledOwnAuditPart(ioTransaction);
+            info() << "Cancelled audit removed. Continue.";
+        } else {
+            mOwnSignatureAndKeyNumber = keyChain.getCurrentAuditSignatureAndKeyNumber(ioTransaction);
+            // Sending confirmation back.
+            sendMessageWithTemporaryCaching<AuditResponseMessage>(
+                mContractorID,
+                Message::TrustLines_Audit,
+                kWaitMillisecondsForResponse / 1000 * kMaxCountSendingAttempts,
+                mEquivalent,
+                mContractorsManager->contractor(mContractorID),
+                currentTransactionUUID(),
+                mOwnSignatureAndKeyNumber.second,
+                mOwnSignatureAndKeyNumber.first);
 
-        info() << "Send audit again message signed by key " << mOwnSignatureAndKeyNumber.second;
-        return resultDone();
+            info() << "Send audit again message signed by key " << mOwnSignatureAndKeyNumber.second;
+            return resultDone();
+        }
     }
 
     mPreviousIncomingAmount = mTrustLines->incomingTrustAmount(mContractorID);
