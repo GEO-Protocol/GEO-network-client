@@ -1714,7 +1714,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantVote,
              Message::Payments_TTLProlongationRequest},
-            maxNetworkDelay(2));
+            maxNetworkDelay(4));
     }
 
     const auto kMessage = popNextMessage<ParticipantVoteMessage>();
