@@ -95,10 +95,6 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
         return resultKeysError();
     }
 
-    mTrustLines->setTrustLineState(
-        mContractorID,
-        TrustLine::AuditPending);
-
     if (mTrustLines->isReservationsPresentOnTrustLine(mContractorID)) {
         warning() << "There are some reservations on TL. Audit will be suspended";
         auto incomingReservations = mTrustLines->reservationsFromContractor(mContractorID);
@@ -112,6 +108,9 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::runInitializatio
                    << " " << outgoingReservation->amount();
         }
         mStep = Pending;
+        mTrustLines->setTrustLineState(
+            mContractorID,
+            TrustLine::AuditPending);
         mCountPendingAttempts++;
         return resultAwakeAfterMilliseconds(
             kPendingPeriodInMilliseconds);
@@ -433,6 +432,9 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::initializeAudit(
     info() << "initializeAudit";
     mPreviousOutgoingAmount = mTrustLines->outgoingTrustAmount(mContractorID);
     mPreviousState = mTrustLines->trustLineState(mContractorID);
+    mTrustLines->setTrustLineState(
+        mContractorID,
+        TrustLine::AuditPending);
 
     // Trust line must be updated in the internal storage.
     // Also, history record must be written about this operation.
@@ -478,6 +480,9 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::initializeAudit(
     } catch (ValueError &) {
         warning() << "Attempt to set outgoing trust line to the node " << mContractorID << " failed. "
                   << "Cannot open TL with zero amount.";
+        mTrustLines->setTrustLineState(
+            mContractorID,
+            mPreviousState);
         return resultProtocolError();
 
     }
