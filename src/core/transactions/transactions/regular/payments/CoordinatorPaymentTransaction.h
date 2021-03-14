@@ -301,7 +301,7 @@ protected:
 
     static const uint16_t kMaxRebuildingAttemptsCount = 3;
 
-    static const uint16_t kMaxCountParticipantKeysResending = 3;
+    static const uint16_t kMaxCountParticipantKeysResending = 5;
 
 protected:
     EventsInterfaceManager *mEventsInterfaceManager;
