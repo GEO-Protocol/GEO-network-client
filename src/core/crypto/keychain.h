@@ -299,6 +299,9 @@ public:
         IOTransaction::Shared ioTransaction,
         const AuditNumber auditNumber);
 
+    bool isActualAuditFull(
+        IOTransaction::Shared ioTransaction);
+
     pair<lamport::Signature::Shared, KeyNumber> getSignatureAndKeyNumberForPendingAudit(
         IOTransaction::Shared ioTransaction,
         const AuditNumber auditNumber);
