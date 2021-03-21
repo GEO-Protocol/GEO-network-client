@@ -147,7 +147,7 @@ TransactionResult::SharedConst AuditTargetTransaction::run()
 
     if (mAuditNumber - mMessage->auditNumber() == 1) {
         info() << "Contractor send current audit " << mMessage->auditNumber();
-        if (keyChain.isAuditWasCancelled(ioTransaction, mAuditNumber)) {
+        if (!keyChain.isActualAuditFull(ioTransaction)) {
             info() << "Current audit was cancelled";
             keyChain.removeCancelledOwnAuditPart(ioTransaction);
             info() << "Cancelled audit removed. Continue.";

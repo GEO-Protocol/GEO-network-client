@@ -494,6 +494,14 @@ namespace crypto {
         return false;
     }
 
+    bool TrustLineKeychain::isActualAuditFull(
+        IOTransaction::Shared ioTransaction)
+    {
+        auto actualAudit = ioTransaction->auditHandler()->getActualAuditFull(
+            mTrustLineID);
+        return actualAudit->contractorSignature() != nullptr;
+    }
+
     pair<lamport::Signature::Shared, KeyNumber> TrustLineKeychain::getSignatureAndKeyNumberForPendingAudit(
         IOTransaction::Shared ioTransaction,
         const AuditNumber auditNumber)

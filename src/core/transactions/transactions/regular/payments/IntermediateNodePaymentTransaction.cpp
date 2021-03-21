@@ -884,7 +884,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCheckObser
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsPublicKeys,
              Message::Payments_TTLProlongationResponse},
-            maxNetworkDelay(5)); // todo : need discuss this parameter (5)
+            maxNetworkDelay(7)); // todo : need discuss this parameter (7)
     }
 
     mStep = Coordinator_FinalAmountsConfigurationConfirmation;
@@ -1001,7 +1001,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsPublicKeys,
              Message::Payments_TTLProlongationResponse},
-            maxNetworkDelay(5)); // todo : need discuss this parameter (5)
+            maxNetworkDelay(7)); // todo : need discuss this parameter (7)
     }
 
     // not all neighbors sent theirs reservations
