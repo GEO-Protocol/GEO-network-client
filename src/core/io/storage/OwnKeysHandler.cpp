@@ -173,8 +173,15 @@ const KeyNumber OwnKeysHandler::maxKeySetSequenceNumber(
 pair<PrivateKey*, KeyNumber> OwnKeysHandler::nextAvailableKey(
     const TrustLineID trustLineID)
 {
+    // keys_set_sequence_number is pinned to the current (max) keys set on purpose:
+    // "number" restarts from 0 on every new keys set, so without this filter a stray
+    // is_valid=1 row left over from an already superseded set (e.g. after a duplicated
+    // keys-sharing round) could be picked instead of the intended one.
     string query = "SELECT private_key, number FROM " + mTableName
-                   + " WHERE trust_line_id = ? AND is_valid = 1 ORDER BY number ASC LIMIT 1;";
+                   + " WHERE trust_line_id = ? AND is_valid = 1 "
+                     "AND keys_set_sequence_number = (SELECT MAX(keys_set_sequence_number) FROM "
+                   + mTableName + " WHERE trust_line_id = ?) "
+                     "ORDER BY number ASC LIMIT 1;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -185,6 +192,11 @@ pair<PrivateKey*, KeyNumber> OwnKeysHandler::nextAvailableKey(
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::nextAvailableKey: "
                           "Bad binding of Trust Line ID; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 2, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::nextAvailableKey: "
+                          "Bad binding of Trust Line ID (current keys set); sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
@@ -209,7 +221,11 @@ void OwnKeysHandler::invalidKey(
     const KeyNumber number,
     const Signature::Shared signature)
 {
-    string query = "UPDATE " + mTableName + " SET is_valid = 0, private_key = ? WHERE trust_line_id = ? AND number = ?;";
+    // scoped to the current (max) keys set, see the comment in nextAvailableKey
+    string query = "UPDATE " + mTableName + " SET is_valid = 0, private_key = ? "
+                   "WHERE trust_line_id = ? AND number = ? "
+                   "AND keys_set_sequence_number = (SELECT MAX(keys_set_sequence_number) FROM "
+                   + mTableName + " WHERE trust_line_id = ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -230,6 +246,11 @@ void OwnKeysHandler::invalidKey(
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::invalidKey: "
                           "Bad binding of Number; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 4, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::invalidKey: "
+                          "Bad binding of Trust Line ID (current keys set); sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
@@ -290,8 +311,11 @@ const PublicKey::Shared OwnKeysHandler::getPublicKey(
     const TrustLineID trustLineID,
     const KeyNumber keyNumber)
 {
+    // scoped to the current (max) keys set, see the comment in nextAvailableKey
     string query = "SELECT public_key FROM  " + mTableName
-                   + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1;";
+                   + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1 "
+                     "AND keys_set_sequence_number = (SELECT MAX(keys_set_sequence_number) FROM "
+                   + mTableName + " WHERE trust_line_id = ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -307,6 +331,11 @@ const PublicKey::Shared OwnKeysHandler::getPublicKey(
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::getPublicKey: "
                           "Bad binding of Number; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 3, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::getPublicKey: "
+                          "Bad binding of Trust Line ID (current keys set); sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
@@ -366,8 +395,11 @@ const KeyHash::Shared OwnKeysHandler::getPublicKeyHash(
     const TrustLineID trustLineID,
     const KeyNumber keyNumber)
 {
+    // scoped to the current (max) keys set, see the comment in nextAvailableKey
     string query = "SELECT hash FROM  " + mTableName
-                   + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1;";
+                   + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1 "
+                     "AND keys_set_sequence_number = (SELECT MAX(keys_set_sequence_number) FROM "
+                   + mTableName + " WHERE trust_line_id = ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -383,6 +415,11 @@ const KeyHash::Shared OwnKeysHandler::getPublicKeyHash(
     if (rc != SQLITE_OK) {
         throw IOError("OwnKeysHandler::getPublicKeyHash: "
                           "Bad binding of Number; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 3, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("OwnKeysHandler::getPublicKeyHash: "
+                          "Bad binding of Trust Line ID (current keys set); sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_step(stmt);

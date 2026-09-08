@@ -154,7 +154,14 @@ void ContractorKeysHandler::invalidKey(
     const TrustLineID trustLineID,
     const KeyNumber number)
 {
-    string query = "UPDATE " + mTableName + " SET is_valid = 0 WHERE trust_line_id = ? AND number = ?;";
+    // keys_set_sequence_number is pinned to the current (max) keys set on purpose:
+    // "number" restarts from 0 on every new keys set, so without this filter a stray
+    // is_valid=1 row left over from an already superseded set (e.g. after a duplicated
+    // keys-sharing round) could be affected instead of the intended one.
+    string query = "UPDATE " + mTableName + " SET is_valid = 0 "
+                   "WHERE trust_line_id = ? AND number = ? "
+                   "AND keys_set_sequence_number = (SELECT MAX(keys_set_sequence_number) FROM "
+                   + mTableName + " WHERE trust_line_id = ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -170,6 +177,11 @@ void ContractorKeysHandler::invalidKey(
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::invalidKey: "
                           "Bad binding of Number; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 3, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::invalidKey: "
+                          "Bad binding of Trust Line ID (current keys set); sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
@@ -189,7 +201,8 @@ void ContractorKeysHandler::invalidKeyByHash(
     const TrustLineID trustLineID,
     const KeyHash::Shared keyHash)
 {
-    string query = "UPDATE " + mTableName + " SET is_valid = 0 WHERE trust_line_id = ? AND number = ?;";
+    // hash is the table's PRIMARY KEY, so it alone is enough to identify the row unambiguously
+    string query = "UPDATE " + mTableName + " SET is_valid = 0 WHERE trust_line_id = ? AND hash = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -204,7 +217,7 @@ void ContractorKeysHandler::invalidKeyByHash(
     rc = sqlite3_bind_blob(stmt, 2, keyHash->data(), (int)KeyHash::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::invalidKeyByHash: "
-                          "Bad binding of Number; sqlite error: " + to_string(rc));
+                          "Bad binding of Hash; sqlite error: " + to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
@@ -224,8 +237,11 @@ PublicKey::Shared ContractorKeysHandler::keyByNumber(
     const TrustLineID trustLineID,
     const KeyNumber number)
 {
+    // scoped to the current (max) keys set, see the comment in invalidKey
     string query = "SELECT public_key FROM " + mTableName
-                   + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1;";
+                   + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1 "
+                     "AND keys_set_sequence_number = (SELECT MAX(keys_set_sequence_number) FROM "
+                   + mTableName + " WHERE trust_line_id = ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -241,6 +257,11 @@ PublicKey::Shared ContractorKeysHandler::keyByNumber(
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::keyByNumber: "
                           "Bad binding of Number; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 3, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::keyByNumber: "
+                          "Bad binding of trustLineID (current keys set); sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
@@ -296,8 +317,11 @@ const KeyHash::Shared ContractorKeysHandler::keyHashByNumber(
     const TrustLineID trustLineID,
     const KeyNumber number)
 {
+    // scoped to the current (max) keys set, see the comment in invalidKey
     string query = "SELECT hash FROM " + mTableName
-                   + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1;";
+                   + " WHERE trust_line_id = ? AND number = ? AND is_valid = 1 "
+                     "AND keys_set_sequence_number = (SELECT MAX(keys_set_sequence_number) FROM "
+                   + mTableName + " WHERE trust_line_id = ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -313,6 +337,11 @@ const KeyHash::Shared ContractorKeysHandler::keyHashByNumber(
     if (rc != SQLITE_OK) {
         throw IOError("ContractorKeysHandler::keyHashByNumber: "
                           "Bad binding of Number; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 3, trustLineID);
+    if (rc != SQLITE_OK) {
+        throw IOError("ContractorKeysHandler::keyHashByNumber: "
+                          "Bad binding of trustLineID (current keys set); sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
